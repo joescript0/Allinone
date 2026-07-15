@@ -1,0 +1,5372 @@
+[
+    {
+        "date": "2026-06-07",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-07",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-07",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 4,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-08",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-08",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-08",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 4,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-09",
+        "horaire": "11h00 - 18h00",
+        "service": "journée",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-09",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-09",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 4,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-10",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-10",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 3,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-10",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-11",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-11",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 3,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-11",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-12",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-12",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 3,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-12",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-13",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 2,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-13",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-13",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-14",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 2,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-14",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-14",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-15",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 2,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-15",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-15",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-16",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-16",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-16",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 4,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-17",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-17",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-17",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 4,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-18",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-18",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-18",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 4,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-19",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-19",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 3,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-19",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-20",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-20",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 3,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-20",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-21",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-21",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 3,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-21",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-22",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 2,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-22",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-22",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-23",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 2,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-23",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-23",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-24",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 2,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-24",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-24",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-25",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-25",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-25",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 4,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-26",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-26",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-26",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 4,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-27",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-27",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-27",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 4,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-28",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-28",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 3,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-28",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-29",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-29",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 3,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-29",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-30",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-30",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 3,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-06-30",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-01",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 2,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-01",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-01",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-02",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 2,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-02",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-02",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-03",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 2,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-03",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-03",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 4,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-04",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-04",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-04",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 4,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-05",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-05",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-05",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 4,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-06",
+        "horaire": "06h00 - 18h00",
+        "service": "journée",
+        "user_id": 2,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-06",
+        "horaire": "18h00 - 06h00",
+        "service": "nuit",
+        "user_id": 3,
+        "pointages": {
+            "entree": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "sortie": {
+                "etat": 0,
+                "heure": "",
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "longitude": ""
+            },
+            "ronde_a_1": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_2": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            },
+            "ronde_a_3": {
+                "etat": 0,
+                "latitude": "",
+                "resultat": {
+                    "etat": 0,
+                    "image": ""
+                },
+                "capture_1": "",
+                "capture_2": "",
+                "duree_fin": "",
+                "heure_fin": "",
+                "longitude": "",
+                "heure_recu": "",
+                "heure_debut": "",
+                "duree_reponse": "",
+                "heure_reponse": ""
+            }
+        },
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    },
+    {
+        "date": "2026-07-06",
+        "horaire": "repos",
+        "service": "repos",
+        "user_id": 4,
+        "pointages": [],
+        "date_creation": "07-06-2026 16:38:24",
+        "type_prestation": 3
+    }
+]

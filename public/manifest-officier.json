@@ -1,0 +1,13 @@
+{
+  "name": "Controlapp",
+  "short_name": "ControlApp",
+  "start_url": "/scanner_qr_code",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#1E293B",
+  "theme_color": "#1E293B",
+  "icons": [
+    { "src": "controlapp_1.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "controlapp_1.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
