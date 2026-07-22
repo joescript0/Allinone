@@ -1,3 +1,7 @@
+@php
+    use App\Models\appnames;
+    $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
+@endphp
 <?php
 
 use App\Models\Contrevenants;
@@ -11,13 +15,13 @@ use Illuminate\Support\Facades\Auth;
 
 ?>
 @extends('layouts.main')
-@section('title', 'AFRICTECHAPP')
+@section('title', $nom_app)
 @section('name', 'GESTION')
 @section('body')
 @include('composants.preload')
 @include('composants.header')
 @include('composants.sidebar')
-@include('composants.chat')*
+@include('composants.chat')
 <style>
 /* =============================================
    DESIGN PREMIUM - VERSION FINALE

@@ -13,8 +13,79 @@ use App\Models\Typeventes;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Ressources;
 ?>
-<h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-settings text-info"></i> Article du
-    stock <span class="text-info">({{ $nom }})</span> au point de vente
+
+<style>
+    /* Conteneur des filtres : horizontal et scrollable */
+    .filters-container-stock {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 12px 16px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+        align-items: flex-end;
+    }
+    .filters-container-stock .filter-group {
+        flex: 1 1 0;
+        min-width: 120px;
+    }
+    .filters-container-stock .filter-group label {
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: #0a192f;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 4px;
+    }
+    .filters-container-stock .filter-group .form-control {
+        width: 100%;
+        height: 36px;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+    .filters-container-stock .filter-group .form-control:focus {
+        border-color: #0a192f;
+        box-shadow: 0 0 0 3px rgba(10,25,47,0.15);
+    }
+    .filters-container-stock .filter-group .btn-reset {
+        background: #64748b;
+        color: white;
+        border: none;
+        border-radius: 40px;
+        padding: 8px 18px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.25s;
+        white-space: nowrap;
+    }
+    .filters-container-stock .filter-group .btn-reset:hover {
+        background: #475569;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(100,116,139,0.3);
+    }
+
+    @media (max-width: 768px) {
+        .filters-container-stock .filter-group {
+            min-width: 150px;
+            flex: 0 0 auto;
+        }
+        .filters-container-stock {
+            padding: 10px 12px;
+        }
+    }
+</style>
+
+<h4 style="color:rgba(0, 0, 0, 0.6);">
+    <i style="font-size: 40px;" class="zmdi zmdi-settings text-info"></i> Article du stock
+    <span class="text-info">({{ $nom }})</span> au point de vente
     <select class="form-control"
         style="border-color: transparent;padding-top: 0px;padding-bottom: 0px;font-size: 17px;color:rgba(0, 0, 0, 0.6);margin-top:10px;"
         name="stock_select" id="stock_select">
@@ -35,6 +106,86 @@ use App\Models\Ressources;
         @endif
     </select>
 </h4>
+
+<!-- FILTRES HORIZONTAUX -->
+<div class="filters-container-stock">
+    <div class="filter-group">
+        <label><i class="zmdi zmdi-label text-danger"></i> Nom</label>
+        <input type="text" id="filterNomStock" class="form-control" placeholder="Rechercher...">
+    </div>
+    <div class="filter-group">
+        <label><i class="zmdi zmdi-folder text-danger"></i> Catégorie</label>
+        <select id="filterCategorieStock" class="form-control">
+            <option value="all">Toutes</option>
+            @foreach ($societes as $categorie)
+                <option value="cat_{{ $categorie->id }}">{{ $categorie->nom }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div class="filter-group">
+        <label><i class="zmdi zmdi-chart text-danger"></i> Activité</label>
+        <select id="filterActiviteStock" class="form-control">
+            <option value="all">Toutes</option>
+            <option value="none">Aucune</option>
+            @foreach ($activites as $activite)
+                @if (Auth::user()->role == 0)
+                    <option value="act_{{ $activite->id }}">{{ $activite->nom }}</option>
+                @else
+                    @if ($activite->id == Auth::user()->activite_id)
+                        <option value="act_{{ $activite->id }}" selected>{{ $activite->nom }}</option>
+                    @endif
+                @endif
+            @endforeach
+        </select>
+    </div>
+    <div class="filter-group">
+        <label><i class="zmdi zmdi-accounts text-danger"></i> Utilisateur</label>
+        <select id="filterUserStock" class="form-control">
+            <option value="all">Tous</option>
+            @php
+                $uniqueUsers = [];
+            @endphp
+            @foreach ($utilisateurs as $data)
+                @if(!in_array($data->id, $uniqueUsers))
+                    @php
+                        $uniqueUsers[] = $data->id;
+                        $userName = User::where('id', $data->id)->first()['name'] ?? 'N/A';
+                    @endphp
+                    @if ($data->id == Auth::user()->id)
+                        <option value="{{ $data->id }}" selected>(Vous)</option>
+                    @else
+                        <option value="{{ $data->id }}">{{ $userName }}</option>
+                    @endif
+                @endif
+            @endforeach
+        </select>
+    </div>
+    <div class="filter-group">
+        <label><i class="zmdi zmdi-storage text-danger"></i> Stock</label>
+        <select id="filterStockStock" class="form-control">
+            <option value="all">Tous</option>
+            <option value="in">En stock (>0)</option>
+            <option value="out">Rupture (=0)</option>
+            <option value="critical">Seuil critique</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label><i class="zmdi zmdi-calendar text-danger"></i> Expiration</label>
+        <select id="filterExpirationStock" class="form-control">
+            <option value="all">Tous</option>
+            <option value="expired">Expiré</option>
+            <option value="soon">≤ 30 jours</option>
+            <option value="valid">> 30 jours</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label>&nbsp;</label> <!-- pour aligner verticalement avec les autres -->
+        <button id="resetFiltersStock" class="btn-reset">
+            <i class="zmdi zmdi-refresh"></i> Réinitialiser
+        </button>
+    </div>
+</div>
+
 <div style="margin-bottom: 100px;" id="content_groupe" class="row">
     <div class="col-12">
         <div class="table-responsive">
@@ -87,12 +238,16 @@ use App\Models\Ressources;
                             </td>
                             <td class="stock-cell" data-stock="{{ $data->stock }}"
                                 style="padding-top: 5px;padding-bottom: 5px;">
-                                <?php if($data->stock <= $data->seuil_minimum){ ?>
-                                <span class="text-danger">{{ $data->stock }}</span>
-                                <?php } ?>
-                                <?php if($data->stock > $data->seuil_minimum){ ?>
-                                <span>{{ $data->stock }}</span>
-                                <?php } ?>
+                                @if ($data->avoir_stock == 1)
+                                    <?php if($data->stock <= $data->seuil_minimum){ ?>
+                                    <span class="text-danger">{{ $data->stock }}</span>
+                                    <?php } ?>
+                                    <?php if($data->stock > $data->seuil_minimum){ ?>
+                                    <span>{{ $data->stock }}</span>
+                                    <?php } ?>
+                                @else
+                                    -
+                                @endif
                             </td>
                             <td class="seuil-cell" data-seuil-min="{{ $data->seuil_minimum }}"
                                 data-seuil-max="{{ $data->seuil_maximum }}"
@@ -154,15 +309,22 @@ use App\Models\Ressources;
                                 }
                                 ?>
                                 <?php } ?>
-                                <?php if (($delete == 1) || (Auth::user()->role == 0)) { ?>
-                                <a id="delete_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
+                                <?php if (($edit == 1) || (Auth::user()->role == 0)) { ?>
+                                <a id="edit_a_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a>
                                 &nbsp;
                                 <?php } else { ?>
-                                <a id="delete_r<?= $i ?>" href="#"><i
+                                <a id="edit_r_a_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a>
+                                &nbsp;
+                                <?php } ?>
+                                <?php if (($delete == 1) || (Auth::user()->role == 0)) { ?>
+                                <a id="delete_a_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
+                                &nbsp;
+                                <?php } else { ?>
+                                <a id="delete_r_a_<?= $i ?>" href="#"><i
                                         class="zmdi zmdi-delete text-danger"></i></a> &nbsp;
                                 <?php } ?>
                                 <script>
-                                    $("#edit_<?= $i ?>").click(function(e) {
+                                    $("#edit_a_<?= $i ?>").click(function(e) {
                                         e.preventDefault();
                                         $.get("{{ url('/refresh_editarticle') }}", {
                                             user_id: <?= $data->id ?>,
@@ -173,15 +335,15 @@ use App\Models\Ressources;
                                             $("#bloc_3").html(refresh_editarticle);
                                         });
                                     });
-                                    $("#edit_r<?= $i ?>").click(function(e) {
+                                    $("#edit_r_a_<?= $i ?>").click(function(e) {
                                         e.preventDefault();
                                         $("#btn_refus").trigger("click");
                                     });
-                                    $("#delete_r<?= $i ?>").click(function(e) {
+                                    $("#delete_r_a_<?= $i ?>").click(function(e) {
                                         e.preventDefault();
                                         $("#btn_refus").trigger("click");
                                     });
-                                    $("#delete_<?= $i ?>").click(function(e) {
+                                    $("#delete_a_<?= $i ?>").click(function(e) {
                                         e.preventDefault();
                                         $("#element").html(
                                             "<?= $data->nom_article . '(' . Societes::where('id', $data->societe_id)->first()['nom'] . ')' ?>"
@@ -194,12 +356,21 @@ use App\Models\Ressources;
                         </tr>
                         {{ !$i++ }}
                     @endforeach
+                    <!-- Ligne pour aucun résultat -->
+                    <tr id="noResultRow" style="display: none;">
+                        <td colspan="10">
+                            <i class="zmdi zmdi-info-outline"></i> Aucun article ne correspond à vos critères de
+                            recherche.
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
 <script>
+    // Gestion du changement de stock (existant)
     $("#stock_select").change(function(e) {
         e.preventDefault();
         $.get("{{ url('/refresh_article_stock') }}", {
@@ -211,4 +382,194 @@ use App\Models\Ressources;
             $("#bloc_3").html(liste_r);
         });
     });
+
+    // ========== GESTION DES FILTRES AVEC PERSISTANCE ==========
+    (function() {
+        var stockId = {{ $stock_id }};
+
+        function filterArticlesStock() {
+            var filterNom = $('#filterNomStock').val().toLowerCase().trim();
+            var filterCategorie = $('#filterCategorieStock').val();
+            var filterActivite = $('#filterActiviteStock').val();
+            var filterUser = $('#filterUserStock').val();
+            var filterStock = $('#filterStockStock').val();
+            var filterExpiration = $('#filterExpirationStock').val();
+
+            var visibleCount = 0;
+            var newIndex = 1;
+
+            $('#noResultRow').hide();
+
+            $('#articlesTableBody tr:not(#noResultRow)').each(function() {
+                var $row = $(this);
+                var showRow = true;
+
+                // Nom
+                var nomValue = ($row.find('.nom-cell').data('nom') || '').toLowerCase();
+                if (filterNom && !nomValue.includes(filterNom)) {
+                    showRow = false;
+                }
+
+                // Catégorie
+                if (showRow && filterCategorie !== 'all') {
+                    var categorieId = $row.find('.categorie-cell').data('categorie-id');
+                    var currentCat = categorieId != null ? String(categorieId) : '';
+                    if (filterCategorie.startsWith('cat_')) {
+                        var targetCat = filterCategorie.replace('cat_', '');
+                        if (currentCat !== targetCat) showRow = false;
+                    }
+                }
+
+                // Activité
+                if (showRow && filterActivite !== 'all') {
+                    var activiteId = $row.find('.activite-cell').data('activite-id');
+                    var currentAct = activiteId != null ? String(activiteId) : '';
+                    if (filterActivite === 'none') {
+                        if (currentAct !== '0' && currentAct !== '') showRow = false;
+                    } else if (filterActivite.startsWith('act_')) {
+                        var targetAct = filterActivite.replace('act_', '');
+                        if (currentAct !== targetAct) showRow = false;
+                    }
+                }
+
+                // Utilisateur
+                if (showRow && filterUser !== 'all') {
+                    var userId = $row.find('.user-cell').data('user-id');
+                    var currentUser = userId != null ? String(userId) : '';
+                    if (currentUser !== filterUser) showRow = false;
+                }
+
+                // Statut stock
+                if (showRow && filterStock !== 'all') {
+                    var stock = parseInt($row.find('.stock-cell').data('stock')) || 0;
+                    var seuilMin = parseInt($row.find('.seuil-cell').data('seuil-min')) || 0;
+                    var matchesStock = false;
+                    switch (filterStock) {
+                        case 'in': matchesStock = (stock > 0); break;
+                        case 'out': matchesStock = (stock === 0); break;
+                        case 'critical': matchesStock = (stock > 0 && stock <= seuilMin); break;
+                        default: matchesStock = true;
+                    }
+                    if (!matchesStock) showRow = false;
+                }
+
+                // Expiration
+                if (showRow && filterExpiration !== 'all') {
+                    var dateStr = $row.find('.date-cell').data('date-expiration');
+                    var daysLeft = null;
+                    if (dateStr && dateStr !== '00/00/0000') {
+                        var parts = dateStr.split('/');
+                        var expDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                        var today = new Date();
+                        today.setHours(0,0,0,0);
+                        var diffTime = expDate - today;
+                        daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    }
+                    var matchesExp = false;
+                    switch (filterExpiration) {
+                        case 'expired': matchesExp = (daysLeft !== null && daysLeft < 0); break;
+                        case 'soon': matchesExp = (daysLeft !== null && daysLeft >= 0 && daysLeft <= 30); break;
+                        case 'valid': matchesExp = (daysLeft !== null && daysLeft > 30); break;
+                        default: matchesExp = true;
+                    }
+                    if (!matchesExp) showRow = false;
+                }
+
+                if (showRow) {
+                    $row.show();
+                    $row.find('.row-num').text(newIndex);
+                    newIndex++;
+                    visibleCount++;
+                } else {
+                    $row.hide();
+                }
+            });
+
+            // Mise à jour du compteur (si l'élément existe)
+            var badge = $('#articleCountBadge');
+            if (badge.length) {
+                badge.find('span').text(visibleCount);
+            }
+
+            if (visibleCount === 0) {
+                $('#noResultRow').show();
+            }
+        }
+
+        // Sauvegarde des filtres dans localStorage
+        function saveFiltersStock() {
+            var filters = {
+                nom: $('#filterNomStock').val(),
+                categorie: $('#filterCategorieStock').val(),
+                activite: $('#filterActiviteStock').val(),
+                user: $('#filterUserStock').val(),
+                stock: $('#filterStockStock').val(),
+                expiration: $('#filterExpirationStock').val()
+            };
+            localStorage.setItem('articleStockFilters_' + stockId, JSON.stringify(filters));
+        }
+
+        // Chargement depuis localStorage
+        function loadFiltersStock() {
+            var key = 'articleStockFilters_' + stockId;
+            var saved = localStorage.getItem(key);
+            if (saved) {
+                var filters = JSON.parse(saved);
+                $('#filterNomStock').val(filters.nom || '');
+                $('#filterCategorieStock').val(filters.categorie || 'all');
+                $('#filterActiviteStock').val(filters.activite || 'all');
+                $('#filterUserStock').val(filters.user || 'all');
+                $('#filterStockStock').val(filters.stock || 'all');
+                $('#filterExpirationStock').val(filters.expiration || 'all');
+                return true;
+            }
+            return false;
+        }
+
+        // Réinitialisation
+        function resetFiltersStock() {
+            $('#filterNomStock').val('');
+            $('#filterCategorieStock').val('all');
+            $('#filterActiviteStock').val('all');
+            $('#filterUserStock').val('all');
+            $('#filterStockStock').val('all');
+            $('#filterExpirationStock').val('all');
+            saveFiltersStock();
+            filterArticlesStock();
+            // Message
+            var msg = $('#msg');
+            if (msg.length) {
+                msg.html('<i class="zmdi zmdi-check-circle"></i> Filtres réinitialisés');
+                msg.css('display', 'flex');
+                setTimeout(function() {
+                    msg.html('');
+                    msg.css('display', 'none');
+                }, 3000);
+            }
+        }
+
+        var filterTimeout;
+        function debouncedFilterStock() {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(function() {
+                filterArticlesStock();
+                saveFiltersStock();
+            }, 300);
+        }
+
+        $(document).ready(function() {
+            loadFiltersStock();
+            filterArticlesStock();
+
+            $('#filterNomStock, #filterCategorieStock, #filterActiviteStock, #filterUserStock, #filterStockStock, #filterExpirationStock')
+                .on('change keyup', function() {
+                    debouncedFilterStock();
+                });
+
+            $('#resetFiltersStock').click(function(e) {
+                e.preventDefault();
+                resetFiltersStock();
+            });
+        });
+    })();
 </script>

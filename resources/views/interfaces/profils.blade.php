@@ -1,3 +1,7 @@
+@php
+    use App\Models\appnames;
+    $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
+@endphp
 <?php
 
 use App\Models\Groupes;
@@ -6,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 ?>
 @extends('layouts.main')
-@section('title', 'AFRICTECHAPP')
+@section('title', $nom_app)
 @section('name', 'PROFILS')
 @section('body')
 @include('composants.preload')

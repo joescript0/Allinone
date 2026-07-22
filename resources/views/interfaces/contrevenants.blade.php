@@ -1,5 +1,9 @@
+@php
+    use App\Models\appnames;
+    $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
+@endphp
 @extends('layouts.main')
-@section('title', 'AFRICTECHAPP')
+@section('title', $nom_app)
 @section('name', 'CONTREVENANTS')
 @section('body')
 @include('composants.preload')

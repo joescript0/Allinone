@@ -4,7 +4,12 @@
 <link rel="stylesheet" href="{{ asset('assets/vendors/animate.css/animate.min.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/vendors/jquery-scrollbar/jquery.scrollbar.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/vendors/fullcalendar/fullcalendar.min.css') }}">
-<link rel="icon" type="image/png" href="{{ asset('connexion/images/icons/top_icone_1.ico') }}" />
+<link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233B82F6'%3E%3Cpath d='M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z'/%3E%3C/svg%3E" />
+<meta name="description" content="ControlApp : Gestion de suivie des officiers au poste." />
+<meta property="og:image" content="{{ asset('controlapp_1.png') }}" />
+<meta property="og:description" content="ControlApp : Gestion de suivie des officiers au poste." />
+<meta property="og:url" content="{{ url("") }}" />
+<meta property="og:title" content="ControlApp : Gestion de suivie des officiers au poste." />
 <link rel="stylesheet" href="{{ asset('assets/vendors/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/vendors/dropzone/dropzone.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/vendors/nouislider/nouislider.min.css') }}">
@@ -334,9 +339,9 @@
 
 /* ===== HEADER PRINCIPAL ===== */
 .header {
-    background-color: #800020 !important;
+    /* background-color: #800020 !important; */
     /* background-color: #004D00 !important; */
-    border-bottom: 3px solid #6c757d !important;
+    /* border-bottom: 3px solid #6c757d !important; */
     display: flex;
     align-items: center;
     justify-content: space-between;

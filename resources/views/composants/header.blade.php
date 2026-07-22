@@ -1,25 +1,101 @@
 <?php
-    $option  = 5;
-    $nom_app = "";
-    if($option == 1)
-    {
-        $nom_app = "AFRICTECHAPP";
-    }elseif ($option == 2) {
-        $nom_app = "ILAINAPP";
-    }
-    elseif ($option == 3) {
-        $nom_app = "CONTROLAPP";
-    }
-    elseif ($option == 4) {
-        $nom_app = "EDIPASERVICE";
-    }
-     elseif ($option == 5)
-    {
-        $nom_app = "LES300HOMMES";
+use App\Models\appnames;
+
+// Récupération du nom de l'application (identique à votre première version)
+$nom_app = appnames::where('etat', 1)->first()["nom"] ?? 'APPLICATION';
+?>
+
+<style>
+    /* Styles issus de la deuxième page */
+    .header {
+        padding: 0 15px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #3B82F6 !important;
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     }
 
-?>
-<header style="border-bottom: 3px solid rgb(251, 187, 27); background-color: black;" class="header">
+    .header__logo h1 {
+        margin: 0;
+        font-size: 1.3rem;
+        color: #0F172A;
+    }
+    .header__logo p {
+        font-size: 9px;
+        color: #64748B;
+        margin: 0;
+    }
+
+    .user-dropdown .user-dropdown-trigger {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        padding: 4px 8px;
+        border-radius: 30px;
+        background-color: rgba(0, 0, 0, 0.05);
+        transition: 0.2s;
+    }
+    .user-dropdown .user-dropdown-trigger:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .user-avatar i {
+        font-size: 16px;
+        color: #1E293B;
+    }
+    .user-name {
+        font-size: 12px;
+        color: #1E293B;
+    }
+    .online-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #2ecc71;
+        border-radius: 50%;
+        display: inline-block;
+        animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(46,204,113,0.5); }
+        70% { box-shadow: 0 0 0 3px rgba(46,204,113,0); }
+        100% { box-shadow: 0 0 0 0 rgba(46,204,113,0); }
+    }
+    .deconnexion-link, .deconnexion-link i {
+        color: #1E293B !important;
+        text-decoration: none;
+    }
+    .dropdown-menu {
+        background-color: white !important;
+        border: 1px solid #e2e8f0;
+    }
+    .dropdown-arrow {
+        color: #1E293B !important;
+    }
+    @media (max-width: 768px) {
+        .user-name, .online-dot { display: none; }
+    }
+    #btn_quitter {
+        color: white !important;
+    }
+    #btn_quitter_texte {
+        color: white !important;
+    }
+</style>
+
+<header class="header">
+    <!-- Déclencheur du menu latéral (identique) -->
     <div class="navigation-trigger hidden-xl-up" data-ma-action="aside-open" data-ma-target=".sidebar">
         <div class="navigation-trigger__inner">
             <i class="navigation-trigger__line"></i>
@@ -28,13 +104,19 @@
         </div>
     </div>
 
+    <!-- Logo / nom de l'application (dynamique) -->
     <div class="header__logo">
-        <h1><a href="#"><i style="color: rgb(251, 187, 27);" class="zmdi zmdi-home"></i> {{ $nom_app }} </a></h1>
-        <p style="font-size: 10px;">ALL IN ONE</p>
+        <h1 class="text-white" style="font-weight: bold;">
+            <i class="fas fa-cubes"></i> <?= htmlspecialchars($nom_app) ?>
+        </h1>
+        <p><strong>ALL IN ONE</strong></p>
     </div>
 
+    <!-- Éléments de navigation (cachés par défaut dans votre version) -->
     <ul class="top-nav">
-        <li style="display: none;" class="hidden-xl-up"><a href="#" data-ma-action="search-open"><i class="zmdi zmdi-search"></i></a></li>
+        <li style="display: none;" class="hidden-xl-up">
+            <a href="#" data-ma-action="search-open"><i class="zmdi zmdi-search"></i></a>
+        </li>
         <li style="display: none;" class="dropdown hidden-xs-down">
             <a href="#" data-toggle="dropdown"><i class="zmdi zmdi-more-vert"></i></a>
             <div class="dropdown-menu dropdown-menu-right">
@@ -60,15 +142,21 @@
         </li>
     </ul>
 
-    <!-- Zone utilisateur simplifiée -->
+    <!-- Zone utilisateur (design de la deuxième page) -->
     <div class="dropdown user-dropdown">
-        <a href="#" data-toggle="dropdown">
-            <span id="user__email_1">{{ strtoupper(Auth::user()->name) }}</span>
-            <i class="zmdi zmdi-account"></i>
+        <a href="#" class="user-dropdown-trigger" data-toggle="dropdown">
+            <div class="user-avatar">
+                <i class="zmdi zmdi-account"></i>
+            </div>
+            <div class="user-info">
+                <span class="user-name"><?= htmlspecialchars(Auth::user()->name ?? 'Invité') ?></span>
+                <span class="online-dot"></span>
+                <i class="zmdi zmdi-chevron-down dropdown-arrow" style="color: #1E293B !important;"></i>
+            </div>
         </a>
         <div class="dropdown-menu dropdown-menu-right">
-            <a data-toggle="modal" data-target="#deconnexion" href="#" class="deconnexion-link">
-                <i class="zmdi zmdi-power"></i> Quitter
+            <a id="btn_quitter" data-toggle="modal" data-target="#deconnexion" href="#" class="deconnexion-link">
+                <i id="btn_quitter_texte" class="zmdi zmdi-power"></i> Quitter
             </a>
         </div>
     </div>

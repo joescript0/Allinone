@@ -1,3 +1,7 @@
+@php
+    use App\Models\appnames;
+    $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
+@endphp
 <?php
 
 use App\Models\Mois;
@@ -5,21 +9,17 @@ use App\Models\Annees;
 use App\Models\Soldes;
 ?>
 @extends('layouts.main')
-@section('title', 'AFRICTECHAPP')
-@section('name', 'GESTION ACTIVITER')
+@section('title', $nom_app)
+@section('name', 'GESTION ACTIVITE')
 @section('body')
     @include('composants.preload')
     @include('composants.header')
     @include('composants.sidebar')
     @include('composants.chat')
     <style>
-        /* =============================================
-                           DESIGN PREMIUM - VERSION FINALE
-                           BOUTONS MODERNES & RESPONSIFS
-                           LIGNES DE TABLEAU RÉDUITES ET ÉQUILIBRÉES
-                           MESSAGE D'ERREUR/SUCCÈS TOTALEMENT CACHÉ PAR DÉFAUT
-                           PRISE EN CHARGE DU FORMULAIRE D'ÉDITION
-                           ============================================= */
+        /* ============================================================
+   DESIGN PREMIUM – UNIFIÉ AVEC LES PAGES PRÉCÉDENTES
+   ============================================================ */
 
         /* --- Reset des marges pour occuper tout l'écran --- */
         body {
@@ -31,7 +31,7 @@ use App\Models\Soldes;
         .content .container {
             max-width: 100% !important;
             width: 100%;
-            padding: 1rem 2rem !important;
+            padding: 0.5rem 1.5rem !important;
             margin: 0 auto;
             background: #f8fafc;
         }
@@ -46,15 +46,15 @@ use App\Models\Soldes;
             padding-right: 0.75rem;
         }
 
-        /* --- Variables --- */
+        /* --- Variables (identiques aux autres pages) --- */
         :root {
             --bleu-nuit: #0a192f;
             --bleu-nuit-clair: #112240;
             --bleu-nuit-gradient: linear-gradient(135deg, #0a192f, #1e3a5f);
-            --rouge-feu: #e31b23;
-            --rouge-fonce: #b91c1c;
-            --rouge-gradient: linear-gradient(135deg, #dc2626, #b91c1c);
-            --vert-succes: #10b981;
+            --bleu-secondaire: #2c5282;
+            --bleu-secondaire-gradient: linear-gradient(135deg, #2c5282, #1a365d);
+            --rouge-gradient: linear-gradient(135deg, #ef4444, #dc2626);
+            --vert-gradient: linear-gradient(135deg, #10b981, #059669);
             --shadow-premium: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
             --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
             --border-radius-xl: 20px;
@@ -64,22 +64,28 @@ use App\Models\Soldes;
         /* --- Cartes principales --- */
         #bloc_1,
         #bloc_2,
-        #bloc_3 {
+        #bloc_3,
+        #bloc_4 {
             background: rgba(255, 255, 255, 0.96);
             border-radius: var(--border-radius-xl);
             box-shadow: var(--shadow-premium);
-            padding: 2rem 1.8rem !important;
-            margin-bottom: 2rem;
+            padding: 1rem 1.5rem !important;
+            margin-bottom: 1rem;
             transition: transform 0.2s, box-shadow 0.2s;
         }
 
         /* --- En-têtes --- */
         h4 {
             font-weight: 700;
-            border-left: 6px solid var(--rouge-feu);
+            border-left: 6px solid #e31b23;
             padding-left: 18px;
-            margin-bottom: 28px;
+            margin-bottom: 16px;
+            margin-top: 0;
             color: var(--bleu-nuit);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         h4 i.zmdi {
@@ -89,7 +95,22 @@ use App\Models\Soldes;
             color: transparent !important;
         }
 
-        /* ========== TABLEAU ÉQUILIBRÉ ========== */
+        /* Badge de compteur */
+        .activity-count-badge {
+            background: linear-gradient(135deg, #e31b23, #b91c1c);
+            color: white;
+            border-radius: 50px;
+            padding: 4px 14px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow-light);
+            margin-left: 10px;
+        }
+
+        /* ========== TABLEAU ========== */
         .table-responsive {
             border-radius: var(--border-radius-lg);
             overflow-x: auto;
@@ -107,36 +128,54 @@ use App\Models\Soldes;
         }
 
         .table thead th {
-            background: var(--bleu-nuit-gradient);
-            color: white;
-            font-weight: 600;
-            font-size: 0.8rem;
+            background: #E7F5FE !important;
+            color: #0a192f;
+            font-weight: 700;
+            font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 10px 10px !important;
-            border-bottom: none;
-            white-space: nowrap;
+            letter-spacing: 0.06em;
+            padding: 14px 12px !important;
+            border-bottom: 2px solid #cbd5e1 !important;
+            border-right: 1px solid #d0e2f2;
+            white-space: normal;
+            word-break: break-word;
         }
 
         .table tbody tr {
             transition: all 0.15s ease;
-            border-bottom: 1px solid #eef2f6;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
         }
 
         .table tbody tr:hover {
-            background: #f0f5fe !important;
+            background: #e6f0ff !important;
+            cursor: default;
         }
 
         .table tbody td {
-            padding: 8px 10px !important;
-            vertical-align: middle;
+            padding: 10px 12px !important;
+            vertical-align: middle !important;
             font-weight: 500;
             font-size: 0.85rem;
             color: #1e2a3e;
             word-break: break-word;
+            border-bottom: 1px solid #eef2f6;
+            line-height: 1.4;
         }
 
-        /* ========== BOUTONS RONDS POUR LA COLONNE CONTROL ========== */
+        .table tbody td:last-child {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        /* ========== BOUTONS DE CONTRÔLE DANS LE TABLEAU ========== */
         .table tbody td a {
             display: inline-flex;
             align-items: center;
@@ -156,7 +195,11 @@ use App\Models\Soldes;
         }
 
         .table tbody td a i.zmdi-edit {
-            color: #2c7da0;
+            color: #10b981;
+        }
+
+        .table tbody td a i.zmdi-delete {
+            color: #ef4444;
         }
 
         .table tbody td a:hover {
@@ -164,38 +207,35 @@ use App\Models\Soldes;
             transform: translateY(-2px);
         }
 
-        .table tbody td a i.zmdi-delete {
-            color: var(--rouge-feu);
-        }
-
         .table tbody td a:hover i.zmdi-delete {
-            color: var(--rouge-fonce);
+            color: #b91c1c;
         }
 
-        .table tbody td a:hover {
-            background: #ffe5e5;
+        .table tbody td a:hover i.zmdi-edit {
+            color: #059669;
         }
 
-        /* ========== BOUTONS PRINCIPAUX ========== */
+        /* ========== BOUTONS PRINCIPAUX (UNIFIÉS) ========== */
+        #bloc_1 button,
+        #bloc_2 button,
+        #bloc_3 button,
+        .filters-container button,
         #liste,
         #add,
-        #print,
-        #add_r,
-        #print_r,
+        #save,
+        #annuler,
+        #resetFilters,
         .btn-primary,
-        .btn-primary.btn-sm,
-        a.btn-primary,
         .btn-info,
-        .btn-info.btn-sm,
         .btn-danger,
-        .btn-danger.btn-sm,
+        .btn-secondary,
         #edit_save,
         #edit_annuler {
             display: inline-flex !important;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 8px 18px !important;
+            padding: 6px 16px !important;
             font-weight: 600;
             font-size: 0.85rem;
             border-radius: 40px !important;
@@ -205,88 +245,101 @@ use App\Models\Soldes;
             text-decoration: none;
             box-shadow: var(--shadow-light);
             white-space: nowrap;
+            line-height: 1.5;
         }
 
-        #liste {
-            background: linear-gradient(135deg, #0a192f, #1e3a5f) !important;
+        #liste,
+        .btn-primary {
+            background: #3B82F6 !important;
             color: white !important;
         }
+        #liste:hover,
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
+            background: #2563eb !important;
+        }
 
-        #liste:hover {
+        #add,
+        .btn-info {
+            background: var(--bleu-nuit-gradient) !important;
+            color: white !important;
+        }
+        #add:hover,
+        .btn-info:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
         }
 
-        #add,
-        a#add {
-            background: linear-gradient(135deg, #0f4c5f, #1e6f5c) !important;
-            color: white !important;
-        }
-
-        #add:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(15, 76, 95, 0.3);
-        }
-
-        #print {
-            background: linear-gradient(135deg, #4b6e8a, #2c4f6e) !important;
-            color: white !important;
-        }
-
-        #print:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(43, 76, 108, 0.3);
-        }
-
-        #add_r,
-        #print_r {
-            background: #cbd5e1 !important;
-            color: #475569 !important;
-            cursor: not-allowed;
-            opacity: 0.7;
-            box-shadow: none;
-        }
-
-        #add_r:hover,
-        #print_r:hover {
-            transform: none;
-            box-shadow: none;
-        }
-
-        #save,
-        #save_r,
-        #annuler,
-        #edit_save,
-        #edit_annuler {
-            padding: 8px 24px !important;
-            font-weight: 700;
-        }
-
         #save,
         #edit_save {
-            background: linear-gradient(95deg, #0f4c5f, #0e6b5e) !important;
+            background: var(--bleu-secondaire-gradient) !important;
             color: white;
         }
-
         #save:hover,
         #edit_save:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(15, 76, 95, 0.3);
+            box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3);
         }
 
         #annuler,
-        #edit_annuler {
-            background: #64748b !important;
+        #edit_annuler,
+        .btn-danger {
+            background: var(--rouge-gradient) !important;
             color: white;
         }
-
         #annuler:hover,
-        #edit_annuler:hover {
-            background: #475569 !important;
+        #edit_annuler:hover,
+        .btn-danger:hover {
             transform: translateY(-2px);
+            background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+            box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
         }
 
-        /* ========== FORMULAIRES : AJOUT ET MODIFICATION ========== */
+        #resetFilters {
+            background: #64748b !important;
+            color: white !important;
+        }
+        #resetFilters:hover {
+            transform: translateY(-2px);
+            background: #475569 !important;
+            box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
+        }
+
+        /* ========== FILTRES ========== */
+        .filters-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            background: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-light);
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--bleu-nuit);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .filter-group .form-control {
+            height: 36px;
+        }
+
+        /* ========== FORMULAIRES ========== */
         #form_add .row,
         #form_edit .row {
             display: flex;
@@ -295,7 +348,7 @@ use App\Models\Soldes;
 
         #form_add .col-6,
         #form_edit .col-6 {
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
         }
 
         .form-group {
@@ -307,14 +360,14 @@ use App\Models\Soldes;
             display: block;
             font-weight: 700;
             color: var(--bleu-nuit);
-            margin-bottom: 6px;
-            font-size: 0.8rem;
+            margin-bottom: 4px;
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.4px;
         }
 
         .form-group label i {
-            color: var(--rouge-feu);
+            color: #e31b23;
             margin-right: 6px;
         }
 
@@ -327,18 +380,18 @@ use App\Models\Soldes;
             background: #ffffff !important;
             border: 1px solid #e2e8f0 !important;
             border-radius: 14px !important;
-            padding: 10px 14px !important;
+            padding: 8px 12px !important;
             font-weight: 500;
             font-size: 0.85rem;
             transition: all 0.2s;
             box-sizing: border-box;
-            height: 42px !important;
+            height: 38px !important;
             line-height: 1.4;
         }
 
         textarea.form-control {
             resize: vertical;
-            height: 42px !important;
+            height: 38px !important;
         }
 
         .form-control:focus,
@@ -361,13 +414,11 @@ use App\Models\Soldes;
             background: #fff9ef !important;
         }
 
-        /* ========== MESSAGES MODERNES - TOTALEMENT INVISIBLE PAR DÉFAUT (ajout & édition) ========== */
+        /* ========== MESSAGES STYLISÉS ========== */
         #msg,
         #edit_msg {
             display: none !important;
-            /* Caché quoi qu'il arrive */
             visibility: hidden !important;
-            /* Invisible même s'il prend de la place */
             opacity: 0 !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -400,14 +451,14 @@ use App\Models\Soldes;
         #edit_msg:not(:empty):has(i.zmdi-check-circle) {
             background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
             color: #065f46;
-            border-left: 4px solid var(--vert-succes);
+            border-left: 4px solid #10b981;
         }
 
         #msg:not(:empty):has(i.zmdi-close-circle),
         #edit_msg:not(:empty):has(i.zmdi-close-circle) {
             background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
             color: #991b1b;
-            border-left: 4px solid var(--rouge-feu);
+            border-left: 4px solid #ef4444;
         }
 
         @keyframes slideInMsg {
@@ -415,14 +466,13 @@ use App\Models\Soldes;
                 opacity: 0;
                 transform: translateY(-8px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        /* ========== BARRE D'ACTIONS EN HAUT ========== */
+        /* ========== BARRE D'ACTIONS (EN TÊTE) ========== */
         [style*="background-color: rgba(0, 0, 0, 0.1)"] {
             background: #eef3fc !important;
             border-radius: 60px;
@@ -434,163 +484,56 @@ use App\Models\Soldes;
             justify-content: flex-start;
         }
 
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 768px) {
-            .content .container {
-                padding: 0.8rem 1rem !important;
-            }
-
-            #bloc_1,
-            #bloc_2,
-            #bloc_3 {
-                padding: 1.2rem !important;
-            }
-
-            #liste,
-            #add,
-            #print,
-            #add_r,
-            #print_r,
-            .btn-primary,
-            .btn-info,
-            .btn-danger,
-            #edit_save,
-            #edit_annuler {
-                padding: 6px 14px !important;
-                font-size: 0.75rem;
-                white-space: nowrap;
-            }
-
-            [style*="background-color: rgba(0, 0, 0, 0.1)"] {
-                justify-content: center;
-                gap: 8px;
-            }
-
-            #form_add .col-6,
-            #form_edit .col-6 {
-                flex: 0 0 100%;
-                max-width: 100%;
-            }
-
-            .form-control,
-            input.form-control,
-            select.form-control,
-            textarea.form-control {
-                height: 40px !important;
-                font-size: 0.8rem;
-            }
-
-            .table thead th {
-                font-size: 0.7rem;
-                padding: 6px 6px !important;
-            }
-
-            .table tbody td {
-                padding: 6px 6px !important;
-                font-size: 0.75rem;
-            }
-
-            .table tbody td a {
-                width: 28px;
-                height: 28px;
-            }
-
-            .table tbody td a i.zmdi {
-                font-size: 1rem;
-            }
+        /* ========== MESSAGE AUCUN RÉSULTAT ========== */
+        #noResultRow td {
+            text-align: center;
+            padding: 30px 0 !important;
+            font-style: italic;
+            color: #e31b23;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        #noResultRow td i {
+            font-size: 28px;
+            vertical-align: middle;
+            margin-right: 8px;
         }
 
-        @media (max-width: 480px) {
-            .content .container {
-                padding: 0.5rem !important;
-            }
-
-            .btn,
-            .btn-sm,
-            #liste,
-            #add,
-            #print,
-            #edit_save,
-            #edit_annuler {
-                padding: 4px 10px !important;
-                font-size: 0.7rem;
-            }
-
-            .form-group label {
-                font-size: 0.7rem;
-            }
-
-            [style*="background-color: rgba(0, 0, 0, 0.1)"] {
-                gap: 6px;
-                padding: 8px 12px !important;
-            }
-
-            .table thead th {
-                font-size: 0.6rem;
-                padding: 4px 4px !important;
-            }
-
-            .table tbody td {
-                font-size: 0.7rem;
-                padding: 5px 4px !important;
-            }
+        /* ========== BARRE DE PROGRESSION POUR L'UPLOAD ========== */
+        .progress-container {
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 24px;
+            position: relative;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #32c787 !important;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e2a3e;
         }
 
-        /* ========== ANIMATIONS & DÉTAILS ========== */
-        @keyframes glow {
-            0% {
-                box-shadow: 0 0 0 0 rgba(227, 27, 35, 0.2);
-            }
-
-            70% {
-                box-shadow: 0 0 0 6px rgba(227, 27, 35, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(227, 27, 35, 0);
-            }
-        }
-
-        .btn-danger:active {
-            animation: glow 0.3s ease-out;
-        }
-
-        .modal-header {
-            background: var(--bleu-nuit-gradient);
-        }
-
-        input[required],
-        select[required],
-        textarea[required] {
-            border-left: 3px solid var(--rouge-feu) !important;
-        }
-
-
-        /* =============================================
-                           CSS COMPLET POUR TABLEAU UTILISATEURS
-                           Centrage vertical & suppression survol
-                           ============================================= */
-
-        /* --- Alignement vertical des cellules --- */
-        .table tbody td {
-            vertical-align: middle !important;
-            padding: 8px 10px !important;
-        }
-
-        /* --- Conteneur de l’image + texte (sans modifier le HTML) --- */
+        /* ========== IMAGE DE PROFIL DANS LE TABLEAU (style cohérent) ========== */
         .table tbody td:has(a[id^="voir_profil_"]) {
-            /* On cible la cellule qui contient le lien profil */
             white-space: nowrap;
-            /* Empêche le retour à la ligne intempestif */
         }
 
-        /* Lien contenant l’image */
         a[id^="voir_profil_"] {
             display: inline-block;
             vertical-align: middle;
             line-height: 0;
             margin-right: 8px;
-            /* Suppression de tout effet visuel */
             background: transparent !important;
             text-decoration: none !important;
             border: none !important;
@@ -598,7 +541,6 @@ use App\Models\Soldes;
             box-shadow: none !important;
         }
 
-        /* Image de profil */
         .profile-thumb {
             width: 32px;
             height: 32px;
@@ -612,7 +554,6 @@ use App\Models\Soldes;
             transition: none;
         }
 
-        /* Texte du nom (directement dans la cellule, après le lien) */
         .table tbody td a[id^="voir_profil_"]+* {
             display: inline-block;
             vertical-align: middle;
@@ -622,7 +563,6 @@ use App\Models\Soldes;
             word-break: break-word;
         }
 
-        /* --- SUPPRESSION TOTALE DE TOUT EFFET AU SURVOL --- */
         a[id^="voir_profil_"]:hover,
         a[id^="voir_profil_"]:focus,
         a[id^="voir_profil_"]:active {
@@ -648,21 +588,140 @@ use App\Models\Soldes;
             outline: none;
         }
 
-        /* Évite un éventuel soulignement ou changement de couleur sur le texte */
         a[id^="voir_profil_"]:hover+* {
             color: inherit !important;
             background: transparent !important;
         }
 
-        /* Pour les écrans mobiles : on garde le centrage mais on réduit la marge */
         @media (max-width: 768px) {
             .profile-thumb {
                 width: 28px;
                 height: 28px;
             }
-
             a[id^="voir_profil_"] {
                 margin-right: 6px;
+            }
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 992px) {
+            .content .container {
+                padding: 0.5rem 1rem !important;
+            }
+            #bloc_1,
+            #bloc_2,
+            #bloc_3,
+            #bloc_4 {
+                padding: 1rem !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content .container {
+                padding: 0.4rem 0.6rem !important;
+            }
+            #bloc_1,
+            #bloc_2,
+            #bloc_3,
+            #bloc_4 {
+                padding: 0.8rem !important;
+            }
+            #liste,
+            #add,
+            #save,
+            #edit_save,
+            #annuler,
+            #edit_annuler,
+            #resetFilters,
+            .btn-primary,
+            .btn-info,
+            .btn-danger {
+                padding: 4px 12px !important;
+                font-size: 0.7rem;
+            }
+            .filters-container {
+                flex-direction: column;
+                gap: 8px;
+                padding: 0.6rem 0.8rem;
+                margin-bottom: 12px;
+            }
+            .filter-group {
+                width: 100%;
+                min-width: 100%;
+            }
+            .filter-group .form-control {
+                height: 34px !important;
+            }
+            .activity-count-badge {
+                font-size: 0.65rem;
+                padding: 3px 10px;
+            }
+            .table thead th {
+                font-size: 0.72rem;
+                padding: 10px 6px !important;
+                letter-spacing: 0.05em;
+            }
+            .table tbody td {
+                padding: 8px 10px !important;
+                font-size: 0.75rem;
+                line-height: 1.3;
+            }
+            #form_add .col-6,
+            #form_edit .col-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            .form-group label {
+                font-size: 0.65rem;
+            }
+            .form-control,
+            input.form-control,
+            select.form-control,
+            textarea.form-control {
+                height: 34px !important;
+                font-size: 0.75rem;
+            }
+            [style*="background-color: rgba(0, 0, 0, 0.1)"] {
+                justify-content: center;
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .content .container {
+                padding: 0.3rem !important;
+            }
+            #bloc_1,
+            #bloc_2,
+            #bloc_3,
+            #bloc_4 {
+                padding: 0.6rem !important;
+            }
+            h4 {
+                font-size: 1.1rem;
+                margin-bottom: 12px;
+            }
+            h4 i {
+                font-size: 24px !important;
+            }
+            #liste,
+            #add,
+            #save,
+            #edit_save,
+            #annuler,
+            #edit_annuler,
+            #resetFilters {
+                padding: 3px 8px !important;
+                font-size: 0.65rem;
+            }
+            .table thead th {
+                font-size: 0.62rem;
+                padding: 8px 4px !important;
+            }
+            .table tbody td {
+                padding: 6px 8px !important;
+                font-size: 0.7rem;
+                line-height: 1.2;
             }
         }
     </style>
@@ -692,11 +751,34 @@ use App\Models\Soldes;
             <div class="row">
                 <div class="col-lg-12">
                     <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i
-                            class="zmdi zmdi-chevron-right"></i> &nbsp; Gestionn activité</h6>
+                            class="zmdi zmdi-chevron-right"></i> &nbsp; Gestion activité</h6>
                 </div>
                 <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
-                    <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-money text-info"></i>
-                        Liste</h4>
+                    <h4 style="color:rgba(0, 0, 0, 0.6);">
+                        <i style="font-size: 40px;" class="zmdi zmdi-money text-info"></i>
+                        Liste
+                        <span class="activity-count-badge" id="activityCountBadge">
+                            <i class="zmdi zmdi-view-list"></i> <span id="activityCount">0</span>
+                        </span>
+                    </h4>
+
+                    <!-- FILTRES : Nom et Description -->
+                    <div class="filters-container">
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-search text-danger"></i> Rechercher par nom</label>
+                            <input type="text" id="filterNom" class="form-control" placeholder="Nom de l'activité...">
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-search text-danger"></i> Rechercher par description</label>
+                            <input type="text" id="filterDescription" class="form-control" placeholder="Description...">
+                        </div>
+                        <div class="filter-group" style="flex: 0 0 auto; display: flex; align-items: flex-end;">
+                            <button id="resetFilters" class="btn btn-secondary btn-sm" style="height: 42px;">
+                                <i class="zmdi zmdi-refresh"></i> Réinitialiser
+                            </button>
+                        </div>
+                    </div>
+
                     <div id="content_groupe" class="row">
                         <div class="col-12">
                             <div class="table-responsive">
@@ -709,18 +791,19 @@ use App\Models\Soldes;
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="activitiesTableBody">
                                         {{ !($i = 1) }}
                                         @foreach ($activites as $data)
-                                            <tr>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;">
+                                            <tr id="row_{{ $data->id }}">
+                                                <td class="row-num" style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
+                                                <td class="nom-cell" data-nom="{{ $data->nom }}" style="padding-top: 5px;padding-bottom: 5px;">
                                                     <a id="voir_profil_<?= $i ?>" href="#">
-                                                        <img src="{{ asset($data->logo) }}" alt="avatar"
+                                                        <img src="{{ asset($data->logo) }}" alt="logo"
                                                             class="profile-thumb">
                                                     </a> {{ $data->nom }}
                                                 </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->description }}
+                                                <td class="description-cell" data-description="{{ $data->description }}" style="padding-top: 5px;padding-bottom: 5px;">
+                                                    {{ $data->description }}
                                                 </td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;">
                                                     <a id="edit_<?= $i ?>" href="#"><i
@@ -757,10 +840,15 @@ use App\Models\Soldes;
                                                         });
                                                     </script>
                                                 </td>
-
                                             </tr>
                                             {{ !$i++ }}
                                         @endforeach
+                                        <!-- Ligne pour aucun résultat -->
+                                        <tr id="noResultRow" style="display: none;">
+                                            <td colspan="4">
+                                                <i class="zmdi zmdi-info-outline"></i> Aucune activité ne correspond à vos critères.
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -773,14 +861,15 @@ use App\Models\Soldes;
                             class="zmdi zmdi-accounts-add text-info"></i> Ajouter</h4>
                     <form id="form_add" action="#" method="post">
                         @csrf
-                        <p style="color:rgba(0, 0, 0, 0.6);" class="text-center"><a href="#"><img id="user_img_profil"
+                        <p style="color:rgba(0, 0, 0, 0.6);" class="text-center">
+                            <a href="#"><img id="user_img_profil"
                                     class="user__img" src="{{ asset('storage/images/user/profil_defaut.png') }}"
-                                    alt="" style="width: 100px; height: 100px; object-fit: cover;"></a></p>
+                                    alt="" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 2px solid #e2e8f0;"></a>
+                        </p>
                         <!-- Barre de progression -->
-                        <div class="progress-container" style="display:none; margin-top: 10px;">
-                            <div class="progress-bar"
-                                style="width:0%; height:5px; background-color:#32c787; transition: width 0.3s;"></div>
-                            <span class="progress-text" style="font-size:12px;">0%</span>
+                        <div class="progress-container" style="display:none;">
+                            <div class="progress-bar" style="width:0%;"></div>
+                            <span class="progress-text">0%</span>
                         </div>
 
                         <input type="file" name="input_user_img_profil" id="input_user_img_profil" style="display:none;">
@@ -809,8 +898,8 @@ use App\Models\Soldes;
                         <div class="row">
                             <div class="col-12">
                                 <button id="save" class="btn btn-info btn-sm">Enregister <i
-                                        class="zmdi zmdi-save"></i></button> <button id="annuler"
-                                    class="btn btn-danger btn-sm">Annuler <i class="zmdi zmdi-close-circle"></i></button>
+                                        class="zmdi zmdi-save"></i></button>
+                                <button id="annuler" class="btn btn-danger btn-sm">Annuler <i class="zmdi zmdi-close-circle"></i></button>
                             </div>
                         </div>
                         <div class="row">
@@ -821,23 +910,16 @@ use App\Models\Soldes;
                         </div>
                     </form>
                 </div>
-                <div id="bloc_3" style="margin-top: 12px;display: none;" class="col-lg-12">
-
-                </div>
-                <div id="bloc_4" style="margin-top: 12px;display: none;" class="col-lg-12">
-
-                </div>
+                <div id="bloc_3" style="margin-top: 12px;display: none;" class="col-lg-12"></div>
+                <div id="bloc_4" style="margin-top: 12px;display: none;" class="col-lg-12"></div>
             </div>
         </div>
     </section>
     <span id="data_id" style="display: none;"></span>
     <button style="display: none;" data-toggle="modal" data-target="#suppression" id="btn_sup">Sup</button>
-    <button style="display: none;" data-toggle="modal" data-target="#activation" id="btn_ac">Sup</button>
-    <button style="display: none;" data-toggle="modal" data-target="#cloture" id="btn_cl">Sup</button>
-    <button style="display: none;" data-toggle="modal" data-target="#cloturee" id="btn_cll">Sup</button>
-    <button style="display: none;" data-toggle="modal" data-target="#attendre" id="btn_att">Sup</button>
     <button style="display: none;" data-toggle="modal" data-target="#profil_utilisateur"
         id="btn_voir_profil">Sup</button>
+
     <div class="modal fade" id="profil_utilisateur" tabindex="-1">
         <div class="modal-dialog modal-dialog modal-sm">
             <div class="modal-content">
@@ -847,9 +929,7 @@ use App\Models\Soldes;
                     </h5>
                 </div>
                 <div class="modal-body">
-                    <p id="contenu_voir_profil" style="text-align: center;">
-
-                    </p>
+                    <p id="contenu_voir_profil" style="text-align: center;"></p>
                 </div>
                 <div style="font-weight: bold;text-align: center;">
                     <p class="text-center" style="font-weight: bold;text-align: center;">
@@ -860,6 +940,7 @@ use App\Models\Soldes;
             </div>
         </div>
     </div>
+
     <div class="modal fade" id="suppression" tabindex="-1">
         <div class="modal-dialog modal-dialog modal-sm">
             <div class="modal-content">
@@ -868,9 +949,7 @@ use App\Models\Soldes;
                         supprimez cette activité ? </h5>
                 </div>
                 <div class="modal-body">
-                    <p id="element" style="text-align: center;">
-
-                    </p>
+                    <p id="element" style="text-align: center;"></p>
                 </div>
                 <div style="font-weight: bold;text-align: center;">
                     <p class="text-center" style="font-weight: bold;text-align: center;">
@@ -883,94 +962,7 @@ use App\Models\Soldes;
             </div>
         </div>
     </div>
-    <div class="modal fade" id="activation" tabindex="-1">
-        <div class="modal-dialog modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title pull-left text-center" style="font-weight: bold;font-size: 16px;">Voulez-vous
-                        activez ce solde ? </h5>
-                </div>
-                <div class="modal-body">
-                    <p id="element_1" style="text-align: center;">
 
-                    </p>
-                </div>
-                <div style="font-weight: bold;text-align: center;">
-                    <p class="text-center" style="font-weight: bold;text-align: center;">
-                        <a style="color: white;font-weight: bold;" id="oui_1" href="#"
-                            class="btn btn-info btn-sm">Oui</a>
-                        <button style="font-weight: bold;" id="non_1" class="btn btn-danger btn-sm"
-                            data-dismiss="modal">Non</button>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="cloture" tabindex="-1">
-        <div class="modal-dialog modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title pull-left text-center" style="font-weight: bold;font-size: 16px;">Voulez-vous
-                        cloturez ce solde ? </h5>
-                </div>
-                <div class="modal-body">
-                    <p id="element_2" style="text-align: center;">
-
-                    </p>
-                </div>
-                <div style="font-weight: bold;text-align: center;">
-                    <p class="text-center" style="font-weight: bold;text-align: center;">
-                        <a style="color: white;font-weight: bold;" id="oui_2" href="#"
-                            class="btn btn-info btn-sm">Oui</a>
-                        <button style="font-weight: bold;" id="non_2" class="btn btn-danger btn-sm"
-                            data-dismiss="modal">Non</button>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="cloturee" tabindex="-1">
-        <div class="modal-dialog modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title pull-left text-center" style="font-weight: bold;font-size: 16px;">Ce solde est
-                        deja cloturé </h5>
-                </div>
-                <div class="modal-body">
-                    <p id="element_3" style="text-align: center;">
-
-                    </p>
-                </div>
-                <div style="font-weight: bold;text-align: center;">
-                    <p class="text-center" style="font-weight: bold;text-align: center;">
-                        <button style="font-weight: bold;" id="non_3" class="btn btn-danger btn-sm"
-                            data-dismiss="modal">D'accord</button>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="attendre" tabindex="-1">
-        <div class="modal-dialog modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title pull-left text-center" style="font-weight: bold;font-size: 16px;">Ce solde est
-                        en attente</h5>
-                </div>
-                <div class="modal-body">
-                    <p id="element_4" style="text-align: center;">
-
-                    </p>
-                </div>
-                <div style="font-weight: bold;text-align: center;">
-                    <p class="text-center" style="font-weight: bold;text-align: center;">
-                        <button style="font-weight: bold;" id="non_4" class="btn btn-danger btn-sm"
-                            data-dismiss="modal">D'accord merci</button>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
 @section('js-code')
     <script src="{{ asset('assets/vendors/flot/jquery.flot.js') }} "></script>
     <script src="{{ asset('assets/vendors/flot/jquery.flot.pie.js') }}"></script>
@@ -984,222 +976,267 @@ use App\Models\Soldes;
     <script src="{{ asset('assets/demo/js/flot-charts/pie.js') }}"></script>
     <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
     <script>
-        $("#link_35").css("border-left", "1px solid rgb(33, 150, 243)");
-        $("#text_35").addClass("text-info");
-        $("#icone_35").css("color", "rgb(33, 150, 243)");
-        $("#upload").click(function(e) {
-            e.preventDefault();
-            $("#dropzone-upload").trigger("click");
-        })
-        $("#user_img_profil").click(function(e) {
-            e.preventDefault();
-            $("#input_user_img_profil").trigger("click");
-        });
-        $("#input_user_img_profil").change(function(e) {
-            e.preventDefault();
-            var formData = new FormData();
-            formData.append('input_user_img_profil', $('#input_user_img_profil')[0].files[0]);
-            formData.append('_token', $('meta[name="csrf-token"]').attr('content')); // Ajout du token
-            // $("#save").attr("disabled", true);
-            // Afficher la barre de progression avant l'upload
-            $('.progress-container').show();
-            $('.progress-bar').css('width', '0%');
-            $('.progress-text').text('0%');
+        $(document).ready(function() {
 
-            $.ajax({
-                type: "POST",
-                url: "/upload_logo_add",
-                data: formData,
-                processData: false,
-                contentType: false,
-                xhr: function() {
-                    var xhr = new window.XMLHttpRequest();
+            // =================================================================
+            // 1. PERSISTANCE DES FILTRES (nom et description)
+            // =================================================================
+            const STORAGE_KEY = 'activities_filters';
 
-                    // Suivre la progression
-                    xhr.upload.addEventListener("progress", function(evt) {
-                        if (evt.lengthComputable) {
-                            var percentComplete = Math.round((evt.loaded / evt.total) * 100);
-                            $('.progress-bar').css('width', percentComplete + '%');
-                            $('.progress-text').text(percentComplete + '%');
-                        }
-                    }, false);
+            function saveFilters() {
+                const filters = {
+                    filterNom: $('#filterNom').val() || '',
+                    filterDescription: $('#filterDescription').val() || ''
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(filters));
+            }
 
-                    return xhr;
-                },
-                success: function(response) {
-                    $('.progress-bar').css('width', '100%');
-                    $('.progress-text').text('100%');
-
-                    setTimeout(function() {
-                        $('.progress-container').hide();
-                    }, 1000);
-
-                    $('#msg').html('Logo teléchargé avec succès');
-                    $('#msg').css("color", '#32c787');
-                    $('#user_img_profil').attr('src', response);
-                    $("#image").val(response);
-                    setTimeout(() => {
-                        $('#msg').html("");
-                    }, 9000);
-                },
-                error: function(xhr) {
-                    // $("#save").attr("disabled", false);
-                    $('.progress-container').hide();
-                    $('#msg').html(xhr.responseJSON.message);
-                    $('#msg').css("color", 'red');
+            function loadFilters() {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (!stored) return false;
+                try {
+                    const filters = JSON.parse(stored);
+                    if (filters.filterNom !== undefined) $('#filterNom').val(filters.filterNom);
+                    if (filters.filterDescription !== undefined) $('#filterDescription').val(filters.filterDescription);
+                    return true;
+                } catch (e) {
+                    return false;
                 }
-            });
-        });
-        $("#input_user_img_profil").change(function(e) {
-            e.preventDefault();
-            var formData = new FormData();
-            formData.append('input_user_img_profil', $('#input_user_img_profil')[0].files[0]);
-            formData.append('_token', $('meta[name="csrf-token"]').attr('content')); // Ajout du token
-            // $("#save").attr("disabled", true);
-            // Afficher la barre de progression avant l'upload
-            $('.progress-container').show();
-            $('.progress-bar').css('width', '0%');
-            $('.progress-text').text('0%');
+            }
 
-            $.ajax({
-                type: "POST",
-                url: "/upload_logo_add",
-                data: formData,
-                processData: false,
-                contentType: false,
-                xhr: function() {
-                    var xhr = new window.XMLHttpRequest();
+            // =================================================================
+            // 2. FONCTION DE FILTRAGE + COMPTEUR
+            // =================================================================
+            function filterActivities() {
+                const filterNom = String($('#filterNom').val() || '').toLowerCase().trim();
+                const filterDescription = String($('#filterDescription').val() || '').toLowerCase().trim();
 
-                    // Suivre la progression
-                    xhr.upload.addEventListener("progress", function(evt) {
-                        if (evt.lengthComputable) {
-                            var percentComplete = Math.round((evt.loaded / evt.total) * 100);
-                            $('.progress-bar').css('width', percentComplete + '%');
-                            $('.progress-text').text(percentComplete + '%');
-                        }
-                    }, false);
+                let visibleCount = 0;
+                let newIndex = 1;
 
-                    return xhr;
-                },
-                success: function(response) {
-                    $('.progress-bar').css('width', '100%');
-                    $('.progress-text').text('100%');
+                $('#noResultRow').hide();
 
-                    setTimeout(function() {
-                        $('.progress-container').hide();
-                    }, 1000);
+                $('#activitiesTableBody tr:not(#noResultRow)').each(function() {
+                    const $row = $(this);
+                    const nomValue = String($row.find('.nom-cell').data('nom') || '').toLowerCase();
+                    const descriptionValue = String($row.find('.description-cell').data('description') || '').toLowerCase();
 
-                    $('#msg').html('Logo teléchargé avec succès');
-                    $('#msg').css("color", '#32c787');
-                    $('#user_img_profil').attr('src', response);
-                    $("#image").val(response);
-                    setTimeout(() => {
-                        $('#msg').html("");
-                    }, 9000);
-                },
-                error: function(xhr) {
-                    // $("#save").attr("disabled", false);
-                    $('.progress-container').hide();
-                    $('#msg').html(xhr.responseJSON.message);
-                    $('#msg').css("color", 'red');
-                }
-            });
-        })
-        $("#liste").click(function(e) {
-            e.preventDefault();
-            $("#bloc_1").show();
-            $("#bloc_2").hide();
-            $("#bloc_3").hide();
-            $("#bloc_4").hide();
-        });
-        $("#add").click(function(e) {
-            e.preventDefault();
-            $("#bloc_1").hide();
-            $("#bloc_2").show();
-            $("#bloc_3").hide();
-            $("#bloc_4").hide();
-        });
-        $("#annuler").click(function(e) {
-            e.preventDefault();
-            $("#bloc_1").show();
-            $("#bloc_2").hide();
-            $("#bloc_3").hide();
-            $("#bloc_4").hide();
-        });
-        $("#save").click(function(e) {
-            e.preventDefault();
-            var nom = $("#nom").val();
-            var description = $("#description").val();
-            var data = $("#form_add").serialize();
-            if (nom.trim().length == 0) {
-                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom');
-                $('#msg').css('color', "#ff6b68");
-                setTimeout(() => {
-                    $('#msg').html("");
-                }, 9000);
-            } else {
-                $.get("{{ url('/check_nom_activiter') }}", {
-                    nom: nom,
-                }, function(rep) {
-                    if (rep != 0) {
-                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Cette activité existe déjà');
-                        $('#msg').css('color', "#ff6b68");
-                        setTimeout(() => {
-                            $('#msg').html("");
-                        }, 9000);
+                    let showRow = true;
+
+                    if (filterNom && !nomValue.includes(filterNom)) {
+                        showRow = false;
+                    }
+
+                    if (showRow && filterDescription && !descriptionValue.includes(filterDescription)) {
+                        showRow = false;
+                    }
+
+                    if (showRow) {
+                        $row.show();
+                        $row.find('.row-num').text(newIndex);
+                        newIndex++;
+                        visibleCount++;
                     } else {
-                        $("#save").attr("disabled", true);
-                        $.ajax({
-                            type: "POST",
-                            url: "/add_activiter",
-                            data: data,
-                            success: function(response) {
-                                $("#save").attr("disabled",false);
-                                $("#nom").val("");
-                                $("#description").val("");
-                                $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Activitée ajoutée avec succès');
-                                $('#msg').css("color",
-                                    '#32c787');
-                                $("#content_groupe").html(response);
-                                setTimeout(() => {
-                                    $('#msg').html("");
-                                }, 9000);
-                            }
-                        });
+                        $row.hide();
                     }
                 });
+
+                $('#activityCount').text(visibleCount);
+
+                if (visibleCount === 0) {
+                    $('#noResultRow').show();
+                }
             }
-        });
-        $("#oui").click(function(e) {
-            e.preventDefault();
-            var id = $("#data_id").html();
-            $.get("{{ url('/refresh_delete_activites') }}", {
-                id: id,
-            }, function(refresh_editverbalisateur) {
-                $("#content_groupe").html(refresh_editverbalisateur);
-                $("#non_sup").trigger("click");
+
+            // =================================================================
+            // 3. ÉVÉNEMENTS SUR LES FILTRES
+            // =================================================================
+            $('#filterNom, #filterDescription').on('keyup', function() {
+                saveFilters();
+                filterActivities();
             });
-        });
-        $("#oui_1").click(function(e) {
-            e.preventDefault();
-            var id = $("#data_id").html();
-            $.get("{{ url('/refresh_activer_solde') }}", {
-                id: id,
-            }, function(refresh_editverbalisateur) {
-                $("#content_groupe").html(refresh_editverbalisateur);
-                $("#non_1").trigger("click");
+
+            $('#resetFilters').on('click', function() {
+                localStorage.removeItem(STORAGE_KEY);
+                $('#filterNom').val('');
+                $('#filterDescription').val('');
+                saveFilters();
+                filterActivities();
+
+                $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Filtres réinitialisés');
+                $('#msg').css('display', 'flex');
+                setTimeout(() => {
+                    $('#msg').html('');
+                    $('#msg').css('display', 'none');
+                }, 3000);
             });
-        });
-        $("#oui_2").click(function(e) {
-            e.preventDefault();
-            var id = $("#data_id").html();
-            $.get("{{ url('/refresh_cloturer_solde') }}", {
-                id: id,
-            }, function(refresh_editverbalisateur) {
-                $("#content_groupe").html(refresh_editverbalisateur);
-                $("#non_2").trigger("click");
+
+            // =================================================================
+            // 4. CHARGEMENT DES FILTRES PERSISTANTS
+            // =================================================================
+            loadFilters();
+            filterActivities();
+
+            // =================================================================
+            // 5. SCRIPTS EXISTANTS (conservés et adaptés)
+            // =================================================================
+            $("#link_35").addClass("active");
+
+            $("#upload").click(function(e) {
+                e.preventDefault();
+                $("#dropzone-upload").trigger("click");
             });
-        });
+
+            $("#liste").click(function(e) {
+                e.preventDefault();
+                $("#bloc_1").show();
+                $("#bloc_2").hide();
+                $("#bloc_3").hide();
+                $("#bloc_4").hide();
+                filterActivities();
+            });
+
+            $("#add").click(function(e) {
+                e.preventDefault();
+                $("#bloc_1").hide();
+                $("#bloc_2").show();
+                $("#bloc_3").hide();
+                $("#bloc_4").hide();
+            });
+
+            $("#annuler").click(function(e) {
+                e.preventDefault();
+                $("#bloc_1").show();
+                $("#bloc_2").hide();
+                $("#bloc_3").hide();
+                $("#bloc_4").hide();
+                filterActivities();
+            });
+
+            // ========== UPLOAD DU LOGO ==========
+            $("#user_img_profil").click(function(e) {
+                e.preventDefault();
+                $("#input_user_img_profil").trigger("click");
+            });
+
+            $("#input_user_img_profil").change(function(e) {
+                e.preventDefault();
+                var formData = new FormData();
+                formData.append('input_user_img_profil', $('#input_user_img_profil')[0].files[0]);
+                formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+                $('.progress-container').show();
+                $('.progress-bar').css('width', '0%');
+                $('.progress-text').text('0%');
+
+                $.ajax({
+                    type: "POST",
+                    url: "/upload_logo_add",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    xhr: function() {
+                        var xhr = new window.XMLHttpRequest();
+                        xhr.upload.addEventListener("progress", function(evt) {
+                            if (evt.lengthComputable) {
+                                var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+                                $('.progress-bar').css('width', percentComplete + '%');
+                                $('.progress-text').text(percentComplete + '%');
+                            }
+                        }, false);
+                        return xhr;
+                    },
+                    success: function(response) {
+                        $('.progress-bar').css('width', '100%');
+                        $('.progress-text').text('100%');
+                        setTimeout(function() {
+                            $('.progress-container').hide();
+                        }, 1000);
+
+                        $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Logo téléchargé avec succès');
+                        $('#msg').css('display', 'flex');
+                        $('#user_img_profil').attr('src', response);
+                        $("#image").val(response);
+                        setTimeout(() => {
+                            $('#msg').html('');
+                            $('#msg').css('display', 'none');
+                        }, 9000);
+                    },
+                    error: function(xhr) {
+                        $('.progress-container').hide();
+                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> ' + (xhr.responseJSON?.message || 'Erreur lors de l\'upload'));
+                        $('#msg').css('display', 'flex');
+                        setTimeout(() => {
+                            $('#msg').html('');
+                            $('#msg').css('display', 'none');
+                        }, 9000);
+                    }
+                });
+            });
+
+            // ========== AJOUT D'UNE ACTIVITÉ ==========
+            $("#save").click(function(e) {
+                e.preventDefault();
+                var nom = $("#nom").val();
+                var description = $("#description").val();
+                var data = $("#form_add").serialize();
+                if (nom.trim().length == 0) {
+                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom');
+                    $('#msg').css('display', 'flex');
+                    setTimeout(() => {
+                        $('#msg').html('');
+                        $('#msg').css('display', 'none');
+                    }, 9000);
+                } else {
+                    $.get("{{ url('/check_nom_activiter') }}", {
+                        nom: nom,
+                    }, function(rep) {
+                        if (rep != 0) {
+                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Cette activité existe déjà');
+                            $('#msg').css('display', 'flex');
+                            setTimeout(() => {
+                                $('#msg').html('');
+                                $('#msg').css('display', 'none');
+                            }, 9000);
+                        } else {
+                            $("#save").attr("disabled", true);
+                            $.ajax({
+                                type: "POST",
+                                url: "/add_activiter",
+                                data: data,
+                                success: function(response) {
+                                    $("#save").attr("disabled", false);
+                                    $("#nom").val("");
+                                    $("#description").val("");
+                                    $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Activité ajoutée avec succès');
+                                    $('#msg').css('display', 'flex');
+                                    $("#content_groupe").html(response);
+                                    filterActivities();
+                                    setTimeout(() => {
+                                        $('#msg').html('');
+                                        $('#msg').css('display', 'none');
+                                    }, 9000);
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            // ========== SUPPRESSION ==========
+            $("#oui").click(function(e) {
+                e.preventDefault();
+                var id = $("#data_id").html();
+                $.get("{{ url('/refresh_delete_activites') }}", {
+                    id: id,
+                }, function(refresh_editverbalisateur) {
+                    $("#content_groupe").html(refresh_editverbalisateur);
+                    filterActivities();
+                    $("#non_sup").trigger("click");
+                });
+            });
+
+        }); // fin document ready
     </script>
 @endsection
 @endsection

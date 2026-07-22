@@ -30,7 +30,7 @@
     $menu_11 = Desactiver();
     $menu_12 = Desactiver();
     $menu_13 = Activer();
-    $menu_14 = Desactiver();
+    $menu_14 = Desactiver(); // ici
     // Divine
     $menu_15 = Desactiver();
     $menu_16 = Desactiver();
@@ -49,8 +49,8 @@
     $menu_29 = Desactiver();
     $menu_30 = Desactiver();
     $menu_31 = Desactiver();
-    $menu_32 = Desactiver();
-    $menu_33 = Activer();
+    $menu_32 = Activer();
+    $menu_33 = Desactiver();
     $menu_34 = Desactiver();
     $menu_35 = Desactiver();
     $menu_36 = Desactiver();
@@ -99,6 +99,328 @@
     $menu_36 = Activer();
   }
 ?>
+
+<style>
+/* ========== SIDEBAR GRIS CLAIR (#E7F5FE) + ACTIF ENVELOPPÉ ========== */
+.sidebar {
+  background: #E7F5FE !important;
+  border-right: 1px solid #d4e2f0 !important;
+  box-shadow: none !important;
+}
+
+/* Zone utilisateur */
+.sidebar .user {
+  padding: 1.25rem 1rem;
+}
+.sidebar .user__info {
+  background: #ffffff !important;
+  border-radius: 14px !important;
+  padding: 0.75rem !important;
+  border: 1px solid #e2edf5 !important;
+}
+.sidebar .user__name {
+  color: #000000 !important;
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+}
+.sidebar .user__email {
+  color: #1e2a3e !important;
+  font-size: 0.75rem !important;
+}
+
+/* Menu principal */
+.sidebar .navigation {
+  list-style: none;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+}
+.sidebar .navigation li {
+  margin-bottom: 0.25rem;
+}
+.sidebar .navigation li a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.7rem 1rem;
+  color: #000000 !important;
+  font-weight: bold !important;
+  font-size: 0.9rem;
+  background: transparent;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.sidebar .navigation li a:hover {
+  background: #d9eaf5 !important;
+  color: #000000 !important;
+  transform: translateX(4px);
+}
+
+/* === LIEN ACTIF (class active sur le li) === */
+.sidebar .navigation li.active a {
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: #000000 !important;
+  font-weight: bold !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  backdrop-filter: blur(2px) !important;
+  transform: translateX(2px) !important;
+}
+
+/* Titre administration */
+.admin-tools-title {
+  color: #1a1a1a !important;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.75rem 1rem 0.25rem 1.5rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid #d4e2f0;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  background: #ffffff !important;
+  border: 1px solid #e2edf5 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05) !important;
+  padding: 0.5rem 0;
+}
+.dropdown-item {
+  color: #000000 !important;
+  font-size: 0.85rem;
+  padding: 0.5rem 1.25rem;
+  transition: all 0.15s;
+}
+.dropdown-item:hover {
+  background: #E7F5FE !important;
+  color: #000000 !important;
+}
+
+/* Scrollbar */
+.scrollbar-inner::-webkit-scrollbar {
+  width: 5px;
+}
+.scrollbar-inner::-webkit-scrollbar-track {
+  background: #e2edf5;
+  border-radius: 10px;
+}
+.scrollbar-inner::-webkit-scrollbar-thumb {
+  background: #c0d4e4;
+  border-radius: 10px;
+}
+.scrollbar-inner::-webkit-scrollbar-thumb:hover {
+  background: #9bb8ce;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar .navigation li a {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+  }
+}
+/* ========== MODALES RESPONSIVES ========== */
+.modal-content {
+  background: #ffffff !important;
+  border: none !important;
+  border-radius: 24px !important;
+  box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden;
+}
+
+.modal-header {
+  background: #3B82F6 !important;
+  border-bottom: none !important;
+  padding: 1.2rem 1.5rem !important;
+}
+
+.modal-header .modal-title {
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  font-size: 1.2rem !important;
+}
+
+.modal-header .close {
+  opacity: 0.9 !important;
+  transition: all 0.2s ease;
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+.modal-header .close:hover {
+  opacity: 1 !important;
+  transform: scale(1.1);
+  color: #ffffff !important;
+}
+
+.modal-body {
+  background: #ffffff !important;
+  padding: 1.8rem !important;
+  color: #1e2a3e !important;
+  font-size: 0.95rem;
+}
+
+.modal-footer {
+  border-top: 1px solid #eef2f6 !important;
+  background: #fafcff !important;
+  padding: 1rem 1.5rem !important;
+  justify-content: center !important;
+  gap: 12px;
+}
+
+.modal-footer .btn,
+.modal-footer a.btn {
+  border-radius: 40px !important;
+  padding: 8px 24px !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  transition: all 0.2s ease;
+  border: none !important;
+}
+
+.modal-footer .btn-info,
+.modal-footer .btn-info:active,
+.modal-footer .btn-info:focus {
+  background: #3B82F6 !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.modal-footer .btn-info:hover {
+  background: #2563eb !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(59, 130, 246, 0.35);
+}
+
+.modal-footer .btn-danger {
+  background: #e03a3a !important;
+  color: white !important;
+}
+
+.modal-footer .btn-danger:hover {
+  background: #c32e2e !important;
+  transform: translateY(-1px);
+}
+
+.modal-body i.zmdi,
+.modal-body img {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+}
+
+.modal-body iframe {
+  border-radius: 16px !important;
+  border: 1px solid #e9edf2 !important;
+  background: #f9fbfd;
+  width: 100%;
+  height: 450px; /* hauteur par défaut */
+}
+
+#excelViewerContainer {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 8px;
+  overflow-x: auto; /* pour les tableaux larges */
+}
+
+/* Fond (overlay) */
+.modal-backdrop {
+  background-color: #1e2a3e !important;
+  opacity: 0.75 !important;
+}
+
+.modal-open .modal-backdrop.show {
+  backdrop-filter: blur(4px);
+}
+
+/* ========== RESPONSIVE ========== */
+
+/* Tablettes et petits écrans */
+@media (max-width: 992px) {
+  .modal-dialog {
+    max-width: 90% !important;
+    margin: 1.75rem auto;
+  }
+  .modal-content {
+    border-radius: 20px !important;
+  }
+  .modal-body {
+    padding: 1.5rem !important;
+  }
+  .modal-body iframe {
+    height: 350px;
+  }
+}
+
+/* Mobiles (largeur < 768px) */
+@media (max-width: 768px) {
+  .modal-dialog {
+    max-width: 95% !important;
+    margin: 1rem auto;
+  }
+  .modal-content {
+    border-radius: 18px !important;
+  }
+  .modal-header {
+    padding: 1rem 1.2rem !important;
+  }
+  .modal-header .modal-title {
+    font-size: 1rem !important;
+  }
+  .modal-body {
+    padding: 1.2rem !important;
+    font-size: 0.9rem;
+  }
+  .modal-footer {
+    padding: 0.8rem 1.2rem !important;
+    flex-wrap: wrap; /* pour que les boutons passent à la ligne */
+    gap: 8px;
+  }
+  .modal-footer .btn,
+  .modal-footer a.btn {
+    padding: 6px 16px !important;
+    font-size: 0.8rem !important;
+  }
+  .modal-body iframe {
+    height: 280px;
+    border-radius: 12px !important;
+  }
+  #excelViewerContainer {
+    padding: 4px;
+  }
+}
+
+/* Très petits écrans (<= 576px) */
+@media (max-width: 576px) {
+  .modal-dialog {
+    max-width: 98% !important;
+    margin: 0.5rem auto;
+  }
+  .modal-content {
+    border-radius: 16px !important;
+  }
+  .modal-header {
+    padding: 0.8rem 1rem !important;
+  }
+  .modal-header .modal-title {
+    font-size: 0.9rem !important;
+  }
+  .modal-body {
+    padding: 1rem !important;
+    font-size: 0.85rem;
+  }
+  .modal-footer .btn,
+  .modal-footer a.btn {
+    padding: 5px 14px !important;
+    font-size: 0.75rem !important;
+  }
+  .modal-body iframe {
+    height: 200px;
+  }
+}
+</style>
+
 <?php if(Auth::user()->module_connected == 1){ ?>
 <!-- ===================== SIDEBAR ===================== -->
   <aside class="sidebar">

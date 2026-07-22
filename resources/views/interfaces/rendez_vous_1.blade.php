@@ -1,3 +1,7 @@
+@php
+    use App\Models\appnames;
+    $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
+@endphp
 <?php
 
 use App\Models\Mois;
@@ -6,7 +10,7 @@ use App\Models\Soldes;
 use App\Models\Listespaies;
 ?>
 @extends('layouts.main')
-@section('title', 'AFRICTECHAPP')
+@section('title', $nom_app)
 @section('name', 'RENDEZ-VOUS')
 @section('body')
 @include('composants.preload')

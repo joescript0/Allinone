@@ -1,5 +1,9 @@
+@php
+    use App\Models\appnames;
+    $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
+@endphp
 @extends('layouts.main')
-@section('title', 'CONTROLAPP')
+@section('title', $nom_app)
 @section('name', 'TABLEAU DE BORD')
 @section('body')
 
@@ -22,25 +26,17 @@
         font-family: 'Inter', sans-serif;
     }
 
-    /* Fond dynamique avec grain */
+    /* Fond sobre et clair (style seconde page) */
     .content {
-        background: radial-gradient(circle at 10% 20%, #f0f4fc 0%, #e2e8f2 100%);
+        background: #f1f5f9;
         min-height: 100vh;
         padding: 1.5rem 0;
         position: relative;
     }
     .content::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cGF0aCBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDMiIGQ9Ik0wIDBoNDB2NDBIMHoiLz48L3N2Zz4=');
-        pointer-events: none;
-        opacity: 0.5;
-        z-index: 0;
+        display: none; /* on retire le grain de la première version */
     }
+
     .container-fluid {
         position: relative;
         z-index: 1;
@@ -48,221 +44,198 @@
         padding-right: 1rem !important;
     }
 
-    /* --- CARTES STATS --- */
+    /* --- CARTES STATS : carrées, bordures colorées (structure inchangée) --- */
     .quick-stats__item {
-        backdrop-filter: blur(12px);
-        border-radius: 32px;
+        background: #fefefe;
+        border-radius: 0px;
         padding: 1.8rem 1rem;
-        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-        border: 1px solid rgba(255,255,255,0.2);
+        transition: all 0.25s ease;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
         position: relative;
+        border-left: 6px solid;
+        /* on garde le overflow: hidden pour la barre de progression */
         overflow: hidden;
-    }
-    .quick-stats__item::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
-        transform: rotate(25deg);
-        transition: all 0.6s;
-        opacity: 0;
-    }
-    .quick-stats__item:hover::before {
-        opacity: 0.6;
-        transform: rotate(0deg);
     }
     .quick-stats__item:hover {
-        transform: translateY(-10px) scale(1.02);
-        box-shadow: 0 25px 45px rgba(0,0,0,0.2);
+        transform: translateY(-4px);
+        box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.2);
     }
+
+    /* Les couleurs sont attribuées via les classes bg-* */
+    .quick-stats__item.bg-blue {
+        border-left-color: #2563eb;
+        background: linear-gradient(135deg, #ffffff, #eef2ff);
+    }
+    .quick-stats__item.bg-amber {
+        border-left-color: #f59e0b;
+        background: linear-gradient(135deg, #ffffff, #fffbeb);
+    }
+    .quick-stats__item.bg-purple {
+        border-left-color: #8b5cf6;
+        background: linear-gradient(135deg, #ffffff, #f5f3ff);
+    }
+    .quick-stats__item.bg-red {
+        border-left-color: #dc2626;
+        background: linear-gradient(135deg, #ffffff, #fef2f2);
+    }
+
+    /* Icônes (au-dessus du titre, structure conservée) */
     .quick-stats__info i {
         font-size: 2.5rem;
-        margin-bottom: 0.75rem;
-        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
-        transition: transform 0.3s;
-        animation: softPulse 2s infinite;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+        transition: transform 0.2s;
     }
     .quick-stats__item:hover i {
-        transform: scale(1.1) translateY(-3px);
+        transform: scale(1.05);
     }
+    .bg-blue i { color: #2563eb; }
+    .bg-amber i { color: #f59e0b; }
+    .bg-purple i { color: #8b5cf6; }
+    .bg-red i { color: #dc2626; }
+
     .quick-stats__info h2 {
         font-weight: 800;
-        font-size: 2.4rem;
-        background: linear-gradient(135deg, #fff, #f0f0f0);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        text-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        font-size: 2.5rem;
+        color: #0f172a;
+        margin: 0;
+        line-height: 1.2;
     }
+
     .quick-stats__info small {
+        color: #000000;
         font-weight: 600;
-        letter-spacing: 2px;
-        font-size: 0.7rem;
-        background: rgba(0,0,0,0.3);
-        padding: 0.2rem 0.8rem;
-        border-radius: 30px;
-        backdrop-filter: blur(4px);
-    }
-    .bg-blue { background: linear-gradient(145deg, #1e88e5, #0d47a1, #0a2e6e); background-size: 200% 200%; animation: gradientShift 8s ease infinite; }
-    .bg-amber { background: linear-gradient(145deg, #ffb300, #ff8f00, #e65c00); background-size: 200% 200%; animation: gradientShift 8s ease infinite; }
-    .bg-purple { background: linear-gradient(145deg, #8e24aa, #4a148c, #311b92); background-size: 200% 200%; animation: gradientShift 8s ease infinite; }
-    .bg-red { background: linear-gradient(145deg, #e53935, #b71c1c, #8b0000); background-size: 200% 200%; animation: gradientShift 8s ease infinite; }
-    @keyframes gradientShift {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    @keyframes softPulse {
-        0% { text-shadow: 0 0 0px rgba(255,255,255,0); }
-        50% { text-shadow: 0 0 8px rgba(255,255,255,0.6); }
-        100% { text-shadow: 0 0 0px rgba(255,255,255,0); }
-    }
-
-    /* --- CARTES GRAPHIQUES --- */
-    .card {
-        background: #475569;
-        border-radius: 48px;
-        border: 1px solid rgba(255,255,255,0.3);
-        box-shadow: 0 25px 45px -12px rgba(0,0,0,0.2);
-        transition: all 0.4s cubic-bezier(0.2, 0.8, 0.4, 1);
-        margin-bottom: 2rem;
-        position: relative;
-        overflow: hidden;
-    }
-    .card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 35px 50px -15px rgba(0,0,0,0.3);
-        border-color: rgba(255,255,255,0.6);
-    }
-    .card::before {
-        content: "";
-        position: absolute;
-        top: -2px;
-        left: -2px;
-        right: -2px;
-        bottom: -2px;
-        background: linear-gradient(135deg, rgba(33,150,243,0.6), rgba(156,39,176,0.6), rgba(33,150,243,0.6));
-        border-radius: 50px;
-        z-index: -1;
-        opacity: 0;
-        transition: opacity 0.5s;
-    }
-    .card:hover::before {
-        opacity: 1;
-    }
-    .card::after {
-        content: "";
-        position: absolute;
-        top: -20%;
-        right: -10%;
-        width: 180px;
-        height: 180px;
-        background: radial-gradient(circle, rgba(33,150,243,0.15), rgba(156,39,176,0));
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 0;
-    }
-    .card .card-body {
-        position: relative;
-        z-index: 2;
-        padding: 2rem !important;
-    }
-    .card-title {
-        font-weight: 800;
-        font-size: 1.6rem;
-        background: linear-gradient(120deg, #ffffff, #e0e7ff);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        margin: 0 0 0.5rem 0 !important;
-        letter-spacing: -0.3px;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    .card-subtitle {
-        color: rgba(255,255,255,0.95);
-        font-weight: 500;
-        margin: 0 0 1.8rem 0 !important;
-        border-left: 3px solid #2196f3;
-        padding-left: 1rem;
         font-size: 0.85rem;
-        backdrop-filter: blur(4px);
-        letter-spacing: 0.2px;
-    }
-    .flot-chart {
-        height: 260px !important;
-        width: 100%;
-        margin: 0.5rem 0 0.5rem 0 !important;
-        filter: drop-shadow(0 8px 12px rgba(0,0,0,0.1));
-        transition: all 0.3s;
-    }
-    .card:hover .flot-chart {
-        filter: drop-shadow(0 12px 18px rgba(0,0,0,0.2));
-    }
-    .flot-chart-legends {
-        text-align: center;
-        margin-top: 1rem;
-        color: rgba(255,255,255,0.9);
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-    .flot-chart canvas {
-        border-radius: 24px;
-        transition: transform 0.3s;
-    }
-    .card:hover .flot-chart canvas {
-        transform: scale(1.01);
+        letter-spacing: 0.5px;
+        display: inline-block;
+        margin-top: 5px;
+        background: transparent;
+        padding: 0;
     }
 
-    .quick-stats__item .progress-bar-glow {
+    /* Barre de progression (structure conservée) */
+    .progress-bar-glow {
         position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
         height: 4px;
-        background: rgba(255,255,255,0.3);
+        background: rgba(0,0,0,0.08);
     }
-    .quick-stats__item .progress-bar-glow span {
+    .progress-bar-glow span {
         display: block;
         height: 100%;
         width: 0%;
-        background: white;
         border-radius: 0 4px 4px 0;
         transition: width 1.2s ease-out;
     }
+    .bg-blue .progress-bar-glow span { background: #2563eb; }
+    .bg-amber .progress-bar-glow span { background: #f59e0b; }
+    .bg-purple .progress-bar-glow span { background: #8b5cf6; }
+    .bg-red .progress-bar-glow span { background: #dc2626; }
 
-    /* Animations */
+    /* --- CARTES GRAPHIQUES (style seconde page) --- */
+    .card {
+        background: #ffffff;
+        border-radius: 0px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.15);
+        transition: 0.25s ease;
+        margin-bottom: 2rem;
+        overflow: hidden;
+        position: relative;
+    }
+    .card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background: #3B82F6;
+    }
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 24px 36px -16px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-body {
+        padding: 1.6rem !important;
+    }
+
+    .card-title {
+        font-weight: 800;
+        font-size: 1.3rem;
+        color: #0f172a;
+        margin: 0 0 0.25rem 0 !important;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    .card-title i {
+        font-size: 1.5rem;
+        color: #3b82f6;
+    }
+
+    .card-subtitle {
+        color: #334155;
+        border-left: 3px solid #3b82f6;
+        padding-left: 0.8rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin: 0 0 1.5rem 0 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .flot-chart {
+        height: 260px !important;
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    .flot-chart-legends {
+        text-align: left;
+        margin-top: 1rem;
+        background: #f1f5f9;
+        border-radius: 30px;
+        padding: 0.3rem 1.2rem;
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #1e293b;
+        border: 1px solid #cbd5e1;
+    }
+
+    /* Animations d’apparition (structure inchangée) */
     .quick-stats__item, .card {
         opacity: 0;
-        animation: floatIn 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+        animation: fadeSlideUp 0.4s ease forwards;
     }
-    @keyframes floatIn {
-        0% { opacity: 0; transform: translateY(40px); filter: blur(5px); }
-        100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+    @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     .quick-stats__item:nth-child(1) { animation-delay: 0.05s; }
     .quick-stats__item:nth-child(2) { animation-delay: 0.1s; }
     .quick-stats__item:nth-child(3) { animation-delay: 0.15s; }
     .quick-stats__item:nth-child(4) { animation-delay: 0.2s; }
     .card:first-child { animation-delay: 0.25s; }
-    .card:last-child { animation-delay: 0.35s; }
+    .card:last-child { animation-delay: 0.3s; }
 
+    /* Responsive */
     @media (max-width: 768px) {
-        .quick-stats__item { padding: 1.2rem 0.5rem; margin-bottom: 1rem; }
-        .card-body { padding: 1.2rem !important; }
+        .quick-stats__item { padding: 1.2rem 0.5rem; }
+        .quick-stats__info i { font-size: 2rem; }
+        .quick-stats__info h2 { font-size: 1.8rem; }
         .flot-chart { height: 200px !important; }
-        .card-title { font-size: 1.3rem; }
-        .card-subtitle { margin-bottom: 1.2rem !important; }
+        .card-title { font-size: 1.1rem; }
     }
     @media (max-width: 576px) {
-        .quick-stats__info h2 { font-size: 1.8rem; }
-        .quick-stats__info i { font-size: 1.8rem; }
-        .card-title { font-size: 1.1rem; }
+        .quick-stats__info h2 { font-size: 1.5rem; }
+        .quick-stats__info i { font-size: 1.6rem; }
+        .quick-stats__info small { font-size: 0.7rem; }
     }
 </style>
 
@@ -272,7 +245,7 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-12">
-                <!-- Quick stats -->
+                <!-- Quick stats (structure HTML strictement conservée) -->
                 <div class="row quick-stats">
                     <div class="col-sm-6 col-md-3">
                         <div class="quick-stats__item bg-blue">
@@ -317,7 +290,7 @@
                     </div>
                 </div>
 
-                <!-- Graphiques -->
+                <!-- Graphiques (structure strictement conservée) -->
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card">
@@ -357,144 +330,147 @@ $(document).ready(function() {
     var moisComplets = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
     var moisAbrev = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
-    // Données
+    // Données (les mêmes que votre première version)
     var alertes = @json($alertes_par_mois);
     var affectations = @json($affectations_par_mois);
 
-    // Points
     var alertesPoints = alertes.map((val, idx) => [idx, val]);
     var affectationsPoints = affectations.map((val, idx) => [idx, val]);
 
-    // Série en barres pour Alertes (en ROUGE)
-    var serieBarres = [{
+    // Graphique à barres pour Alertes (style seconde page : rouge)
+    $.plot('.flot-bar-chart', [{
         label: 'Alertes',
         data: alertesPoints,
-        color: '#e53935',        // contour rouge
         bars: {
             show: true,
             barWidth: 0.6,
             align: 'center',
-            lineWidth: 1,
-            fillColor: '#c62828'  // remplissage rouge foncé
+            fillColor: '#dc2626',
+            lineWidth: 0
         }
-    }];
-
-    // Série en lignes avec points pour Affectations
-    var serieLignes = [{
-        label: 'Affectations',
-        data: affectationsPoints,
-        color: '#4fc3f7',
-        lines: { show: true, fill: 0.2, lineWidth: 3 },
-        points: {
-            show: true,
-            radius: 6,
-            fillColor: '#03a9f4',
-            lineWidth: 2,
-            symbol: 'circle'
-        }
-    }];
-
-    // Options communes
-    var optionsBase = {
+    }], {
         xaxis: {
-            ticks: moisAbrev.map((m, i) => [i, m]),
+            ticks: moisAbrev.map((m,i) => [i,m]),
             tickLength: 0,
-            font: { color: '#fff', size: 11 }
+            font: { color: '#334155', size: 11, weight: '500' }
         },
         yaxis: {
             min: 0,
             tickDecimals: 0,
-            font: { color: '#fff', size: 11 }
+            font: { color: '#334155', size: 10 }
         },
         grid: {
-            backgroundColor: { colors: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.1)'] },
             borderWidth: 0,
-            color: 'rgba(255,255,255,0.3)',
+            color: '#cbd5e1',
             hoverable: true,
-            clickable: true
+            backgroundColor: '#ffffff'
+        },
+        colors: ['#dc2626']
+    });
+
+    // Graphique en lignes pour Affectations (style seconde page : bleu)
+    $.plot('.flot-line', [{
+        label: 'Affectations',
+        data: affectationsPoints,
+        lines: {
+            show: true,
+            fill: 0.2,
+            lineWidth: 3,
+            fillColor: 'rgba(37,99,235,0.1)'
+        },
+        points: {
+            show: true,
+            radius: 6,
+            fillColor: '#ffffff',
+            lineWidth: 2.5
         }
-    };
+    }], {
+        colors: ['#2563eb'],
+        xaxis: {
+            ticks: moisAbrev.map((m,i) => [i,m]),
+            tickLength: 0,
+            font: { color: '#334155', size: 11 }
+        },
+        yaxis: {
+            min: 0,
+            tickDecimals: 0,
+            font: { color: '#334155', size: 10 }
+        },
+        grid: {
+            borderWidth: 0,
+            color: '#cbd5e1',
+            hoverable: true,
+            backgroundColor: '#ffffff'
+        }
+    });
 
-    // Tracé du graphique à barres
-    $.plot('.flot-bar-chart', serieBarres, optionsBase);
-
-    // Tracé du graphique en lignes
-    $.plot('.flot-line', serieLignes, optionsBase);
-
-    // --- Tooltip personnalisé (uniquement sur les barres ou les points) ---
-    $('body').append('<div id="custom-tooltip" style="position:absolute;display:none;background:rgba(0,0,0,0.85);color:#fff;padding:6px 12px;border-radius:8px;font-size:13px;font-family:Inter,sans-serif;pointer-events:none;z-index:1000;box-shadow:0 2px 10px rgba(0,0,0,0.3);backdrop-filter:blur(4px);border-left: 3px solid #e53935;"></div>');
+    // --- Tooltip (style épuré seconde page) ---
+    $('body').append('<div id="custom-tooltip" style="position:absolute;display:none;background:#0f172a;color:#f8fafc;padding:6px 14px;border-radius:30px;font-size:12px;font-weight:600;font-family:Inter;pointer-events:none;z-index:1000;box-shadow:0 10px 15px -3px rgba(0,0,0,0.3);border-left:3px solid #3b82f6;"></div>');
     var tooltip = $('#custom-tooltip');
+    function showTooltip(x, y, text) { tooltip.css({ top: y-30, left: x+12, display:'block' }).html(text); }
+    function hideTooltip() { tooltip.hide(); }
 
-    function showTooltip(x, y, content) {
-        tooltip.css({ top: y - 35, left: x + 12, display: 'block' }).html(content);
-    }
-    function hideTooltip() { tooltip.css('display', 'none'); }
-
-    // Graphique Alertes (barres)
-    $('.flot-bar-chart').bind('plothover', function(event, pos, item) {
-        if (item && item.datapoint) {
+    $('.flot-bar-chart, .flot-line').bind('plothover', function(e, pos, item) {
+        if(item && item.datapoint) {
             var idx = Math.round(item.datapoint[0]);
-            if (idx >= 0 && idx < moisComplets.length) {
-                showTooltip(pos.pageX, pos.pageY, moisComplets[idx] + ' : ' + item.datapoint[1]);
-            } else { hideTooltip(); }
-        } else { hideTooltip(); }
+            if(idx>=0 && idx<moisComplets.length)
+                showTooltip(pos.pageX, pos.pageY, `${moisComplets[idx]} : ${item.datapoint[1]}`);
+            else hideTooltip();
+        } else hideTooltip();
     }).on('mouseleave', hideTooltip);
 
-    // Graphique Affectations (lignes + points)
-    $('.flot-line').bind('plothover', function(event, pos, item) {
-        if (item && item.datapoint) {
-            var idx = Math.round(item.datapoint[0]);
-            if (idx >= 0 && idx < moisComplets.length) {
-                showTooltip(pos.pageX, pos.pageY, moisComplets[idx] + ' : ' + item.datapoint[1]);
-            } else { hideTooltip(); }
-        } else { hideTooltip(); }
-    }).on('mouseleave', hideTooltip);
-
-    // Légendes
-    var totalAlertes = alertes.reduce((a,b) => a + b, 0);
+    // Légendes (avec totaux et max)
+    var totalAlertes = alertes.reduce((a,b)=>a+b,0);
     var maxAlertes = Math.max(...alertes);
-    var totalAffectations = affectations.reduce((a,b) => a + b, 0);
-    var maxAffectations = Math.max(...affectations);
+    var totalAffect = affectations.reduce((a,b)=>a+b,0);
+    var maxAffect = Math.max(...affectations);
+    $('.flot-chart-legends--bar').html('<i class="fas fa-chart-bar"></i> 🔴 Alertes · Total: ' + totalAlertes + ' · Max: ' + maxAlertes);
+    $('.flot-chart-legends--line').html('<i class="fas fa-chart-line"></i> 📈 Affectations · Total: ' + totalAffect + ' · Max: ' + maxAffect);
 
-    $('.flot-chart-legends--bar').html('<i class="fas fa-chart-bar"></i> 🔴 Alertes · Max: ' + maxAlertes + ' (Déc) · Total: ' + totalAlertes);
-    $('.flot-chart-legends--line').html('<i class="fas fa-chart-line"></i> 📈 Affectations · Max: ' + maxAffectations + ' (Déc) · Total: ' + totalAffectations);
-});
+    // --- Animation des compteurs (structure conservée, correction de $decisions) ---
+    function animateCountersAndBars() {
+        const counters = document.querySelectorAll('.counter');
+        counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-target'));
+            if (isNaN(target)) return;
+            let current = 0;
+            const increment = target / 60;
+            const updateCounter = () => {
+                current += increment;
+                if (current < target) {
+                    counter.innerText = Math.floor(current);
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+            updateCounter();
+        });
 
-// Animation des compteurs
-function animateCountersAndBars() {
-    const counters = document.querySelectorAll('.counter');
-    counters.forEach(counter => {
-        const target = parseInt(counter.getAttribute('data-target'));
-        if (isNaN(target)) return;
-        let current = 0;
-        const increment = target / 60;
-        const updateCounter = () => {
-            current += increment;
-            if (current < target) {
-                counter.innerText = Math.floor(current);
-                requestAnimationFrame(updateCounter);
-            } else {
-                counter.innerText = target;
-            }
-        };
-        updateCounter();
+        // Barres de progression (utilise les vraies valeurs de vos stats)
+        const progressBars = document.querySelectorAll('.progress-bar-glow span');
+        // On remplace l'ancien tableau ($decisions inexistant) par les vraies données
+        const values = [
+            {{ $articles->count() }},
+            {{ $utilisateurs->count() }},
+            {{ $categories->count() }},
+            {{ $clients->count() }}
+        ];
+        const maxVal = Math.max(...values, 100000);
+        progressBars.forEach((bar, idx) => {
+            let targetPercent = (values[idx] / maxVal) * 100;
+            targetPercent = Math.min(targetPercent, 100);
+            setTimeout(() => { bar.style.width = targetPercent + '%'; }, 200 + idx * 100);
+        });
+    }
+    document.addEventListener('DOMContentLoaded', animateCountersAndBars);
+
+    // Activation du lien dans la sidebar (inchangé)
+    $("#link_1").addClass("active");
+    $("#upload").click(function(e) {
+        e.preventDefault();
+        $("#dropzone-upload").trigger("click");
     });
-    const progressBars = document.querySelectorAll('.progress-bar-glow span');
-    const values = [{{ $decisions->count() }}, {{ $articles->count() }}, 58778, 214];
-    const maxVal = Math.max(...values, 100000);
-    progressBars.forEach((bar, idx) => {
-        let targetPercent = (values[idx] / maxVal) * 100;
-        targetPercent = Math.min(targetPercent, 100);
-        setTimeout(() => { bar.style.width = targetPercent + '%'; }, 200 + idx * 100);
-    });
-}
-document.addEventListener('DOMContentLoaded', animateCountersAndBars);
-
-$("#link_1").css("border-left", "1px solid rgb(33, 150, 243)");
-$("#text_1").addClass("text-info");
-$("#upload").click(function(e) {
-    e.preventDefault();
-    $("#dropzone-upload").trigger("click");
 });
 </script>
 @endsection

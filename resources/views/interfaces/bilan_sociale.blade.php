@@ -1,3 +1,7 @@
+@php
+    use App\Models\appnames;
+    $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
+@endphp
 <?php
     use App\Models\Contrevenants;
     use App\Models\Groupes;
@@ -10,7 +14,7 @@
 
 ?>
 @extends('layouts.main')
-@section('title', 'AFRICTECHAPP')
+@section('title', $nom_app)
 @section('name', 'BILAN SOCIALE')
 @section('body')
 @include('composants.preload')
@@ -18,14 +22,9 @@
 @include('composants.sidebar')
 @include('composants.chat')
 <style>
-/* =============================================
-   DESIGN PREMIUM - VERSION FINALE
-   BOUTONS MODERNES & RESPONSIFS
-   LIGNES DE TABLEAU RÉDUITES ET ÉQUILIBRÉES
-   MESSAGE D'ERREUR/SUCCÈS TOTALEMENT CACHÉ PAR DÉFAUT
-   PRISE EN CHARGE DU FORMULAIRE D'ÉDITION
-   + SURVOL DISCRET SUR LES BOUTONS DE LA COLONNE CONTROL
-   ============================================= */
+/* ============================================================
+   DESIGN PREMIUM – UNIFIÉ (BILAN SOCIALE)
+   ============================================================ */
 
 /* --- Reset des marges pour occuper tout l'écran --- */
 body {
@@ -37,7 +36,7 @@ body {
 .content .container {
     max-width: 100% !important;
     width: 100%;
-    padding: 1rem 2rem !important;
+    padding: 0.5rem 1.5rem !important;
     margin: 0 auto;
     background: #f8fafc;
 }
@@ -52,15 +51,15 @@ body {
     padding-right: 0.75rem;
 }
 
-/* --- Variables --- */
+/* --- Variables (identiques aux autres pages) --- */
 :root {
     --bleu-nuit: #0a192f;
     --bleu-nuit-clair: #112240;
     --bleu-nuit-gradient: linear-gradient(135deg, #0a192f, #1e3a5f);
-    --rouge-feu: #e31b23;
-    --rouge-fonce: #b91c1c;
-    --rouge-gradient: linear-gradient(135deg, #dc2626, #b91c1c);
-    --vert-succes: #10b981;
+    --bleu-secondaire: #2c5282;
+    --bleu-secondaire-gradient: linear-gradient(135deg, #2c5282, #1a365d);
+    --rouge-gradient: linear-gradient(135deg, #ef4444, #dc2626);
+    --vert-gradient: linear-gradient(135deg, #10b981, #059669);
     --shadow-premium: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
     --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
     --border-radius-xl: 20px;
@@ -68,22 +67,27 @@ body {
 }
 
 /* --- Cartes principales --- */
-#bloc_1, #bloc_2, #bloc_3 {
+#bloc_1, #bloc_2, #bloc_3, #bloc_4 {
     background: rgba(255, 255, 255, 0.96);
     border-radius: var(--border-radius-xl);
     box-shadow: var(--shadow-premium);
-    padding: 2rem 1.8rem !important;
-    margin-bottom: 2rem;
+    padding: 1rem 1.5rem !important;
+    margin-bottom: 1rem;
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
 /* --- En-têtes --- */
 h4 {
     font-weight: 700;
-    border-left: 6px solid var(--rouge-feu);
+    border-left: 6px solid #e31b23;
     padding-left: 18px;
-    margin-bottom: 28px;
+    margin-bottom: 16px;
+    margin-top: 0;
     color: var(--bleu-nuit);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
 h4 i.zmdi {
@@ -93,7 +97,7 @@ h4 i.zmdi {
     color: transparent !important;
 }
 
-/* ========== TABLEAU ÉQUILIBRÉ ========== */
+/* ========== TABLEAU ========== */
 .table-responsive {
     border-radius: var(--border-radius-lg);
     overflow-x: auto;
@@ -111,53 +115,61 @@ h4 i.zmdi {
 }
 
 .table thead th {
-    background: var(--bleu-nuit-gradient);
-    color: white;
-    font-weight: 600;
-    font-size: 0.8rem;
+    background: #E7F5FE !important;
+    color: #0a192f;
+    font-weight: 700;
+    font-size: 0.85rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 10px 10px !important;
-    border-bottom: none;
-    white-space: nowrap;
+    letter-spacing: 0.06em;
+    padding: 14px 12px !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    border-right: 1px solid #d0e2f2;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .table tbody tr {
     transition: all 0.15s ease;
-    border-bottom: 1px solid #eef2f6;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
 }
 
 .table tbody tr:hover {
-    background: #f0f5fe !important;
+    background: #e6f0ff !important;
+    cursor: default;
 }
 
 .table tbody td {
-    padding: 8px 10px !important;
-    vertical-align: middle;
+    padding: 10px 12px !important;
+    vertical-align: middle !important;
     font-weight: 500;
     font-size: 0.85rem;
     color: #1e2a3e;
     word-break: break-word;
+    border-bottom: 1px solid #eef2f6;
+    line-height: 1.4;
 }
 
-/* ========== CORRECTION SPÉCIFIQUE POUR LA COLONNE "Control" ========== */
-/* La cellule elle-même doit contenir son contenu sans débordement */
 .table tbody td:last-child {
     text-align: center;
     vertical-align: middle;
-    overflow: visible;
 }
 
-/* Boutons de la colonne Control : toujours à l'intérieur de la cellule */
+/* ========== BOUTONS DE LA COLONNE CONTROL (SPÉCIFIQUES À BILAN SOCIALE) ========== */
+/* Ils doivent rester en "pills" avec couleurs, mais s'intégrer au design */
 .table tbody td:last-child a {
     display: inline-flex !important;
     align-items: center;
     gap: 6px;
-    width: auto !important;
-    height: auto !important;
     padding: 6px 14px !important;
     border-radius: 40px !important;
-    background: #f1f5f9;
     font-size: 0.75rem;
     font-weight: 600;
     text-decoration: none;
@@ -165,78 +177,82 @@ h4 i.zmdi {
     transition: all 0.2s ease;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     white-space: nowrap;
+    background: #f1f5f9;
+    color: #1e293b;
 }
 
-/* Icônes dans ces boutons */
 .table tbody td:last-child a i.zmdi {
     font-size: 1rem;
     margin: 0;
 }
 
-/* Couleurs de fond et texte selon la classe (Entrée, Sortie, Entrée & sortie) */
+/* Classes spécifiques pour les trois types */
 .table tbody td:last-child a.text-success {
     background: #e0f2e9;
     color: #0a5c3e;
 }
+.table tbody td:last-child a.text-success i.zmdi {
+    color: #0a5c3e;
+}
+
 .table tbody td:last-child a.text-danger {
     background: #fee2e2;
     color: #b91c1c;
 }
+.table tbody td:last-child a.text-danger i.zmdi {
+    color: #b91c1c;
+}
+
 .table tbody td:last-child a.text-info {
     background: #e0f2fe;
     color: #0c4e6e;
 }
-
-/* ========== SURVOL RÉDUIT ET DISCRET ========== */
-.table tbody td:last-child a:hover {
-    /* Pas de déplacement, pas d'agrandissement, pas d'ombre forte */
-    filter: brightness(0.96);
-    transform: none;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* identique à l'état normal */
+.table tbody td:last-child a.text-info i.zmdi {
+    color: #0c4e6e;
 }
 
-/* Option : on peut aussi légèrement assombrir le fond individuellement */
+/* Survol discret : assombrissement léger */
 .table tbody td:last-child a.text-success:hover {
     background: #cce8df;
+    transform: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 .table tbody td:last-child a.text-danger:hover {
     background: #f5d0d0;
+    transform: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 .table tbody td:last-child a.text-info:hover {
     background: #cde5f5;
+    transform: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-/* Pour les très petits écrans : les boutons peuvent passer à la ligne (reste dans le td) */
+/* Responsive pour la colonne Control */
 @media (max-width: 640px) {
-    .table tbody td:last-child {
-        display: table-cell;
-        text-align: center;
-    }
     .table tbody td:last-child a {
         margin: 2px;
         padding: 5px 10px !important;
         font-size: 0.7rem;
         white-space: nowrap;
     }
-    @media (max-width: 480px) {
-        .table tbody td:last-child a {
-            white-space: normal;
-            word-break: keep-all;
-        }
+}
+@media (max-width: 480px) {
+    .table tbody td:last-child a {
+        white-space: normal;
+        word-break: keep-all;
     }
 }
 
-/* ========== BOUTONS PRINCIPAUX ========== */
+/* ========== BOUTONS PRINCIPAUX (UNIFIÉS) ========== */
 #liste, #add, #print, #add_r, #print_r,
-.btn-primary, .btn-primary.btn-sm, a.btn-primary,
-.btn-info, .btn-info.btn-sm,
-.btn-danger, .btn-danger.btn-sm,
-#edit_save, #edit_annuler {
+#save, #annuler, #edit_save, #edit_annuler,
+.btn-primary, .btn-info, .btn-danger {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 8px 18px !important;
+    padding: 6px 16px !important;
     font-weight: 600;
     font-size: 0.85rem;
     border-radius: 40px !important;
@@ -246,93 +262,90 @@ h4 i.zmdi {
     text-decoration: none;
     box-shadow: var(--shadow-light);
     white-space: nowrap;
+    line-height: 1.5;
 }
 
-#liste {
-    background: linear-gradient(135deg, #0a192f, #1e3a5f) !important;
+#liste, .btn-primary {
+    background: #3B82F6 !important;
     color: white !important;
 }
-#liste:hover {
+#liste:hover, .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
+    background: #2563eb !important;
+}
+
+#add, .btn-info {
+    background: var(--bleu-nuit-gradient) !important;
+    color: white !important;
+}
+#add:hover, .btn-info:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
 }
 
-#add, a#add {
-    background: linear-gradient(135deg, #0f4c5f, #1e6f5c) !important;
-    color: white !important;
+#save, #edit_save {
+    background: var(--bleu-secondaire-gradient) !important;
+    color: white;
 }
-#add:hover {
+#save:hover, #edit_save:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(15, 76, 95, 0.3);
+    box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3);
 }
 
-#print {
-    background: linear-gradient(135deg, #4b6e8a, #2c4f6e) !important;
-    color: white !important;
+#annuler, #edit_annuler, .btn-danger {
+    background: var(--rouge-gradient) !important;
+    color: white;
 }
-#print:hover {
+#annuler:hover, #edit_annuler:hover, .btn-danger:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(43, 76, 108, 0.3);
+    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
 }
 
-#add_r, #print_r {
+/* Boutons désactivés */
+#add_r, #print_r, #save_r {
     background: #cbd5e1 !important;
     color: #475569 !important;
     cursor: not-allowed;
     opacity: 0.7;
     box-shadow: none;
 }
-#add_r:hover, #print_r:hover {
+#add_r:hover, #print_r:hover, #save_r:hover {
     transform: none;
     box-shadow: none;
 }
 
-#save, #save_r, #annuler, #edit_save, #edit_annuler {
-    padding: 8px 24px !important;
-    font-weight: 700;
-}
-#save, #edit_save {
-    background: linear-gradient(95deg, #0f4c5f, #0e6b5e) !important;
-    color: white;
-}
-#save:hover, #edit_save:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(15, 76, 95, 0.3);
-}
-#annuler, #edit_annuler {
-    background: #64748b !important;
-    color: white;
-}
-#annuler:hover, #edit_annuler:hover {
-    background: #475569 !important;
-    transform: translateY(-2px);
-}
-
-/* ========== FORMULAIRES : AJOUT ET MODIFICATION ========== */
+/* ========== FORMULAIRES ========== */
 #form_add .row, #form_edit .row {
     display: flex;
     flex-wrap: wrap;
 }
+
 #form_add .col-6, #form_edit .col-6 {
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
 }
+
 .form-group {
     width: 100%;
     margin-bottom: 0;
 }
+
 .form-group label {
     display: block;
     font-weight: 700;
     color: var(--bleu-nuit);
-    margin-bottom: 6px;
-    font-size: 0.8rem;
+    margin-bottom: 4px;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.4px;
 }
+
 .form-group label i {
-    color: var(--rouge-feu);
+    color: #e31b23;
     margin-right: 6px;
 }
+
 .form-control,
 input.form-control,
 select.form-control,
@@ -342,18 +355,20 @@ textarea.form-control,
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 14px !important;
-    padding: 10px 14px !important;
+    padding: 8px 12px !important;
     font-weight: 500;
     font-size: 0.85rem;
     transition: all 0.2s;
     box-sizing: border-box;
-    height: 42px !important;
+    height: 38px !important;
     line-height: 1.4;
 }
+
 textarea.form-control {
     resize: vertical;
-    height: 42px !important;
+    height: 38px !important;
 }
+
 .form-control:focus,
 select.form-control:focus,
 textarea.form-control:focus {
@@ -361,18 +376,33 @@ textarea.form-control:focus {
     box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
     transform: translateY(-1px);
 }
+
 select.form-control {
     appearance: none;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
     background-repeat: no-repeat;
     background-position: right 14px center;
 }
+
 .input-mask {
     font-family: monospace;
     background: #fff9ef !important;
 }
 
-/* ========== MESSAGES MODERNES - TOTALEMENT INVISIBLE PAR DÉFAUT (ajout & édition) ========== */
+/* Dropzone (pour les fichiers) – on garde le style existant en l'intégrant */
+.dropzone {
+    background-color: transparent;
+    border: 4px dashed rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    min-height: 150px;
+    padding: 20px;
+}
+.dropzone .dz-message {
+    font-weight: 500;
+    color: #64748b;
+}
+
+/* ========== MESSAGES STYLISÉS ========== */
 #msg, #edit_msg {
     display: none !important;
     visibility: hidden !important;
@@ -407,13 +437,14 @@ select.form-control {
 #edit_msg:not(:empty):has(i.zmdi-check-circle) {
     background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
     color: #065f46;
-    border-left: 4px solid var(--vert-succes);
+    border-left: 4px solid #10b981;
 }
+
 #msg:not(:empty):has(i.zmdi-close-circle),
 #edit_msg:not(:empty):has(i.zmdi-close-circle) {
     background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
     color: #991b1b;
-    border-left: 4px solid var(--rouge-feu);
+    border-left: 4px solid #ef4444;
 }
 
 @keyframes slideInMsg {
@@ -421,7 +452,7 @@ select.form-control {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ========== BARRE D'ACTIONS EN HAUT ========== */
+/* ========== BARRE D'ACTIONS (EN TÊTE) ========== */
 [style*="background-color: rgba(0, 0, 0, 0.1)"] {
     background: #eef3fc !important;
     border-radius: 60px;
@@ -434,81 +465,125 @@ select.form-control {
 }
 
 /* ========== RESPONSIVE ========== */
+@media (max-width: 992px) {
+    .content .container {
+        padding: 0.5rem 1rem !important;
+    }
+    #bloc_1, #bloc_2, #bloc_3, #bloc_4 {
+        padding: 1rem !important;
+    }
+}
+
 @media (max-width: 768px) {
     .content .container {
-        padding: 0.8rem 1rem !important;
+        padding: 0.4rem 0.6rem !important;
     }
-    #bloc_1, #bloc_2, #bloc_3 {
-        padding: 1.2rem !important;
+    #bloc_1, #bloc_2, #bloc_3, #bloc_4 {
+        padding: 0.8rem !important;
     }
     #liste, #add, #print, #add_r, #print_r,
-    .btn-primary, .btn-info, .btn-danger,
-    #edit_save, #edit_annuler {
-        padding: 6px 14px !important;
-        font-size: 0.75rem;
-        white-space: nowrap;
+    #save, #annuler, #edit_save, #edit_annuler,
+    .btn-primary, .btn-info, .btn-danger {
+        padding: 4px 12px !important;
+        font-size: 0.7rem;
     }
-    [style*="background-color: rgba(0, 0, 0, 0.1)"] {
-        justify-content: center;
-        gap: 8px;
+    .table thead th {
+        font-size: 0.72rem;
+        padding: 10px 6px !important;
+        letter-spacing: 0.05em;
+    }
+    .table tbody td {
+        padding: 8px 10px !important;
+        font-size: 0.75rem;
+        line-height: 1.3;
     }
     #form_add .col-6, #form_edit .col-6 {
         flex: 0 0 100%;
         max-width: 100%;
     }
+    .form-group label {
+        font-size: 0.65rem;
+    }
     .form-control, input.form-control, select.form-control, textarea.form-control {
-        height: 40px !important;
-        font-size: 0.8rem;
-    }
-    .table thead th {
-        font-size: 0.7rem;
-        padding: 6px 6px !important;
-    }
-    .table tbody td {
-        padding: 6px 6px !important;
+        height: 34px !important;
         font-size: 0.75rem;
+    }
+    [style*="background-color: rgba(0, 0, 0, 0.1)"] {
+        justify-content: center;
+        gap: 8px;
     }
 }
 
 @media (max-width: 480px) {
     .content .container {
-        padding: 0.5rem !important;
+        padding: 0.3rem !important;
     }
-    .btn, .btn-sm, #liste, #add, #print, #edit_save, #edit_annuler {
-        padding: 4px 10px !important;
-        font-size: 0.7rem;
+    #bloc_1, #bloc_2, #bloc_3, #bloc_4 {
+        padding: 0.6rem !important;
     }
-    .form-group label {
-        font-size: 0.7rem;
+    h4 {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
     }
-    [style*="background-color: rgba(0, 0, 0, 0.1)"] {
-        gap: 6px;
-        padding: 8px 12px !important;
+    h4 i {
+        font-size: 24px !important;
+    }
+    #liste, #add, #print, #add_r, #print_r,
+    #save, #annuler, #edit_save, #edit_annuler {
+        padding: 3px 8px !important;
+        font-size: 0.65rem;
     }
     .table thead th {
-        font-size: 0.6rem;
-        padding: 4px 4px !important;
+        font-size: 0.62rem;
+        padding: 8px 4px !important;
     }
     .table tbody td {
+        padding: 6px 8px !important;
         font-size: 0.7rem;
-        padding: 5px 4px !important;
+        line-height: 1.2;
     }
 }
 
-/* ========== ANIMATIONS & DÉTAILS ========== */
-@keyframes glow {
-    0% { box-shadow: 0 0 0 0 rgba(227, 27, 35, 0.2); }
-    70% { box-shadow: 0 0 0 6px rgba(227, 27, 35, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(227, 27, 35, 0); }
+/* ========== MODALES ========== */
+.modal.fade .modal-content {
+    border-radius: var(--border-radius-lg);
+    border: none;
+    box-shadow: var(--shadow-premium);
+    overflow: hidden;
 }
-.btn-danger:active {
-    animation: glow 0.3s ease-out;
+
+.modal.fade .modal-header {
+    background: var(--bleu-nuit-gradient) !important;
+    border-bottom: none;
+    padding: 1rem 1.5rem;
 }
-.modal-header {
-    background: var(--bleu-nuit-gradient);
+
+.modal.fade .modal-header .modal-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: white;
 }
-input[required], select[required], textarea[required] {
-    border-left: 3px solid var(--rouge-feu) !important;
+
+.modal.fade .modal-header .close {
+    color: white;
+    opacity: 0.8;
+    text-shadow: none;
+}
+
+.modal.fade .modal-header .close:hover {
+    opacity: 1;
+}
+
+.modal.fade .modal-footer {
+    background: #f8fafc;
+    border-top: 1px solid #eef2f6;
+    padding: 1rem 1.5rem;
+}
+
+.modal.fade .modal-footer .btn {
+    border-radius: 40px !important;
+    padding: 6px 18px !important;
+    font-weight: 600;
 }
 </style>
 <section class="content">
@@ -816,8 +891,7 @@ input[required], select[required], textarea[required] {
 <script src="{{ asset('assets/demo/js/flot-charts/pie.js') }}"></script>
 <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
 <script>
-    $("#link_22").css("border-left", "1px solid rgb(33, 150, 243)");
-    $("#text_22").addClass("text-info");
+    $("#link_22").addClass("active");
     $("#upload").click(function(e) {
         e.preventDefault();
         $("#dropzonewidget").trigger("click");

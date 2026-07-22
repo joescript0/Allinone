@@ -57,20 +57,24 @@ use Illuminate\Support\Facades\Auth;
                         style="padding-top: 5px;padding-bottom: 5px;">
                         <?php
                         if ($data->devise == 0) {
-                            echo number_format($data->montant, 2, ',', ' ') . '$';
+                            echo number_format($data->montant, 2, ',', ' ') . 'USD';
                         } else {
-                            echo number_format($data->montant, 2, ',', ' ') . 'Fc';
+                            echo number_format($data->montant, 2, ',', ' ') . 'CDF';
                         }
                         ?>
                     </td>
-                    <!-- data-date en YYYY-MM-DD, affichage en DD/MM/YYYY -->
                     <td class="date-cell"
                         data-date="{{ \Carbon\Carbon::createFromFormat('d/m/Y', $data->date_depense)->format('Y-m-d') }}"
                         style="padding-top: 5px;padding-bottom: 5px;">
                         {{ $data->date_depense }}
                     </td>
                     <td class="text-center" style="padding-top: 5px;padding-bottom: 5px;">
-                        <a id="edit_<?= $i ?>" href="#"><i class="zmdi zmdi-file-text"></i></a> &nbsp;
+                        <?php if(strlen(trim($data->preuve_de_sortie)) > 0){ ?>
+                        <a id="edit_<?= $i ?>" href="#"><i class="zmdi zmdi-file-text text-success"></i></a>
+                        &nbsp;
+                        <?php }else{ ?>
+                        <a id="#" href="#"><i class="zmdi zmdi-close-circle text-danger"></i></a> &nbsp;
+                        <?php }?>
                     </td>
                     <script>
                         $("#edit_<?= $i ?>").click(function(e) {

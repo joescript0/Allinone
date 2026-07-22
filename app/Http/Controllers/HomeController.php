@@ -36,6 +36,7 @@ use App\Models\Rendezvous;
 use App\Models\Clients;
 use App\Models\Activites;
 use App\Models\Alertes;
+use App\Models\appnames;
 use App\Models\beneficiaires;
 use App\Models\classes;
 use App\Models\Depenses;
@@ -60,8 +61,7 @@ use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
-
-
+use Illuminate\Support\Facades\Config;
 
 class HomeController extends Controller
 {
@@ -80,6 +80,28 @@ class HomeController extends Controller
             $a->annees = $annee;
             $a->save();
         }
+        $appnames = appnames::all();
+        $nom_app = ["AFRICTECHAPP", "ILAINAPP", "CONTROLAPP", "EDIPASERVICE", "LES300HOMMES", "ALLINONE"];
+        if($appnames->count() == 0)
+        {
+            $n = 1;
+            foreach ($nom_app as $key => $value)
+            {
+                $id = $n;
+                $appn = new appnames();
+                $appn->id = $id;
+                $appn->nom = $value;
+                $appn->client = "";
+                $appn->etat = 0;
+                $appn->save();
+                $n++;
+            }
+            $activename = appnames::where('id',  6)->first();
+            $activename->etat = 1;
+            $activename->save();
+        }
+        $n_app  = appnames::where('etat',  1)->first()["nom"];
+        Config::set('app.name', $n_app);
         $this->middleware('auth');
     }
 

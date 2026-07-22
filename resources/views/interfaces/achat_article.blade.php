@@ -1,3 +1,7 @@
+@php
+    use App\Models\appnames;
+    $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
+@endphp
 <?php
 
 use App\Models\Contrevenants;
@@ -15,7 +19,7 @@ use App\Models\Entres;
 use Illuminate\Support\Facades\Auth;
 ?>
 @extends('layouts.main')
-@section('title', 'AFRICTECHAPP')
+@section('title', $nom_app)
 @section('name', 'FACTURES')
 @section('body')
     @include('composants.preload')
@@ -23,944 +27,884 @@ use Illuminate\Support\Facades\Auth;
     @include('composants.sidebar')
     @include('composants.chat')
     <style>
-        /* =============================================
-        DESIGN PREMIUM - VERSION FACTURES COMPLÈTE
-        UNE SEULE COLONNE MONTANT + CONVERSION
-        BADGES TOTAUX USD / CDF
-        FILTRE DATE TEXTE LIBRE
-        ============================================= */
-
-        /* --- Reset des marges pour occuper tout l'écran --- */
-        body {
-            margin: 0;
-            padding: 0;
-            background: #f0f4f8;
-        }
-
-        .content .container {
-            max-width: 100% !important;
-            width: 100%;
-            padding: 1rem 2rem !important;
-            margin: 0 auto;
-            background: #f8fafc;
-        }
-
-        .content .container .row {
-            margin-left: 0;
-            margin-right: 0;
-        }
-
-        .content .container [class*="col-"] {
-            padding-left: 0.75rem;
-            padding-right: 0.75rem;
-        }
-
-        /* --- Variables --- */
-        :root {
-            --bleu-nuit: #0a192f;
-            --bleu-nuit-clair: #112240;
-            --bleu-nuit-gradient: linear-gradient(135deg, #0a192f, #1e3a5f);
-            --rouge-feu: #e31b23;
-            --rouge-fonce: #b91c1c;
-            --rouge-gradient: linear-gradient(135deg, #dc2626, #b91c1c);
-            --vert-succes: #10b981;
-            --shadow-premium: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
-            --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --border-radius-xl: 20px;
-            --border-radius-lg: 16px;
-        }
-
-        /* --- Cartes principales --- */
-        #bloc_1,
-        #bloc_2,
-        #bloc_3 {
-            background: rgba(255, 255, 255, 0.96);
-            border-radius: var(--border-radius-xl);
-            box-shadow: var(--shadow-premium);
-            padding: 2rem 1.8rem !important;
-            margin-bottom: 2rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        /* --- En-têtes --- */
-        h4 {
-            font-weight: 700;
-            border-left: 6px solid var(--rouge-feu);
-            padding-left: 18px;
-            margin-bottom: 28px;
-            color: var(--bleu-nuit);
-        }
-
-        h4 i.zmdi {
-            background: var(--bleu-nuit-gradient);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent !important;
-        }
-
-        /* ========== TABLEAU ÉQUILIBRÉ ========== */
-        .table-responsive {
-            border-radius: var(--border-radius-lg);
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .table {
-            width: 100%;
-            min-width: 800px;
-            background: white;
-            border-collapse: collapse;
-            border-radius: var(--border-radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-light);
-        }
-
-        .table thead th {
-            background: var(--bleu-nuit-gradient);
-            color: white;
-            font-weight: 600;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 10px 10px !important;
-            border-bottom: none;
-            white-space: nowrap;
-        }
-
-        .table tbody tr {
-            transition: all 0.15s ease;
-            border-bottom: 1px solid #eef2f6;
-        }
-
-        .table tbody tr:hover {
-            background: #f0f5fe !important;
-        }
-
-        .table tbody td {
-            padding: 8px 10px !important;
-            vertical-align: middle;
-            font-weight: 500;
-            font-size: 0.85rem;
-            color: #1e2a3e;
-            word-break: break-word;
-        }
-
-        /* ========== BOUTONS RONDS POUR LA COLONNE CONTROL ========== */
-        .table tbody td a {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 50% !important;
-            background: #f1f5f9;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            margin: 0 2px;
-        }
-
-        .table tbody td a i.zmdi {
-            font-size: 1.1rem;
-            margin: 0;
-        }
-
-        .table tbody td a i.zmdi-edit {
-            color: #2c7da0;
-        }
-
-        .table tbody td a:hover {
-            background: #e0f2fe;
-            transform: translateY(-2px);
-        }
-
-        .table tbody td a i.zmdi-delete {
-            color: var(--rouge-feu);
-        }
-
-        .table tbody td a:hover i.zmdi-delete {
-            color: var(--rouge-fonce);
-        }
-
-        .table tbody td a:hover {
-            background: #ffe5e5;
-        }
-
-        /* ========== BOUTONS PRINCIPAUX ========== */
-        #liste,
-        #add,
-        #print,
-        #add_r,
-        #print_r,
-        .btn-primary,
-        .btn-primary.btn-sm,
-        a.btn-primary,
-        .btn-info,
-        .btn-info.btn-sm,
-        .btn-danger,
-        .btn-danger.btn-sm,
-        #edit_save,
-        #edit_annuler {
-            display: inline-flex !important;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 8px 18px !important;
-            font-weight: 600;
-            font-size: 0.85rem;
-            border-radius: 40px !important;
-            transition: all 0.25s ease;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            box-shadow: var(--shadow-light);
-            white-space: nowrap;
-        }
-
-        #liste {
-            background: linear-gradient(135deg, #0a192f, #1e3a5f) !important;
-            color: white !important;
-        }
-
-        #liste:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
-        }
-
-        #add,
-        a#add {
-            background: linear-gradient(135deg, #0f4c5f, #1e6f5c) !important;
-            color: white !important;
-        }
-
-        #add:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(15, 76, 95, 0.3);
-        }
-
-        #print {
-            background: linear-gradient(135deg, #4b6e8a, #2c4f6e) !important;
-            color: white !important;
-        }
-
-        #print:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(43, 76, 108, 0.3);
-        }
-
-        #add_r,
-        #print_r {
-            background: #cbd5e1 !important;
-            color: #475569 !important;
-            cursor: not-allowed;
-            opacity: 0.7;
-            box-shadow: none;
-        }
-
-        #add_r:hover,
-        #print_r:hover {
-            transform: none;
-            box-shadow: none;
-        }
-
-        #save,
-        #save_r,
-        #annuler,
-        #edit_save,
-        #edit_annuler {
-            padding: 8px 24px !important;
-            font-weight: 700;
-        }
-
-        #save,
-        #edit_save {
-            background: linear-gradient(95deg, #0f4c5f, #0e6b5e) !important;
-            color: white;
-        }
-
-        #save:hover,
-        #edit_save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(15, 76, 95, 0.3);
-        }
-
-        #annuler,
-        #edit_annuler {
-            background: #64748b !important;
-            color: white;
-        }
-
-        #annuler:hover,
-        #edit_annuler:hover {
-            background: #475569 !important;
-            transform: translateY(-2px);
-        }
-
-        /* ========== FORMULAIRES : AJOUT ET MODIFICATION ========== */
-        #form_add .row,
-        #form_edit .row {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        #form_add .col-12,
-        #form_edit .col-12 {
-            margin-bottom: 0.8rem;
-        }
-
-        .form-group {
-            width: 100%;
-            margin-bottom: 0;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 700;
-            color: var(--bleu-nuit);
-            margin-bottom: 6px;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-        }
-
-        .form-group label i {
-            color: var(--rouge-feu);
-            margin-right: 6px;
-        }
-
-        .form-control,
-        input.form-control,
-        select.form-control,
-        textarea.form-control,
-        .input-mask {
-            width: 100% !important;
-            background: #ffffff !important;
-            border: 1px solid #e2e8f0 !important;
-            border-radius: 14px !important;
-            padding: 8px 12px !important;
-            font-weight: 500;
-            font-size: 0.8rem;
-            transition: all 0.2s;
-            box-sizing: border-box;
-            height: 38px !important;
-            line-height: 1.4;
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            height: 38px !important;
-        }
-
-        .form-control:focus,
-        select.form-control:focus,
-        textarea.form-control:focus {
-            border-color: var(--bleu-nuit) !important;
-            box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
-            transform: translateY(-1px);
-        }
-
-        select.form-control {
-            appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-            background-repeat: no-repeat;
-            background-position: right 14px center;
-        }
-
-        .input-mask {
-            font-family: monospace;
-            background: #fff9ef !important;
-        }
-
-        /* ========== STYLES DES FILTRES ========== */
-        .filters-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 25px;
-            background: white;
-            padding: 1rem 1.5rem;
-            border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow-light);
-            align-items: flex-end;
-        }
-
-        .filter-group {
-            flex: 1;
-            min-width: 180px;
-        }
-
-        .filter-group label {
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: var(--bleu-nuit);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .filter-group .form-control {
-            height: 42px;
-        }
-
-        .invoice-count-badge {
-            background: linear-gradient(135deg, #e31b23, #b91c1c);
-            color: white;
-            border-radius: 50px;
-            padding: 6px 16px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        /* Animation pour les lignes filtrées */
-        .table tbody tr {
-            transition: all 0.2s ease;
-        }
-
-        .table tbody tr.highlight {
-            background-color: #fff3cd !important;
-            animation: highlightFlash 1s ease;
-        }
-
-        @keyframes highlightFlash {
-            0% { background-color: #fff3cd; }
-            100% { background-color: transparent; }
-        }
-
-        /* ========== MESSAGES MODERNES ========== */
-        #msg,
-        #edit_msg {
-            display: none !important;
-            visibility: hidden !important;
-            opacity: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: 0 !important;
-            background: transparent !important;
-            box-shadow: none !important;
-            min-height: 0 !important;
-            height: 0 !important;
-            overflow: hidden !important;
-        }
-
-        #msg:not(:empty),
-        #edit_msg:not(:empty) {
-            display: inline-flex !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            height: auto !important;
-            margin-top: 16px !important;
-            padding: 10px 18px !important;
-            background: white !important;
-            border-radius: 50px !important;
-            box-shadow: var(--shadow-light) !important;
-            gap: 10px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            animation: slideInMsg 0.3s ease-out;
-        }
-
-        #msg:not(:empty):has(i.zmdi-check-circle),
-        #edit_msg:not(:empty):has(i.zmdi-check-circle) {
-            background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
-            color: #065f46;
-            border-left: 4px solid var(--vert-succes);
-        }
-
-        #msg:not(:empty):has(i.zmdi-close-circle),
-        #edit_msg:not(:empty):has(i.zmdi-close-circle) {
-            background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
-            color: #991b1b;
-            border-left: 4px solid var(--rouge-feu);
-        }
-
-        @keyframes slideInMsg {
-            from {
-                opacity: 0;
-                transform: translateY(-8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ========== BARRE D'ACTIONS EN HAUT ========== */
-        [style*="background-color: rgba(0, 0, 0, 0.1)"] {
-            background: #eef3fc !important;
-            border-radius: 60px;
-            padding: 10px 24px !important;
-            margin-bottom: 20px;
-            display: flex !important;
-            flex-wrap: wrap;
-            gap: 12px;
-            justify-content: flex-start;
-        }
-
-        /* ========== STYLES EXCLUSIFS POUR LA MODALE DE PAIEMENT PDF ========== */
-        .modal.fade#pdfModal .modal-dialog {
-            max-width: 100%;
-            width: 60%;
-            margin: 1.75rem auto;
-        }
-
-        .modal.fade#pdfModal .modal-content {
-            border-radius: 20px;
-            border: none;
-            box-shadow: var(--shadow-premium);
-            overflow: hidden;
-        }
-
-        .modal.fade#pdfModal .modal-header {
-            background: var(--bleu-nuit-gradient) !important;
-            border-bottom: none;
-            padding: 1.2rem 1.5rem;
-        }
-
-        .modal.fade#pdfModal .modal-header .modal-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: white;
-        }
-
-        .modal.fade#pdfModal .modal-header .close {
-            color: white;
-            opacity: 0.8;
-            text-shadow: none;
-        }
-
-        .modal.fade#pdfModal .modal-header .close:hover {
-            opacity: 1;
-        }
-
-        .modal.fade#pdfModal .modal-body {
-            padding: 0;
-            background: #f8fafc;
-        }
-
-        .modal.fade#pdfModal .modal-footer {
-            background: white;
-            border-top: 1px solid #eef2f6;
-            padding: 1.2rem 1.5rem;
-        }
-
-        /* IFRAME PDF */
-        .modal.fade#pdfModal #pdfIframe {
-            width: 100%;
-            height: 50vh;
-            border: none;
-            background: white;
-        }
-
-        /* Zone de contrôle (montant + devise + bouton) */
-        .modal.fade#pdfModal #boite_de_control {
-            margin: 0 !important;
-        }
-
-        .modal.fade#pdfModal #boite_de_control .col-lg-4 {
-            padding-left: 0.75rem;
-            padding-right: 0.75rem;
-        }
-
-        .modal.fade#pdfModal #montant_recu,
-        .modal.fade#pdfModal #devise_recu {
-            width: 100%;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 40px !important;
-            padding: 10px 14px;
-            font-weight: 500;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-            height: 44px;
-            box-sizing: border-box;
-        }
-
-        .modal.fade#pdfModal #montant_recu:focus,
-        .modal.fade#pdfModal #devise_recu:focus {
-            border-color: var(--bleu-nuit);
-            box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15);
-            outline: none;
-        }
-
-        .modal.fade#pdfModal #devise_recu {
-            appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-            background-repeat: no-repeat;
-            background-position: right 14px center;
-            cursor: pointer;
-        }
-
-        /* Bouton payer */
-        .modal.fade#pdfModal #btn_payer {
-            background: linear-gradient(135deg, #10b981, #059669) !important;
-            border: none;
-            border-radius: 40px !important;
-            padding: 10px 24px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
-            width: 100%;
-            color: white;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .modal.fade#pdfModal #btn_payer:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3);
-        }
-
-        .modal.fade#pdfModal #btn_payer:active {
-            transform: translateY(0);
-        }
-
-        /* ========== MESSAGE D'ERREUR / SUCCÈS POUR LA MODALE (#msg_facture) ========== */
-        .modal.fade#pdfModal #msg_facture {
-            display: inline-block !important;
-            font-weight: 600;
-            font-size: 0.85rem;
-            padding: 10px 18px;
-            border-radius: 50px;
-            background: #f1f5f9;
-            color: #1e2a3e;
-            margin-top: 12px;
-            margin-bottom: 0;
-            text-align: center;
-            animation: fadeInMsg 0.3s ease-out;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            max-width: 100%;
-            word-wrap: break-word;
-            line-height: 1.5;
-        }
-
-        /* Message d'erreur (rouge) */
-        .modal.fade#pdfModal #msg_facture:has(i.zmdi-close-circle),
-        .modal.fade#pdfModal #msg_facture[style*="color: #dc3545"] {
-            background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
-            color: #991b1b !important;
-            border-left: 4px solid #dc2626 !important;
-        }
-
-        /* Message de succès (vert) */
-        .modal.fade#pdfModal #msg_facture:has(i.zmdi-check-circle),
-        .modal.fade#pdfModal #msg_facture[style*="color: #28a745"] {
-            background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
-            color: #065f46 !important;
-            border-left: 4px solid #10b981 !important;
-        }
-
-        /* Message d'attention (orange) */
-        .modal.fade#pdfModal #msg_facture:has(i.zmdi-alert),
-        .modal.fade#pdfModal #msg_facture[style*="color: #ffc107"] {
-            background: linear-gradient(95deg, #fed7aa, #ffedcc) !important;
-            color: #9b4d00 !important;
-            border-left: 4px solid #f59e0b !important;
-        }
-
-        /* Animation du message */
-        @keyframes fadeInMsg {
-            from {
-                opacity: 0;
-                transform: translateY(-8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Bouton fermer */
-        .modal.fade#pdfModal .btn-secondary {
-            background: #64748b;
-            border: none;
-            border-radius: 40px;
-            padding: 8px 20px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            transition: all 0.2s ease;
-            color: white;
-        }
-
-        .modal.fade#pdfModal .btn-secondary:hover {
-            background: #475569;
-            transform: translateY(-2px);
-        }
-
-        /* Séparateur */
-        .modal.fade#pdfModal hr {
-            margin: 15px 0;
-            border: 0;
-            border-top: 1px solid #eef2f6;
-        }
-
-        /* ========== RESPONSIVE POUR LA MODALE ========== */
-        @media (max-width: 992px) {
-            .modal.fade#pdfModal .modal-dialog {
-                width: 80%;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .modal.fade#pdfModal .modal-dialog {
-                width: 95%;
-                margin: 1rem auto;
-            }
-
-            .modal.fade#pdfModal #pdfIframe {
-                height: 40vh;
-            }
-
-            .modal.fade#pdfModal #boite_de_control .col-lg-4 {
-                margin-bottom: 10px;
-            }
-
-            .modal.fade#pdfModal #btn_payer {
-                width: 100%;
-            }
-
-            .modal.fade#pdfModal .modal-footer {
-                padding: 1rem;
-            }
-
-            .modal.fade#pdfModal #montant_recu,
-            .modal.fade#pdfModal #devise_recu {
-                height: 40px;
-                font-size: 0.8rem;
-            }
-
-            .modal.fade#pdfModal #msg_facture {
-                font-size: 0.75rem;
-                padding: 8px 14px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .modal.fade#pdfModal .modal-header {
-                padding: 0.8rem 1rem;
-            }
-
-            .modal.fade#pdfModal .modal-header .modal-title {
-                font-size: 1rem;
-            }
-
-            .modal.fade#pdfModal #pdfIframe {
-                height: 35vh;
-            }
-
-            .modal.fade#pdfModal #btn_payer {
-                padding: 8px 16px;
-                font-size: 0.75rem;
-            }
-
-            .modal.fade#pdfModal .btn-secondary {
-                padding: 6px 16px;
-                font-size: 0.7rem;
-            }
-
-            .modal.fade#pdfModal #msg_facture {
-                font-size: 0.7rem;
-                padding: 6px 12px;
-            }
-        }
-
-        /* ========== RESPONSIVE GLOBAL ========== */
-        @media (max-width: 768px) {
-            .content .container {
-                padding: 0.8rem 1rem !important;
-            }
-
-            #bloc_1,
-            #bloc_2,
-            #bloc_3 {
-                padding: 1.2rem !important;
-            }
-
-            #liste,
-            #add,
-            #print,
-            #add_r,
-            #print_r,
-            .btn-primary,
-            .btn-info,
-            .btn-danger,
-            #edit_save,
-            #edit_annuler {
-                padding: 6px 14px !important;
-                font-size: 0.75rem;
-                white-space: nowrap;
-            }
-
-            [style*="background-color: rgba(0, 0, 0, 0.1)"] {
-                justify-content: center;
-                gap: 8px;
-            }
-
-            #form_add .col-6,
-            #form_edit .col-6 {
-                flex: 0 0 100%;
-                max-width: 100%;
-            }
-
-            .form-control,
-            input.form-control,
-            select.form-control,
-            textarea.form-control {
-                height: 40px !important;
-                font-size: 0.8rem;
-            }
-
-            .table thead th {
-                font-size: 0.7rem;
-                padding: 6px 6px !important;
-            }
-
-            .table tbody td {
-                padding: 6px 6px !important;
-                font-size: 0.75rem;
-            }
-
-            .table tbody td a {
-                width: 28px;
-                height: 28px;
-            }
-
-            .table tbody td a i.zmdi {
-                font-size: 1rem;
-            }
-
-            .filters-container {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .filter-group {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .content .container {
-                padding: 0.5rem !important;
-            }
-
-            .btn,
-            .btn-sm,
-            #liste,
-            #add,
-            #print,
-            #edit_save,
-            #edit_annuler {
-                padding: 4px 10px !important;
-                font-size: 0.7rem;
-            }
-
-            .form-group label {
-                font-size: 0.7rem;
-            }
-
-            [style*="background-color: rgba(0, 0, 0, 0.1)"] {
-                gap: 6px;
-                padding: 8px 12px !important;
-            }
-
-            .table thead th {
-                font-size: 0.6rem;
-                padding: 4px 4px !important;
-            }
-
-            .table tbody td {
-                font-size: 0.7rem;
-                padding: 5px 4px !important;
-            }
-        }
-
-        /* ========== ANIMATIONS & DÉTAILS ========== */
-        @keyframes glow {
-            0% {
-                box-shadow: 0 0 0 0 rgba(227, 27, 35, 0.2);
-            }
-            70% {
-                box-shadow: 0 0 0 6px rgba(227, 27, 35, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(227, 27, 35, 0);
-            }
-        }
-
-        .btn-danger:active {
-            animation: glow 0.3s ease-out;
-        }
-
-        .modal-header {
-            background: var(--bleu-nuit-gradient);
-        }
-
-        input[required],
-        select[required],
-        textarea[required] {
-            border-left: 3px solid var(--rouge-feu) !important;
-        }
-
-        /* Styles pour le bloc_3 modification */
-        #bloc_3 .form-group {
-            margin-bottom: 0.8rem;
-        }
-
-        #bloc_3 h4 i.zmdi-edit {
-            background: var(--bleu-nuit-gradient);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent !important;
-        }
-
-
-        /* ========== BLOCS 2 ET 3 : MÊME TAILLE SUR TOUS LES APPAREILS ========== */
-        .row:has(#bloc_2, #bloc_3) {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            align-items: stretch !important;
-            gap: 25px !important;
-            width: 100% !important;
-        }
-
-        #bloc_2,
-        #bloc_3 {
-            flex: 1 1 calc(50% - 25px) !important;
-            width: auto !important;
-            min-width: 280px !important;
-            margin: 0 !important;
-        }
-
-        @media (max-width: 992px) and (min-width: 769px) {
-            .row:has(#bloc_2, #bloc_3) {
-                gap: 20px !important;
-            }
-            #bloc_2, #bloc_3 {
-                flex: 1 1 calc(50% - 20px) !important;
-                min-width: 250px !important;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .row:has(#bloc_2, #bloc_3) {
-                flex-direction: column !important;
-                gap: 20px !important;
-                align-items: center !important;
-            }
-            #bloc_2, #bloc_3 {
-                flex: 1 1 100% !important;
-                width: 100% !important;
-                min-width: auto !important;
-            }
-        }
+        /* ============================================================
+   DESIGN PREMIUM – UNIFIÉ AVEC LES PAGES "GESTION ARTICLE"
+   ET "APPROVISIONNEMENT" – ADAPTÉ AUX FACTURES
+   ============================================================ */
+
+/* --- Reset des marges pour occuper tout l'écran --- */
+body {
+    margin: 0;
+    padding: 0;
+    background: #f0f4f8;
+}
+
+.content .container {
+    max-width: 100% !important;
+    width: 100%;
+    padding: 0.5rem 1.5rem !important;
+    margin: 0 auto;
+    background: #f8fafc;
+}
+
+.content .container .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.content .container [class*="col-"] {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+/* --- Variables (identiques aux autres pages) --- */
+:root {
+    --bleu-nuit: #0a192f;
+    --bleu-nuit-clair: #112240;
+    --bleu-nuit-gradient: linear-gradient(135deg, #0a192f, #1e3a5f);
+    --bleu-secondaire: #2c5282;
+    --bleu-secondaire-gradient: linear-gradient(135deg, #2c5282, #1a365d);
+    --rouge-gradient: linear-gradient(135deg, #ef4444, #dc2626);
+    --vert-gradient: linear-gradient(135deg, #10b981, #059669);
+    --shadow-premium: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
+    --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --border-radius-xl: 20px;
+    --border-radius-lg: 16px;
+}
+
+/* --- Cartes principales --- */
+#bloc_1,
+#bloc_2,
+#bloc_3 {
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: var(--border-radius-xl);
+    box-shadow: var(--shadow-premium);
+    padding: 1rem 1.5rem !important;
+    margin-bottom: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* --- En-têtes --- */
+h4 {
+    font-weight: 700;
+    border-left: 6px solid #e31b23;
+    padding-left: 18px;
+    margin-bottom: 16px;
+    margin-top: 0;
+    color: var(--bleu-nuit);
+}
+
+h4 i.zmdi {
+    background: var(--bleu-nuit-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent !important;
+}
+
+/* ========== TABLEAU : LIGNES AÉRÉES ET VISIBLES ========== */
+.table-responsive {
+    overflow-x: auto;
+    overflow-y: visible;
+    border-radius: var(--border-radius-lg);
+}
+
+.table {
+    width: 100%;
+    min-width: 800px;
+    background: white;
+    border-collapse: collapse;
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-light);
+    table-layout: auto;
+}
+
+/* En-tête */
+.table thead th {
+    background: #E7F5FE !important;
+    color: #0a192f;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 14px 12px !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    border-right: 1px solid #d0e2f2;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Lignes du tableau : padding augmenté, rayures et bordures nettes */
+.table tbody tr {
+    transition: all 0.15s ease;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.table tbody tr:hover {
+    background: #e6f0ff !important;
+    cursor: default;
+}
+
+.table tbody td {
+    padding: 10px 12px !important;
+    vertical-align: middle !important;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: #1e2a3e;
+    word-break: break-word;
+    border-bottom: 1px solid #eef2f6;
+    line-height: 1.4;
+}
+
+.table tbody td:last-child {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* ========== STYLE UNIQUE POUR TOUS LES BOUTONS ========== */
+#bloc_1 button,
+#bloc_2 button,
+#bloc_3 button,
+.filters-container button,
+#liste,
+#add,
+#add_r,
+#save,
+#save_r,
+#annuler,
+#edit_save,
+#edit_annuler,
+#resetFilters,
+.btn-primary,
+.btn-info,
+.btn-danger,
+.btn-secondary {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 16px !important;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border-radius: 40px !important;
+    transition: all 0.25s ease;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: var(--shadow-light);
+    white-space: nowrap;
+    line-height: 1.5;
+}
+
+/* Couleurs spécifiques pour chaque type de bouton */
+#liste,
+.btn-primary {
+    background: #3B82F6 !important;
+    color: white !important;
+}
+#liste:hover,
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
+    background: #2563eb !important;
+}
+
+#add,
+.btn-info {
+    background: var(--bleu-nuit-gradient) !important;
+    color: white !important;
+}
+#add:hover,
+.btn-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
+}
+
+#save,
+#edit_save {
+    background: var(--bleu-secondaire-gradient) !important;
+    color: white;
+}
+#save:hover,
+#edit_save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3);
+}
+
+#annuler,
+#edit_annuler,
+.btn-danger {
+    background: var(--rouge-gradient) !important;
+    color: white;
+}
+#annuler:hover,
+#edit_annuler:hover,
+.btn-danger:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
+}
+
+#resetFilters {
+    background: #64748b !important;
+    color: white !important;
+}
+#resetFilters:hover {
+    transform: translateY(-2px);
+    background: #475569 !important;
+    box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
+}
+
+/* Boutons désactivés (add_r, save_r, print_r) */
+#add_r,
+#save_r,
+#print_r {
+    background: #cbd5e1 !important;
+    color: #475569 !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Bouton d'impression (spécifique à cette page) */
+#print {
+    background: #3B82F6 !important;
+    color: white !important;
+}
+#print:hover {
+    background: #2563eb !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
+}
+
+/* ========== FILTRES ========== */
+.filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    background: white;
+    padding: 0.8rem 1.2rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-light);
+    align-items: flex-end;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--bleu-nuit);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.filter-group .form-control {
+    height: 36px;
+}
+
+/* Badges (compteur et totaux) */
+.invoice-count-badge {
+    background: var(--rouge-gradient);
+    color: white;
+    border-radius: 50px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+/* Badge pour total USD et CDF (on garde les dégradés personnalisés) */
+.invoice-count-badge.usd-badge {
+    background: linear-gradient(135deg, #0f4c5f, #1e6f5c);
+}
+.invoice-count-badge.cdf-badge {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+}
+
+/* ========== FORMULAIRES : AJOUT ET MODIFICATION ========== */
+#form_add .row,
+#form_edit .row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#form_add .col-6,
+#form_edit .col-6 {
+    margin-bottom: 0.8rem;
+}
+
+.form-group {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 700;
+    color: var(--bleu-nuit);
+    margin-bottom: 4px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.form-group label i {
+    color: #e31b23;
+    margin-right: 6px;
+}
+
+.form-control,
+input.form-control,
+select.form-control,
+textarea.form-control,
+.input-mask {
+    width: 100% !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    padding: 8px 12px !important;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    box-sizing: border-box;
+    height: 38px !important;
+    line-height: 1.4;
+}
+
+textarea.form-control {
+    resize: vertical;
+    height: 38px !important;
+}
+
+.form-control:focus,
+select.form-control:focus,
+textarea.form-control:focus {
+    border-color: var(--bleu-nuit) !important;
+    box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
+    transform: translateY(-1px);
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+}
+
+.input-mask {
+    font-family: monospace;
+    background: #fff9ef !important;
+}
+
+/* ========== MESSAGES STYLISÉS ========== */
+#msg,
+#edit_msg {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    min-height: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+#msg:not(:empty),
+#edit_msg:not(:empty) {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    margin-top: 16px !important;
+    padding: 10px 18px !important;
+    background: white !important;
+    border-radius: 50px !important;
+    box-shadow: var(--shadow-light) !important;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    animation: slideInMsg 0.3s ease-out;
+}
+
+#msg:not(:empty):has(i.zmdi-check-circle),
+#edit_msg:not(:empty):has(i.zmdi-check-circle) {
+    background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
+    color: #065f46;
+    border-left: 4px solid #10b981;
+}
+
+#msg:not(:empty):has(i.zmdi-close-circle),
+#edit_msg:not(:empty):has(i.zmdi-close-circle) {
+    background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
+    color: #991b1b;
+    border-left: 4px solid #ef4444;
+}
+
+#msg:not(:empty):has(i.zmdi-info),
+#edit_msg:not(:empty):has(i.zmdi-info) {
+    background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important;
+    color: #1e3a8a;
+    border-left: 4px solid #3b82f6;
+}
+
+@keyframes slideInMsg {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========== BOUTONS DE CONTRÔLE DANS LE TABLEAU ========== */
+.table tbody td a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50% !important;
+    background: #f1f5f9;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    margin: 0 2px;
+}
+.table tbody td a i.zmdi {
+    font-size: 1.1rem;
+    margin: 0;
+}
+.table tbody td a i.zmdi-eye,
+.table tbody td a i.zmdi-money {
+    color: #2c7da0;
+}
+.table tbody td a i.zmdi-delete {
+    color: #ef4444;
+}
+.table tbody td a:hover {
+    background: #e0f2fe;
+    transform: translateY(-2px);
+}
+.table tbody td a i.zmdi-delete {
+    color: #ef4444;
+}
+.table tbody td a:hover i.zmdi-delete {
+    color: #b91c1c;
+}
+.table tbody td a:hover i.zmdi-eye,
+.table tbody td a:hover i.zmdi-money {
+    color: #1e5a7a;
+}
+
+/* ========== BARRE D'ACTIONS (EN TÊTE) ========== */
+[style*="background-color: rgba(0, 0, 0, 0.1)"] {
+    background: #eef3fc !important;
+    border-radius: 60px;
+    padding: 10px 24px !important;
+    margin-bottom: 20px;
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-start;
+}
+
+/* ========== MODALE PDF (PAIEMENT) ========== */
+.modal.fade#pdfModal .modal-dialog {
+    max-width: 100%;
+    width: 60%;
+    margin: 1.75rem auto;
+}
+
+.modal.fade#pdfModal .modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: var(--shadow-premium);
+    overflow: hidden;
+}
+
+.modal.fade#pdfModal .modal-header {
+    background: var(--bleu-nuit-gradient) !important;
+    border-bottom: none;
+    padding: 1.2rem 1.5rem;
+}
+
+.modal.fade#pdfModal .modal-header .modal-title {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: white;
+}
+
+.modal.fade#pdfModal .modal-header .close {
+    color: white;
+    opacity: 0.8;
+    text-shadow: none;
+}
+
+.modal.fade#pdfModal .modal-header .close:hover {
+    opacity: 1;
+}
+
+.modal.fade#pdfModal .modal-body {
+    padding: 0;
+    background: #f8fafc;
+}
+
+.modal.fade#pdfModal .modal-footer {
+    background: white;
+    border-top: 1px solid #eef2f6;
+    padding: 1.2rem 1.5rem;
+}
+
+.modal.fade#pdfModal #pdfIframe {
+    width: 100%;
+    height: 50vh;
+    border: none;
+    background: white;
+}
+
+.modal.fade#pdfModal #montant_recu,
+.modal.fade#pdfModal #devise_recu {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 40px !important;
+    padding: 10px 14px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    height: 44px;
+    box-sizing: border-box;
+}
+
+.modal.fade#pdfModal #montant_recu:focus,
+.modal.fade#pdfModal #devise_recu:focus {
+    border-color: var(--bleu-nuit);
+    box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15);
+    outline: none;
+}
+
+.modal.fade#pdfModal #devise_recu {
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    cursor: pointer;
+}
+
+.modal.fade#pdfModal #btn_payer {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    border: none;
+    border-radius: 40px !important;
+    padding: 10px 24px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    color: white;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.modal.fade#pdfModal #btn_payer:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3);
+}
+
+.modal.fade#pdfModal #msg_facture {
+    display: inline-block !important;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 10px 18px;
+    border-radius: 50px;
+    background: #f1f5f9;
+    color: #1e2a3e;
+    margin-top: 12px;
+    margin-bottom: 0;
+    text-align: center;
+    animation: fadeInMsg 0.3s ease-out;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    max-width: 100%;
+    word-wrap: break-word;
+    line-height: 1.5;
+}
+
+.modal.fade#pdfModal #msg_facture:has(i.zmdi-close-circle),
+.modal.fade#pdfModal #msg_facture[style*="color: #dc3545"] {
+    background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
+    color: #991b1b !important;
+    border-left: 4px solid #dc2626 !important;
+}
+
+.modal.fade#pdfModal #msg_facture:has(i.zmdi-check-circle),
+.modal.fade#pdfModal #msg_facture[style*="color: #28a745"] {
+    background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
+    color: #065f46 !important;
+    border-left: 4px solid #10b981 !important;
+}
+
+.modal.fade#pdfModal #msg_facture:has(i.zmdi-alert),
+.modal.fade#pdfModal #msg_facture[style*="color: #ffc107"] {
+    background: linear-gradient(95deg, #fed7aa, #ffedcc) !important;
+    color: #9b4d00 !important;
+    border-left: 4px solid #f59e0b !important;
+}
+
+@keyframes fadeInMsg {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal.fade#pdfModal .btn-secondary {
+    background: #64748b;
+    border: none;
+    border-radius: 40px;
+    padding: 8px 20px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    color: white;
+}
+
+.modal.fade#pdfModal .btn-secondary:hover {
+    background: #475569;
+    transform: translateY(-2px);
+}
+
+.modal.fade#pdfModal hr {
+    margin: 15px 0;
+    border: 0;
+    border-top: 1px solid #eef2f6;
+}
+
+/* ========== LAYOUT SPÉCIFIQUE POUR BLOC_2 ET BLOC_3 CÔTE À CÔTE ========== */
+#bloc_t {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 20px;
+    width: 100%;
+    margin: 0;
+}
+
+#bloc_2,
+#bloc_3 {
+    flex: 1 1 calc(50% - 20px);
+    min-width: 280px;
+    margin: 0 !important;
+}
+
+@media (max-width: 768px) {
+    #bloc_t {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+    }
+    #bloc_2, #bloc_3 {
+        flex: 1 1 100%;
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+/* ========== RESPONSIVE GLOBAL ========== */
+@media (max-width: 992px) {
+    .content .container {
+        padding: 0.5rem 1rem !important;
+    }
+    #bloc_1,
+    #bloc_2,
+    #bloc_3 {
+        padding: 1rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .content .container {
+        padding: 0.4rem 0.6rem !important;
+    }
+    #bloc_1,
+    #bloc_2,
+    #bloc_3 {
+        padding: 0.8rem !important;
+    }
+    #liste,
+    #add,
+    #save,
+    #edit_save,
+    #annuler,
+    #edit_annuler,
+    #resetFilters,
+    .btn-primary,
+    .btn-info,
+    .btn-danger {
+        padding: 4px 12px !important;
+        font-size: 0.7rem;
+    }
+    .filters-container {
+        flex-direction: column;
+        gap: 8px;
+        padding: 0.6rem 0.8rem;
+        margin-bottom: 12px;
+    }
+    .filter-group {
+        width: 100%;
+        min-width: 100%;
+    }
+    .filter-group .form-control {
+        height: 34px !important;
+    }
+    .invoice-count-badge {
+        font-size: 0.65rem;
+        padding: 3px 10px;
+    }
+    .table thead th {
+        font-size: 0.72rem;
+        padding: 10px 6px !important;
+        letter-spacing: 0.05em;
+    }
+    .table tbody td {
+        padding: 8px 10px !important;
+        font-size: 0.75rem;
+        line-height: 1.3;
+    }
+    #form_add .col-6,
+    #form_edit .col-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .form-group label {
+        font-size: 0.65rem;
+    }
+    .form-control,
+    input.form-control,
+    select.form-control,
+    textarea.form-control {
+        height: 34px !important;
+        font-size: 0.75rem;
+    }
+
+    /* Modale PDF responsive */
+    .modal.fade#pdfModal .modal-dialog {
+        width: 95%;
+        margin: 1rem auto;
+    }
+    .modal.fade#pdfModal #pdfIframe {
+        height: 40vh;
+    }
+    .modal.fade#pdfModal #boite_de_control .col-lg-4 {
+        margin-bottom: 10px;
+    }
+    .modal.fade#pdfModal #btn_payer {
+        width: 100%;
+    }
+    .modal.fade#pdfModal .modal-footer {
+        padding: 1rem;
+    }
+    .modal.fade#pdfModal #montant_recu,
+    .modal.fade#pdfModal #devise_recu {
+        height: 40px;
+        font-size: 0.8rem;
+    }
+    .modal.fade#pdfModal #msg_facture {
+        font-size: 0.75rem;
+        padding: 8px 14px;
+    }
+    [style*="background-color: rgba(0, 0, 0, 0.1)"] {
+        justify-content: center;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .content .container {
+        padding: 0.3rem !important;
+    }
+    #bloc_1,
+    #bloc_2,
+    #bloc_3 {
+        padding: 0.6rem !important;
+    }
+    h4 {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
+    h4 i {
+        font-size: 24px !important;
+    }
+    #liste,
+    #add,
+    #save,
+    #edit_save,
+    #annuler,
+    #edit_annuler,
+    #resetFilters {
+        padding: 3px 8px !important;
+        font-size: 0.65rem;
+    }
+    .table thead th {
+        font-size: 0.62rem;
+        padding: 8px 4px !important;
+    }
+    .table tbody td {
+        padding: 6px 8px !important;
+        font-size: 0.7rem;
+        line-height: 1.2;
+    }
+    .modal.fade#pdfModal .modal-header {
+        padding: 0.8rem 1rem;
+    }
+    .modal.fade#pdfModal .modal-header .modal-title {
+        font-size: 1rem;
+    }
+    .modal.fade#pdfModal #pdfIframe {
+        height: 35vh;
+    }
+    .modal.fade#pdfModal #btn_payer {
+        padding: 8px 16px;
+        font-size: 0.75rem;
+    }
+    .modal.fade#pdfModal .btn-secondary {
+        padding: 6px 16px;
+        font-size: 0.7rem;
+    }
+    .modal.fade#pdfModal #msg_facture {
+        font-size: 0.7rem;
+        padding: 6px 12px;
+    }
+}
     </style>
     <section class="content">
         <div class="container">
@@ -1012,7 +956,7 @@ use Illuminate\Support\Facades\Auth;
                     <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;"
                             class="zmdi zmdi-email-open text-info"></i> Liste</h4>
 
-                    <!-- SECTION FILTRES MODIFIÉE -->
+                    <!-- SECTION FILTRES AVEC DATE RANGE PICKER -->
                     <div class="filters-container">
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-label text-danger"></i> N° Facture</label>
@@ -1035,29 +979,29 @@ use Illuminate\Support\Facades\Auth;
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label><i class="zmdi zmdi-calendar text-danger"></i> Date</label>
-                            <input type="text" id="filterDate" class="form-control" placeholder="jj/mm/aaaa ...">
+                            <label><i class="zmdi zmdi-calendar text-danger"></i> Période (DD/MM/YYYY)</label>
+                            <input type="text" id="filterDateRange" class="form-control" placeholder="Sélectionner une période">
                         </div>
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-chart text-danger"></i> Montant</label>
                             <input type="number" id="filterMontant" class="form-control" placeholder="Montant exact" step="0.01">
                         </div>
-                        <div style="display: none;" class="filter-group">
+                        <div class="filter-group">
                             <button id="resetFilters" class="btn btn-secondary btn-sm" style="border-radius: 40px; padding: 8px 18px;">
                                 <i class="zmdi zmdi-refresh"></i> Réinitialiser
                             </button>
                         </div>
                     </div>
 
-                    <!-- Badge compteur et totaux convertis -->
+                    <!-- Badges de comptage et totaux -->
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 15px; flex-wrap: wrap;">
                         <span class="invoice-count-badge" style="background: linear-gradient(135deg, #0a192f, #1e3a5f);">
                             <i class="zmdi zmdi-view-list"></i> Factures : <span id="invoiceCount">0</span>
                         </span>
-                        <span class="invoice-count-badge" style="background: linear-gradient(135deg, #0f4c5f, #1e6f5c);">
+                        <span class="invoice-count-badge usd-badge">
                             <i class="zmdi zmdi-money"></i> Total USD : <span id="totalUsd">0,00</span> $
                         </span>
-                        <span class="invoice-count-badge" style="background: linear-gradient(135deg, #0d6efd, #0a58ca);">
+                        <span class="invoice-count-badge cdf-badge">
                             <i class="zmdi zmdi-money-box"></i> Total CDF : <span id="totalCdf">0,00</span> Fc
                         </span>
                     </div>
@@ -1558,6 +1502,11 @@ use Illuminate\Support\Facades\Auth;
         </div>
     </div>
 @section('js-code')
+    {{-- Ajout des dépendances pour le Date Range Picker (comme dans rapport) --}}
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
+
     <script src="{{ asset('assets/vendors/flot/jquery.flot.js') }} "></script>
     <script src="{{ asset('assets/vendors/flot/jquery.flot.pie.js') }}"></script>
     <script src="{{ asset('assets/vendors/flot/jquery.flot.resize.js') }}"></script>
@@ -1570,8 +1519,7 @@ use Illuminate\Support\Facades\Auth;
     <script src="{{ asset('assets/demo/js/flot-charts/pie.js') }}"></script>
     <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
     <script>
-        $("#link_24").css("border-left", "1px solid rgb(33, 150, 243)");
-        $("#text_24").addClass("text-info");
+        $("#link_24").addClass("active");
 
         $("#upload").click(function(e) {
             e.preventDefault();
@@ -1793,7 +1741,7 @@ use Illuminate\Support\Facades\Auth;
             });
         });
 
-        // ========== FONCTIONS DE FILTRAGE AVEC PERSISTANCE ==========
+        // ========== FONCTIONS DE FILTRAGE AVEC DATE RANGE PICKER (COMME DANS RAPPORT) ==========
         let filterTimeout;
 
         function saveFiltersToStorage() {
@@ -1802,7 +1750,7 @@ use Illuminate\Support\Facades\Auth;
                 client: $('#filterClient').val(),
                 user: $('#filterUser').val(),
                 statut: $('#filterStatut').val(),
-                date: $('#filterDate').val(),
+                dateRange: $('#filterDateRange').val(),
                 montant: $('#filterMontant').val()
             };
             localStorage.setItem('invoiceFilters', JSON.stringify(filters));
@@ -1816,7 +1764,7 @@ use Illuminate\Support\Facades\Auth;
                 $('#filterClient').val(filters.client || '');
                 $('#filterUser').val(filters.user || '');
                 $('#filterStatut').val(filters.statut || 'all');
-                $('#filterDate').val(filters.date || '');
+                $('#filterDateRange').val(filters.dateRange || '');
                 $('#filterMontant').val(filters.montant || '');
                 return true;
             }
@@ -1828,8 +1776,31 @@ use Illuminate\Support\Facades\Auth;
             const filterClient = $('#filterClient').val().toLowerCase();
             const filterUser = $('#filterUser').val().toLowerCase();
             const filterStatut = $('#filterStatut').val();
-            const filterDate = $('#filterDate').val().toLowerCase().trim();
             const filterMontant = parseFloat($('#filterMontant').val());
+
+            // Récupération de la plage de dates (comme dans filterTable du rapport)
+            var dateRange = $('#filterDateRange').val() || '';
+            var dateDebut = null, dateFin = null;
+            if (dateRange) {
+                var parts = dateRange.split(' - ');
+                if (parts.length === 2) {
+                    function parseDMY(str) {
+                        if (!str) return null;
+                        var p = str.split('/');
+                        if (p.length === 3) {
+                            var day = p[0];
+                            var month = p[1];
+                            var year = p[2];
+                            if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
+                                return year + '-' + month + '-' + day;
+                            }
+                        }
+                        return null;
+                    }
+                    dateDebut = parseDMY(parts[0]);
+                    dateFin = parseDMY(parts[1]);
+                }
+            }
 
             let visibleCount = 0;
             let totalUSD = 0, totalCDF = 0;
@@ -1842,15 +1813,40 @@ use Illuminate\Support\Facades\Auth;
                 const clientValue = $row.find('.client-cell').data('client')?.toLowerCase() || '';
                 const userValue = $row.find('.user-cell').data('user')?.toLowerCase() || '';
                 const statutValue = $row.find('.statut-cell').data('statut') || '';
-                const dateDisplayed = $row.find('.date-cell').text().toLowerCase();
                 const montantRaw = parseFloat($row.find('.montant-cell').data('montant')) || 0;
 
                 if (filterNumero && !numeroValue.includes(filterNumero)) showRow = false;
                 if (showRow && filterClient && !clientValue.includes(filterClient)) showRow = false;
                 if (showRow && filterUser && !userValue.includes(filterUser)) showRow = false;
                 if (showRow && filterStatut !== 'all' && statutValue !== filterStatut) showRow = false;
-                if (showRow && filterDate && !dateDisplayed.includes(filterDate)) showRow = false;
                 if (showRow && !isNaN(filterMontant) && Math.abs(montantRaw - filterMontant) > 0.009) showRow = false;
+
+                // Filtre par plage de dates (logique identique à filterTable)
+                if (showRow && dateDebut && dateFin) {
+                    var dateText = $row.find('.date-cell').text().trim();
+                    var cellDate = null;
+                    if (dateText) {
+                        var datePart = dateText.split(' à ')[0];
+                        if (datePart) {
+                            var partsDate = datePart.split('/');
+                            if (partsDate.length === 3) {
+                                var d = partsDate[0];
+                                var m = partsDate[1];
+                                var y = partsDate[2];
+                                if (d && m && y && d.length === 2 && m.length === 2 && y.length === 4) {
+                                    cellDate = y + '-' + m + '-' + d;
+                                }
+                            }
+                        }
+                    }
+                    if (cellDate) {
+                        if (cellDate < dateDebut || cellDate > dateFin) {
+                            showRow = false;
+                        }
+                    } else {
+                        showRow = false;
+                    }
+                }
 
                 if (showRow) {
                     $row.show();
@@ -1866,7 +1862,7 @@ use Illuminate\Support\Facades\Auth;
             $('#totalUsd').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalCdf').text(totalCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 
-            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || filterStatut !== 'all' || filterDate || !isNaN(filterMontant))) {
+            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || filterStatut !== 'all' || dateRange || !isNaN(filterMontant))) {
                 $('#msg').html('<i class="zmdi zmdi-info"></i> Aucune facture ne correspond aux critères de recherche');
                 $('#msg').css('display', 'flex');
                 setTimeout(() => {
@@ -1877,11 +1873,20 @@ use Illuminate\Support\Facades\Auth;
         }
 
         function resetAllFilters() {
+            // Remettre la date par défaut (aujourd'hui) comme dans le rapport
+            var today = moment();
+            var todayStr = today.format('DD/MM/YYYY');
+            $('#filterDateRange').val(todayStr + ' - ' + todayStr);
+            // Mettre à jour le picker pour qu'il soit en phase
+            if ($('#filterDateRange').data('daterangepicker')) {
+                $('#filterDateRange').data('daterangepicker').setStartDate(today);
+                $('#filterDateRange').data('daterangepicker').setEndDate(today);
+            }
+
             $('#filterNumero').val('');
             $('#filterClient').val('');
             $('#filterUser').val('');
             $('#filterStatut').val('all');
-            $('#filterDate').val('');
             $('#filterMontant').val('');
 
             saveFiltersToStorage();
@@ -1903,38 +1908,83 @@ use Illuminate\Support\Facades\Auth;
             }, 300);
         }
 
-        // Initialisation
+        // ========== INITIALISATION (COMME DANS RAPPORT) ==========
         $(document).ready(function() {
+            // Initialisation du Date Range Picker avec la date du jour par défaut
+            var today = moment();
+            var todayStr = today.format('DD/MM/YYYY');
+            $('#filterDateRange').val(todayStr + ' - ' + todayStr);
+
+            $('#filterDateRange').daterangepicker({
+                autoUpdateInput: false,
+                startDate: today,
+                endDate: today,
+                locale: {
+                    format: 'DD/MM/YYYY',
+                    separator: ' - ',
+                    applyLabel: 'Appliquer',
+                    cancelLabel: 'Annuler',
+                    fromLabel: 'Du',
+                    toLabel: 'Au',
+                    customRangeLabel: 'Personnalisé',
+                    weekLabel: 'S',
+                    daysOfWeek: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
+                    monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+                },
+                opens: 'left',
+                ranges: {
+                    'Aujourd\'hui': [moment(), moment()],
+                    'Hier': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '7 derniers jours': [moment().subtract(6, 'days'), moment()],
+                    '30 derniers jours': [moment().subtract(29, 'days'), moment()],
+                    'Ce mois-ci': [moment().startOf('month'), moment().endOf('month')],
+                    'Mois dernier': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                    'Cette année': [moment().startOf('year'), moment().endOf('year')]
+                }
+            }, function(start, end, label) {
+                var startStr = start.format('DD/MM/YYYY');
+                var endStr = end.format('DD/MM/YYYY');
+                $('#filterDateRange').val(startStr + ' - ' + endStr);
+                filterInvoices();
+                saveFiltersToStorage();
+            });
+
+            $('#filterDateRange').on('cancel.daterangepicker', function(ev, picker) {
+                $(this).val('');
+                filterInvoices();
+                saveFiltersToStorage();
+            });
+
+            // Nombre total de factures initial
             const totalInvoices = $('#content_utilisateur tbody tr').length;
             $('#invoiceCount').text(totalInvoices);
-            loadFiltersFromStorage();
+
+            // Charger les filtres sauvegardés (s'ils existent, écrase la valeur par défaut)
+            const hasSaved = loadFiltersFromStorage();
+            // Si aucun filtre sauvegardé, on garde la date du jour (déjà initialisée)
+            if (!hasSaved) {
+                // déjà initialisée
+            }
             filterInvoices();
 
-            $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterDate, #filterMontant').on('input change', function() {
+            // Événements des autres filtres
+            $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant').on('input change', function() {
                 debouncedFilter();
             });
 
+            // Réinitialisation
             $('#resetFilters').click(function(e) {
                 e.preventDefault();
                 resetAllFilters();
             });
         });
 
-        $(document).ajaxComplete(function(event, xhr, settings) {
-            if (settings.url && (settings.url.includes('get_all_facture') || settings.url.includes('refresh_') || settings.url.includes('add_achat_article'))) {
-                setTimeout(() => {
-                    loadFiltersFromStorage();
-                    filterInvoices();
-                }, 200);
-            }
-        });
-
+        // Sauvegarde automatique avant de quitter
         window.addEventListener('beforeunload', function() {
             saveFiltersToStorage();
         });
-    </script>
 
-    <script>
+        // ===== GESTION DU PAIEMENT PDF (inchangée) =====
         var currentPdfUrl = "";
         var cdf_montant_payer = $("#cdf_montant_payer").val();
         var usd_montant_payer = $("#usd_montant_payer").val();

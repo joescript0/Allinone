@@ -1,3 +1,7 @@
+@php
+    use App\Models\appnames;
+    $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
+@endphp
 <?php
 
 use App\Models\Groupes;
@@ -11,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
 
 ?>
 @extends('layouts.main')
-@section('title', 'CONTROLAPP')
+@section('title', $nom_app)
 @section('name', 'POSTES')
 @section('body')
 @include('composants.preload')
@@ -19,14 +23,9 @@ use Illuminate\Support\Facades\Auth;
 @include('composants.sidebar')
 @include('composants.chat')
 <style>
-/* =============================================
-   DESIGN PREMIUM - VERSION FINALE
-   BOUTONS MODERNES & RESPONSIFS
-   LIGNES DE TABLEAU RÉDUITES ET ÉQUILIBRÉES
-   MESSAGE D'ERREUR/SUCCÈS TOTALEMENT CACHÉ PAR DÉFAUT
-   PRISE EN CHARGE DU FORMULAIRE D'ÉDITION
-   + Adaptation pour le formulaire add_programmme
-   ============================================= */
+/* ============================================================
+   DESIGN PREMIUM – UNIFIÉ (POSTES)
+   ============================================================ */
 
 /* --- Reset des marges pour occuper tout l'écran --- */
 body {
@@ -38,7 +37,7 @@ body {
 .content .container {
     max-width: 100% !important;
     width: 100%;
-    padding: 1rem 2rem !important;
+    padding: 0.5rem 1.5rem !important;
     margin: 0 auto;
     background: #f8fafc;
 }
@@ -53,15 +52,15 @@ body {
     padding-right: 0.75rem;
 }
 
-/* --- Variables --- */
+/* --- Variables (identiques aux autres pages) --- */
 :root {
     --bleu-nuit: #0a192f;
     --bleu-nuit-clair: #112240;
     --bleu-nuit-gradient: linear-gradient(135deg, #0a192f, #1e3a5f);
-    --rouge-feu: #e31b23;
-    --rouge-fonce: #b91c1c;
-    --rouge-gradient: linear-gradient(135deg, #dc2626, #b91c1c);
-    --vert-succes: #10b981;
+    --bleu-secondaire: #2c5282;
+    --bleu-secondaire-gradient: linear-gradient(135deg, #2c5282, #1a365d);
+    --rouge-gradient: linear-gradient(135deg, #ef4444, #dc2626);
+    --vert-gradient: linear-gradient(135deg, #10b981, #059669);
     --shadow-premium: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
     --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
     --border-radius-xl: 20px;
@@ -69,22 +68,27 @@ body {
 }
 
 /* --- Cartes principales --- */
-#bloc_1, #bloc_2, #bloc_3 {
+#bloc_1, #bloc_2, #bloc_3, #bloc_4, #bloc_5 {
     background: rgba(255, 255, 255, 0.96);
     border-radius: var(--border-radius-xl);
     box-shadow: var(--shadow-premium);
-    padding: 2rem 1.8rem !important;
-    margin-bottom: 2rem;
+    padding: 1rem 1.5rem !important;
+    margin-bottom: 1rem;
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
 /* --- En-têtes --- */
 h4 {
     font-weight: 700;
-    border-left: 6px solid var(--rouge-feu);
+    border-left: 6px solid #e31b23;
     padding-left: 18px;
-    margin-bottom: 28px;
+    margin-bottom: 16px;
+    margin-top: 0;
     color: var(--bleu-nuit);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
 h4 i.zmdi {
@@ -94,7 +98,7 @@ h4 i.zmdi {
     color: transparent !important;
 }
 
-/* ========== TABLEAU ÉQUILIBRÉ ========== */
+/* ========== TABLEAU ========== */
 .table-responsive {
     border-radius: var(--border-radius-lg);
     overflow-x: auto;
@@ -112,36 +116,54 @@ h4 i.zmdi {
 }
 
 .table thead th {
-    background: var(--bleu-nuit-gradient);
-    color: white;
-    font-weight: 600;
-    font-size: 0.8rem;
+    background: #E7F5FE !important;
+    color: #0a192f;
+    font-weight: 700;
+    font-size: 0.85rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 10px 10px !important;
-    border-bottom: none;
-    white-space: nowrap;
+    letter-spacing: 0.06em;
+    padding: 14px 12px !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    border-right: 1px solid #d0e2f2;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .table tbody tr {
     transition: all 0.15s ease;
-    border-bottom: 1px solid #eef2f6;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
 }
 
 .table tbody tr:hover {
-    background: #f0f5fe !important;
+    background: #e6f0ff !important;
+    cursor: default;
 }
 
 .table tbody td {
-    padding: 8px 10px !important;
-    vertical-align: middle;
+    padding: 10px 12px !important;
+    vertical-align: middle !important;
     font-weight: 500;
     font-size: 0.85rem;
     color: #1e2a3e;
     word-break: break-word;
+    border-bottom: 1px solid #eef2f6;
+    line-height: 1.4;
 }
 
-/* ========== BOUTONS RONDS POUR LA COLONNE CONTROL ========== */
+.table tbody td:last-child {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* ========== LIENS D'ACTION DANS LE TABLEAU ========== */
 .table tbody td a {
     display: inline-flex;
     align-items: center;
@@ -160,28 +182,71 @@ h4 i.zmdi {
     margin: 0;
 }
 
-.table tbody td a i.zmdi-edit { color: #2c7da0; }
+.table tbody td a i.zmdi-edit {
+    color: #10b981;
+}
+.table tbody td a i.zmdi-delete {
+    color: #ef4444;
+}
+.table tbody td a i.zmdi-settings.text-success {
+    color: #10b981 !important;
+}
+.table tbody td a i.zmdi-settings.text-danger {
+    color: #ef4444 !important;
+}
+.table tbody td a i.zmdi-lock.text-success {
+    color: #10b981 !important;
+}
+.table tbody td a i.zmdi-calendar.text-info {
+    color: #3b82f6 !important;
+}
+.table tbody td a i.zmdi-cast.text-dark {
+    color: #475569 !important;
+}
+.table tbody td a i.zmdi-accounts.text-danger {
+    color: #ef4444 !important;
+}
+.table tbody td a i.zmdi-accounts.text-success {
+    color: #10b981 !important;
+}
+
 .table tbody td a:hover {
     background: #e0f2fe;
     transform: translateY(-2px);
 }
-.table tbody td a i.zmdi-delete { color: var(--rouge-feu); }
-.table tbody td a:hover i.zmdi-delete { color: var(--rouge-fonce); }
-.table tbody td a:hover { background: #ffe5e5; }
+.table tbody td a:hover i.zmdi-delete {
+    color: #b91c1c;
+}
+.table tbody td a:hover i.zmdi-edit {
+    color: #059669;
+}
+.table tbody td a:hover i.zmdi-settings.text-success {
+    color: #059669 !important;
+}
+.table tbody td a:hover i.zmdi-settings.text-danger {
+    color: #b91c1c !important;
+}
+.table tbody td a:hover i.zmdi-lock.text-success {
+    color: #059669 !important;
+}
+.table tbody td a:hover i.zmdi-calendar.text-info {
+    color: #2563eb !important;
+}
+.table tbody td a:hover i.zmdi-cast.text-dark {
+    color: #1e293b !important;
+}
 
-/* ========== BOUTONS PRINCIPAUX ========== */
+/* ========== BOUTONS PRINCIPAUX (UNIFIÉS) ========== */
 #liste, #add, #print, #add_r, #print_r,
-.btn-primary, .btn-primary.btn-sm, a.btn-primary,
-.btn-info, .btn-info.btn-sm,
-.btn-danger, .btn-danger.btn-sm,
-#edit_save, #edit_annuler,
-/* NOUVEAU : bouton Ajouter du formulaire add_programmme */
+#save, #save_r, #annuler, #edit_save, #edit_annuler,
+#resetFilters, #importer, #exporter,
+.btn-primary, .btn-info, .btn-danger, .btn-secondary, .btn-dark,
 #save_t {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 8px 18px !important;
+    padding: 6px 16px !important;
     font-weight: 600;
     font-size: 0.85rem;
     border-radius: 40px !important;
@@ -191,33 +256,26 @@ h4 i.zmdi {
     text-decoration: none;
     box-shadow: var(--shadow-light);
     white-space: nowrap;
+    line-height: 1.5;
 }
 
-#liste {
-    background: linear-gradient(135deg, #0a192f, #1e3a5f) !important;
+#liste, .btn-primary {
+    background: #3B82F6 !important;
     color: white !important;
 }
-#liste:hover {
+#liste:hover, .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
+    background: #2563eb !important;
+}
+
+#add, #print, .btn-info {
+    background: var(--bleu-nuit-gradient) !important;
+    color: white !important;
+}
+#add:hover, #print:hover, .btn-info:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
-}
-
-#add, a#add {
-    background: linear-gradient(135deg, #0f4c5f, #1e6f5c) !important;
-    color: white !important;
-}
-#add:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(15, 76, 95, 0.3);
-}
-
-#print {
-    background: linear-gradient(135deg, #4b6e8a, #2c4f6e) !important;
-    color: white !important;
-}
-#print:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(43, 76, 108, 0.3);
 }
 
 #add_r, #print_r {
@@ -232,63 +290,60 @@ h4 i.zmdi {
     box-shadow: none;
 }
 
-#save, #save_r, #annuler, #edit_save, #edit_annuler,
-/* NOUVEAU : même style que #save pour #save_t */
-#save_t {
-    padding: 8px 24px !important;
-    font-weight: 700;
-}
-#save, #edit_save, #save_t {
-    background: linear-gradient(95deg, #0f4c5f, #0e6b5e) !important;
+#save, #edit_save, #save_t, #save_r {
+    background: var(--bleu-secondaire-gradient) !important;
     color: white;
 }
-#save:hover, #edit_save:hover, #save_t:hover {
+#save:hover, #edit_save:hover, #save_t:hover, #save_r:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(15, 76, 95, 0.3);
-}
-#annuler, #edit_annuler {
-    background: #64748b !important;
-    color: white;
-}
-#annuler:hover, #edit_annuler:hover {
-    background: #475569 !important;
-    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3);
 }
 
-/* ========== FORMULAIRES : AJOUT ET MODIFICATION ========== */
-/* S'applique aussi au formulaire add_programmme */
-#form_add .row, #form_edit .row,
-#add_programmme .row {
+#annuler, #edit_annuler, .btn-danger {
+    background: var(--rouge-gradient) !important;
+    color: white;
+}
+#annuler:hover, #edit_annuler:hover, .btn-danger:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
+}
+
+/* ========== FORMULAIRES ========== */
+#form_add .row, #form_edit .row {
     display: flex;
     flex-wrap: wrap;
 }
-#form_add .col-6, #form_edit .col-6,
-#add_programmme .col-lg-6, #add_programmme .col-sm-6 {
-    margin-bottom: 1rem;
+
+#form_add .col-6, #form_edit .col-6 {
+    margin-bottom: 0.8rem;
 }
+
 .form-group {
     width: 100%;
     margin-bottom: 0;
 }
+
 .form-group label {
     display: block;
     font-weight: 700;
     color: var(--bleu-nuit);
-    margin-bottom: 6px;
-    font-size: 0.8rem;
+    margin-bottom: 4px;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.4px;
 }
+
 .form-group label i {
-    color: var(--rouge-feu);
+    color: #e31b23;
     margin-right: 6px;
 }
+
 .form-control,
 input.form-control,
 select.form-control,
 textarea.form-control,
 .input-mask,
-/* NOUVEAU : cibler les selects même sans classe form-control (ex: select2) */
 #add_programmme select,
 #add_programmme input,
 #add_programmme textarea {
@@ -296,18 +351,20 @@ textarea.form-control,
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 14px !important;
-    padding: 10px 14px !important;
+    padding: 8px 12px !important;
     font-weight: 500;
     font-size: 0.85rem;
     transition: all 0.2s;
     box-sizing: border-box;
-    height: 42px !important;
+    height: 38px !important;
     line-height: 1.4;
 }
+
 textarea.form-control {
     resize: vertical;
-    height: 42px !important;
+    height: 38px !important;
 }
+
 .form-control:focus,
 select.form-control:focus,
 textarea.form-control:focus,
@@ -317,6 +374,7 @@ textarea.form-control:focus,
     box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
     transform: translateY(-1px);
 }
+
 select.form-control,
 #add_programmme select {
     appearance: none;
@@ -324,15 +382,14 @@ select.form-control,
     background-repeat: no-repeat;
     background-position: right 14px center;
 }
+
 .input-mask {
     font-family: monospace;
     background: #fff9ef !important;
 }
 
-/* ========== MESSAGES MODERNES - TOTALEMENT INVISIBLE PAR DÉFAUT ========== */
-#msg, #edit_msg,
-/* NOUVEAU : message pour add_programmme */
-#msg_r {
+/* ========== MESSAGES STYLISÉS ========== */
+#msg, #edit_msg, #msg_r {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
@@ -346,8 +403,7 @@ select.form-control,
     overflow: hidden !important;
 }
 
-#msg:not(:empty), #edit_msg:not(:empty),
-#msg_r:not(:empty) {
+#msg:not(:empty), #edit_msg:not(:empty), #msg_r:not(:empty) {
     display: inline-flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -368,14 +424,15 @@ select.form-control,
 #msg_r:not(:empty):has(i.zmdi-check-circle) {
     background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
     color: #065f46;
-    border-left: 4px solid var(--vert-succes);
+    border-left: 4px solid #10b981;
 }
+
 #msg:not(:empty):has(i.zmdi-close-circle),
 #edit_msg:not(:empty):has(i.zmdi-close-circle),
 #msg_r:not(:empty):has(i.zmdi-close-circle) {
     background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
     color: #991b1b;
-    border-left: 4px solid var(--rouge-feu);
+    border-left: 4px solid #ef4444;
 }
 
 @keyframes slideInMsg {
@@ -383,7 +440,7 @@ select.form-control,
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ========== BARRE D'ACTIONS EN HAUT ========== */
+/* ========== BARRE D'ACTIONS (EN TÊTE) ========== */
 [style*="background-color: rgba(0, 0, 0, 0.1)"] {
     background: #eef3fc !important;
     border-radius: 60px;
@@ -393,94 +450,6 @@ select.form-control,
     flex-wrap: wrap;
     gap: 12px;
     justify-content: flex-start;
-}
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 768px) {
-    .content .container {
-        padding: 0.8rem 1rem !important;
-    }
-    #bloc_1, #bloc_2, #bloc_3 {
-        padding: 1.2rem !important;
-    }
-    #liste, #add, #print, #add_r, #print_r,
-    .btn-primary, .btn-info, .btn-danger,
-    #edit_save, #edit_annuler,
-    #save_t {
-        padding: 6px 14px !important;
-        font-size: 0.75rem;
-        white-space: nowrap;
-    }
-    [style*="background-color: rgba(0, 0, 0, 0.1)"] {
-        justify-content: center;
-        gap: 8px;
-    }
-    #form_add .col-6, #form_edit .col-6,
-    #add_programmme .col-lg-6, #add_programmme .col-sm-6 {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-    .form-control, input.form-control, select.form-control, textarea.form-control,
-    #add_programmme select, #add_programmme input {
-        height: 40px !important;
-        font-size: 0.8rem;
-    }
-    .table thead th {
-        font-size: 0.7rem;
-        padding: 6px 6px !important;
-    }
-    .table tbody td {
-        padding: 6px 6px !important;
-        font-size: 0.75rem;
-    }
-    .table tbody td a {
-        width: 28px;
-        height: 28px;
-    }
-    .table tbody td a i.zmdi {
-        font-size: 1rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .content .container {
-        padding: 0.5rem !important;
-    }
-    .btn, .btn-sm, #liste, #add, #print, #edit_save, #edit_annuler, #save_t {
-        padding: 4px 10px !important;
-        font-size: 0.7rem;
-    }
-    .form-group label {
-        font-size: 0.7rem;
-    }
-    [style*="background-color: rgba(0, 0, 0, 0.1)"] {
-        gap: 6px;
-        padding: 8px 12px !important;
-    }
-    .table thead th {
-        font-size: 0.6rem;
-        padding: 4px 4px !important;
-    }
-    .table tbody td {
-        font-size: 0.7rem;
-        padding: 5px 4px !important;
-    }
-}
-
-/* ========== ANIMATIONS & DÉTAILS ========== */
-@keyframes glow {
-    0% { box-shadow: 0 0 0 0 rgba(227, 27, 35, 0.2); }
-    70% { box-shadow: 0 0 0 6px rgba(227, 27, 35, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(227, 27, 35, 0); }
-}
-.btn-danger:active {
-    animation: glow 0.3s ease-out;
-}
-.modal-header {
-    background: var(--bleu-nuit-gradient);
-}
-input[required], select[required], textarea[required] {
-    border-left: 3px solid var(--rouge-feu) !important;
 }
 
 /* ========== STYLES POUR LA CARTE ET LES BOUTONS OVERLAY ========== */
@@ -501,7 +470,7 @@ input[required], select[required], textarea[required] {
     border: none;
     cursor: pointer;
     transition: all 0.2s ease;
-    background: linear-gradient(135deg, #0a192f, #1e3a5f);
+    background: var(--bleu-nuit-gradient);
     color: white;
     box-shadow: var(--shadow-light);
 }
@@ -510,7 +479,6 @@ input[required], select[required], textarea[required] {
     box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
 }
 
-/* Conteneur relatif pour la carte */
 #map-container {
     position: relative;
 }
@@ -521,7 +489,6 @@ input[required], select[required], textarea[required] {
     margin-bottom: 15px;
     z-index: 1;
 }
-/* Boutons flottants sur la carte */
 .map-overlay-buttons {
     position: absolute;
     bottom: 25px;
@@ -567,7 +534,8 @@ input[required], select[required], textarea[required] {
         font-size: 1rem;
     }
 }
-/* ========== STYLES POUR LA CARTE D'ÉDITION ========== */
+
+/* ========== STYLES POUR LA CARTE D'ÉDITION (bloc_3) ========== */
 .edit-map-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -585,7 +553,7 @@ input[required], select[required], textarea[required] {
     border: none;
     cursor: pointer;
     transition: all 0.2s ease;
-    background: linear-gradient(135deg, #0a192f, #1e3a5f);
+    background: var(--bleu-nuit-gradient);
     color: white;
     box-shadow: var(--shadow-light);
 }
@@ -594,7 +562,6 @@ input[required], select[required], textarea[required] {
     box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
 }
 
-/* Conteneur relatif pour la carte d'édition */
 #edit-map-container {
     position: relative;
 }
@@ -605,8 +572,6 @@ input[required], select[required], textarea[required] {
     margin-bottom: 15px;
     z-index: 1;
 }
-
-/* Boutons flottants sur la carte d'édition (overlay) */
 #edit-map-container .map-overlay-buttons {
     position: absolute;
     bottom: 25px;
@@ -640,8 +605,6 @@ input[required], select[required], textarea[required] {
     transform: scale(1.05);
     background: #f0f0f0;
 }
-
-/* Responsive pour l'édition */
 @media (max-width: 768px) {
     #edit-map-container .map-overlay-buttons {
         bottom: 15px;
@@ -658,9 +621,10 @@ input[required], select[required], textarea[required] {
         font-size: 0.7rem;
     }
 }
+
 /* =============================================
    STYLE SPÉCIFIQUE - PRESTATIONS CALENDAR
-   Avec bordure gauche colorée (vert/rouge)
+   (si utilisé dans bloc_3)
    ============================================= */
 
 .prestations-calendar {
@@ -671,162 +635,6 @@ input[required], select[required], textarea[required] {
     --bordure-table: #e2e8f0;
 }
 
-/* --- Titres des dates : bordure gauche + espacement --- */
-.prestations-calendar .col-12 > h4 {
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin: 1.5rem 0 1.2rem 0;
-    padding-left: 18px;          /* espace pour la bordure */
-    border-left: 6px solid;      /* couleur héritée du texte */
-    border-bottom: 2px solid var(--bordure-table);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-/* --- Date du jour : tout en VERT (titre, icône, bordure) --- */
-.prestations-calendar .col-12 > h4.text-success,
-.prestations-calendar .col-12 > h4.text-success i.zmdi-calendar {
-    color: var(--vert-presta) !important;
-}
-
-/* --- Autres dates : tout en ROUGE (titre, icône, bordure) --- */
-.prestations-calendar .col-12 > h4:not(.text-success),
-.prestations-calendar .col-12 > h4:not(.text-success) i.zmdi-calendar {
-    color: var(--rouge-presta) !important;
-}
-
-/* --- Tableau --- */
-.prestations-calendar .table-responsive {
-    border-radius: 16px;
-    overflow-x: auto;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    background: #ffffff;
-}
-
-.prestations-calendar .table {
-    background-color: white;
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    border-radius: 16px;
-    overflow: hidden;
-}
-
-.prestations-calendar .table thead th {
-    background: linear-gradient(135deg, #1e3a5f, #2c5282);
-    color: white;
-    font-weight: 600;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 10px 12px !important;
-    border-bottom: none;
-    white-space: nowrap;
-}
-
-.prestations-calendar .table tbody tr {
-    transition: background 0.15s ease;
-    border-bottom: 1px solid #eef2f6;
-}
-
-.prestations-calendar .table tbody tr:hover {
-    background: #fef9e6 !important;
-}
-
-.prestations-calendar .table tbody td {
-    padding: 8px 12px !important;
-    vertical-align: middle;
-    font-size: 0.85rem;
-    color: #1e2a3e;
-    border-color: #eef2f6;
-}
-
-.prestations-calendar .table tbody td:first-child {
-    font-weight: 700;
-    color: #0a192f;
-    text-align: center;
-}
-
-/* Icônes de service / horaire */
-.prestations-calendar .table i.zmdi-info.text-success,
-.prestations-calendar .table span.text-success {
-    color: var(--vert-presta) !important;
-    font-weight: 600;
-}
-
-.prestations-calendar .table i.zmdi-info.text-info,
-.prestations-calendar .table span.text-info {
-    color: var(--info-presta) !important;
-    font-weight: 600;
-}
-
-.prestations-calendar .table i.zmdi-info.text-danger,
-.prestations-calendar .table span.text-danger {
-    color: var(--danger-presta) !important;
-    font-weight: 600;
-}
-
-.prestations-calendar .table i.zmdi-time {
-    margin-right: 6px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .prestations-calendar .col-12 > h4 {
-        font-size: 1.1rem;
-        margin: 1rem 0 0.8rem 0;
-        padding-left: 14px;
-        gap: 8px;
-    }
-    .prestations-calendar .col-12 > h4 i.zmdi-calendar {
-        font-size: 26px;
-    }
-    .prestations-calendar .table thead th {
-        font-size: 0.7rem;
-        padding: 6px 8px !important;
-    }
-    .prestations-calendar .table tbody td {
-        padding: 6px 8px !important;
-        font-size: 0.75rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .prestations-calendar .table thead th {
-        font-size: 0.6rem;
-        padding: 4px 6px !important;
-    }
-    .prestations-calendar .table tbody td {
-        font-size: 0.7rem;
-        padding: 4px 6px !important;
-    }
-    .prestations-calendar .table i.zmdi {
-        font-size: 0.9rem;
-    }
-}
-
-@media (min-width: 1200px) {
-    .prestations-calendar .table tbody td {
-        padding: 10px 16px !important;
-    }
-}
-
-
-
-/* =============================================
-   STYLE SPÉCIFIQUE - PRESTATIONS CALENDAR
-   ============================================= */
-
-.prestations-calendar {
-    --vert-presta: #10b981;
-    --rouge-presta: #e31b23;
-    --info-presta: #0ea5e9;
-    --danger-presta: #ef4444;
-    --bordure-table: #e2e8f0;
-}
-
-/* --- Filtres multiples --- */
 .prestations-calendar .filters-container {
     display: flex;
     flex-wrap: wrap;
@@ -885,7 +693,7 @@ input[required], select[required], textarea[required] {
 }
 
 .prestations-calendar .reset-filters {
-    background: linear-gradient(135deg, #0a192f, #1e3a5f);
+    background: var(--bleu-nuit-gradient);
     border: none;
     border-radius: 40px;
     padding: 6px 18px;
@@ -904,7 +712,6 @@ input[required], select[required], textarea[required] {
     box-shadow: 0 5px 12px rgba(0,0,0,0.15);
 }
 
-/* --- Titres des dates --- */
 .prestations-calendar .col-12 > h4 {
     font-size: 1.3rem;
     font-weight: 700;
@@ -927,7 +734,6 @@ input[required], select[required], textarea[required] {
     color: var(--rouge-presta) !important;
 }
 
-/* --- Tableau --- */
 .prestations-calendar .table-responsive {
     border-radius: 16px;
     overflow-x: auto;
@@ -979,7 +785,6 @@ input[required], select[required], textarea[required] {
     text-align: center;
 }
 
-/* Icônes service/horaire */
 .prestations-calendar .table i.zmdi-info.text-success,
 .prestations-calendar .table span.text-success {
     color: var(--vert-presta) !important;
@@ -1002,7 +807,6 @@ input[required], select[required], textarea[required] {
     margin-right: 6px;
 }
 
-/* Message aucun résultat */
 .prestations-calendar .no-results {
     text-align: center;
     padding: 40px;
@@ -1053,6 +857,143 @@ input[required], select[required], textarea[required] {
     .prestations-calendar .table tbody td {
         padding: 10px 16px !important;
     }
+}
+
+/* ========== RESPONSIVE GÉNÉRAL ========== */
+@media (max-width: 992px) {
+    .content .container {
+        padding: 0.5rem 1rem !important;
+    }
+    #bloc_1, #bloc_2, #bloc_3, #bloc_4, #bloc_5 {
+        padding: 1rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .content .container {
+        padding: 0.4rem 0.6rem !important;
+    }
+    #bloc_1, #bloc_2, #bloc_3, #bloc_4, #bloc_5 {
+        padding: 0.8rem !important;
+    }
+    #liste, #add, #print, #add_r, #print_r,
+    #save, #save_r, #annuler, #edit_save, #edit_annuler,
+    #resetFilters, #importer, #exporter,
+    .btn-primary, .btn-info, .btn-danger, .btn-dark,
+    #save_t {
+        padding: 4px 12px !important;
+        font-size: 0.7rem;
+    }
+    .table thead th {
+        font-size: 0.72rem;
+        padding: 10px 6px !important;
+        letter-spacing: 0.05em;
+    }
+    .table tbody td {
+        padding: 8px 10px !important;
+        font-size: 0.75rem;
+        line-height: 1.3;
+    }
+    #form_add .col-6, #form_edit .col-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .form-group label {
+        font-size: 0.65rem;
+    }
+    .form-control, input.form-control, select.form-control, textarea.form-control,
+    #add_programmme select, #add_programmme input {
+        height: 34px !important;
+        font-size: 0.75rem;
+    }
+    [style*="background-color: rgba(0, 0, 0, 0.1)"] {
+        justify-content: center;
+        gap: 8px;
+    }
+    .map-toolbar button, .edit-map-toolbar button {
+        padding: 4px 10px;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .content .container {
+        padding: 0.3rem !important;
+    }
+    #bloc_1, #bloc_2, #bloc_3, #bloc_4, #bloc_5 {
+        padding: 0.6rem !important;
+    }
+    h4 {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
+    h4 i {
+        font-size: 24px !important;
+    }
+    #liste, #add, #print, #add_r, #print_r,
+    #save, #save_r, #annuler, #edit_save, #edit_annuler,
+    #resetFilters, #importer, #exporter,
+    #save_t {
+        padding: 3px 8px !important;
+        font-size: 0.65rem;
+    }
+    .table thead th {
+        font-size: 0.62rem;
+        padding: 8px 4px !important;
+    }
+    .table tbody td {
+        padding: 6px 8px !important;
+        font-size: 0.7rem;
+        line-height: 1.2;
+    }
+    .map-overlay-buttons .map-btn,
+    #edit-map-container .map-overlay-buttons .map-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.9rem;
+    }
+}
+
+/* ========== MODALES ========== */
+.modal.fade .modal-content {
+    border-radius: var(--border-radius-lg);
+    border: none;
+    box-shadow: var(--shadow-premium);
+    overflow: hidden;
+}
+
+.modal.fade .modal-header {
+    background: var(--bleu-nuit-gradient) !important;
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+}
+
+.modal.fade .modal-header .modal-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.modal.fade .modal-header .close {
+    color: white;
+    opacity: 0.8;
+    text-shadow: none;
+}
+
+.modal.fade .modal-header .close:hover {
+    opacity: 1;
+}
+
+.modal.fade .modal-footer {
+    background: #f8fafc;
+    border-top: 1px solid #eef2f6;
+    padding: 1rem 1.5rem;
+}
+
+.modal.fade .modal-footer .btn {
+    border-radius: 40px !important;
+    padding: 6px 18px !important;
+    font-weight: 600;
 }
 </style>
 <section class="content">
@@ -1640,9 +1581,7 @@ input[required], select[required], textarea[required] {
 <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
 <script>
     // ========== GESTION DES ONGLETS ET FONCTIONS EXISTANTES ==========
-    $("#link_32").css("border-left", "1px solid rgb(33, 150, 243)");
-    $("#text_32").addClass("text-info");
-    $("#icone_10").css("color", "rgb(33, 150, 243)");
+    $("#link_32").addClass("active");
     $("#upload").click(function(e) {
         e.preventDefault();
         $("#dropzone-upload").trigger("click");

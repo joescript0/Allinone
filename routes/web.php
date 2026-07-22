@@ -250,6 +250,7 @@ Route::get('/refresh_write', [AjaxController::class , 'refresh_write'])->name('r
 Route::get('/refresh_affectation_stock_vente', [AjaxController::class , 'refresh_affectation_stock_vente'])->name('refresh_affectation_stock_vente');
 Route::get('/refresh_article_stock', [AjaxController::class , 'refresh_article_stock'])->name('refresh_article_stock');
 Route::get('/etat_display', [AjaxController::class , 'etat_display'])->name('etat_display');
+Route::get('/etat_affectation_pointdeventes', [AjaxController::class , 'etat_affectation_pointdeventes'])->name('etat_affectation_pointdeventes');
 Route::get('/etat_add', [AjaxController::class , 'etat_add'])->name('etat_add');
 Route::get('/etat_edit', [AjaxController::class , 'etat_edit'])->name('etat_edit');
 Route::get('/etat_delete', [AjaxController::class , 'etat_delete'])->name('etat_delete');
@@ -289,6 +290,7 @@ Route::get('/check_paie_facture', [AjaxController::class , 'check_paie_facture']
 Route::get('/get_all_facture', [AjaxController::class , 'get_all_facture'])->name('get_all_facture');
 Route::get('/delete_facture_user_id', [AjaxController::class , 'delete_facture_user_id'])->name('delete_facture_user_id');
 Route::get('/get_all_categorie', [AjaxController::class , 'get_all_categorie'])->name('get_all_categorie');
+Route::get('/get_all_depense', [AjaxController::class , 'get_all_depense'])->name('get_all_depense');
 Route::get('/get_all_articles', [AjaxController::class , 'get_all_articles'])->name('get_all_articles');
 Route::get('/get_commune_by_district', [AjaxController::class , 'get_commune_by_district'])->name('get_commune_by_district');
 Route::post('/save_paie_facture', [AjaxController::class , 'save_paie_facture'])->name('save_paie_facture');

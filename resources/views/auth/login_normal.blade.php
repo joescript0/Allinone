@@ -1,22 +1,6 @@
 <?php
-    $option  = 5;
-    $nom_app = "";
-    if($option == 1)
-    {
-        $nom_app = "AFRICTECHAPP";
-    }elseif ($option == 2) {
-        $nom_app = "ILAINAPP";
-    }
-    elseif ($option == 3) {
-        $nom_app = "CONTROLAPP";
-    }
-    elseif ($option == 4) {
-        $nom_app = "EDIPASERVICE";
-    }
-    elseif ($option == 5)
-    {
-        $nom_app = "LES300HOMMES";
-    }
+    use App\Models\appnames;
+    $nom_app  = appnames::where('etat',  1)->first()["nom"];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -49,368 +33,270 @@
     <link rel="manifest" href="{{ asset('/manifest-admin.json') }}">
 
     <style>
+        /* ===== STYLE MODERNE (votre code CSS inchangé) ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Fond bleu nuit profond */
         body {
-            background: #0a192f;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1E293B;
         }
 
-        /* Header Styles - Rouge bordeaux élégant */
         .header {
-            background: #800020 !important;
-            padding: 12px 20px;
-            border-bottom: 3px solid #6c757d !important; /* Gris */
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
         }
 
-        .header__logo h1 {
-            margin: 0;
-            font-size: 1.2rem;
+        .logo h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
         }
 
-        .header__logo h1 a {
-            color: white;
+        .logo a {
             text-decoration: none;
-            transition: opacity 0.3s ease;
+            color: #0F172A;
         }
 
-        .header__logo h1 a:hover {
-            opacity: 0.9;
+        .logo a i {
+            color: #3B82F6;
+            margin-right: 6px;
         }
 
-        .header__logo h1 i {
-            color: #d4af37;
-            margin-right: 8px;
-            font-size: 1.1rem;
+        .logo p {
+            font-size: 0.7rem;
+            color: #64748B;
+            letter-spacing: 1px;
         }
 
-        .header__logo p {
-            font-size: 0.65rem;
-            color: rgba(255, 255, 255, 0.9);
-            margin-top: 3px;
-            letter-spacing: 1.5px;
+        #footer {
+            padding: 1rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            font-size: 0.7rem;
+            color: #64748B;
         }
 
-        /* Login Container */
         .login {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 40px 20px;
+            padding: 2rem;
         }
 
-        .login form {
+        .login-container {
+            max-width: 1100px;
             width: 100%;
-            max-width: 480px;
-            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
             background: white;
-            border-radius: 20px;
-            padding: 40px 35px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            animation: fadeInUp 0.6s ease-out;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .form-side {
+            padding: 2.5rem;
         }
 
-        .login form h5 {
+        .form-side h5 {
             font-size: 1.8rem;
-            font-weight: 600;
-            color: #1a1a2e;
-            margin-bottom: 25px;
+            font-weight: 700;
+            color: #0F172A;
+            margin-bottom: 1.5rem;
             text-align: center;
-            position: relative;
-            padding-bottom: 15px;
         }
 
-        .login form h5:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
-            background: #800020;
-            border-radius: 2px;
-        }
-
-        /* Form Groups */
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 1.5rem;
         }
 
         .form-group label {
             display: block;
-            color: #1a1a2e;
             font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            color: #334155;
         }
 
         .form-group label i {
-            color: #2c3e50;
             margin-right: 8px;
-            font-size: 1.1rem;
-            vertical-align: middle;
+            color: #3B82F6;
+            width: 18px;
         }
 
-        .form-group input {
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper input {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-            font-weight: 500;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border: 1px solid #CBD5E1;
+            border-radius: 16px;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            background: #F8FAFC;
         }
 
-        .form-group input:focus {
+        .input-wrapper input:focus {
             outline: none;
-            border-color: #2c3e50;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
             background: white;
-            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
         }
 
-        .form-group input::placeholder {
-            color: #adb5bd;
-            font-weight: normal;
+        .input-wrapper .validation-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
         }
 
-        /* Button Styles */
         .btn-login {
             width: 100%;
-            background: #800020 !important;
-            color: white;
+            background: #3B82F6;
             border: none;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 0.85rem;
+            border-radius: 40px;
             font-weight: 600;
             font-size: 1rem;
+            color: white;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-login:hover {
-            background: #5a0017 !important;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(128, 0, 32, 0.3);
+            background: #2563EB;
+            transform: scale(1.01);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
         }
 
         .btn-login:active {
-            transform: translateY(0);
+            transform: scale(0.98);
         }
 
-        /* Message Styles - Caché par défaut */
+        .btn-login i {
+            font-size: 1rem;
+        }
+
+        .field-error {
+            font-size: 0.75rem;
+            color: #EF4444;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .field-error.show {
+            display: block;
+        }
+
         #msg {
-            display: none !important;
-            text-align: center;
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            margin-top: 1.5rem;
+            padding: 0.75rem;
+            border-radius: 16px;
             font-weight: 500;
-            animation: fadeIn 0.3s ease;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
         }
 
-        #msg.show {
-            display: block !important;
-        }
-
-        #msg i {
-            margin-right: 8px;
-            font-size: 1.1rem;
-            vertical-align: middle;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Footer Styles - Rouge bordeaux élégant */
-        #footer {
-            background: #800020 !important;
-            padding: 12px 20px;
-            border-top: 3px solid #6c757d !important; /* Gris */
+        .illustration-side {
+            background: linear-gradient(145deg, #EFF6FF, #F8FAFC);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
             text-align: center;
-            color: white;
-            font-size: 0.7rem;
         }
 
-        /* Responsive Design */
+        .illustration-side i {
+            font-size: 7rem;
+            color: #3B82F6;
+            margin-bottom: 1.5rem;
+        }
+
+        .illustration-side h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
         @media (max-width: 768px) {
-            .header {
-                padding: 10px 15px;
+            .login-container {
+                grid-template-columns: 1fr;
+                gap: 0;
             }
 
-            .header__logo h1 {
-                font-size: 1rem;
+            .illustration-side {
+                display: none;
             }
 
-            .header__logo h1 i {
-                font-size: 1rem;
+            .form-side {
+                padding: 1.5rem;
             }
 
-            .header__logo p {
-                font-size: 0.6rem;
-            }
-
-            .login {
-                padding: 20px 15px;
-            }
-
-            .login form {
-                padding: 30px 25px;
-                margin: 0 10px;
-            }
-
-            .login form h5 {
-                font-size: 1.5rem;
-                margin-bottom: 20px;
-            }
-
-            .form-group input {
-                padding: 10px 12px;
-                font-size: 0.9rem;
-            }
-
-            .btn-login {
-                padding: 10px;
-                font-size: 0.95rem;
-            }
-
+            .header,
             #footer {
-                padding: 10px 15px;
-                font-size: 0.65rem;
+                padding: 0.75rem 1rem;
             }
 
-            #msg {
-                padding: 10px;
-                font-size: 0.85rem;
+            .logo h1 {
+                font-size: 1.2rem;
             }
         }
 
         @media (max-width: 480px) {
-            .header {
-                padding: 8px 12px;
-            }
-
-            .header__logo h1 {
-                font-size: 0.9rem;
-            }
-
-            .header__logo h1 i {
-                font-size: 0.9rem;
-            }
-
-            .header__logo p {
-                font-size: 0.55rem;
-            }
-
-            .login form {
-                padding: 25px 20px;
-            }
-
-            .login form h5 {
-                font-size: 1.3rem;
-            }
-
-            .form-group label {
-                font-size: 0.85rem;
-            }
-
-            .form-group input {
-                padding: 8px 10px;
-                font-size: 0.85rem;
+            .form-side h5 {
+                font-size: 1.5rem;
             }
 
             .btn-login {
-                padding: 8px;
-                font-size: 0.9rem;
-            }
-
-            #msg {
-                padding: 8px;
-                font-size: 0.8rem;
-            }
-
-            #footer {
-                padding: 8px 12px;
-                font-size: 0.6rem;
+                padding: 0.7rem;
             }
         }
 
-        /* Tablet Styles */
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .login form {
-                max-width: 450px;
-                padding: 35px 30px;
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
             }
         }
 
-        /* Small Height Screens */
-        @media (max-height: 600px) {
-            .login {
-                padding: 20px;
-            }
-
-            .login form {
-                padding: 25px 30px;
-            }
-
-            .form-group {
-                margin-bottom: 15px;
-            }
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #0a192f;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #800020;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #5a0017;
-        }
-
-        /* Overlay de fond */
+        /* ===== MODAL PWA ===== */
         #pwa-modal-overlay {
             display: none;
             position: fixed;
@@ -425,7 +311,6 @@
             animation: fadeIn 0.3s ease;
         }
 
-        /* Boîte modale */
         #pwa-modal {
             background: #ffffff;
             border-radius: 20px;
@@ -462,7 +347,6 @@
             font-family: Arial, sans-serif;
         }
 
-        /* Bouton principal "Installer maintenant" */
         #pwa-modal .btn-install {
             background: #000000;
             color: #ffffff;
@@ -482,12 +366,9 @@
             background: #333333;
         }
 
-        /* Bouton "Installer plus tard" - ROUGE BORDEAUX #7f1a1a */
         #pwa-modal .btn-later {
             background: #7f1a1a;
-            /* Rouge bordeaux */
             color: #ffffff;
-            /* Texte blanc */
             border: none;
             padding: 14px 30px;
             border-radius: 30px;
@@ -501,7 +382,6 @@
 
         #pwa-modal .btn-later:hover {
             background: #a02424;
-            /* Plus clair au survol */
         }
 
         #pwa-modal .btn-close-modal {
@@ -521,98 +401,94 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         @keyframes slideUp {
-            from {
-                transform: translateY(40px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+            from { transform: translateY(40px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
 
-<body data-ma-theme="blue">
+<body>
 
+    <!-- ===== HEADER ===== -->
     <header class="header">
-        <div class="navigation-trigger hidden-xl-up" data-ma-action="aside-open" data-ma-target=".sidebar">
-            <div class="navigation-trigger__inner">
-                <i class="navigation-trigger__line"></i>
-                <i class="navigation-trigger__line"></i>
-                <i class="navigation-trigger__line"></i>
-            </div>
+        <div class="logo">
+            <h1><a href="#"><i class="fas fa-cubes"></i> {{ $nom_app }}</a></h1>
+            <p><strong>ALL IN ONE</strong></p>
         </div>
-
-        <div class="header__logo hidden-sm-down">
-            <h1><a href="#"><i style="color:#0a192f;" class="zmdi zmdi-home"></i> {{ $nom_app }}</a></h1>
-            <p>ALL IN ONE</p>
-        </div>
-
-        <ul class="top-nav"></ul>
     </header>
 
+    <!-- ===== LOGIN ===== -->
     <div class="login">
-        <form id="form_login" action="" method="POST">
-            @csrf
-            <h5>Se connecter</h5>
+        <div class="login-container">
+            <div class="form-side">
+                <h5>Authentification</h5>
+                <form id="form_login" method="POST">
+                    @csrf
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> E-mail</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="email_01" name="email_01" placeholder="Exemple@gmail.com"
+                                autocomplete="email">
+                            <span class="validation-icon" id="email-icon"></span>
+                        </div>
+                        <div class="field-error" id="email-error">L'email est obligatoire et doit être valide.</div>
+                    </div>
 
-            <div class="form-group">
-                <label><i class="zmdi zmdi-email"></i> E-mail</label>
-                <input type="text" id="email_01" name="email_01" placeholder="Exemple@gmail.com" autocomplete="off">
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Mot de passe</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="mdp_01" name="mdp_01" placeholder="Votre mot de passe">
+                            <span class="validation-icon" id="pwd-icon"></span>
+                        </div>
+                        <div class="field-error" id="pwd-error">Le mot de passe ne peut pas être vide.</div>
+                    </div>
+
+                    <button class="btn-login" id="btn_login" type="button">
+                        <i class="fas fa-sign-in-alt"></i> Se connecter
+                    </button>
+
+                    <div id="msg"></div>
+                </form>
             </div>
 
-            <div class="form-group">
-                <label><i class="zmdi zmdi-lock"></i> Mot de passe</label>
-                <input type="password" id="mdp_01" name="mdp_01" placeholder="Votre mot de passe">
+            <!-- ===== ILLUSTRATION AVEC ICÔNE ERP (fa-cubes) ===== -->
+            <div class="illustration-side">
+                <i class="fas fa-cubes"></i>
+                <h3>Accès protégé</h3>
             </div>
-
-            <button class="btn-login" id="btn_login" type="button">Se connecter</button>
-
-            <div id="msg"></div>
-        </form>
+        </div>
     </div>
 
-    <!-- ============ STRUCTURE DU MODAL ============ -->
+    <!-- ===== MODAL PWA ===== -->
     <div id="pwa-modal-overlay">
         <div id="pwa-modal">
             <button class="btn-close-modal" id="pwa-modal-close">✕</button>
-
             <img src="{{ asset('controlapp_1.png') }}" alt="Logo" class="logo-app">
-
             <h2>Installer l'application</h2>
             <p>
                 Installez cette application sur votre téléphone, ordinateur pour un accès rapide et hors ligne.
             </p>
-
-            <!-- Bouton avec icône 📲 -->
             <button class="btn-install" id="pwa-install-btn"><i class="fas fa-download"></i> Installer maintenant</button>
-
-            <!-- Bouton avec icône ⏰ -->
             <button class="btn-later" id="pwa-later-btn"><i class="fas fa-times-circle"></i> Installer plus tard</button>
         </div>
     </div>
 
+    <!-- ===== FOOTER ===== -->
     <div id="footer">{{ $nom_app }} © 2026</div>
 
-    <!-- Javascript -->
+    <!-- ===== SCRIPTS ===== -->
     <script src="{{ asset('./assets/vendors/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('./assets/vendors/popper.js/popper.min.js') }}"></script>
     <script src="{{ asset('./assets/vendors/bootstrap/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('./assets/js/app.min.js') }}"></script>
 
     <script>
+        // ===== LOGIQUE D'AUTHENTIFICATION (inchangée) =====
         $("#btn_login").click(function(e) {
             e.preventDefault();
 
@@ -680,8 +556,7 @@
                                         url: "/check_mdp",
                                         data: data,
                                         success: function(rep) {
-                                            if (rep == 0)
-                                            {
+                                            if (rep == 0) {
                                                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Mot de passe introuvable');
                                                 $('#msg').css('color', "#800020");
                                                 $('#msg').css('background', "#ffe6e6");
@@ -705,23 +580,24 @@
             }
         });
 
-        // ================================================================
-        // 1. ENREGISTREMENT DU SERVICE WORKER
-        // ================================================================
+        // ===== NOUVEAU : DÉTECTION DE LA TOUCHE ENTREE =====
+        $('#email_01, #mdp_01').on('keydown', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                $('#btn_login').click();
+            }
+        });
+
+        // ===== SERVICE WORKER & PWA (inchangé) =====
         (function() {
-            // Vérifier si déjà installée
             if (window.matchMedia('(display-mode: standalone)').matches) {
                 console.log('✅ Application déjà installée.');
                 return;
             }
-
-            // Vérifier si l'utilisateur a déjà cliqué sur "plus tard" dans cette session
             if (sessionStorage.getItem('pwa_install_later')) {
                 console.log('⏳ L\'utilisateur a choisi "plus tard" pour cette session.');
                 return;
             }
-
-            // Enregistrement du Service Worker
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/sw.js', {
                         scope: '/'
@@ -730,39 +606,29 @@
                     .catch(err => console.error('❌ Erreur SW :', err));
             }
 
-            // Références DOM
             const overlay = document.getElementById('pwa-modal-overlay');
             const installBtn = document.getElementById('pwa-install-btn');
             const laterBtn = document.getElementById('pwa-later-btn');
             const closeBtn = document.getElementById('pwa-modal-close');
-
             let deferredPrompt;
 
-            // Intercepter beforeinstallprompt
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
                 console.log('📱 PWA installable détectée');
-
-                // Afficher le modal immédiatement
                 overlay.style.display = 'flex';
             });
 
-            // Clic sur "Installer maintenant"
             installBtn.addEventListener('click', async () => {
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
-                    const {
-                        outcome
-                    } = await deferredPrompt.userChoice;
-                    console.log(outcome === 'accepted' ? '✅ Installation acceptée' :
-                        '❌ Installation refusée');
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(outcome === 'accepted' ? '✅ Installation acceptée' : '❌ Installation refusée');
                     deferredPrompt = null;
                     overlay.style.display = 'none';
                 }
             });
 
-            // Clic sur "Installer plus tard" → ferme et mémorise
             laterBtn.addEventListener('click', () => {
                 overlay.style.display = 'none';
                 deferredPrompt = null;
@@ -770,13 +636,11 @@
                 console.log('⏳ L\'utilisateur a choisi "plus tard"');
             });
 
-            // Fermeture par la croix
             closeBtn.addEventListener('click', () => {
                 overlay.style.display = 'none';
                 deferredPrompt = null;
             });
 
-            // Fermeture en cliquant à l'extérieur
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) {
                     overlay.style.display = 'none';
@@ -784,7 +648,6 @@
                 }
             });
 
-            // Installation réussie → cacher
             window.addEventListener('appinstalled', () => {
                 console.log('✅ PWA installée');
                 overlay.style.display = 'none';

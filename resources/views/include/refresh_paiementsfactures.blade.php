@@ -98,7 +98,6 @@ use App\Models\Clients;
         0% {
             background-color: #fff3cd;
         }
-
         100% {
             background-color: transparent;
         }
@@ -109,10 +108,24 @@ use App\Models\Clients;
             flex-direction: column;
             align-items: stretch;
         }
-
         .filter-group {
             width: 100%;
         }
+    }
+
+    /* Style pour le date range picker (s'il est chargé) */
+    .daterangepicker {
+        z-index: 9999 !important;
+    }
+    .daterangepicker .calendar-table {
+        border-radius: 8px !important;
+    }
+    .daterangepicker td.active,
+    .daterangepicker td.active:hover {
+        background-color: #e31b23 !important;
+    }
+    .daterangepicker .ranges li.active {
+        background-color: #e31b23 !important;
     }
 </style>
 
@@ -142,18 +155,29 @@ use App\Models\Clients;
             <option value="unpaid">Impayé</option>
         </select>
     </div>
+    <!-- Plage de dates -->
     <div class="filter-group">
+        <label><i class="zmdi zmdi-calendar text-danger"></i> Période</label>
+        <input type="text" id="filterDateRange" class="form-control" placeholder="Sélectionner une période" value="">
+    </div>
+    <div class="filter-group" style="flex: 0 0 auto;">
         <button id="resetFilters" class="btn btn-secondary btn-sm"
-            style="border-radius: 40px; padding: 8px 18px; background: #64748b; color: white; border: none; cursor: pointer;">
+            style="border-radius: 40px; padding: 8px 18px; background: #64748b; color: white; border: none; cursor: pointer; height: 42px;">
             <i class="zmdi zmdi-refresh"></i> Réinitialiser
         </button>
     </div>
 </div>
 
-<!-- Badge compteur -->
-<div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+<!-- Badge compteur + totaux USD / CDF -->
+<div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 15px; flex-wrap: wrap;">
     <span class="client-count-badge">
         <i class="zmdi zmdi-view-list"></i> Total clients : <span id="clientCount">0</span>
+    </span>
+    <span class="client-count-badge" style="background: linear-gradient(135deg, #0f4c5f, #1e6f5c);">
+        <i class="zmdi zmdi-money"></i> Total USD : <span id="totalUsdClients">0,00</span> $
+    </span>
+    <span class="client-count-badge" style="background: linear-gradient(135deg, #0d6efd, #0a58ca);">
+        <i class="zmdi zmdi-money-box"></i> Total CDF : <span id="totalCdfClients">0,00</span> Fc
     </span>
 </div>
 
@@ -185,7 +209,7 @@ foreach ($paiementsfactures as $f) {
 }
 ?>
 <?php $total_5 = $total_3 + $total_4; ?>
-<h6 style="text-align: right;font-weight: bold;"><span> <i class="zmdi zmdi-check-circle text-success"></i> Paiement
+<h6 style="text-align: right;font-weight: bold;display:none;"><span> <i class="zmdi zmdi-check-circle text-success"></i> Paiement
         total
         : <span id="nb_total_1"><?= number_format($total_5, 2, ',', ' ') ?></span>$</span></h6>
 
@@ -207,7 +231,9 @@ foreach ($paiementsfactures as $f) {
                     {{ !($i = 1) }}
                     @foreach ($paiementsfactures as $data)
                         @if (Clients::where('id', $data->client_id)->first()['activite_id'] == $activite_id)
-                            <tr id="row_{{ $data->id }}" class="client-row">
+                            <tr id="row_{{ $data->id }}" class="client-row"
+                                data-paie="{{ $data->paie }}"
+                                data-devise="{{ $data->devise }}">
                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">
                                     <?= $i ?>
                                 </td>
@@ -252,9 +278,10 @@ foreach ($paiementsfactures as $f) {
                                         </span>
                                     @endif
                                 </th>
+                                <!-- Cellule Date avec data-date pour le filtrage -->
                                 <th style="padding-top: 5px;padding-bottom: 5px;text-align: right;"
-                                    class="paiement-cell"
-                                    data-statut="<?= $data->montant != $data->paie ? 'unpaid' : 'paid' ?>">
+                                    class="date-cell"
+                                    data-date="<?= date('Y-m-d', strtotime($data->created_at)) ?>">
                                     <?php
                                     $date = $data->created_at;
                                     $date_1 = explode(' ', $date);
@@ -371,11 +398,47 @@ foreach ($paiementsfactures as $f) {
 </div>
 
 <script>
-    // Fonctions de filtrage pour les clients
-    (function() {
-        // Variables locales pour éviter les conflits globaux
-        var clientFilterTimeout = null;
+    $(document).ready(function() {
 
+        // =================================================================
+        // 1. CHARGEMENT DYNAMIQUE DES DÉPENDANCES DU DATE RANGE PICKER
+        // =================================================================
+        function loadDateRangePickerDependencies(callback) {
+            if (typeof $.fn.daterangepicker === 'function') {
+                callback();
+                return;
+            }
+
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css';
+            document.head.appendChild(link);
+
+            if (typeof moment === 'undefined') {
+                var scriptMoment = document.createElement('script');
+                scriptMoment.src = 'https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js';
+                scriptMoment.onload = function() {
+                    var scriptDRP = document.createElement('script');
+                    scriptDRP.src = 'https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js';
+                    scriptDRP.onload = function() {
+                        callback();
+                    };
+                    document.head.appendChild(scriptDRP);
+                };
+                document.head.appendChild(scriptMoment);
+            } else {
+                var scriptDRP = document.createElement('script');
+                scriptDRP.src = 'https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js';
+                scriptDRP.onload = function() {
+                    callback();
+                };
+                document.head.appendChild(scriptDRP);
+            }
+        }
+
+        // =================================================================
+        // 2. PERSISTANCE DES FILTRES (sauf la plage de dates)
+        // =================================================================
         function saveClientFiltersToStorage() {
             var filters = {
                 nom: $('#filterNom').val(),
@@ -399,11 +462,38 @@ foreach ($paiementsfactures as $f) {
             return false;
         }
 
+        // =================================================================
+        // 3. FILTRAGE PRINCIPAL (avec prise en compte de la plage de dates)
+        // =================================================================
         function filterClients() {
-            var filterNom = $('#filterNom').val().toLowerCase();
-            var filterEmail = $('#filterEmail').val().toLowerCase();
-            var filterPhone = $('#filterPhone').val().toLowerCase();
+            var filterNom = $('#filterNom').val().toLowerCase().trim();
+            var filterEmail = $('#filterEmail').val().toLowerCase().trim();
+            var filterPhone = $('#filterPhone').val().toLowerCase().trim();
             var filterStatut = $('#filterStatut').val();
+            var dateRange = $('#filterDateRange').val() || '';
+
+            var dateDebut = null,
+                dateFin = null;
+            if (dateRange) {
+                var parts = dateRange.split(' - ');
+                if (parts.length === 2) {
+                    var parseDMY = function(str) {
+                        if (!str) return null;
+                        var p = str.split('/');
+                        if (p.length === 3) {
+                            var day = p[0].padStart(2, '0');
+                            var month = p[1].padStart(2, '0');
+                            var year = p[2];
+                            if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
+                                return year + '-' + month + '-' + day;
+                            }
+                        }
+                        return null;
+                    };
+                    dateDebut = parseDMY(parts[0]);
+                    dateFin = parseDMY(parts[1]);
+                }
+            }
 
             var visibleCount = 0;
             var newIndex = 1;
@@ -416,11 +506,14 @@ foreach ($paiementsfactures as $f) {
                 var emailValue = ($row.find('.contact-cell').data('email') || '').toLowerCase();
                 var phoneValue = ($row.find('.contact-cell').data('phone') || '').toLowerCase();
                 var statutValue = $row.find('.paiement-cell').data('statut') || '';
+                var dateValue = $row.find('.date-cell').data('date') || '';
 
                 if (filterNom && nomValue.indexOf(filterNom) === -1) showRow = false;
                 if (showRow && filterEmail && emailValue.indexOf(filterEmail) === -1) showRow = false;
                 if (showRow && filterPhone && phoneValue.indexOf(filterPhone) === -1) showRow = false;
                 if (showRow && filterStatut !== 'all' && statutValue !== filterStatut) showRow = false;
+                if (showRow && dateDebut && dateValue && dateValue < dateDebut) showRow = false;
+                if (showRow && dateFin && dateValue && dateValue > dateFin) showRow = false;
 
                 if (showRow) {
                     $row.show();
@@ -435,11 +528,10 @@ foreach ($paiementsfactures as $f) {
             $('#clientCount').text(visibleCount);
             updateTotalPaid();
 
-            if (visibleCount === 0 && (filterNom || filterEmail || filterPhone || filterStatut !== 'all')) {
+            if (visibleCount === 0 && (filterNom || filterEmail || filterPhone || filterStatut !== 'all' || dateRange)) {
                 var $msgDiv = $('#msg');
                 if ($msgDiv.length) {
-                    $msgDiv.html(
-                        '<i class="zmdi zmdi-info"></i> Aucun client ne correspond aux critères de recherche');
+                    $msgDiv.html('<i class="zmdi zmdi-info"></i> Aucun client ne correspond aux critères de recherche');
                     $msgDiv.css('display', 'flex');
                     setTimeout(function() {
                         $msgDiv.html('');
@@ -449,31 +541,45 @@ foreach ($paiementsfactures as $f) {
             }
         }
 
+        // =================================================================
+        // 4. MISE À JOUR DES TOTAUX (USD et CDF)
+        // =================================================================
         function updateTotalPaid() {
-            var totalPaid = 0;
+            var totalUSD = 0;
+            var totalCDF = 0;
+
             $('#clientsTableBody tr.client-row:visible').each(function() {
                 var $row = $(this);
                 var statutValue = $row.find('.paiement-cell').data('statut');
+                // Ne compter que les paiements "payé"
                 if (statutValue === 'paid') {
-                    var paiementText = $row.find('.paiement-cell').text();
-                    var match = paiementText.match(/([\d\s,]+)(?:USD|CDF)/);
-                    if (match) {
-                        var amount = parseFloat(match[1].replace(/\s/g, '').replace(',', '.'));
-                        if (!isNaN(amount)) totalPaid += amount;
+                    var paie = parseFloat($row.data('paie')) || 0;
+                    var devise = parseInt($row.data('devise')) || 0; // 0=USD, 1=CDF
+                    if (devise === 0) {
+                        totalUSD += paie;
+                    } else {
+                        totalCDF += paie;
                     }
                 }
             });
-            $('#nb_total_1').text(totalPaid.toLocaleString('fr-FR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }));
+
+            // Mise à jour des badges
+            $('#totalUsdClients').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalCdfClients').text(totalCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+
+            // Mise à jour de l'ancien total (USD uniquement) si vous le souhaitez
+            // $('#nb_total_1').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
         }
 
+        // =================================================================
+        // 5. RÉINITIALISATION COMPLÈTE
+        // =================================================================
         function resetClientFilters() {
             $('#filterNom').val('');
             $('#filterEmail').val('');
             $('#filterPhone').val('');
             $('#filterStatut').val('all');
+            $('#filterDateRange').val('');
 
             saveClientFiltersToStorage();
 
@@ -483,7 +589,6 @@ foreach ($paiementsfactures as $f) {
                 $(this).find('.row-num').text(newIndex);
                 newIndex++;
             });
-
             var totalCount = $('#clientsTableBody tr.client-row').length;
             $('#clientCount').text(totalCount);
             updateTotalPaid();
@@ -499,6 +604,11 @@ foreach ($paiementsfactures as $f) {
             }
         }
 
+        // =================================================================
+        // 6. DÉBOUNCE POUR LES CHAMPS TEXTES
+        // =================================================================
+        var clientFilterTimeout = null;
+
         function debouncedClientFilter() {
             if (clientFilterTimeout) {
                 clearTimeout(clientFilterTimeout);
@@ -509,32 +619,93 @@ foreach ($paiementsfactures as $f) {
             }, 300);
         }
 
-        // Initialisation quand le document est prêt
-        $(document).ready(function() {
-            var totalClients = $('#clientsTableBody tr.client-row').length;
-            $('#clientCount').text(totalClients);
-
-            var hasSavedFilters = loadClientFiltersFromStorage();
-
-            $('#filterNom, #filterEmail, #filterPhone, #filterStatut').off('input change').on(
-                'input change',
-                function() {
-                    debouncedClientFilter();
+        // =================================================================
+        // 7. INITIALISATION DU DATE RANGE PICKER
+        // =================================================================
+        function initDateRangePicker() {
+            if ($('#filterDateRange').length && typeof $.fn.daterangepicker === 'function') {
+                $('#filterDateRange').daterangepicker({
+                    autoUpdateInput: false,
+                    locale: {
+                        format: 'DD/MM/YYYY',
+                        separator: ' - ',
+                        applyLabel: 'Appliquer',
+                        cancelLabel: 'Annuler',
+                        fromLabel: 'Du',
+                        toLabel: 'Au',
+                        customRangeLabel: 'Personnalisé',
+                        weekLabel: 'S',
+                        daysOfWeek: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
+                        monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août',
+                            'Septembre', 'Octobre', 'Novembre', 'Décembre'
+                        ],
+                    },
+                    opens: 'left',
+                    ranges: {
+                        'Aujourd\'hui': [moment(), moment()],
+                        'Hier': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                        '7 derniers jours': [moment().subtract(6, 'days'), moment()],
+                        '30 derniers jours': [moment().subtract(29, 'days'), moment()],
+                        'Ce mois-ci': [moment().startOf('month'), moment().endOf('month')],
+                        'Mois dernier': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                            'month').endOf('month')],
+                        'Cette année': [moment().startOf('year'), moment().endOf('year')]
+                    }
+                }, function(start, end, label) {
+                    var startStr = start.format('DD/MM/YYYY');
+                    var endStr = end.format('DD/MM/YYYY');
+                    $('#filterDateRange').val(startStr + ' - ' + endStr);
+                    filterClients();
                 });
 
-            $('#resetFilters').off('click').on('click', function(e) {
-                e.preventDefault();
-                resetClientFilters();
-            });
+                $('#filterDateRange').on('cancel.daterangepicker', function(ev, picker) {
+                    $(this).val('');
+                    filterClients();
+                });
 
+                var today = moment();
+                $('#filterDateRange').data('daterangepicker').setStartDate(today);
+                $('#filterDateRange').data('daterangepicker').setEndDate(today);
+                $('#filterDateRange').val(today.format('DD/MM/YYYY') + ' - ' + today.format('DD/MM/YYYY'));
+            }
+        }
+
+        // =================================================================
+        // 8. INITIALISATION GÉNÉRALE
+        // =================================================================
+
+        var totalClients = $('#clientsTableBody tr.client-row').length;
+        $('#clientCount').text(totalClients);
+        updateTotalPaid();
+
+        var hasSavedFilters = loadClientFiltersFromStorage();
+
+        loadDateRangePickerDependencies(function() {
+            initDateRangePicker();
             if (hasSavedFilters) {
                 setTimeout(function() {
                     filterClients();
                 }, 100);
+            } else {
+                filterClients();
             }
         });
 
-        // Mise à jour après chaque chargement AJAX
+        $('#filterNom, #filterEmail, #filterPhone, #filterStatut').on('input change', function() {
+            debouncedClientFilter();
+        });
+
+        $('#filterDateRange').on('change', function() {
+            if ($(this).val() === '') {
+                filterClients();
+            }
+        });
+
+        $('#resetFilters').on('click', function(e) {
+            e.preventDefault();
+            resetClientFilters();
+        });
+
         $(document).ajaxComplete(function(event, xhr, settings) {
             if (settings.url && (settings.url.indexOf('refresh_') !== -1 || settings.url.indexOf(
                     'send_factures') !== -1)) {
@@ -547,11 +718,11 @@ foreach ($paiementsfactures as $f) {
             }
         });
 
-        // Sauvegarder les filtres avant de quitter
         window.addEventListener('beforeunload', function() {
             saveClientFiltersToStorage();
         });
-    })();
+
+    });
 
     var nom_activite = "<?= $nom_activite ?>";
     if (nom_activite != 0) {

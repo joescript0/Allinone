@@ -98,6 +98,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Font;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 
 use DateTime;
@@ -2897,6 +2898,20 @@ class AjaxController extends Controller
         return view('include.refresh_societes', $data);
     }
 
+    public function get_all_depense(Request $request)
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 18;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        $data["depenses"] = Depenses::where(["supprimer" => 0, "user_id" => Auth::user()->id])->get();
+        if(Auth::user()->role == 0)
+        {
+            $data["depense"] = Depenses::get();
+        }
+        return view('include.refresh_depenses', $data);
+    }
+
     public function get_all_articles(Request $request)
     {
         $groupe_user_id = Auth::user()->role;
@@ -3494,7 +3509,7 @@ class AjaxController extends Controller
         {
             $data["depense"] = Depenses::get();
         }
-        return view('include.refresh_depense', $data);
+        return view('include.refresh_depenses', $data);
     }
 
 
@@ -8484,6 +8499,13 @@ class AjaxController extends Controller
         $data["ressource_id_1"] = 2;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        $data["societes"] = Societes::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["supprimer" => 0])->get();
+        $data["utilisateurs"] = User::where(["etat" => 1,"id" => Auth::user()->id])->get();
+        if(Auth::user()->role == 0)
+        {
+            $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        }
         return view('include.refresh_article_stock', $data);
     }
 
@@ -8511,6 +8533,14 @@ class AjaxController extends Controller
             $write->save();
             return response()->json([[1]]);
         }
+    }
+
+    public function etat_affectation_pointdeventes(Request $request)
+    {
+        $pointdeventes = pointdeventes::where('id', $request->pointdeventes_id)->first();
+        $pointdeventes->stock_id = $request->stock_id;
+        $pointdeventes->save();
+        return response()->json([[1]]);
     }
 
     public function permission_fichier(Request $request)
@@ -9252,303 +9282,6 @@ class AjaxController extends Controller
         ]);
     }
 
-    public function import_excel_article(Request $request)
-    {
-        if (!Auth::check()) {
-            return response()->json(['message' => 'Vous devez être connecté.'], 401);
-        }
-
-        if (!$request->hasFile('excel_file')) {
-            return response()->json(['message' => 'Aucun fichier envoyé'], 400);
-        }
-
-        $file = $request->file('excel_file');
-        $allowedExtensions = ['xls', 'xlsx', 'xlsm', 'xlsb', 'csv'];
-        if (!in_array($file->getClientOriginalExtension(), $allowedExtensions)) {
-            return response()->json(['message' => 'Seuls les fichiers Excel sont autorisés'], 400);
-        }
-
-        $targetDir = public_path();
-        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $safeName = $originalName . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $file->move($targetDir, $safeName);
-
-        try {
-            $spreadsheet = IOFactory::load($safeName);
-            $worksheet = $spreadsheet->getActiveSheet();
-            $highestRow = $worksheet->getHighestRow();
-
-            $nb_importation = 0;
-            $nb_erreurs = 0;
-            $erreurs = [];
-
-            // Récupération des référentiels
-            $categories = Societes::where('etat', 1)->get()->keyBy('id');
-            $activites  = Activites::where('etat', 1)->get()->keyBy('id');
-            $mesures    = Mesures::where('etat', 1)->get()->keyBy('id');
-
-            // ------------------------------------------------------------
-            // 1. Construction d'un index des articles existants par mesure_id
-            //    (nom en minuscule)
-            // ------------------------------------------------------------
-            $existingByMeasure = [];
-            $allArticles = Articles::all(['mesure_id', 'nom_article']);
-            foreach ($allArticles as $art) {
-                $mid = $art->mesure_id;
-                if (!isset($existingByMeasure[$mid])) {
-                    $existingByMeasure[$mid] = [];
-                }
-                $existingByMeasure[$mid][] = strtolower(trim($art->nom_article));
-            }
-
-            // Pour les articles déjà importés dans cette session (éviter doublons entre lignes)
-            $importedByMeasure = [];
-
-            DB::beginTransaction();
-            date_default_timezone_set('Africa/Lubumbashi');
-
-            // Fonction de normalisation pour les types de stockage (accent, casse)
-            $normalizeType = function($str) {
-                $str = trim($str);
-                $accents = [
-                    'À'=>'A','Á'=>'A','Â'=>'A','Ã'=>'A','Ä'=>'A','Å'=>'A',
-                    'à'=>'a','á'=>'a','â'=>'a','ã'=>'a','ä'=>'a','å'=>'a',
-                    'Ò'=>'O','Ó'=>'O','Ô'=>'O','Õ'=>'O','Ö'=>'O','Ø'=>'O',
-                    'ò'=>'o','ó'=>'o','ô'=>'o','õ'=>'o','ö'=>'o','ø'=>'o',
-                    'È'=>'E','É'=>'E','Ê'=>'E','Ë'=>'E',
-                    'è'=>'e','é'=>'e','ê'=>'e','ë'=>'e',
-                    'Ç'=>'C','ç'=>'c',
-                    'Ì'=>'I','Í'=>'I','Î'=>'I','Ï'=>'I',
-                    'ì'=>'i','í'=>'i','î'=>'i','ï'=>'i',
-                    'Ù'=>'U','Ú'=>'U','Û'=>'U','Ü'=>'U',
-                    'ù'=>'u','ú'=>'u','û'=>'u','ü'=>'u',
-                    'ÿ'=>'y','Ÿ'=>'Y'
-                ];
-                return strtolower(strtr($str, $accents));
-            };
-
-            // Fonction de normalisation pour les mesures : supprime les espaces, met en minuscule
-            $normalizeMeasure = function($str) {
-                return strtolower(preg_replace('/\s+/', '', trim($str)));
-            };
-
-            for ($row = 2; $row <= $highestRow; $row++) {
-                $valide = true;
-                $ligneErreurs = [];
-
-                try {
-                    $nomArticle = trim($worksheet->getCell('C' . $row)->getValue() ?? '');
-                    $categorieNom = trim($worksheet->getCell('B' . $row)->getValue() ?? '');
-                    $prixDetailRaw = $worksheet->getCell('D' . $row)->getValue();
-                    $prixGrosRaw = $worksheet->getCell('E' . $row)->getValue();
-                    $tailleLotRaw = $worksheet->getCell('F' . $row)->getValue();
-                    $deviseRaw = trim($worksheet->getCell('G' . $row)->getValue() ?? '');
-                    $mesureNom = trim($worksheet->getCell('H' . $row)->getValue() ?? '');
-                    $typeStockageRaw = trim($worksheet->getCell('I' . $row)->getValue() ?? '');
-                    $seuilMinRaw = $worksheet->getCell('J' . $row)->getValue();
-                    $seuilMaxRaw = $worksheet->getCell('K' . $row)->getValue();
-                    $dateExpirationRaw = $worksheet->getCell('L' . $row)->getValue();
-                    $description = trim($worksheet->getCell('M' . $row)->getValue() ?? '');
-                    $activiteNom = trim($worksheet->getCell('N' . $row)->getValue() ?? '');
-
-                    // --- Validations obligatoires ---
-                    if (empty($nomArticle)) { $ligneErreurs[] = "Nom vide"; $valide = false; }
-                    if (empty($categorieNom)) { $ligneErreurs[] = "Catégorie vide"; $valide = false; }
-                    if (empty($prixDetailRaw) || !is_numeric(str_replace(',', '.', trim($prixDetailRaw)))) {
-                        $ligneErreurs[] = "Prix détail invalide"; $valide = false;
-                    }
-                    if (empty($prixGrosRaw) || !is_numeric(str_replace(',', '.', trim($prixGrosRaw)))) {
-                        $ligneErreurs[] = "Prix gros invalide"; $valide = false;
-                    }
-                    if (empty($tailleLotRaw) || !is_numeric($tailleLotRaw)) {
-                        $ligneErreurs[] = "Taille lot invalide"; $valide = false;
-                    }
-                    if (empty($deviseRaw)) { $ligneErreurs[] = "Devise vide"; $valide = false; }
-                    if (empty($mesureNom)) { $ligneErreurs[] = "Mesure vide"; $valide = false; }
-                    if (empty($typeStockageRaw)) { $ligneErreurs[] = "Type stockage vide"; $valide = false; }
-                    // La date n'est plus obligatoire
-
-                    // --- Catégorie ---
-                    $societeId = 0;
-                    $cat = $categories->first(fn($c) => strtolower($c->nom) == strtolower($categorieNom));
-                    if ($cat) {
-                        $societeId = $cat->id;
-                    } else {
-                        $ligneErreurs[] = "Catégorie '$categorieNom' introuvable"; $valide = false;
-                    }
-
-                    // --- Activité (optionnelle) ---
-                    $activiteId = 0;
-                    if (!empty($activiteNom)) {
-                        $act = $activites->first(fn($a) => strtolower($a->nom) == strtolower($activiteNom));
-                        if ($act) $activiteId = $act->id;
-                    }
-
-                    // --- Mesure ---
-                    $mesureId = 0;
-                    if (!empty($mesureNom)) {
-                        $normalizedInput = $normalizeMeasure($mesureNom);
-                        $mes = $mesures->first(function($m) use ($normalizedInput, $normalizeMeasure) {
-                            return $normalizeMeasure($m->nom) == $normalizedInput;
-                        });
-                        if ($mes) {
-                            $mesureId = $mes->id;
-                        } else {
-                            $ligneErreurs[] = "Mesure '$mesureNom' introuvable (vérifiez l'orthographe et les espaces)";
-                            $valide = false;
-                        }
-                    }
-
-                    // ------------------------------------------------------------
-                    // 2. Vérification des doublons par (mesure_id, nom)
-                    //    (si mesure_id est 0, on ignore car la mesure est invalide)
-                    // ------------------------------------------------------------
-                    if ($valide && $mesureId > 0) {
-                        $nomLower = strtolower(trim($nomArticle));
-
-                        // Vérifier dans les existants en base
-                        $existsInDb = isset($existingByMeasure[$mesureId])
-                                    && in_array($nomLower, $existingByMeasure[$mesureId]);
-
-                        // Vérifier dans les importés lors de cette session
-                        $existsInSession = isset($importedByMeasure[$mesureId])
-                                        && in_array($nomLower, $importedByMeasure[$mesureId]);
-
-                        if ($existsInDb || $existsInSession) {
-                            $ligneErreurs[] = "Nom '$nomArticle' déjà utilisé pour cette mesure (ID $mesureId)";
-                            $valide = false;
-                        }
-                    }
-
-                    // --- Parsing des nombres ---
-                    $prixDetail = floatval(str_replace(',', '.', trim($prixDetailRaw)));
-                    $prixGros = floatval(str_replace(',', '.', trim($prixGrosRaw)));
-                    $tailleLot = intval($tailleLotRaw);
-                    if ($prixDetail <= 0) { $ligneErreurs[] = "Prix détail doit être > 0"; $valide = false; }
-                    if ($prixGros <= 0) { $ligneErreurs[] = "Prix gros doit être > 0"; $valide = false; }
-                    if ($tailleLot <= 0) { $ligneErreurs[] = "Taille lot doit être > 0"; $valide = false; }
-                    $prix = $prixDetail;
-
-                    // --- Devise ---
-                    $devise = 0;
-                    $deviseUpper = strtoupper(trim($deviseRaw));
-                    if ($deviseUpper == 'CDF') { $devise = 1; }
-                    elseif ($deviseUpper == 'USD') { $devise = 0; }
-                    else { $ligneErreurs[] = "Devise '$deviseRaw' invalide (utilisez CDF ou USD)"; $valide = false; }
-
-                    // --- Type de stockage ---
-                    $typeNormalized = $normalizeType($typeStockageRaw);
-                    $determineTerms = ['determine', 'déterminé', 'oui', 'yes', '1', 'true', 'vrai'];
-                    $avoirStock = in_array($typeNormalized, $determineTerms) ? 1 : 0;
-
-                    // --- Seuils (conditionnels) ---
-                    $seuilMin = 0;
-                    $seuilMax = 0;
-                    if ($avoirStock == 1) {
-                        if (empty($seuilMinRaw) || !is_numeric(str_replace(',', '.', trim($seuilMinRaw)))) {
-                            $ligneErreurs[] = "Seuil minimum requis pour stock déterminé"; $valide = false;
-                        } else {
-                            $seuilMin = floatval(str_replace(',', '.', trim($seuilMinRaw)));
-                            if ($seuilMin < 0) { $ligneErreurs[] = "Seuil min ne peut être négatif"; $valide = false; }
-                        }
-                        if (empty($seuilMaxRaw) || !is_numeric(str_replace(',', '.', trim($seuilMaxRaw)))) {
-                            $ligneErreurs[] = "Seuil maximum requis pour stock déterminé"; $valide = false;
-                        } else {
-                            $seuilMax = floatval(str_replace(',', '.', trim($seuilMaxRaw)));
-                            if ($seuilMax < 0) { $ligneErreurs[] = "Seuil max ne peut être négatif"; $valide = false; }
-                        }
-                        if (isset($seuilMin) && isset($seuilMax) && $seuilMin > $seuilMax) {
-                            $ligneErreurs[] = "Seuil min ($seuilMin) > seuil max ($seuilMax)"; $valide = false;
-                        }
-                    }
-
-                    // --- Date d'expiration (avec gestion 00/00/0000) ---
-                    $dateExpiration = null;
-                    $dateRaw = trim($dateExpirationRaw ?? '');
-                    if ($dateRaw === '' || $dateRaw === '00/00/0000') {
-                        $dateExpiration = '00/00/0000';
-                    } elseif (is_numeric($dateRaw)) {
-                        try {
-                            $dt = Date::excelToDateTimeObject($dateRaw);
-                            $dateExpiration = $dt->format('d/m/Y');
-                        } catch (\Exception $e) {
-                            $ligneErreurs[] = "Date expiration Excel invalide (série)";
-                            $valide = false;
-                        }
-                    } else {
-                        $dt = \DateTime::createFromFormat('d/m/Y', $dateRaw);
-                        if ($dt && $dt->format('d/m/Y') === $dateRaw) {
-                            $dateExpiration = $dt->format('d/m/Y');
-                        } else {
-                            $ligneErreurs[] = "Date expiration invalide (format JJ/MM/AAAA attendu)";
-                            $valide = false;
-                        }
-                    }
-
-                    // --- Enregistrement ---
-                    if ($valide) {
-                        $article = new Articles();
-                        $article->user_id = Auth::id();
-                        $article->societe_id = $societeId;
-                        $article->nom_article = $nomArticle;
-                        $article->prix = $prix;
-                        $article->devise = $devise;
-                        $article->seuil_minimum = $seuilMin;
-                        $article->seuil_maximum = $seuilMax;
-                        $article->prix_detail = $prixDetail;
-                        $article->prix_gros = $prixGros;
-                        $article->taille_lot = $tailleLot;
-                        $article->stock = 0;
-                        $article->date_expiration = $dateExpiration;
-                        $article->date_creation = date("d/m/Y");
-                        $article->description = $description;
-                        $article->activite_id = $activiteId;
-                        $article->mesure_id = $mesureId;
-                        $article->avoir_stock = $avoirStock;
-                        $article->image = '';
-                        $article->save();
-
-                        // Ajouter ce nom dans la liste des importés (pour éviter doublons entre lignes)
-                        if ($mesureId > 0) {
-                            if (!isset($importedByMeasure[$mesureId])) {
-                                $importedByMeasure[$mesureId] = [];
-                            }
-                            $importedByMeasure[$mesureId][] = strtolower(trim($nomArticle));
-                        }
-
-                        $nb_importation++;
-                    } else {
-                        $erreurs[] = "Ligne $row : " . implode('; ', $ligneErreurs);
-                        $nb_erreurs++;
-                    }
-
-                } catch (\Exception $e) {
-                    $erreurs[] = "Ligne $row : Exception - " . $e->getMessage();
-                    $nb_erreurs++;
-                }
-            }
-
-            DB::commit();
-
-            $message = $nb_importation . ' article(s) importé(s) avec succès.';
-            if ($nb_erreurs > 0) {
-                $message .= ' ' . $nb_erreurs . ' ligne(s) en erreur (non importées).';
-            }
-
-            return response()->json([
-                'message' => $message,
-                'details' => $erreurs,
-                'nb_importes' => $nb_importation,
-                'nb_erreurs' => $nb_erreurs,
-                'path' => $safeName
-            ], $nb_importation > 0 ? 200 : 500);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['message' => 'Erreur critique : ' . $e->getMessage()], 500);
-        }
-    }
-
     public function export_excel_article(Request $request)
     {
         // 1) Récupérer les filtres
@@ -10064,6 +9797,14 @@ class AjaxController extends Controller
             $worksheet = $spreadsheet->getActiveSheet();
             $highestRow = $worksheet->getHighestRow();
 
+            if ($highestRow < 2) {
+                return response()->json([
+                    'message' => 'Le fichier ne contient aucune ligne de données (seule l\'en-tête est présente).',
+                    'nb_importes' => 0,
+                    'nb_erreurs' => 0
+                ], 200);
+            }
+
             $nb_importation = 0;
             $nb_erreurs = 0;
             $erreurs = [];
@@ -10071,27 +9812,9 @@ class AjaxController extends Controller
             // Types de dépense actifs
             $typesDepense = Type_frais::where('etat', 1)->get()->keyBy('id');
 
-            // Dernier ID utilisé (pour l'incrémentation manuelle)
-            $lastId = Depenses::max('id') ?? 0;
-
-            // Index des dépenses existantes (pour doublons)
-            $existingExpenses = Depenses::where('user_id', Auth::id())
-                ->where('supprimer', 0)
-                ->get(['date_depense', 'montant', 'devise', 'type_depense_id', 'libelle']);
-
-            $existingIndex = [];
-            foreach ($existingExpenses as $exp) {
-                // devise est déjà un entier (0 ou 1)
-                $key = $exp->date_depense . '|' . $exp->montant . '|' . $exp->devise . '|' . ($exp->type_depense_id ?? 0) . '|' . $exp->libelle;
-                $existingIndex[$key] = true;
-            }
-
-            $importedIndex = [];
-
             DB::beginTransaction();
             date_default_timezone_set('Africa/Lubumbashi');
 
-            // Fonction de normalisation : retourne 'USD' ou 'CDF' en chaîne
             $normalizeDevise = function($str) {
                 $str = trim(strtoupper($str));
                 if (in_array($str, ['CDF', 'FC', 'CD'])) return 'CDF';
@@ -10099,7 +9822,6 @@ class AjaxController extends Controller
                 return $str;
             };
 
-            // Mapping chaîne -> entier (0 pour USD, 1 pour CDF)
             $deviseMapping = ['USD' => 0, 'CDF' => 1];
 
             for ($row = 2; $row <= $highestRow; $row++) {
@@ -10107,8 +9829,8 @@ class AjaxController extends Controller
                 $ligneErreurs = [];
 
                 try {
-                    // Lecture des colonnes (A=N°, B=DATE, C=N° PIECE, D=MONTANT, E=DEVISE, F=TAUX, G=TYPE, H=LIBELLE)
-                    $dateRaw = trim($worksheet->getCell('B' . $row)->getValue() ?? '');
+                    // Lecture des colonnes
+                    $dateRaw = $worksheet->getCell('B' . $row)->getValue();
                     $nPiece = trim($worksheet->getCell('C' . $row)->getValue() ?? '');
                     $montantRaw = $worksheet->getCell('D' . $row)->getValue();
                     $deviseRaw = trim($worksheet->getCell('E' . $row)->getValue() ?? '');
@@ -10116,17 +9838,45 @@ class AjaxController extends Controller
                     $typeDepenseNom = trim($worksheet->getCell('G' . $row)->getValue() ?? '');
                     $libelle = trim($worksheet->getCell('H' . $row)->getValue() ?? '');
 
-                    // --- Date ---
-                    if (empty($dateRaw)) {
-                        $ligneErreurs[] = "Date d'opération vide";
+                    // --- DATE (logique robuste reprise de import_excel_article) ---
+                    $dateOperation = null;
+                    if ($dateRaw === null || $dateRaw === '' || trim($dateRaw) === '' || trim($dateRaw) === '00/00/0000') {
+                        $ligneErreurs[] = "Date d'opération vide ou invalide (00/00/0000)";
                         $valide = false;
-                    } else {
-                        $dt = \DateTime::createFromFormat('d/m/Y', $dateRaw);
-                        if (!$dt || $dt->format('d/m/Y') !== $dateRaw) {
-                            $ligneErreurs[] = "Date invalide (format JJ/MM/AAAA)";
-                            $valide = false;
-                        } else {
+                    } elseif (is_numeric($dateRaw)) {
+                        try {
+                            $dt = ExcelDate::excelToDateTimeObject($dateRaw);
                             $dateOperation = $dt->format('d/m/Y');
+                        } catch (\Exception $e) {
+                            $timestamp = intval($dateRaw);
+                            if ($timestamp > 0) {
+                                $dt = new \DateTime('@' . $timestamp);
+                                $dateOperation = $dt->format('d/m/Y');
+                            } else {
+                                $ligneErreurs[] = "Date Excel invalide (série numérique)";
+                                $valide = false;
+                            }
+                        }
+                    } elseif ($dateRaw instanceof \DateTime || $dateRaw instanceof \DateTimeInterface) {
+                        $dateOperation = $dateRaw->format('d/m/Y');
+                    } else {
+                        $dateStr = trim((string)$dateRaw);
+                        $dt = \DateTime::createFromFormat('d/m/Y', $dateStr);
+                        if ($dt && $dt->format('d/m/Y') === $dateStr) {
+                            $dateOperation = $dt->format('d/m/Y');
+                        } else {
+                            $formats = ['Y-m-d', 'Y-m-d H:i:s', 'm/d/Y', 'd-m-Y', 'Y/m/d'];
+                            foreach ($formats as $format) {
+                                $dt = \DateTime::createFromFormat($format, $dateStr);
+                                if ($dt && $dt->format($format) === $dateStr) {
+                                    $dateOperation = $dt->format('d/m/Y');
+                                    break;
+                                }
+                            }
+                        }
+                        if ($dateOperation === null) {
+                            $ligneErreurs[] = "Date invalide (utilisez JJ/MM/AAAA ou une date Excel)";
+                            $valide = false;
                         }
                     }
 
@@ -10142,7 +9892,7 @@ class AjaxController extends Controller
                         }
                     }
 
-                    // --- Devise (normalisation + conversion en entier) ---
+                    // --- Devise ---
                     if (empty($deviseRaw)) {
                         $ligneErreurs[] = "Devise vide";
                         $valide = false;
@@ -10152,8 +9902,7 @@ class AjaxController extends Controller
                             $ligneErreurs[] = "Devise '$deviseRaw' invalide (CDF ou USD)";
                             $valide = false;
                         } else {
-                            // Conversion en entier selon le mapping
-                            $deviseInt = $deviseMapping[$deviseStr]; // 0 pour USD, 1 pour CDF
+                            $deviseInt = $deviseMapping[$deviseStr];
                         }
                     }
 
@@ -10169,70 +9918,50 @@ class AjaxController extends Controller
                         }
                     }
 
-                    // --- Gestion du type et libellé ---
-                    $typeDepenseId = null;
+                    // --- Gestion du type et du libellé (sans concaténation) ---
+                    $typeDepenseId = 0; // par défaut
 
                     if (!empty($typeDepenseNom)) {
+                        // Recherche par nom (insensible à la casse)
                         $type = $typesDepense->first(function($t) use ($typeDepenseNom) {
                             return strtolower($t->nom) == strtolower($typeDepenseNom);
                         });
                         if ($type) {
                             $typeDepenseId = $type->id;
                         } else {
+                            // Tentative en tant qu'ID numérique
                             if (is_numeric($typeDepenseNom)) {
                                 $type = $typesDepense->find((int)$typeDepenseNom);
                                 if ($type) {
                                     $typeDepenseId = $type->id;
                                 }
                             }
-                            if ($typeDepenseId === null) {
-                                $typeDepenseId = 0; // sera converti en null à l'enregistrement
-                                if (empty($libelle)) {
-                                    $libelle = $typeDepenseNom;
-                                } else {
-                                    $libelle = $typeDepenseNom . ' - ' . $libelle;
-                                }
-                            }
+                            // Si toujours 0, on garde le libellé tel quel (pas de concaténation)
                         }
                     }
 
-                    // Vérification finale : au moins un des deux (type non nul/libellé non vide)
-                    if (($typeDepenseId == 0 || $typeDepenseId === null) && empty($libelle)) {
+                    // Vérification : soit typeDepenseId != 0, soit libellé non vide
+                    if ($typeDepenseId == 0 && empty($libelle)) {
                         $ligneErreurs[] = "Type de dépense ou libellé obligatoire (aucun renseigné)";
                         $valide = false;
                     }
 
-                    // --- Doublons (avec devise en entier) ---
+                    // --- Enregistrement (plus de contrôle de doublons) ---
                     if ($valide) {
-                        // La clé utilise $deviseInt (0 ou 1) au lieu de la chaîne
-                        $key = $dateOperation . '|' . $montant . '|' . $deviseInt . '|' . ($typeDepenseId ?? 0) . '|' . $libelle;
-                        if (isset($existingIndex[$key])) {
-                            $ligneErreurs[] = "Dépense déjà existante (date, montant, devise, type, libellé)";
-                            $valide = false;
-                        }
-                        if ($valide && isset($importedIndex[$key])) {
-                            $ligneErreurs[] = "Dépense déjà importée dans ce fichier (ligne précédente)";
-                            $valide = false;
-                        }
-                    }
-
-                    // --- Enregistrement ---
-                    if ($valide) {
-                        $lastId++;
+                        $id = Depenses::get()->count() + 1;
                         $depense = new Depenses();
-                        $depense->id = $lastId;
+                        $depense->id = $id;
                         $depense->user_id = Auth::id();
                         $depense->montant = $montant;
-                        $depense->devise = $deviseInt;     // Stockage de l'entier (0 ou 1)
-                        $depense->type_depense_id = ($typeDepenseId == 0) ? null : $typeDepenseId;
+                        $depense->devise = $deviseInt;
+                        $depense->type_depense_id = $typeDepenseId; // 0 ou ID existant
                         $depense->taux = $taux;
-                        $depense->libelle = $libelle;
+                        $depense->libelle = $libelle; // libelle inchangé
                         $depense->date_depense = $dateOperation;
                         $depense->n_piece = $nPiece ?: '';
                         $depense->preuve_de_sortie = '';
                         $depense->save();
 
-                        $importedIndex[$key] = true;
                         $nb_importation++;
                     } else {
                         $erreurs[] = "Ligne $row : " . implode('; ', $ligneErreurs);
@@ -10268,22 +9997,20 @@ class AjaxController extends Controller
 
     public function export_depense_pdf()
     {
-        // ========== 1) Récupération des filtres (identiques à la vue) ==========
+        // ========== 1) Récupération des filtres ==========
         $filterUser   = request()->input('user', 'all');
         $filterType   = request()->input('type', 'all');
         $filterDate   = request()->input('dateRange', '');
         $filterSearch = trim(request()->input('search', ''));
         $filterMontant = request()->input('montant', '');
 
-        // ========== 2) Construction de la requête avec les filtres ==========
+        // ========== 2) Construction de la requête ==========
         $query = Depenses::where('supprimer', 0);
 
-        // Filtre utilisateur
         if ($filterUser !== 'all') {
             $query->where('user_id', $filterUser);
         }
 
-        // Filtre type de dépense
         if ($filterType !== 'all') {
             if ($filterType === 'none') {
                 $query->where(function($q) {
@@ -10296,7 +10023,6 @@ class AjaxController extends Controller
             }
         }
 
-        // Filtre date (période)
         if (!empty($filterDate)) {
             $parts = explode(' - ', $filterDate);
             if (count($parts) === 2) {
@@ -10315,7 +10041,6 @@ class AjaxController extends Controller
             }
         }
 
-        // Filtre recherche (n° pièce, libellé, nom du type)
         if (!empty($filterSearch)) {
             $search = '%' . $filterSearch . '%';
             $query->where(function($q) use ($search) {
@@ -10330,7 +10055,6 @@ class AjaxController extends Controller
             });
         }
 
-        // Filtre montant (≥)
         if (is_numeric($filterMontant) && $filterMontant > 0) {
             $query->where('montant', '>=', (float) $filterMontant);
         }
@@ -10341,9 +10065,23 @@ class AjaxController extends Controller
         $typesDepense = Type_frais::all()->keyBy('id');
         $users        = User::all()->keyBy('id');
 
+        // ========== 4) Calcul des totaux USD et CDF ==========
+        $totalUSD = 0;
+        $totalCDF = 0;
+        foreach ($depenses as $dep) {
+            $taux = $dep->taux ?? 1;
+            if ($dep->devise == 0) {
+                $totalUSD += $dep->montant;
+                $totalCDF += $dep->montant * $taux;
+            } else {
+                $totalCDF += $dep->montant;
+                $totalUSD += $dep->montant / $taux;
+            }
+        }
+
         date_default_timezone_set('Africa/Lubumbashi');
 
-        // ========== 4) Création du PDF (paysage A4) ==========
+        // ========== 5) Création du PDF ==========
         $pdf = new FPDF('L', 'mm', 'A4');
         $pdf->AddPage();
         $pdf->SetAutoPageBreak(true, 20);
@@ -10359,7 +10097,7 @@ class AjaxController extends Controller
         $pdf->SetTextColor(80, 80, 80);
         $pdf->Cell(0, 6, mb_convert_encoding('Relevé des dépenses', 'ISO-8859-1', 'UTF-8'), 0, 1, 'C');
 
-        // ---------- Filtres actifs (comme dans la vue) ----------
+        // ---------- Filtres actifs ----------
         $filtresActifs = [];
         if ($filterUser !== 'all') {
             $userName = $users[$filterUser]->name ?? 'Utilisateur inconnu';
@@ -10397,7 +10135,7 @@ class AjaxController extends Controller
         $pdf->Cell(0, 4, mb_convert_encoding('Exporté le ' . date('d/m/Y H:i:s'), 'ISO-8859-1', 'UTF-8'), 0, 1, 'R');
         $pdf->Ln(2);
 
-        // ========== 5) Définition des colonnes (8 colonnes) ==========
+        // ========== 6) Définition des colonnes (8 colonnes) ==========
         $margeGauche = 12;
         $largeurDisponible = 297 - 2 * $margeGauche;
         $colonnes = [
@@ -10407,7 +10145,7 @@ class AjaxController extends Controller
             'montant' => 10,
             'devise'  => 5,
             'taux'    => 7,
-            'type'    => 25,   // Colonne unique : Type ou libellé (fusionnée)
+            'type'    => 25,
             'user'    => 10
         ];
 
@@ -10437,7 +10175,7 @@ class AjaxController extends Controller
             'montant' => 'Montant',
             'devise'  => 'Dev.',
             'taux'    => 'Taux',
-            'type'    => 'Type de dépense',  // Colonne unique (type ou libellé)
+            'type'    => 'Type de dépense',
             'user'    => 'Utilisateur'
         ];
         foreach ($entetes as $k => $label) {
@@ -10456,31 +10194,24 @@ class AjaxController extends Controller
         } else {
             $fill = false;
             foreach ($depenses as $index => $dep) {
-                // ===== LOGIQUE UNIQUE POUR LA COLONNE "Type de dépense" =====
-                // Si type_depense_id est différent de 0 et non null → afficher le nom du type
-                // Sinon → afficher le libellé (ou 'Sans type')
+                // Colonne "Type de dépense" (fusionnée)
                 if ($dep->type_depense_id != 0 && $dep->type_depense_id != null) {
                     $typeOuLibelle = $typesDepense[$dep->type_depense_id]->nom ?? 'N/A';
                 } else {
                     $typeOuLibelle = !empty($dep->libelle) ? $dep->libelle : 'Sans type';
                 }
 
-                // Autres informations
                 $userNom = $users[$dep->user_id]->name ?? 'Inconnu';
                 $deviseLibelle = ($dep->devise == 0) ? 'USD' : 'CDF';
 
-                // Formatage des nombres
                 $montantFormate = number_format($dep->montant, 0, ',', ' ');
                 $tauxFormate    = number_format($dep->taux, 2, ',', ' ');
 
-                // Troncature du texte de la colonne "type" pour éviter les débordements
                 $typeTronque = mb_substr($typeOuLibelle, 0, 30, 'UTF-8');
                 if (mb_strlen($typeOuLibelle, 'UTF-8') > 30) $typeTronque .= '.';
-                // Troncature du nom de l'utilisateur
                 $userTronque = mb_substr($userNom, 0, 15, 'UTF-8');
                 if (mb_strlen($userNom, 'UTF-8') > 15) $userTronque .= '.';
 
-                // Remplissage des cellules
                 $pdf->SetX($margeGauche);
                 $pdf->Cell($largeurs['num'], 7, $index + 1, 1, 0, 'C', $fill);
                 $pdf->Cell($largeurs['date'], 7, $dep->date_depense, 1, 0, 'C', $fill);
@@ -10488,12 +10219,30 @@ class AjaxController extends Controller
                 $pdf->Cell($largeurs['montant'], 7, $montantFormate, 1, 0, 'R', $fill);
                 $pdf->Cell($largeurs['devise'], 7, $deviseLibelle, 1, 0, 'C', $fill);
                 $pdf->Cell($largeurs['taux'], 7, $tauxFormate, 1, 0, 'R', $fill);
-                // Colonne unique "Type de dépense" (affiche type OU libellé)
                 $pdf->Cell($largeurs['type'], 7, mb_convert_encoding($typeTronque, 'ISO-8859-1', 'UTF-8'), 1, 0, 'L', $fill);
                 $pdf->Cell($largeurs['user'], 7, mb_convert_encoding($userTronque, 'ISO-8859-1', 'UTF-8'), 1, 1, 'L', $fill);
 
                 $fill = !$fill;
             }
+
+            // ========== LIGNE DE TOTAUX (sur une seule ligne) ==========
+            $pdf->SetFont('Helvetica', 'B', 10);
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->SetFillColor(230, 240, 255);
+            $pdf->SetDrawColor(180, 180, 180);
+
+            // On fusionne les colonnes pour afficher les trois informations
+            $pdf->SetX($margeGauche);
+            $pdf->Cell($largeurDisponible, 8,
+                mb_convert_encoding(
+                    'Dépenses : ' . $depenses->count() .
+                    '    Total USD : ' . number_format($totalUSD, 2, ',', ' ') . ' $' .
+                    '    Total CDF : ' . number_format($totalCDF, 2, ',', ' ') . ' Fc',
+                    'ISO-8859-1',
+                    'UTF-8'
+                ),
+                1, 1, 'C', true
+            );
         }
 
         // ---------- Pied de page ----------
@@ -10502,7 +10251,7 @@ class AjaxController extends Controller
         $pdf->SetTextColor(180, 180, 180);
         $pdf->Cell(0, 5, mb_convert_encoding('Document généré automatiquement - Page ' . $pdf->PageNo(), 'ISO-8859-1', 'UTF-8'), 0, 0, 'C');
 
-        // ========== 6) Génération du fichier ==========
+        // ========== 7) Génération du fichier ==========
         $nom_fichier = 'Depenses_' . date('Ymd_His') . '.pdf';
         $pdf->Output('F', $nom_fichier);
         return response()->download($nom_fichier, $nom_fichier, [
@@ -10511,14 +10260,14 @@ class AjaxController extends Controller
     }
     public function export_excel_depense(Request $request)
     {
-        // 1) Récupérer les filtres (identiques à ceux du PDF)
+        // 1) Récupérer les filtres
         $filterUser   = $request->input('user', 'all');
         $filterType   = $request->input('type', 'all');
         $filterDate   = $request->input('dateRange', '');
         $filterSearch = trim($request->input('search', ''));
         $filterMontant = $request->input('montant', '');
 
-        // 2) Construire la requête avec les filtres (copié du PDF)
+        // 2) Construire la requête
         $query = Depenses::where('supprimer', 0);
 
         if ($filterUser !== 'all') {
@@ -10536,7 +10285,6 @@ class AjaxController extends Controller
             }
         }
 
-        // Filtre date (période)
         if (!empty($filterDate)) {
             $parts = explode(' - ', $filterDate);
             if (count($parts) === 2) {
@@ -10555,7 +10303,6 @@ class AjaxController extends Controller
             }
         }
 
-        // Filtre recherche
         if (!empty($filterSearch)) {
             $search = '%' . $filterSearch . '%';
             $query->where(function($q) use ($search) {
@@ -10570,22 +10317,34 @@ class AjaxController extends Controller
             });
         }
 
-        // Filtre montant (≥)
         if (is_numeric($filterMontant) && $filterMontant > 0) {
             $query->where('montant', '>=', (float) $filterMontant);
         }
 
         $depenses = $query->orderBy('date_depense', 'desc')->get();
 
-        // Charger les collections pour les libellés
         $typesDepense = Type_frais::all()->keyBy('id');
         $users        = User::all()->keyBy('id');
 
-        // 3) Création du classeur Excel (9 colonnes)
+        // ===== Calcul des totaux USD et CDF =====
+        $totalUSD = 0;
+        $totalCDF = 0;
+        foreach ($depenses as $dep) {
+            $taux = $dep->taux ?? 1;
+            if ($dep->devise == 0) {
+                $totalUSD += $dep->montant;
+                $totalCDF += $dep->montant * $taux;
+            } else {
+                $totalCDF += $dep->montant;
+                $totalUSD += $dep->montant / $taux;
+            }
+        }
+
+        // 3) Création du classeur Excel
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        // ========== TITRE ET SOUS-TITRE ==========
+        // Titre et sous-titre
         $sheet->mergeCells('A1:I1');
         $sheet->setCellValue('A1', 'LISTE DES DÉPENSES');
         $sheet->getStyle('A1')->applyFromArray([
@@ -10660,7 +10419,6 @@ class AjaxController extends Controller
             $rowActuelle++;
         }
 
-        // Date d'export
         $sheet->setCellValue('A' . $rowActuelle, 'Exporté le ' . date('d/m/Y H:i:s'));
         $sheet->mergeCells('A' . $rowActuelle . ':I' . $rowActuelle);
         $sheet->getStyle('A' . $rowActuelle)->applyFromArray([
@@ -10677,18 +10435,8 @@ class AjaxController extends Controller
         $rowActuelle++;
         $rowActuelle++;
 
-        // ========== EN-TÊTES (9 colonnes) ==========
-        $headers = [
-            'N°',
-            'Date',
-            'N° Pièce',
-            'Montant',
-            'Devise',
-            'Taux',
-            'Type de dépense',  // Colonne fusionnée : type ou libellé
-            'Utilisateur'
-        ];
-
+        // En-têtes (8 colonnes)
+        $headers = ['N°', 'Date', 'N° Pièce', 'Montant', 'Devise', 'Taux', 'Type de dépense', 'Utilisateur'];
         $col = 'A';
         $headerRow = $rowActuelle;
         foreach ($headers as $header) {
@@ -10721,7 +10469,7 @@ class AjaxController extends Controller
         ]);
         $sheet->getRowDimension($headerRow)->setRowHeight(25);
 
-        // ========== REMPLIR LES DONNÉES ==========
+        // Données
         $row = $headerRow + 1;
         if ($depenses->isEmpty()) {
             $sheet->mergeCells('A' . $row . ':H' . $row);
@@ -10733,7 +10481,6 @@ class AjaxController extends Controller
         } else {
             $fill = false;
             foreach ($depenses as $index => $dep) {
-                // === Logique pour la colonne "Type de dépense" (fusionnée) ===
                 if ($dep->type_depense_id != 0 && $dep->type_depense_id != null) {
                     $typeOuLibelle = $typesDepense[$dep->type_depense_id]->nom ?? 'N/A';
                 } else {
@@ -10753,7 +10500,7 @@ class AjaxController extends Controller
                     $montantFormate,
                     $deviseLibelle,
                     $tauxFormate,
-                    $typeOuLibelle,   // Colonne unique
+                    $typeOuLibelle,
                     $userNom
                 ];
 
@@ -10763,7 +10510,6 @@ class AjaxController extends Controller
                     $col++;
                 }
 
-                // Alternance de couleurs
                 $fillColor = $fill ? 'F5F5F5' : 'FFFFFF';
                 $sheet->getStyle('A' . $row . ':H' . $row)->applyFromArray([
                     'fill' => [
@@ -10789,13 +10535,44 @@ class AjaxController extends Controller
                 $row++;
             }
 
-            // Ajuster automatiquement la largeur des colonnes (de A à H)
+            // ========== LIGNE DE TOTAUX (une seule ligne) ==========
+            $row++; // on saute une ligne
+            $sheet->mergeCells('A' . $row . ':H' . $row);
+            $sheet->setCellValue('A' . $row,
+                'Dépenses : ' . $depenses->count() .
+                '    Total USD : ' . number_format($totalUSD, 2, ',', ' ') . ' $' .
+                '    Total CDF : ' . number_format($totalCDF, 2, ',', ' ') . ' Fc'
+            );
+            $sheet->getStyle('A' . $row . ':H' . $row)->applyFromArray([
+                'font' => [
+                    'bold' => true,
+                    'size' => 10,
+                    'color' => ['rgb' => '000000'],
+                    'name' => 'Arial'
+                ],
+                'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => 'E8F0FE']
+                ],
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                    'vertical' => Alignment::VERTICAL_CENTER
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => Border::BORDER_THIN,
+                        'color' => ['rgb' => '808080']
+                    ]
+                ]
+            ]);
+
+            // Ajuster la largeur des colonnes
             foreach (range('A', 'H') as $col) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
             }
         }
 
-        // ========== PIED DE PAGE ==========
+        // Pied de page
         $rowActuelFinal = $row + 1;
         $sheet->setCellValue('A' . $rowActuelFinal, 'Document généré automatiquement');
         $sheet->mergeCells('A' . $rowActuelFinal . ':H' . $rowActuelFinal);
@@ -10811,7 +10588,7 @@ class AjaxController extends Controller
             ]
         ]);
 
-        // ========== GÉNÉRATION ==========
+        // Génération du fichier
         $fileName = 'depenses_export_' . date('Ymd_His') . '.xlsx';
         $tempFile = tempnam(sys_get_temp_dir(), 'excel') . '.xlsx';
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
