@@ -290,11 +290,13 @@ Route::get('/check_paie_facture', [AjaxController::class , 'check_paie_facture']
 Route::get('/get_all_facture', [AjaxController::class , 'get_all_facture'])->name('get_all_facture');
 Route::get('/delete_facture_user_id', [AjaxController::class , 'delete_facture_user_id'])->name('delete_facture_user_id');
 Route::get('/get_all_categorie', [AjaxController::class , 'get_all_categorie'])->name('get_all_categorie');
+Route::get('/get_all_stock', [AjaxController::class , 'get_all_stock'])->name('get_all_stock');
 Route::get('/get_all_depense', [AjaxController::class , 'get_all_depense'])->name('get_all_depense');
 Route::get('/get_all_articles', [AjaxController::class , 'get_all_articles'])->name('get_all_articles');
 Route::get('/get_commune_by_district', [AjaxController::class , 'get_commune_by_district'])->name('get_commune_by_district');
 Route::post('/save_paie_facture', [AjaxController::class , 'save_paie_facture'])->name('save_paie_facture');
 Route::post('/process_payment', [AjaxController::class , 'process_payment'])->name('process_payment');
+Route::post('/transfer_article', [AjaxController::class , 'transfer_article'])->name('transfer_article');
 Route::post('/submit-filters', [AjaxController::class, 'submitFilters'])->name('submitFilters');
 Route::post('/import_excel_categorie', [AjaxController::class, 'import_excel_categorie'])->name('import_excel_categorie');
 Route::post('/import_excel_article', [AjaxController::class, 'import_excel_article'])->name('import_excel_article');
@@ -305,6 +307,8 @@ Route::get('/export_excel_depense', [AjaxController::class , 'export_excel_depen
 Route::get('/export_categories_pdf', [AjaxController::class , 'export_categories_pdf'])->name('export_categories_pdf');
 Route::get('/export_article_pdf', [AjaxController::class , 'export_article_pdf'])->name('export_article_pdf');
 Route::get('/export_depense_pdf', [AjaxController::class , 'export_depense_pdf'])->name('export_depense_pdf');
+Route::post('/update_user_prestation', [AjaxController::class, 'update_user_prestation'])->name('update_user_prestation');
+Route::post('/update_ronde', [AjaxController::class, 'update_ronde'])->name('update_ronde');
 
 
 // Route::get('/', function () {
@@ -345,6 +349,7 @@ Route::get('/gestion_depense', [App\Http\Controllers\HomeController::class, 'ges
 Route::get('/gestion_ecole', [App\Http\Controllers\HomeController::class, 'gestion_ecole'])->name('gestion_ecole');
 Route::get('/gestion_beneficiaire', [App\Http\Controllers\HomeController::class, 'gestion_beneficiaire'])->name('gestion_beneficiaire');
 Route::get('/rapport_pointage', [App\Http\Controllers\HomeController::class, 'rapport_pointage'])->name('rapport_pointage');
+Route::get('/consulter_rapport', [App\Http\Controllers\HomeController::class, 'consulter_rapport'])->name('consulter_rapport');
 Route::get('/entres', [App\Http\Controllers\HomeController::class, 'entres'])->name('entres');
 Route::get('/sorties', [App\Http\Controllers\HomeController::class, 'sorties'])->name('sorties');
 Route::get('/app_article', [App\Http\Controllers\HomeController::class, 'app_article'])->name('app_article');

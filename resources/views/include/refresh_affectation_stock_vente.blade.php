@@ -66,7 +66,7 @@ use App\Models\Ressources;
                             <td style="padding-top: 5px;padding-bottom: 5px;"><?= $i ?></td>
                             <td style="padding-top: 5px;padding-bottom: 5px;"><?= $data->nom ?></td>
                             <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
-                                @if ($data->stock_id == $stock_id)
+                                @if ($data->stock_id != -1)
                                     <a id="affectation__<?= $i ?>" href="#"><i class="zmdi zmdi-check-square"></i></a>
                                 @else
                                     <a id="affectation__<?= $i ?>" href="#"><i class="zmdi zmdi-square-o"></i></a>
@@ -86,6 +86,15 @@ use App\Models\Ressources;
                                     } else {
                                         $("#affectation__<?= $i ?>").html('<i class="zmdi zmdi-square-o"></i></a>');
                                     }
+                                    $.get("{{ url('/refresh_affectation_stock_vente') }}", {
+                                        stock_id: $("#stock_select").val(),
+                                    }, function(liste_r) {
+                                        $.get("{{ url('/get_all_stock') }}", {}, function(
+                                        refresh_editutilisateur) {
+                                            $("#content_groupe").html(refresh_editutilisateur);
+                                            filterCategories();
+                                        });
+                                    });
                                 });
                             });
                         </script>

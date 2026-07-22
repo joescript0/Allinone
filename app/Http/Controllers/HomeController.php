@@ -448,6 +448,7 @@ class HomeController extends Controller
                 $data["annees"] = Annees::get();
                 $data["mois"] = Mois::get();
                 $data["districts"] = districts::get();
+                $data["all_alertes"] = Alertes::get();
                 $data["classes"] = classes::get();
                 $data["data_prestations"] = Prestations::where(["supprimer" => 0])->get();
                 if(Auth::user()->role == 0)
@@ -460,6 +461,64 @@ class HomeController extends Controller
                 }
                 $data["beneficiaires"] = $beneficiaires;
                 return view('interfaces.rapport_pointage', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+
+    public function consulter_rapport()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 23;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(($display ==  1) || (Auth::user()->role == 0))
+            {
+                $data["utilisateurs"] = User::where(function($query){
+                    $query->where('role', '<>', 0);
+                })->where(function($query){
+                    $query->where('etat', '=', 1);
+                })->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["postes"] = Postes::where(["supprimer" => 0])->get();
+                $data["lieux"] = Lieux::where(["etat" => 1])->get();
+                $data["clients"] = Clients::where(["etat" => 1])->get();
+                $data["activites"] = Activites::where(["etat" => 1])->get();
+                $data["listespaies"] = Listespaies::where(["supprimer" => 0])->get();
+                $data["listesfactures"] = Listesfactures::where(["supprimer" => 0])->get();
+                $data["ecoles"] = ecoles::where(["supprimer" => 0])->get();
+                $data["annees"] = Annees::get();
+                $data["mois"] = Mois::get();
+                $data["districts"] = districts::get();
+                $data["all_alertes"] = Alertes::get();
+                $data["classes"] = classes::get();
+                $data["data_prestations"] = Prestations::where(["supprimer" => 0])->get();
+                if(Auth::user()->role == 0)
+                {
+                    $beneficiaires = beneficiaires::where(["etat" => 1])->get();
+                }
+                elseif(Auth::user()->role != 0)
+                {
+                    $beneficiaires = beneficiaires::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
+                }
+                $data["beneficiaires"] = $beneficiaires;
+                return view('interfaces.consulter_rapport', $data);
             }
             else
             {
@@ -942,6 +1001,7 @@ class HomeController extends Controller
                 $data["societes"] = Societes::where(["etat" => 1])->get();
                 $data["articles"] = Articles::where(["user_id" => Auth::user()->id, "supprimer" => 0])->get();
                 $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
+                $data["stocks"] = Stocks::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
                 if(Auth::user()->role == 0)
                 {
                     $data["articles"] = Articles::where(["supprimer" => 0])->get();

@@ -54,6 +54,8 @@
     $menu_34 = Desactiver();
     $menu_35 = Desactiver();
     $menu_36 = Desactiver();
+    $menu_37 = Desactiver();
+
   }
   elseif($menueapp == "Divine")
   {
@@ -97,6 +99,7 @@
     $menu_34 = Desactiver();
     $menu_35 = Desactiver();
     $menu_36 = Activer();
+    $menu_37 = Desactiver();
   }
 ?>
 
@@ -855,6 +858,9 @@
 
             @if ($menu_31 == 1)
                 <li id="link_38"><a href="{{ route('gestion_table') }}" id="text_38"><i class="zmdi zmdi-grid"></i> Gestion de table</a></li>
+            @endif
+            @if ($menu_37 == 1)
+                <li id="link_44"><a href="{{ route('consulter_rapport') }}" id="text_44"><i class="fas fa-book-open"></i> Consulter rapport</a></li>
             @endif
         </ul>
       @endif

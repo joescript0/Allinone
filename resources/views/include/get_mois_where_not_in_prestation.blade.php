@@ -7,7 +7,7 @@
 <option selected value="">Selectionnez un mois</option>
 <?php if ($annee_id != 0) { ?>
     @foreach ($mois as $data)
-        <?php if (Prestations::where(["moi_id" => $data->id, "annee_id" => $annee_id])->get()->count() == 0) { ?>
+        <?php if (Prestations::where(["moi_id" => $data->id, "annee_id" => $annee_id, "poste_id" => $poste_id])->get()->count() == 0) { ?>
             <option value="{{ $data->id }}"><?= $data->nom ?></option>
         <?php } ?>
     @endforeach

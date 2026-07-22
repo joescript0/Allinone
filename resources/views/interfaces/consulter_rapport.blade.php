@@ -18,7 +18,7 @@ use App\Models\Clients;
 ?>
 @extends('layouts.main')
 @section('title', 'CONTROLAPP')
-@section('name', 'RAPPORT DE POINTAGE')
+@section('name', 'CONSULTER RAPPORT')
 @section('body')
 @include('composants.preload')
 @include('composants.header')
@@ -511,7 +511,7 @@ h4 {
         <div class="row">
             <div class="col-lg-12">
                 <div class="header-with-buttons">
-                    <h6>{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Rapport de pointage</h6>
+                    <h6>{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Consulter rapport</h6>
                 </div>
             </div>
         </div>
@@ -1279,9 +1279,9 @@ h4 {
             </div>
 
             <!-- ========== 3. SECTION ALERTE ========== -->
-            <hr style="margin: 25px 0; border-top: 2px dashed #d1d5db;display: none;">
+            <hr style="margin: 25px 0; border-top: 2px dashed #d1d5db;">
 
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:15px;display: none;">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:15px;">
                 <span style="background: #ef4444; color:white; padding:6px 18px; border-radius:50px; font-size:0.75rem; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">
                     <i class="fa fa-bell"></i> Alerte
                 </span>
@@ -1291,7 +1291,7 @@ h4 {
                 </span>
             </div>
 
-            <div id="alertContainer" style="background:#fef2f2; border-left:4px solid #ef4444; padding:14px 18px; border-radius:12px;display: none;">
+            <div id="alertContainer" style="background:#fef2f2; border-left:4px solid #ef4444; padding:14px 18px; border-radius:12px;">
                 <ul id="alertList" style="margin:0; padding-left:20px; list-style-type:disc; color:#991b1b;">
                     <li id="alert1">⚠️ Alerte 1 - Dépassement horaire constaté</li>
                     <li id="alert2">⚠️ Alerte 2 - Absence de signature à l'entrée</li>
@@ -1669,11 +1669,11 @@ $(document).ready(function() {
                 $list.append('<li id="alert_' + index + '">' + msg + '</li>');
             });
             $('#alertDynamicContent').empty();
-            // $('#alertContainer').show();
+            $('#alertContainer').show();
         } else {
             $('#alertList').empty();
             $('#alertDynamicContent').html('<p class="text-muted" style="margin:0;">Aucune alerte</p>');
-            // $('#alertContainer').show();
+            $('#alertContainer').show();
         }
 
         // ===== APPLICATION DES COULEURS SUR LES BADGES D'ÉTAT (SEULEMENT) =====
@@ -1933,9 +1933,8 @@ $(document).ready(function() {
 
     // ========== INITIALISATION ==========
     filterTable();
-    $("#link_43").addClass("active");
+    $("#link_44").addClass("active");
 });
 </script>
 @endsection
 @endsection
-

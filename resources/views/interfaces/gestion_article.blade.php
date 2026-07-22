@@ -1,4 +1,4 @@
-@php
+Cette page est bonne : @php
     use App\Models\appnames;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
@@ -528,7 +528,8 @@ select.form-control {
 
 /* ========== MESSAGES STYLISÉS (SUCCÈS / ERREUR / INFO) ========== */
 #msg,
-#edit_msg {
+#edit_msg,
+#transfer_msg {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
@@ -543,7 +544,8 @@ select.form-control {
 }
 
 #msg:not(:empty),
-#edit_msg:not(:empty) {
+#edit_msg:not(:empty),
+#transfer_msg:not(:empty) {
     display: inline-flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -560,21 +562,24 @@ select.form-control {
 }
 
 #msg:not(:empty):has(i.zmdi-check-circle),
-#edit_msg:not(:empty):has(i.zmdi-check-circle) {
+#edit_msg:not(:empty):has(i.zmdi-check-circle),
+#transfer_msg:not(:empty):has(i.zmdi-check-circle) {
     background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
     color: #065f46;
     border-left: 4px solid #10b981;
 }
 
 #msg:not(:empty):has(i.zmdi-close-circle),
-#edit_msg:not(:empty):has(i.zmdi-close-circle) {
+#edit_msg:not(:empty):has(i.zmdi-close-circle),
+#transfer_msg:not(:empty):has(i.zmdi-close-circle) {
     background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
     color: #991b1b;
     border-left: 4px solid #ef4444;
 }
 
 #msg:not(:empty):has(i.zmdi-info),
-#edit_msg:not(:empty):has(i.zmdi-info) {
+#edit_msg:not(:empty):has(i.zmdi-info),
+#transfer_msg:not(:empty):has(i.zmdi-info) {
     background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important;
     color: #1e3a8a;
     border-left: 4px solid #3b82f6;
@@ -592,7 +597,7 @@ select.form-control {
 }
 
 /* ========== AJOUTS POUR LES ÉLÉMENTS PROPRES À CETTE PAGE ========== */
-/* Boutons de contrôle dans le tableau (édit, delete) */
+/* Boutons de contrôle dans le tableau (édit, delete, transfer) */
 .table tbody td a {
     display: inline-flex;
     align-items: center;
@@ -612,6 +617,10 @@ select.form-control {
 .table tbody td a i.zmdi-edit {
     color: #10b981;
 }
+/* Icône transfert en noir */
+.table tbody td a i.zmdi-swap {
+    color: #333 !important;
+}
 .table tbody td a i.zmdi-delete {
     color: #ef4444;
 }
@@ -624,6 +633,29 @@ select.form-control {
 }
 .table tbody td a:hover i.zmdi-edit {
     color: #059669;
+}
+.table tbody td a:hover i.zmdi-swap {
+    color: #000 !important;
+}
+/* Désactivé */
+.table tbody td a.transfer-disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.table tbody td a.transfer-disabled:hover {
+    background: #f1f5f9;
+    transform: none;
+}
+.table tbody td a.transfer-disabled i.zmdi-swap {
+    color: #999 !important;
+}
+
+/* Correction du select - survol sans débordement */
+#transfert_stock_id:hover,
+#transfert_stock_id:focus {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: none !important;
 }
 
 /* Ajustement pour le conteneur d'actions (barre des boutons) */
@@ -892,6 +924,35 @@ select.form-control {
                                                 <?php } else { ?>
                                                 <a id="edit_r<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
                                                 <?php } ?>
+
+                                                <?php if (($edit == 1) || (Auth::user()->role == 0)) { ?>
+                                                <a id="transfer_<?= $i ?>" href="#"
+                                                   data-id="<?= $data->id ?>"
+                                                   data-article='<?= json_encode([
+                                                       'id' => $data->id,
+                                                       'nom_article' => $data->nom_article,
+                                                       'categorie_nom' => Societes::where('id', $data->societe_id)->first()['nom'] ?? 'N/A',
+                                                       'prix_detail' => $data->prix_detail,
+                                                       'prix_gros' => $data->prix_gros,
+                                                       'devise' => $data->devise,
+                                                       'stock' => $data->stock,
+                                                       'seuil_minimum' => $data->seuil_minimum,
+                                                       'taille_lot' => $data->taille_lot,
+                                                       'activite_id' => $data->activite_id,
+                                                       'avoir_stock' => $data->avoir_stock,
+                                                       'activite_nom' => ($data->activite_id == 0 || $data->activite_id == '0') ? 'Aucune' : (Activites::where('id', $data->activite_id)->first()['nom'] ?? 'Aucune'),
+                                                       'user_id' => $data->user_id,
+                                                       'user_nom' => User::where('id', $data->user_id)->first()['name'] ?? 'N/A',
+                                                   ]) ?>'
+                                                   class="transfer-btn">
+                                                    <i class="zmdi zmdi-swap" style="color:#333;"></i>
+                                                </a> &nbsp;
+                                                <?php } else { ?>
+                                                <a id="transfer_r<?= $i ?>" href="#" class="transfer-disabled">
+                                                    <i class="zmdi zmdi-swap" style="color:#999;"></i>
+                                                </a> &nbsp;
+                                                <?php } ?>
+
                                                 <?php if (($delete == 1) || (Auth::user()->role == 0)) { ?>
                                                 <a id="delete_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a> &nbsp;
                                                 <?php } else { ?>
@@ -1227,6 +1288,172 @@ select.form-control {
             </div>
         </div>
     </div>
+
+    <!-- ========== MODAL TRANSFERT (avec stock_id) ========== -->
+    <div class="modal fade" id="transferModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius: var(--border-radius-xl); box-shadow: var(--shadow-premium);">
+                <div class="modal-header" style="background: var(--bleu-nuit-gradient); border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;">
+                    <h5 class="modal-title text-white">
+                        <i class="zmdi zmdi-swap"></i> Transférer l'article
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Fermer">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 1.5rem;">
+                    <form id="form_transfert" action="#" method="post">
+                        @csrf
+                        <input type="hidden" id="transfer_article_id" name="transfer_article_id" value="">
+
+                        <!-- EN-TÊTE -->
+                        <div style="background: #f7faff; padding: 18px; border-radius: var(--border-radius-lg); margin-bottom: 25px; border-left: 6px solid #0a192f; border: 1px solid #e2e8f0;">
+                            <div style="font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: #0a192f; letter-spacing: 0.5px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                                <i class="zmdi zmdi-info text-info"></i> INFORMATIONS DE L'ARTICLE (non modifiables)
+                            </div>
+                            <div class="row" style="margin-bottom: 6px;">
+                                <div class="col-md-4">
+                                    <span style="font-weight: 600; color: #2d3748; font-size: 0.8rem;"><i class="zmdi zmdi-label text-danger"></i> Nom :</span>
+                                    <span id="transfer_nom" style="font-weight: 500; color: #0a192f; margin-left: 8px;">-</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span style="font-weight: 600; color: #2d3748; font-size: 0.8rem;"><i class="zmdi zmdi-store text-danger"></i> Catégorie :</span>
+                                    <span id="transfer_categorie" style="font-weight: 500; color: #0a192f; margin-left: 8px;">-</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span style="font-weight: 600; color: #2d3748; font-size: 0.8rem;"><i class="zmdi zmdi-toll text-danger"></i> Activité actuelle :</span>
+                                    <span id="transfer_activite_actuelle" style="font-weight: 500; color: #0a192f; margin-left: 8px;">-</span>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-bottom: 6px;">
+                                <div class="col-md-4">
+                                    <span style="font-weight: 600; color: #2d3748; font-size: 0.8rem;"><i class="zmdi zmdi-money text-danger"></i> Prix détail :</span>
+                                    <span id="transfer_prix_detail" style="font-weight: 500; color: #0a192f; margin-left: 8px;">-</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span style="font-weight: 600; color: #2d3748; font-size: 0.8rem;"><i class="zmdi zmdi-money text-danger"></i> Prix gros :</span>
+                                    <span id="transfer_prix_gros" style="font-weight: 500; color: #0a192f; margin-left: 8px;">-</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span style="font-weight: 600; color: #2d3748; font-size: 0.8rem;"><i class="zmdi zmdi-storage text-danger"></i> Stock actuel :</span>
+                                    <span id="transfer_stock" style="font-weight: 500; color: #0a192f; margin-left: 8px;">-</span>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-bottom: 0;">
+                                <div class="col-md-12">
+                                    <span style="font-weight: 600; color: #2d3748; font-size: 0.8rem;"><i class="zmdi zmdi-accounts text-danger"></i> Utilisateur actuel :</span>
+                                    <span id="transfer_user_actuel" style="font-weight: 500; color: #0a192f; margin-left: 8px;">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DESTINATION -->
+                        <div style="font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: #0a192f; letter-spacing: 0.5px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                            <i class="zmdi zmdi-swap text-warning"></i> DESTINATION DU TRANSFERT
+                        </div>
+
+                        <!-- Ligne 1 : Liste de stock + Quantité -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: #2d3748;">
+                                        <i class="zmdi zmdi-view-list text-danger"></i> Liste de stock <span class="text-danger">*</span>
+                                    </label>
+                                    <select id="transfert_stock_id" name="transfert_stock_id" class="form-control" style="width:100%; background:#ffffff;">
+                                        <option selected value="0">Aucune</option>
+                                        @foreach ($stocks as $st)
+                                            <option value="{{ $st->id }}">{{ $st->nom }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: #2d3748;">
+                                        <i class="zmdi zmdi-storage text-danger"></i> Quantité à transférer <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" id="transfert_quantite" name="transfert_quantite" class="form-control" value="1" min="1" step="1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ligne 2 : Motif + Prix détail -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: #2d3748;">
+                                        <i class="zmdi zmdi-comment text-danger"></i> Motif du transfert <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea id="transfert_commentaire" name="transfert_commentaire" class="form-control" rows="1" placeholder="Raison du transfert..."></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: #2d3748;">
+                                        <i class="zmdi zmdi-money text-danger"></i> Prix de détail <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" step="1" id="transfert_prix_detail_dest" name="transfert_prix_detail_dest" class="form-control" placeholder="Ex: 500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ligne 3 : Prix de gros + Taille du lot (col-md-6) -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: #2d3748;">
+                                        <i class="zmdi zmdi-money text-danger"></i> Prix de gros <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" step="1" id="transfert_prix_gros_dest" name="transfert_prix_gros_dest" class="form-control" placeholder="Ex: 300">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: #2d3748;">
+                                        <i class="zmdi zmdi-storage text-danger"></i> Taille du lot <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" step="1" id="transfert_taille_lot_dest" name="transfert_taille_lot_dest" class="form-control" placeholder="Ex: 12">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ligne 4 : Devise seule -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: #2d3748;">
+                                        <i class="zmdi zmdi-money text-danger"></i> Devise <span class="text-danger">*</span>
+                                    </label>
+                                    <select id="transfert_devise_dest" name="transfert_devise_dest" class="form-control">
+                                        <option value="">Sélectionnez une devise</option>
+                                        <option value="0">USD</option>
+                                        <option value="1">CDF</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6"></div> <!-- vide -->
+                        </div>
+
+                        <!-- Message -->
+                        <div class="row">
+                            <div class="col-lg-12" style="text-align: center;">
+                                <span style="font-weight: bold;" id="transfer_msg"></span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: none;">
+                    <button id="transfer_annuler" class="btn btn-danger btn-sm" data-dismiss="modal">
+                        <i class="zmdi zmdi-close-circle"></i> Annuler
+                    </button>
+                    <button id="transfer_submit" class="btn btn-info btn-sm">
+                        <i class="zmdi zmdi-swap"></i> Transférer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <span id="data_frais_id" style="display: none;"></span>
     <button style="display: none;" data-toggle="modal" data-target="#c_frais" id="btn_frais">Sup</button>
     <div class="modal fade" id="c_frais" tabindex="-1">
@@ -1250,6 +1477,7 @@ select.form-control {
             </div>
         </div>
     </div>
+
     <!-- Modales Import / Export -->
     <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -1310,6 +1538,7 @@ select.form-control {
             </div>
         </div>
     </div>
+
 @section('js-code')
     <script src="{{ asset('assets/vendors/flot/jquery.flot.js') }} "></script>
     <script src="{{ asset('assets/vendors/flot/jquery.flot.pie.js') }}"></script>
@@ -1715,6 +1944,190 @@ select.form-control {
                 filterArticles();
                 $("#non").trigger("click");
             });
+        });
+
+        // =====================================================
+        // GESTION DU TRANSFERT D'ARTICLE (avec stock_id)
+        // =====================================================
+
+        var stockActuelGlobal = 0;
+        var seuilMinimumGlobal = 0;
+        var avoirStockGlobal = 0;
+
+        $(document).on('click', '.transfer-btn', function(e) {
+            e.preventDefault();
+            var articleData = $(this).data('article');
+            if (!articleData) {
+                alert('Données de l\'article manquantes');
+                return;
+            }
+
+            // Stocker les valeurs pour la validation
+            stockActuelGlobal = articleData.stock;
+            seuilMinimumGlobal = articleData.seuil_minimum;
+            avoirStockGlobal = articleData.avoir_stock;
+
+            // --- En-tête (lecture seule) ---
+            $('#transfer_nom').text(articleData.nom_article);
+            $('#transfer_categorie').text(articleData.categorie_nom);
+            var deviseLabel = (articleData.devise == 0) ? 'USD' : 'CDF';
+            $('#transfer_prix_detail').text(articleData.prix_detail + ' ' + deviseLabel);
+            $('#transfer_prix_gros').text(articleData.prix_gros + ' ' + deviseLabel);
+            $('#transfer_stock').text(articleData.stock);
+            $('#transfer_activite_actuelle').text(articleData.activite_nom);
+            $('#transfer_user_actuel').text(articleData.user_nom);
+
+            // --- Champs de destination (modifiables) ---
+            $('#transfer_article_id').val(articleData.id);
+
+            // Liste de stock : on laisse la valeur par défaut "Aucune"
+            $('#transfert_stock_id').val('0'); // on force "Aucune"
+            $('#transfert_quantite').val(1);
+            $('#transfert_prix_detail_dest').val(articleData.prix_detail);
+            $('#transfert_prix_gros_dest').val(articleData.prix_gros);
+            $('#transfert_taille_lot_dest').val(articleData.taille_lot);
+            $('#transfert_devise_dest').val(articleData.devise);
+            $('#transfert_commentaire').val('');
+
+            $('#transfer_msg').html('').css('display', 'none');
+            $('#transferModal').modal('show');
+        });
+
+        // Soumission du formulaire avec validations
+        $(document).on('click', '#transfer_submit', function(e) {
+            e.preventDefault();
+
+            // Réinitialiser le message
+            $('#transfer_msg').html('').css('display', 'none');
+
+            // 1. Vérifier que la liste de stock est sélectionnée
+            var stock_id = $('#transfert_stock_id').val();
+            if (stock_id == '0' || stock_id == '' || stock_id == null) {
+                $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> Sélectionnez un stock.');
+                $('#transfer_msg').css('display', 'flex');
+                setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
+                return;
+            }
+
+            // 2. Vérifier le motif du transfert
+            var commentaire = $('#transfert_commentaire').val().trim();
+            if (commentaire == '' || commentaire.length < 3) {
+                $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> Veuillez saisir un motif de transfert (minimum 3 caractères).');
+                $('#transfer_msg').css('display', 'flex');
+                setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
+                return;
+            }
+
+            // 3. Vérification du stock (seulement si avoir_stock = 1)
+            if (avoirStockGlobal == 1) {
+                // 3a. Vérifier la quantité (entier positif)
+                var qte = parseInt($('#transfert_quantite').val());
+                if (isNaN(qte) || qte < 1) {
+                    $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> La quantité doit être un nombre entier positif.');
+                    $('#transfer_msg').css('display', 'flex');
+                    setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
+                    return;
+                }
+
+                // 3b. Vérifier que le stock ne descende pas en dessous du seuil minimum
+                var maxTransferable = stockActuelGlobal - seuilMinimumGlobal;
+                if (qte > maxTransferable) {
+                    $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> La quantité maximale que vous pouvez transférer sans descendre en dessous du seuil minimum ('+seuilMinimumGlobal+') est de '+maxTransferable+'.');
+                    $('#transfer_msg').css('display', 'flex');
+                    setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
+                    return;
+                }
+            }
+
+            // 4. Vérifier le prix de détail (entier positif)
+            var prix_detail = parseInt($('#transfert_prix_detail_dest').val());
+            if (isNaN(prix_detail) || prix_detail < 0) {
+                $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> Le prix de détail doit être un nombre entier positif.');
+                $('#transfer_msg').css('display', 'flex');
+                setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
+                return;
+            }
+
+            // 5. Vérifier le prix de gros (entier positif)
+            var prix_gros = parseInt($('#transfert_prix_gros_dest').val());
+            if (isNaN(prix_gros) || prix_gros < 0) {
+                $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> Le prix de gros doit être un nombre entier positif.');
+                $('#transfer_msg').css('display', 'flex');
+                setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
+                return;
+            }
+
+            // 6. Vérifier la taille du lot (entier positif)
+            var taille_lot = parseInt($('#transfert_taille_lot_dest').val());
+            if (isNaN(taille_lot) || taille_lot < 1) {
+                $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> La taille du lot doit être un nombre entier positif.');
+                $('#transfer_msg').css('display', 'flex');
+                setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
+                return;
+            }
+
+            // 7. Vérifier que la devise est sélectionnée
+            var devise = $('#transfert_devise_dest').val();
+            if (devise == '' || devise == null) {
+                $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> Veuillez sélectionner une devise.');
+                $('#transfer_msg').css('display', 'flex');
+                setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
+                return;
+            }
+
+            // Si toutes les validations sont passées, soumettre le formulaire
+            var $btn = $(this);
+            // Sauvegarder le texte original pour le restaurer
+            var originalText = $btn.html();
+            // Désactiver le bouton et afficher le spinner
+            $btn.prop('disabled', true).html('<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Transfert en cours...');
+
+            var formData = $('#form_transfert').serialize();
+
+            $.ajax({
+                url: "{{ url('/transfer_article') }}",
+                type: "POST",
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        $('#transfer_msg').html('<i class="zmdi zmdi-check-circle"></i> ' + response.message);
+                        $('#transfer_msg').css('display', 'flex');
+                        $.get("{{ url('/get_all_articles') }}", function(html) {
+                            $("#content_utilisateur").html(html);
+                            filterArticles();
+                        });
+                        setTimeout(function() {
+                            $('#transfer_msg').html('');
+                            $('#transfer_msg').css('display', 'none');
+                            $('#transferModal').modal('hide');
+                        }, 3000);
+                    } else {
+                        $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> ' + response.message);
+                        $('#transfer_msg').css('display', 'flex');
+                        setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
+                    }
+                },
+                error: function(xhr) {
+                    var msg = xhr.responseJSON?.message || 'Erreur lors du transfert.';
+                    $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> ' + msg);
+                    $('#transfer_msg').css('display', 'flex');
+                    setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
+                },
+                complete: function() {
+                    // Réactiver le bouton et restaurer le texte original
+                    $btn.prop('disabled', false).html(originalText);
+                }
+            });
+        });
+
+        // Réinitialisation du modal à sa fermeture
+        $('#transferModal').on('hidden.bs.modal', function () {
+            $('#transfer_msg').html('').css('display', 'none');
+            // Réinitialiser le select à "Aucune" (valeur 0)
+            $('#transfert_stock_id').val('0');
+            // Réinitialiser le bouton (si jamais il reste désactivé)
+            $('#transfer_submit').prop('disabled', false).html('<i class="zmdi zmdi-swap"></i> Transférer');
+            $('#form_transfert')[0].reset();
         });
 
         $("#confirmImportBtn").click(function() {

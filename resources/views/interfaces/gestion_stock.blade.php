@@ -1,5 +1,7 @@
 @php
     use App\Models\appnames;
+    use App\Models\Articles;
+    use App\Models\articlestocks;
     use App\Models\pointdeventes;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
@@ -572,6 +574,7 @@ select.form-control {
                                             <th style="padding-top: 5px;padding-bottom: 5px;">N°</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Nom</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Point de vente</th>
+                                            <th style="padding-top: 5px;padding-bottom: 5px;">Article</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                                         </tr>
                                     </thead>
@@ -580,17 +583,22 @@ select.form-control {
                                             <td style="padding-top: 5px;padding-bottom: 5px;">{{ 1 }}</td>
                                             <td style="padding-top: 5px;padding-bottom: 5px;">{{ "Stock principal" }}</td>
                                             <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
-                                                <span class="badge badge-info">
-                                                    <?= pointdeventes::where(["stock_id" => 0])->get()->count(); ?>
-                                                </span>
+                                                <a id="affectation_1" href="">
+                                                    <span class="badge badge-info">
+                                                        <?= pointdeventes::where(["stock_id" => 0])->get()->count(); ?>
+                                                    </span>
+                                                </a>
+                                            </td>
+                                            <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
+                                                <a id="article_1" href="">
+                                                    <span class="badge badge-success">
+                                                        <?= Articles::where(["supprimer" => 0])->count(); ?>
+                                                    </span>
+                                                </a>
                                             </td>
                                             <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                                                 <a id="edit_1" href="#"><i
                                                         class="zmdi zmdi-edit text-secondary"></i></a> &nbsp;
-                                                <a id="article_1" href="#"><i
-                                                        class="zmdi zmdi-storage text-dark"></i></a> &nbsp;
-                                                <a id="affectation_1" href="#"><i class="zmdi zmdi-settings text-info"></i></a> &nbsp;
-
                                                 <a id="delete_1" href="#"><i
                                                         class="zmdi zmdi-delete text-secondary"></i>
                                                 </a>
@@ -634,17 +642,22 @@ select.form-control {
                                                 <td style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->nom }}</td>
                                                 <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
-                                                   <span class="badge badge-info">
-                                                        <?= pointdeventes::where(["stock_id" => $data->id])->get()->count(); ?>
-                                                    </span>
+                                                    <a id="affectation_<?= $i ?>" href="#">
+                                                         <span class="badge badge-info">
+                                                            <?= pointdeventes::where(["stock_id" => $data->id])->get()->count(); ?>
+                                                        </span>
+                                                    </a>
+                                                </td>
+                                                <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
+                                                    <a id="article_<?= $i ?>" href="#">
+                                                        <span class="badge badge-success">
+                                                            <?= articlestocks::where(["supprimer" => 0, "stock_id" => $data->id])->count(); ?>
+                                                        </span>
+                                                    </a>
                                                 </td>
                                                 <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                                                     <a id="edit_<?= $i ?>" href="#"><i
                                                             class="zmdi zmdi-edit text-success"></i></a> &nbsp;
-                                                    <a id="article_<?= $i ?>" href="#"><i
-                                                            class="zmdi zmdi-storage text-dark"></i></a> &nbsp;
-                                                    <a id="affectation_<?= $i ?>" href="#"><i class="zmdi zmdi-settings text-info"></i></a> &nbsp;
-
                                                     <a id="delete_<?= $i ?>" href="#"><i
                                                             class="zmdi zmdi-delete text-danger"></i></a>
                                                     <script>

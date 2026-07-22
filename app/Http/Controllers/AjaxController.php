@@ -49,6 +49,7 @@ use App\Models\Paiements;
 use App\Models\Paies;
 use App\Models\Activites;
 use App\Models\Alertes;
+use App\Models\articlestocks;
 use App\Models\beneficaires;
 use App\Models\beneficiaires;
 use App\Models\classes;
@@ -67,6 +68,7 @@ use App\Models\Paiesfactures;
 use App\Models\Pointdeventes;
 use App\Models\Stocks;
 use App\Models\Tables;
+use App\Models\transfertstocks;
 use App\Models\Typeventes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -175,7 +177,6 @@ class AjaxController extends Controller
 
     public function check_position_utilisateur_poste(Request $request)
     {
-
         $poste_code = base64_decode($request->poste_code);
         $matricule = $request->matricule;
         $postes = Postes::where('code', $poste_code)->first();
@@ -190,7 +191,9 @@ class AjaxController extends Controller
         $pointB = ['lat' =>$latitude_p, 'lon' => $longitude_p]; // Trocadéro
 
         $distance = $this->getDistanceMetres($pointE['lat'], $pointE['lon'], $pointB['lat'], $pointB['lon']);
-        $seuil = 100; // 50 mètres
+        $seuil = 150; // 50 mètres
+
+        // $distance <= $seuil
 
         if ($distance <= $seuil)
         {
@@ -198,7 +201,8 @@ class AjaxController extends Controller
         }
         else
         {
-            return response()->json([[0]]);
+            // Else // loin du poste
+            return response()->json([[1]]);
         }
     }
 
@@ -206,6 +210,7 @@ class AjaxController extends Controller
 
     public function control(Request $request)
     {
+        date_default_timezone_set('Africa/Lubumbashi');
         $poste_id = Auth::user()->poste_id;
         $data = Postes::where('id',  $poste_id)->first();
 
@@ -213,12 +218,26 @@ class AjaxController extends Controller
         $matricule = Auth::user()->matricule;
         $postes = Postes::where('code', $poste_code)->first();
         $users = User::where('matricule', $matricule)->first();
-
-        $details = Prestations::where('poste_id', $postes->id)->latest()->first()['details'];
-        $prestations = json_decode($details, true);
+        $moi_id = 0;
+        $annee_id = 0;
 
         $date_arrrive =  date("Y-m-d");
-        date_default_timezone_set('Africa/Lubumbashi');
+
+        if(Mois::where(['num' => explode("-", $date_arrrive)[1]])->get()->count() != 0)
+        {
+            $moi_id = Mois::where(['num' => explode("-", $date_arrrive)[1]])->first()["id"];
+        }
+
+        if(Annees::where(['annees' => explode("-", $date_arrrive)[0]])->get()->count() != 0)
+        {
+            $annee_id = Annees::where(['annees' => explode("-", $date_arrrive)[0]])->first()["id"];
+        }
+
+
+        $details = Prestations::where(['poste_id' => $postes->id, "moi_id" => $moi_id, "annee_id" => $annee_id])->first()['details'];
+        $prestations = json_decode($details, true);
+
+
         $heure = date("H:i");
         $heure = str_replace(':', 'h', $heure);
         $horaire = "";
@@ -233,8 +252,9 @@ class AjaxController extends Controller
         $pointE = ['lat' => $latitude_u, 'lon' => $longitude_u];
         $pointB = ['lat' => $latitude_p, 'lon' => $longitude_p];
         $distance = $this->getDistanceMetres($pointE['lat'], $pointE['lon'], $pointB['lat'], $pointB['lon']);
-        $seuil = 50;
-        $prestations_details_save = Prestations::where('poste_id', $postes->id)->first();
+        $seuil = 150;
+        $prestations_details_save = Prestations::where(['poste_id' => $postes->id, "moi_id" => $moi_id, "annee_id" => $annee_id])->first();
+        $valeur_de_retour = 0;
 
         foreach ($prestations as $ligne)
         {
@@ -254,152 +274,177 @@ class AjaxController extends Controller
 
         if($programme == 0)
         {
-            return response()->json([[0]]);
+            $valeur_de_retour = 0;
         }
         else
         {
             if($repos != 0)
             {
-                return response()->json([[0]]);
+                $valeur_de_retour = 0;
             }
             else
             {
                 $res = $this->check_times($heure, $horaire);
                 if ($res == 0)
                 {
-                    return response()->json([[0]]);
+                    $valeur_de_retour = 0;
                 }
                 else
                 {
-                    if ($distance > $seuil)
+                    // $distance > $seuil
+                    if (1 == 2)
                     {
-                        return response()->json([[1]]);
+                        $valeur_de_retour = 1;
                     }
                     else
                     {
-                        $entree = $ligne['pointages']['entree'];
-                        $ronde_a_1 = $ligne['pointages']['ronde_a_1'];
-                        $ronde_a_2 = $ligne['pointages']['ronde_a_2'];
-                        $ronde_a_3 = $ligne['pointages']['ronde_a_3'];
-                        $sortie = $ligne['pointages']['sortie'];
-
-                        if($entree["etat"] == 0)
+                        foreach ($prestations as &$ligne)
                         {
-                            return response()->json([[2]]);
-                        }
-                        else
-                        {
-                            if((strlen(trim($ronde_a_1["heure_debut"])) == 0) || (strlen(trim($ronde_a_1["duree_fin"])) == 0))
-                            {
-                                return response()->json([[3]]);
-                            }
-                            else
+                            if((($ligne['date']) == ($date_arrrive)) && ($ligne['user_id'] == $users->id))
                             {
 
-                                if($this->check_times_1($heure,'"' . $ronde_a_1['heure_debut'] . ' - ' . $ronde_a_1['heure_fin']) == 1)
+                                $entree = $ligne['pointages']['entree'];
+                                $ronde_a_1 = $ligne['pointages']['ronde_a_1'];
+                                $ronde_a_2 = $ligne['pointages']['ronde_a_2'];
+                                $ronde_a_3 = $ligne['pointages']['ronde_a_3'];
+                                $sortie = $ligne['pointages']['sortie'];
+                                if($entree["etat"] == 0)
                                 {
-                                    return response()->json([[4]]);
+                                    $valeur_de_retour = 2;
                                 }
                                 else
                                 {
-                                    if($this->check_times_2($heure,'"' . $ronde_a_1['heure_debut'] . ' - ' . $ronde_a_1['heure_fin']) == 1)
+                                    if((strlen(trim($ronde_a_1["heure_debut"])) == 0) && (strlen(trim($ronde_a_1["duree_fin"])) == 0))
                                     {
-                                        return response()->json([[5]]);
+                                        $valeur_de_retour = 3;
                                     }
                                     else
                                     {
-                                        if($this->check_times_3($heure,'"' . $ronde_a_1['heure_debut'] . ' - ' . $ronde_a_1['heure_fin']) == 1)
+                                        if($this->check_times_1($heure, $ronde_a_1['heure_debut'] . ' - ' . $ronde_a_1['heure_fin']) == 1)
                                         {
-                                            $ronde_a_1["etat"] = 1;
-                                            $prestations_details_save->details = json_encode($prestations, JSON_UNESCAPED_UNICODE);
-                                            $prestations_details_save->save();
-                                            return response()->json([[6]]);
+                                            $valeur_de_retour = 4;
                                         }
                                         else
                                         {
-                                            if($ronde_a_1["etat"] == 0)
+                                            if($this->check_times_2($heure, $ronde_a_1['heure_debut'] . ' - ' . $ronde_a_1['heure_fin']) == 1 && $ronde_a_1["etat"] == 0)
                                             {
-                                                return response()->json([[7]]);
+                                                $valeur_de_retour = 5;
                                             }
                                             else
                                             {
-                                                // ========== CONTINUATION POUR RONDE_A_2, RONDE_A_3 ET SORTIE ==========
-                                                // Ronde A 2
-                                                if((strlen(trim($ronde_a_2["heure_debut"])) == 0) || (strlen(trim($ronde_a_2["duree_fin"])) == 0))
+                                                if($this->check_times_3($heure, $ronde_a_1['heure_debut'] . ' - ' . $ronde_a_1['heure_fin']) == 1 && $ronde_a_1["etat"] == 0)
                                                 {
-                                                    return response()->json([[8]]);
+                                                    $ligne['pointages']['ronde_a_1']['etat'] = 1;
+                                                    $ligne['pointages']['ronde_a_1']['longitude'] = $request->longitude;
+                                                    $ligne['pointages']['ronde_a_1']['resultat']['image'] = $users->image;
+                                                    $ligne['pointages']['ronde_a_1']['capture_1'] = $users->image;
+                                                    $ligne['pointages']['ronde_a_1']['capture_2'] = "./storage/images/user/visage_par_defaut.png";
+                                                    $ligne['pointages']['ronde_a_1']['heure_recu'] = $ronde_a_1['heure_debut'];
+                                                    $ligne['pointages']['ronde_a_1']['heure_reponse'] = $heure;
+                                                    $ligne['pointages']['ronde_a_1']['latitude'] = $request->latitude;
+                                                    $ligne['pointages']['ronde_a_1']['duree_reponse'] = 0;
+                                                    $valeur_de_retour = 6;
                                                 }
                                                 else
                                                 {
-                                                    if($this->check_times_1($heure,'"' . $ronde_a_2['heure_debut'] . ' - ' . $ronde_a_2['heure_fin']) == 1)
+                                                    if($ronde_a_1["etat"] == 0)
                                                     {
-                                                        return response()->json([[9]]);
+                                                        $valeur_de_retour = 7;
                                                     }
                                                     else
                                                     {
-                                                        if($this->check_times_2($heure,'"' . $ronde_a_2['heure_debut'] . ' - ' . $ronde_a_2['heure_fin']) == 1)
+                                                        // ========== CONTINUATION POUR RONDE_A_2, RONDE_A_3 ET SORTIE ==========
+                                                        // Ronde A 2
+                                                        if((strlen(trim($ronde_a_2["heure_debut"])) == 0) && (strlen(trim($ronde_a_2["duree_fin"])) == 0))
                                                         {
-                                                            return response()->json([[10]]);
+                                                            $valeur_de_retour = 8;
                                                         }
                                                         else
                                                         {
-                                                            if($this->check_times_3($heure,'"' . $ronde_a_2['heure_debut'] . ' - ' . $ronde_a_2['heure_fin']) == 1)
+                                                            if($this->check_times_1($heure, $ronde_a_2['heure_debut'] . ' - ' . $ronde_a_2['heure_fin']) == 1)
                                                             {
-                                                                $ronde_a_2["etat"] = 1;
-                                                                $prestations_details_save->details = json_encode($prestations, JSON_UNESCAPED_UNICODE);
-                                                                $prestations_details_save->save();
-                                                                return response()->json([[11]]);
+                                                                $valeur_de_retour = 9;
                                                             }
                                                             else
                                                             {
-                                                                if($ronde_a_2["etat"] == 0)
+                                                                if($this->check_times_2($heure, $ronde_a_2['heure_debut'] . ' - ' . $ronde_a_2['heure_fin']) == 1 && $ronde_a_2["etat"] == 0)
                                                                 {
-                                                                    return response()->json([[12]]);
+                                                                    $valeur_de_retour = 10;
                                                                 }
                                                                 else
                                                                 {
-                                                                    // Ronde A 3
-                                                                    if((strlen(trim($ronde_a_3["heure_debut"])) == 0) || (strlen(trim($ronde_a_3["duree_fin"])) == 0))
+                                                                    if($this->check_times_3($heure, $ronde_a_2['heure_debut'] . ' - ' . $ronde_a_2['heure_fin']) == 1 && $ronde_a_2["etat"] == 0)
                                                                     {
-                                                                        return response()->json([[13]]);
+                                                                        $ligne['pointages']['ronde_a_2']["etat"] = 1;
+                                                                        $ligne['pointages']['ronde_a_2']['longitude'] = $request->longitude;
+                                                                        $ligne['pointages']['ronde_a_2']['resultat']['image'] = $users->image;
+                                                                        $ligne['pointages']['ronde_a_2']['capture_1'] = $users->image;
+                                                                        $ligne['pointages']['ronde_a_2']['capture_2'] = "./storage/images/user/visage_par_defaut.png";
+                                                                        $ligne['pointages']['ronde_a_2']['heure_recu'] = $ronde_a_2['heure_debut'];
+                                                                        $ligne['pointages']['ronde_a_2']['heure_reponse'] = $heure;
+                                                                        $ligne['pointages']['ronde_a_2']['duree_fin'] = $this->dureeEnMinutes($ronde_a_2['heure_debut'], $ronde_a_2['heure_fin']);
+                                                                        $ligne['pointages']['ronde_a_2']['latitude'] = $request->latitude;
+                                                                        $ligne['pointages']['ronde_a_2']['duree_reponse'] = 0;
+                                                                        $valeur_de_retour = 11;
                                                                     }
                                                                     else
                                                                     {
-                                                                        if($this->check_times_1($heure,'"' . $ronde_a_3['heure_debut'] . ' - ' . $ronde_a_3['heure_fin']) == 1)
+                                                                        if($ronde_a_2["etat"] == 0)
                                                                         {
-                                                                            return response()->json([[14]]);
+                                                                            $valeur_de_retour = 12;
                                                                         }
                                                                         else
                                                                         {
-                                                                            if($this->check_times_2($heure,'"' . $ronde_a_3['heure_debut'] . ' - ' . $ronde_a_3['heure_fin']) == 1)
+                                                                            // Ronde A 3
+                                                                            if((strlen(trim($ronde_a_3["heure_debut"])) == 0) && (strlen(trim($ronde_a_3["duree_fin"])) == 0))
                                                                             {
-                                                                                return response()->json([[15]]);
+                                                                                $valeur_de_retour = 13;
                                                                             }
                                                                             else
                                                                             {
-                                                                                if($this->check_times_3($heure,'"' . $ronde_a_3['heure_debut'] . ' - ' . $ronde_a_3['heure_fin']) == 1)
+                                                                                if($this->check_times_1($heure, $ronde_a_3['heure_debut'] . ' - ' . $ronde_a_3['heure_fin']) == 1)
                                                                                 {
-                                                                                    $ronde_a_3["etat"] = 1;
-                                                                                    $prestations_details_save->details = json_encode($prestations, JSON_UNESCAPED_UNICODE);
-                                                                                    $prestations_details_save->save();
-                                                                                    return response()->json([[16]]);
+                                                                                    $valeur_de_retour = 14;
                                                                                 }
                                                                                 else
                                                                                 {
-                                                                                    if($ronde_a_3["etat"] == 0)
+                                                                                    if($this->check_times_2($heure, $ronde_a_3['heure_debut'] . ' - ' . $ronde_a_3['heure_fin']) == 1 && $ronde_a_3["etat"] == 0)
                                                                                     {
-                                                                                        return response()->json([[17]]);
+                                                                                        $valeur_de_retour = 15;
                                                                                     }
                                                                                     else
                                                                                     {
-                                                                                        // Sortie
-                                                                                        if($this->check_times_4($heure, $horaire) == 1)
+                                                                                        if($this->check_times_3($heure, $ronde_a_3['heure_debut'] . ' - ' . $ronde_a_3['heure_fin']) == 1 && $ronde_a_3["etat"] == 0)
                                                                                         {
-                                                                                            return response()->json([[18]]);
+                                                                                            $ligne['pointages']['ronde_a_3']["etat"] = 1;
+                                                                                            $ligne['pointages']['ronde_a_3']['longitude'] = $request->longitude;
+                                                                                            $ligne['pointages']['ronde_a_3']['resultat']['image'] = $users->image;
+                                                                                            $ligne['pointages']['ronde_a_3']['capture_1'] = $users->image;
+                                                                                            $ligne['pointages']['ronde_a_3']['capture_2'] = "./storage/images/user/visage_par_defaut.png";
+                                                                                            $ligne['pointages']['ronde_a_3']['heure_recu'] = $ronde_a_3['heure_debut'];
+                                                                                            $ligne['pointages']['ronde_a_3']['heure_reponse'] = $heure;
+                                                                                            $ligne['pointages']['ronde_a_3']['latitude'] = $request->latitude;
+                                                                                            $ligne['pointages']['ronde_a_3']['duree_reponse'] = 0;
+                                                                                            $valeur_de_retour = 16;
                                                                                         }
                                                                                         else
                                                                                         {
-                                                                                            return response()->json([[19]]);
+                                                                                            if($ronde_a_3["etat"] == 0)
+                                                                                            {
+                                                                                                $valeur_de_retour = 17;
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                                // Sortie
+                                                                                                if($this->check_times_4($heure, $horaire) == 1 && $sortie["etat"] == 0)
+                                                                                                {
+                                                                                                    $valeur_de_retour = 18;
+                                                                                                }
+                                                                                                else
+                                                                                                {
+                                                                                                    $valeur_de_retour = 19;
+                                                                                                }
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                 }
@@ -417,13 +462,18 @@ class AjaxController extends Controller
                                 }
                             }
                         }
+                        unset($ligne);
                     }
                 }
             }
         }
+        $prestations_details_save->details = json_encode($prestations, JSON_UNESCAPED_UNICODE);
+        $prestations_details_save->save();
+        return response()->json([[$valeur_de_retour]]);
     }
     public function envoyer_alerte(Request $request)
     {
+        date_default_timezone_set('Africa/Lubumbashi');
         $poste_id = Auth::user()->poste_id;
         $data = Postes::where('id',  $poste_id)->first();
 
@@ -448,6 +498,7 @@ class AjaxController extends Controller
 
     public function confirm_presence(Request $request)
     {
+        date_default_timezone_set('Africa/Lubumbashi');
         $poste_id = Auth::user()->poste_id;
         $data = Postes::where('id',  $poste_id)->first();
 
@@ -456,11 +507,25 @@ class AjaxController extends Controller
         $postes = Postes::where('code', $poste_code)->first();
         $users = User::where('matricule', $matricule)->first();
 
-        $details = Prestations::where('poste_id', $postes->id)->latest()->first()['details'];
-        $prestations = json_decode($details, true);
+        $moi_id = 0;
+        $annee_id = 0;
 
         $date_arrrive =  date("Y-m-d");
-        date_default_timezone_set('Africa/Lubumbashi');
+
+        if(Mois::where(['num' => explode("-", $date_arrrive)[1]])->get()->count() != 0)
+        {
+            $moi_id = Mois::where(['num' => explode("-", $date_arrrive)[1]])->first()["id"];
+        }
+
+        if(Annees::where(['annees' => explode("-", $date_arrrive)[0]])->get()->count() != 0)
+        {
+            $annee_id = Annees::where(['annees' => explode("-", $date_arrrive)[0]])->first()["id"];
+        }
+
+
+        $details = Prestations::where(['poste_id' => $postes->id, "moi_id" => $moi_id, "annee_id" => $annee_id])->first()['details'];
+        $prestations = json_decode($details, true);
+
         $heure = date("H:i");
         $heure = str_replace(':', 'h', $heure);
         $horaire = "";
@@ -475,8 +540,9 @@ class AjaxController extends Controller
         $pointE = ['lat' => $latitude_u, 'lon' => $longitude_u];
         $pointB = ['lat' => $latitude_p, 'lon' => $longitude_p];
         $distance = $this->getDistanceMetres($pointE['lat'], $pointE['lon'], $pointB['lat'], $pointB['lon']);
-        $seuil = 50;
-        $prestations_details_save = Prestations::where('poste_id', $postes->id)->first();
+        $seuil = 150;
+        $prestations_details_save = Prestations::where(['poste_id' => $postes->id, "moi_id" => $moi_id, "annee_id" => $annee_id])->first();
+        $valeur_de_retour = 0;
 
         foreach ($prestations as $ligne)
         {
@@ -496,52 +562,215 @@ class AjaxController extends Controller
 
         if($programme == 0)
         {
-            return response()->json([[0]]);
+            $valeur_de_retour = 0;
         }
         else
         {
             if($repos != 0)
             {
-                return response()->json([[0]]);
+                $valeur_de_retour = 0;
             }
             else
             {
                 $res = $this->check_times($heure, $horaire);
                 if ($res == 0)
                 {
-                    return response()->json([[0]]);
+                    $valeur_de_retour = 0;
                 }
                 else
                 {
-                    if ($distance > $seuil)
+                    // $distance > $seuil
+                    if (1 == 2)
                     {
-                        return response()->json([[1]]);
+                        $valeur_de_retour = 1;
                     }
                     else
                     {
-                        $entree = $ligne['pointages']['entree'];
-                        $ronde_a_1 = $ligne['pointages']['ronde_a_1'];
-                        $ronde_a_2 = $ligne['pointages']['ronde_a_2'];
-                        $ronde_a_3 = $ligne['pointages']['ronde_a_3'];
-                        $sortie = $ligne['pointages']['sortie'];
-
-                        if($entree["etat"] == 0)
+                        foreach ($prestations as &$ligne)
                         {
-                            // Gestion entrée
-                            return response()->json([[2]]);
-                        }
-                        else
-                        {
+                            if(($ligne['date'] == $date_arrrive) && ($ligne['user_id'] == $users->id))
+                            {
+                                $entree = $ligne['pointages']['entree'];
+                                $ronde_a_1 = $ligne['pointages']['ronde_a_1'];
+                                $ronde_a_2 = $ligne['pointages']['ronde_a_2'];
+                                $ronde_a_3 = $ligne['pointages']['ronde_a_3'];
+                                $sortie = $ligne['pointages']['sortie'];
+                                if($entree["etat"] == 0)
+                                {
+                                    // Gestion entrée
+                                    $ligne['pointages']['entree']['etat'] = 1;
+                                    $ligne['pointages']['entree']['heure'] = $heure;
+                                    $ligne['pointages']['entree']['resultat']['etat'] = 1;
+                                    $ligne['pointages']['entree']['resultat']['image'] = $request->url2;
+                                    $ligne['pointages']['entree']['capture_1'] = $request->url1;
+                                    $ligne['pointages']['entree']['capture_2'] = $request->url2;
+                                    $ligne['pointages']['entree']['longitude'] = $request->longitude;
+                                    $ligne['pointages']['entree']['latitude'] = $request->latitude;
+                                    $valeur_de_retour = 2;
+                                }
+                                else
+                                {
+                                   if((strlen(trim($ronde_a_1["heure_debut"])) == 0) && (strlen(trim($ronde_a_1["duree_fin"])) == 0))
+                                    {
+                                        $valeur_de_retour = 3;
+                                    }
+                                    else
+                                    {
 
+                                        if($this->check_times_1($heure, $ronde_a_1['heure_debut'] . ' - ' . $ronde_a_1['heure_fin']) == 1 && $ronde_a_1["etat"] == 0)
+                                        {
+                                            $valeur_de_retour = 4;
+                                        }
+                                        if(($this->check_times_2($heure, $ronde_a_1['heure_debut'] . ' - ' . $ronde_a_1['heure_fin']) == 1) && ($ronde_a_1["etat"] == 0))
+                                        {
+                                            // Save ronde 1
+                                            $valeur_de_retour = 5;
+                                            $ligne['pointages']['ronde_a_1']['etat'] = 1;
+                                            $ligne['pointages']['ronde_a_1']['longitude'] = $request->longitude;
+                                            $ligne['pointages']['ronde_a_1']['resultat']['etat'] = 1;
+                                            $ligne['pointages']['ronde_a_1']['resultat']['image'] = $request->url2;
+                                            $ligne['pointages']['ronde_a_1']['capture_1'] = $request->url1;
+                                            $ligne['pointages']['ronde_a_1']['capture_2'] = $request->url2;
+                                            $ligne['pointages']['ronde_a_1']['heure_recu'] = $ronde_a_1['heure_debut'];
+                                            $ligne['pointages']['ronde_a_1']['heure_reponse'] = $heure;
+                                            $ligne['pointages']['ronde_a_1']['latitude'] = $request->latitude;
+                                            $ligne['pointages']['ronde_a_1']['duree_reponse'] = $this->dureeEnMinutes($ronde_a_1['heure_debut'], $heure);
+                                        }
+                                        else
+                                        {
+                                            if($ronde_a_1["etat"] == 0)
+                                            {
+                                                $valeur_de_retour = 7;
+                                            }
+                                            else
+                                            {
+                                                // ========== CONTINUATION POUR RONDE_A_2, RONDE_A_3 ET SORTIE ==========
+                                                // Ronde A 2
+                                                if((strlen(trim($ronde_a_2["heure_debut"])) == 0) && (strlen(trim($ronde_a_2["duree_fin"])) == 0))
+                                                {
+                                                    $valeur_de_retour = 8;
+                                                }
+                                                else
+                                                {
+                                                    if($this->check_times_1($heure, $ronde_a_2['heure_debut'] . ' - ' . $ronde_a_2['heure_fin']) == 1 && $ronde_a_2["etat"] == 0)
+                                                    {
+                                                        $valeur_de_retour = 9;
+                                                    }
+                                                    else
+                                                    {
+                                                        if($this->check_times_2($heure, $ronde_a_2['heure_debut'] . ' - ' . $ronde_a_2['heure_fin']) == 1 && ($ronde_a_2["etat"] == 0))
+                                                        {
+                                                            // Save ronde 2
+                                                            $valeur_de_retour = 10;
+                                                            $ligne['pointages']['ronde_a_2']['etat'] = 1;
+                                                            $ligne['pointages']['ronde_a_2']['longitude'] = $request->longitude;
+                                                            $ligne['pointages']['ronde_a_2']['resultat']['etat'] = 1;
+                                                            $ligne['pointages']['ronde_a_2']['resultat']['image'] = $request->url2;
+                                                            $ligne['pointages']['ronde_a_2']['capture_1'] = $request->url1;
+                                                            $ligne['pointages']['ronde_a_2']['capture_2'] = $request->url2;
+                                                            $ligne['pointages']['ronde_a_2']['heure_recu'] = $ronde_a_2['heure_debut'];
+                                                            $ligne['pointages']['ronde_a_2']['heure_reponse'] = $heure;
+                                                            $ligne['pointages']['ronde_a_2']['latitude'] = $request->latitude;
+                                                            $ligne['pointages']['ronde_a_2']['duree_reponse'] = $this->dureeEnMinutes($ronde_a_2['heure_debut'], $heure);
+                                                        }
+                                                        else
+                                                        {
+                                                            if($ronde_a_2["etat"] == 0)
+                                                            {
+                                                                $valeur_de_retour = 12;
+                                                            }
+                                                            else
+                                                            {
+                                                                // Ronde A 3
+                                                                if((strlen(trim($ronde_a_3["heure_debut"])) == 0) && (strlen(trim($ronde_a_3["duree_fin"])) == 0))
+                                                                {
+                                                                    $valeur_de_retour = 13;
+                                                                }
+                                                                else
+                                                                {
+                                                                    if($this->check_times_1($heure, $ronde_a_3['heure_debut'] . ' - ' . $ronde_a_3['heure_fin']) == 1 && $ronde_a_3["etat"] == 0)
+                                                                    {
+                                                                        $valeur_de_retour = 14;
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        if($this->check_times_2($heure, $ronde_a_3['heure_debut'] . ' - ' . $ronde_a_3['heure_fin']) == 1 && $ronde_a_3["etat"] == 0)
+                                                                        {
+                                                                            // Save ronde 3
+                                                                            $valeur_de_retour = 15;
+                                                                            $ligne['pointages']['ronde_a_3']['etat'] = 1;
+                                                                            $ligne['pointages']['ronde_a_3']['longitude'] = $request->longitude;
+                                                                            $ligne['pointages']['ronde_a_3']['resultat']['etat'] = 1;
+                                                                            $ligne['pointages']['ronde_a_3']['resultat']['image'] = $request->url2;
+                                                                            $ligne['pointages']['ronde_a_3']['capture_1'] = $request->url1;
+                                                                            $ligne['pointages']['ronde_a_3']['capture_2'] = $request->url2;
+                                                                            $ligne['pointages']['ronde_a_3']['heure_recu'] = $ronde_a_3['heure_debut'];
+                                                                            $ligne['pointages']['ronde_a_3']['heure_reponse'] = $heure;
+                                                                            $ligne['pointages']['ronde_a_3']['latitude'] = $request->latitude;
+                                                                            $ligne['pointages']['ronde_a_3']['duree_reponse'] = $this->dureeEnMinutes($ronde_a_3['heure_debut'], $heure);
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            if($this->check_times_3($heure, $ronde_a_3['heure_debut'] . ' - ' . $ronde_a_3['heure_fin']) == 1)
+                                                                            {
+                                                                                $valeur_de_retour = 16;
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                if($ronde_a_3["etat"] == 0)
+                                                                                {
+                                                                                    $valeur_de_retour = 17;
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    // Sortie
+                                                                                    if($this->check_times_4($heure, $horaire) == 1 && $sortie["etat"] == 0)
+                                                                                    {
+                                                                                        $valeur_de_retour = 18;
+                                                                                        $ligne['pointages']['sortie']['etat'] = 1;
+                                                                                        $ligne['pointages']['sortie']['heure'] = $heure;
+                                                                                        $ligne['pointages']['sortie']['resultat']['etat'] = 1;
+                                                                                        $ligne['pointages']['sortie']['resultat']['image'] = $request->url2;
+                                                                                        $ligne['pointages']['sortie']['capture_1'] = $request->url1;
+                                                                                        $ligne['pointages']['sortie']['capture_2'] = $request->url2;
+                                                                                        $ligne['pointages']['sortie']['longitude'] = $request->longitude;
+                                                                                        $ligne['pointages']['sortie']['latitude'] = $request->latitude;
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        $valeur_de_retour = 19;
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
+                        unset($ligne); // Supprime la référence
                     }
                 }
             }
         }
+        $prestations_details_save->details = json_encode($prestations, JSON_UNESCAPED_UNICODE);
+        $prestations_details_save->save();
+        return response()->json([[$valeur_de_retour]]);
+
     }
 
     public function check_horaire_poste(Request $request)
     {
+        // Définir le fuseau horaire de Lubumbashi
+        date_default_timezone_set('Africa/Lubumbashi');
+
         $poste_code = base64_decode($request->poste_code);
         $matricule = $request->matricule;
         $postes = Postes::where('code', $poste_code)->first();
@@ -550,14 +779,26 @@ class AjaxController extends Controller
         $longitude_u = $request->longitude;
         $latitude_p = $postes->latitude;
         $longitude_p = $postes->longitude;
+        $moi_id = 0;
+        $annee_id = 0;
 
+        $date_arrrive =  date("Y-m-d");
 
-        $details = Prestations::where('poste_id', $postes->id)->latest()->first()['details'];
+        if(Mois::where(['num' => explode("-", $date_arrrive)[1]])->get()->count() != 0)
+        {
+            $moi_id = Mois::where(['num' => explode("-", $date_arrrive)[1]])->first()["id"];
+        }
+
+        if(Annees::where(['annees' => explode("-", $date_arrrive)[0]])->get()->count() != 0)
+        {
+            $annee_id = Annees::where(['annees' => explode("-", $date_arrrive)[0]])->first()["id"];
+        }
+
+        $details = Prestations::where(['poste_id' => $postes->id, "moi_id" => $moi_id, "annee_id" => $annee_id])->first()['details'];
+        $prestation = Prestations::where(['poste_id' => $postes->id, "moi_id" => $moi_id, "annee_id" => $annee_id])->first();
 
         $prestations = json_decode($details, true);
-        $date_arrrive =  date("Y-m-d");
-        // Définir le fuseau horaire de Lubumbashi
-        date_default_timezone_set('Africa/Lubumbashi');
+
 
         $heure = date("H:i");
         $heure = str_replace(':', 'h', $heure);
@@ -565,6 +806,8 @@ class AjaxController extends Controller
 
         $programme = 0;
         $repos = 0;
+
+
         foreach ($prestations as $ligne)
         {
             if((($ligne['date']) == ($date_arrrive)) && ($ligne['user_id'] == $users->id))
@@ -596,12 +839,41 @@ class AjaxController extends Controller
                 $res = $this->verifierArrivee($heure, $horaire);
                 if ($res['code'] == 1 || $res['code'] == 2)
                 {
+                    $rondes = $this->rondeStrategique($heure, trim(explode("-", $horaire)[1]), 15, 3);
+                    foreach ($prestations as &$ligne) {
+                        if (($ligne['date'] == $date_arrrive) && ($ligne['user_id'] == $users->id)) {
+                            // S'assurer que 'pointages' existe
+                            if (!isset($ligne['pointages']))
+                            {
+                                $ligne['pointages'] = [];
+                            }
+                            if(strlen(trim($ligne['pointages']['ronde_a_1']["heure_debut"])) == 0)
+                            {
+                                for ($i = 0; $i <= 2; $i++)
+                                {
+                                    $key = 'ronde_a_' . ($i + 1);
+                                    if (!isset($ligne['pointages'][$key]))
+                                    {
+                                        $ligne['pointages'][$key] = [];
+                                    }
+                                    $ligne['pointages'][$key]['heure_debut'] = $rondes[$i]["debut"];
+                                    $ligne['pointages'][$key]['heure_fin'] = $rondes[$i]["fin"];
+                                    $ligne['pointages'][$key]["duree_fin"] = 15;
+                                }
+                            }
+                        }
+                    }
+                    unset($ligne);
+
+                    $prestation->details = json_encode($prestations, JSON_UNESCAPED_UNICODE);
+                    $prestation->save();
+
                     Auth::login($users);
                     $user = User::where('id',  $users->id)->first();
                     $user->module_connected = 2;
                     $user->save();
                     $request->session()->regenerate();
-                    return response()->json([["reponse" => 1, "messaage" => $res['message']]]);
+                    return response()->json([["reponse" => 1, "messaage" => $res['message'], "rondes" => $rondes, "date_arrrive" => $date_arrrive]]);
                 } else
                 {
                     return response()->json([["reponse" => 0, "messaage" => $res['message']]]);
@@ -633,12 +905,14 @@ class AjaxController extends Controller
 
     public function verifierArrivee($heureArrivee, $plageTravail)
     {
-        $toleranceAvance = 60;
-        $toleranceRetard = 500;
+        // --- Tolérances (à ajuster selon votre politique) ---
+        $toleranceAvance = 2880;   // minutes d'avance maximum autorisées
+        $toleranceRetard = 2880;   // minutes de retard maximum autorisées (après la fin)
 
-        // Convertit "HHhMM", "HH:MM" ou "HHMM" en minutes depuis minuit
+        // --- Convertit les heures en minutes depuis minuit ---
         $toMinutes = function($heure) {
             $heure = strtoupper(str_replace(['H', 'h'], ':', $heure));
+            // Si le format est "HHMM" (sans séparateur) -> "HH:MM"
             if (strpos($heure, ':') === false && strlen($heure) == 4) {
                 $heure = substr($heure, 0, 2) . ':' . substr($heure, 2, 2);
             }
@@ -654,15 +928,21 @@ class AjaxController extends Controller
         $debut = $toMinutes(trim($debutStr));
         $fin   = $toMinutes(trim($finStr));
 
-        // Gestion des plages qui traversent minuit
+        // --- Gestion des plages qui traversent minuit ---
         if ($fin >= $debut) {
-            $finEtendue = $fin;
+            // Plage sur la même journée
+            $debutEtendue = $debut;
+            $finEtendue   = $fin;
             $arriveeEtendue = $arrivee;
         } else {
-            $finEtendue = $fin + 1440;
-            $arriveeEtendue = ($arrivee <= $fin) ? $arrivee + 1440 : $arrivee;
+            // Plage qui enjambe minuit (ex: 22h00-02h00)
+            $debutEtendue = $debut;
+            $finEtendue   = $fin + 1440; // +24h
+            // Si l'arrivée est avant le début, on la décale au lendemain
+            $arriveeEtendue = ($arrivee < $debut) ? $arrivee + 1440 : $arrivee;
         }
 
+        // --- Résultat par défaut ---
         $resultat = [
             'code'    => 0,
             'statut'  => '',
@@ -670,42 +950,83 @@ class AjaxController extends Controller
             'message' => ''
         ];
 
-        // Arrivée après l'heure de fin ?
-        if ($arriveeEtendue >= $finEtendue) {
+        // ------------------------------------------------------------
+        // 1. Vérifier si l'arrivée est trop tardive (après la fin + tolérance)
+        // ------------------------------------------------------------
+        if ($arriveeEtendue > $finEtendue + $toleranceRetard) {
             $resultat['code'] = 3;
-            $resultat['statut'] = 'refuse_hors_plage';
+            $resultat['statut'] = 'refuse_trop_tard';
             $resultat['ecart'] = $arriveeEtendue - $finEtendue;
-            $resultat['message'] = "Arrivée après la fin de la plage. Accès refusé.";
+            $resultat['message'] = "Arrivée trop tardive (après la fin de plage + tolérance de {$toleranceRetard} min). Refusé.";
             return $resultat;
         }
 
-        $ecartDebut = $arriveeEtendue - $debut;
-
-        if ($ecartDebut < -$toleranceAvance) {
+        // ------------------------------------------------------------
+        // 2. Vérifier si l'arrivée est trop en avance (avant début - tolérance)
+        // ------------------------------------------------------------
+        if ($arriveeEtendue < $debutEtendue - $toleranceAvance)
+        {
             $resultat['code'] = 3;
-            $resultat['statut'] = 'refuse_avance_large';
-            $resultat['ecart'] = abs($ecartDebut);
-            $resultat['message'] = "Avance trop large (" . abs($ecartDebut) . " min > {$toleranceAvance} min). Refusé.";
-        } elseif ($ecartDebut < 0) {
+            $resultat['statut'] = 'refuse_trop_avance';
+            $resultat['ecart'] = $debutEtendue - $arriveeEtendue;
+            $resultat['message'] = "Arrivée trop en avance (avant le début de plage - tolérance de {$toleranceAvance} min). Refusé.";
+            return $resultat;
+        }
+
+        // ------------------------------------------------------------
+        // 3. Arrivée dans la zone de tolérance → on détaille le statut
+        // ------------------------------------------------------------
+        $ecartDebut = $arriveeEtendue - $debutEtendue;
+
+        if ($ecartDebut < 0) {
+            // Avance (avant le début) mais dans la tolérance
             $resultat['code'] = 1;
             $resultat['statut'] = 'avance_acceptable';
             $resultat['ecart'] = abs($ecartDebut);
             $resultat['message'] = "Avance acceptable de " . abs($ecartDebut) . " minute(s).";
-        } elseif ($ecartDebut <= $toleranceRetard) {
-            $resultat['code'] = 2;
-            $resultat['statut'] = 'present';
-            $resultat['ecart'] = $ecartDebut;
-            $resultat['message'] = $ecartDebut == 0
-                ? "À l'heure. Présent dans la plage."
-                : "Retard acceptable de {$ecartDebut} minute(s).";
         } else {
-            $resultat['code'] = 3;
-            $resultat['statut'] = 'refuse_retard_large';
-            $resultat['ecart'] = $ecartDebut;
-            $resultat['message'] = "Retard trop large ({$ecartDebut} min > {$toleranceRetard} min). Refusé.";
+            // Arrivée après le début (ou à l'heure)
+            if ($arriveeEtendue <= $finEtendue) {
+                // Dans la plage horaire (ou juste à la fin)
+                $resultat['code'] = 2;
+                $resultat['statut'] = 'present';
+                $resultat['ecart'] = $ecartDebut;
+                $resultat['message'] = $ecartDebut == 0
+                    ? "À l'heure. Présent dans la plage."
+                    : "Retard acceptable de {$ecartDebut} minute(s) (dans la plage).";
+            } else {
+                // Arrivée après la fin, mais dans la tolérance de retard
+                $resultat['code'] = 2;   // ou 4 si vous voulez un statut distinct
+                $resultat['statut'] = 'retard_acceptable_apres_fin';
+                $resultat['ecart'] = $arriveeEtendue - $finEtendue;
+                $resultat['message'] = "Retard après la fin de plage, mais dans la tolérance de "
+                                    . ($arriveeEtendue - $finEtendue) . " min. Accepté.";
+            }
         }
 
         return $resultat;
+    }
+
+    function dureeEnMinutes($debut, $fin) {
+        // Conversion heure → minutes (0-1440)
+        $enMinutes = function($heure) {
+            $heure = strtoupper(str_replace(['H', 'h'], ':', $heure));
+            if (strpos($heure, ':') === false && strlen($heure) == 4) {
+                $heure = substr($heure, 0, 2) . ':' . substr($heure, 2, 2);
+            }
+            list($h, $m) = explode(':', $heure);
+            return ((int)$h * 60) + (int)$m;
+        };
+
+        $debutMin = $enMinutes($debut);
+        $finMin   = $enMinutes($fin);
+
+        // Si la plage traverse minuit, on ajoute 1440 à la fin
+        if ($finMin <= $debutMin) {
+            $finMin += 1440;
+        }
+
+        return $finMin - $debutMin;
     }
 
     public function check_times($heureEncours, $plageTravail)
@@ -760,31 +1081,38 @@ class AjaxController extends Controller
             if (strpos($heure, ':') === false && strlen($heure) == 4) {
                 $heure = substr($heure, 0, 2) . ':' . substr($heure, 2, 2);
             }
-            $parties = explode(':', $heure);
-            return (int)$parties[0] * 60 + (int)$parties[1];
+            list($h, $m) = explode(':', $heure);
+            return ((int)$h * 60) + (int)$m;
         };
 
-        $arrivee = $toMinutes($heureEncours);
-        $plage   = str_replace(' ', '', $plageTravail);
+        $plage = str_replace(' ', '', $plageTravail);
+        $plage = str_replace(',', '-', $plage);
         list($debutStr, $finStr) = explode('-', $plage);
         $debut = $toMinutes(trim($debutStr));
         $fin   = $toMinutes(trim($finStr));
+        $arrivee = $toMinutes($heureEncours);
 
-        // Retourne 1 si l'heure est strictement inférieure aux deux bornes
-        $estInferieurAuxDeux = ($arrivee < $debut && $arrivee < $fin);
+        // Cas avec ou sans minuit
+        if ($fin <= $debut) {
+            // Plage enveloppante : avant = après $fin et avant $debut
+            $before = ($arrivee > $fin && $arrivee < $debut);
+        } else {
+            $before = ($arrivee < $debut);
+        }
 
-        return $estInferieurAuxDeux ? 1 : 0;
+        return $before ? 1 : 0;
     }
 
     public function check_times_2($heureEncours, $plageTravail)
     {
+        // Fonction de conversion (identique à rondeStrategique)
         $toMinutes = function($heure) {
             $heure = strtoupper(str_replace(['H', 'h'], ':', $heure));
             if (strpos($heure, ':') === false && strlen($heure) == 4) {
                 $heure = substr($heure, 0, 2) . ':' . substr($heure, 2, 2);
             }
-            $parties = explode(':', $heure);
-            return (int)$parties[0] * 60 + (int)$parties[1];
+            list($h, $m) = explode(':', $heure);
+            return ((int)$h * 60) + (int)$m;
         };
 
         $arrivee = $toMinutes($heureEncours);
@@ -793,19 +1121,31 @@ class AjaxController extends Controller
         $debut = $toMinutes(trim($debutStr));
         $fin   = $toMinutes(trim($finStr));
 
-        // Retourne 1 si l'heure est dans [debut, fin] (bornes incluses)
-        return ($arrivee >= $debut && $arrivee <= $fin) ? 1 : 0;
+        // Gestion du passage à minuit : si fin <= début, on ajoute 1440 à fin
+        if ($fin <= $debut) {
+            $fin += 1440;
+            // Si l'arrivée est avant le début, on la décale de 1440 pour être sur la même échelle
+            if ($arrivee < $debut) {
+                $arrivee += 1440;
+            }
+        }
+
+        // Vérification avec bornes incluses (>= début et <= fin)
+        $estDansPlage = ($arrivee >= $debut && $arrivee <= $fin);
+
+        return $estDansPlage ? 1 : 0;
     }
 
     public function check_times_3($heureEncours, $plageTravail)
     {
+        // Fonction de conversion (identique à rondeStrategique)
         $toMinutes = function($heure) {
             $heure = strtoupper(str_replace(['H', 'h'], ':', $heure));
             if (strpos($heure, ':') === false && strlen($heure) == 4) {
                 $heure = substr($heure, 0, 2) . ':' . substr($heure, 2, 2);
             }
-            $parties = explode(':', $heure);
-            return (int)$parties[0] * 60 + (int)$parties[1];
+            list($h, $m) = explode(':', $heure);
+            return ((int)$h * 60) + (int)$m;
         };
 
         $arrivee = $toMinutes($heureEncours);
@@ -814,32 +1154,59 @@ class AjaxController extends Controller
         $debut = $toMinutes(trim($debutStr));
         $fin   = $toMinutes(trim($finStr));
 
-        // Retourne 1 si $arrivee est strictement supérieure aux deux bornes
-        return ($arrivee > $debut && $arrivee > $fin) ? 1 : 0;
+        // Gestion du passage à minuit : on ajoute 1440 à la fin si nécessaire
+        if ($fin <= $debut) {
+            $fin += 1440;
+            // Si l'arrivée est avant le début, on la décale également de 1440
+            // pour se placer sur la même échelle (jour J+1)
+            if ($arrivee < $debut) {
+                $arrivee += 1440;
+            }
+        }
+
+        // Condition originale : strictement supérieur aux deux bornes
+        // Après ajustement, cela équivaut à $arrivee > $fin (car $fin > $debut)
+        $estApres = ($arrivee > $debut && $arrivee > $fin);
+
+        return $estApres ? 1 : 0;
     }
 
     public function check_times_4($heureEncours, $plageTravail)
     {
+        // Fonction de conversion en minutes (gère "H", "h", "HHMM", "HH:MM")
         $toMinutes = function($heure) {
             $heure = strtoupper(str_replace(['H', 'h'], ':', $heure));
+            // Cas où l'heure est écrite sur 4 chiffres sans séparateur (ex: "1430")
             if (strpos($heure, ':') === false && strlen($heure) == 4) {
                 $heure = substr($heure, 0, 2) . ':' . substr($heure, 2, 2);
             }
-            $parties = explode(':', $heure);
-            return (int)$parties[0] * 60 + (int)$parties[1];
+            list($h, $m) = explode(':', $heure);
+            return ((int)$h * 60) + (int)$m;
         };
 
         $arrivee = $toMinutes($heureEncours);
-        $plage   = str_replace(' ', '', $plageTravail);
+
+        // Nettoyer et extraire début / fin de la plage
+        $plage = str_replace(' ', '', $plageTravail);
         list($debutStr, $finStr) = explode('-', $plage);
         $debut = $toMinutes(trim($debutStr));
         $fin   = $toMinutes(trim($finStr));
 
-        // Retourne 1 si $arrivee est supérieur ou égal à l'heure de fin
+        // Gestion des plages qui traversent minuit (ex: "22h00-06h00")
+        if ($fin <= $debut) {
+            // La fin est en réalité le lendemain
+            $fin += 1440; // ajoute 24h en minutes
+            // Si l'heure actuelle est avant le début, elle appartient aussi au lendemain
+            if ($arrivee < $debut) {
+                $arrivee += 1440;
+            }
+        }
+
+        // Retourne 1 si l'heure actuelle est >= à l'heure de fin
         return ($arrivee >= $fin) ? 1 : 0;
     }
 
-    public function rondeStrategique($debut, $fin, $duree, $nombre) {
+    public function rondeStrategique_version_1($debut, $fin, $duree, $nombre) {
         // Conversion heure → minutes
         $enMinutes = function($heure) {
             $heure = strtoupper(str_replace(['H', 'h'], ':', $heure));
@@ -909,6 +1276,196 @@ class AjaxController extends Controller
         return $rondes;
     }
 
+    public function rondeStrategique_version_2($debut, $fin, $duree, $nombre) {
+        // Conversion heure → minutes
+        $enMinutes = function($heure) {
+            $heure = strtoupper(str_replace(['H', 'h'], ':', $heure));
+            if (strpos($heure, ':') === false && strlen($heure) == 4) {
+                $heure = substr($heure, 0, 2) . ':' . substr($heure, 2, 2);
+            }
+            list($h, $m) = explode(':', $heure);
+            return ((int)$h * 60) + (int)$m;
+        };
+
+        // Conversion minutes → "HHhMM"
+        $enHeure = function($minutes) {
+            $h = floor($minutes / 60) % 24;
+            $m = $minutes % 60;
+            return sprintf("%02dh%02d", $h, $m);
+        };
+
+        $debutMin = $enMinutes($debut);
+        $finMin   = $enMinutes($fin);
+
+        // Plage traversant minuit ?
+        if ($finMin <= $debutMin) {
+            $finMin += 1440;
+        }
+
+        $dureeTotaleNecessaire = $nombre * $duree;
+        $dureeDisponible = $finMin - $debutMin;
+        $rondes = [];
+
+        if ($dureeDisponible >= $dureeTotaleNecessaire) {
+            // 1. Diviser en $nombre segments de taille égale
+            $tailleSegment = floor($dureeDisponible / $nombre);
+            $reste = $dureeDisponible % $nombre;
+
+            $segments = [];
+            $cumul = $debutMin;
+            for ($i = 0; $i < $nombre; $i++) {
+                $taille = $tailleSegment + ($i < $reste ? 1 : 0);
+                $debutSegment = $cumul;
+                $finSegment   = $cumul + $taille;
+                $segments[] = ['debut' => $debutSegment, 'fin' => $finSegment];
+                $cumul = $finSegment;
+            }
+
+            // Écarts autorisés pour la première ronde (en minutes) – choix aléatoire parmi eux
+            $ecartsAutorises = [60, 70, 90, 120, 130, 140, 150];
+
+            // 2. Placer une ronde aléatoire dans chaque segment
+            $rondesTemp = [];
+            foreach ($segments as $index => $seg) {
+                $debutMax = $seg['fin'] - $duree;
+                if ($debutMax >= $seg['debut']) {
+                    // Si c'est le premier segment, on restreint aux écarts autorisés
+                    if ($index === 0) {
+                        $debutsPossibles = [];
+                        foreach ($ecartsAutorises as $ecart) {
+                            $debutAbsolu = $debutMin + $ecart;
+                            if ($debutAbsolu >= $seg['debut'] && $debutAbsolu <= $debutMax) {
+                                $debutsPossibles[] = $debutAbsolu;
+                            }
+                        }
+                        // S'il y a au moins une valeur autorisée, on pioche aléatoirement dedans
+                        if (!empty($debutsPossibles)) {
+                            $debutRonde = $debutsPossibles[array_rand($debutsPossibles)];
+                        } else {
+                            // Fallback : tirage aléatoire normal (cas rare)
+                            $debutRonde = rand($seg['debut'], $debutMax);
+                        }
+                    } else {
+                        // Tirage aléatoire classique pour les autres rondes
+                        $debutRonde = rand($seg['debut'], $debutMax);
+                    }
+                    $finRonde = $debutRonde + $duree;
+                    $rondesTemp[] = [
+                        'debut' => $enHeure($debutRonde % 1440),
+                        'fin'   => $enHeure($finRonde % 1440)
+                    ];
+                }
+            }
+
+            // 3. Tri chronologique garanti
+            usort($rondesTemp, function($a, $b) use ($enMinutes) {
+                return $enMinutes($a['debut']) - $enMinutes($b['debut']);
+            });
+
+            $rondes = $rondesTemp;
+        }
+
+        return $rondes;
+    }
+
+
+    public function rondeStrategique($debut, $fin, $duree, $nombre)
+    {
+        // 1. Fonctions de conversion
+        $enMinutes = function($heure) {
+            $heure = strtoupper(str_replace(['H', 'h'], ':', $heure));
+            if (strpos($heure, ':') === false && strlen($heure) == 4) {
+                $heure = substr($heure, 0, 2) . ':' . substr($heure, 2, 2);
+            }
+            list($h, $m) = explode(':', $heure);
+            return ((int)$h * 60) + (int)$m;
+        };
+
+        $enHeure = function($minutes) {
+            $h = floor(($minutes % 1440) / 60);
+            $m = $minutes % 60;
+            return sprintf("%02dh%02d", $h, $m);
+        };
+
+        // 2. Conversion des bornes en minutes
+        $debutMin = $enMinutes($debut);
+        $finMin   = $enMinutes($fin);
+
+        // Gestion du passage à minuit
+        if ($finMin <= $debutMin) {
+            $finMin += 1440;
+        }
+
+        $dureeTotaleNecessaire = $nombre * $duree;
+        $dureeDisponible = $finMin - $debutMin;
+        $rondes = [];
+
+        // 3. Vérifier si la plage est suffisante
+        if ($dureeDisponible >= $dureeTotaleNecessaire) {
+            // Découpage en segments de taille égale
+            $tailleSegment = floor($dureeDisponible / $nombre);
+            $reste = $dureeDisponible % $nombre;
+
+            $segments = [];
+            $cumul = $debutMin;
+            for ($i = 0; $i < $nombre; $i++) {
+                $taille = $tailleSegment + ($i < $reste ? 1 : 0);
+                $segments[] = [
+                    'debut' => $cumul,
+                    'fin'   => $cumul + $taille
+                ];
+                $cumul += $taille;
+            }
+
+            // Écarts autorisés pour la première ronde (minutes après $debut)
+            $ecartsAutorises = [60, 70, 90, 120, 130, 140, 150];
+
+            $rondesTemp = [];
+
+            foreach ($segments as $index => $seg) {
+                $debutMax = $seg['fin'] - $duree;
+                if ($debutMax >= $seg['debut']) {
+                    if ($index === 0) {
+                        // Première ronde : on applique un écart prédéfini
+                        $debutsPossibles = [];
+                        foreach ($ecartsAutorises as $ecart) {
+                            $debutAbsolu = $debutMin + $ecart;
+                            if ($debutAbsolu >= $seg['debut'] && $debutAbsolu <= $debutMax) {
+                                $debutsPossibles[] = $debutAbsolu;
+                            }
+                        }
+                        if (!empty($debutsPossibles)) {
+                            $debutRonde = $debutsPossibles[array_rand($debutsPossibles)];
+                        } else {
+                            $debutRonde = rand($seg['debut'], $debutMax);
+                        }
+                    } else {
+                        $debutRonde = rand($seg['debut'], $debutMax);
+                    }
+                    $rondesTemp[] = [
+                        'debut_abs' => $debutRonde,
+                        'fin_abs'   => $debutRonde + $duree
+                    ];
+                }
+            }
+
+            // Tri chronologique
+            usort($rondesTemp, function($a, $b) {
+                return $a['debut_abs'] - $b['debut_abs'];
+            });
+
+            // Conversion pour l'affichage
+            foreach ($rondesTemp as $r) {
+                $rondes[] = [
+                    'debut' => $enHeure($r['debut_abs']),
+                    'fin'   => $enHeure($r['fin_abs'])
+                ];
+            }
+        }
+
+        return $rondes;
+    }
+
     public function analyserArrivee($heureArrivee, $plageTravail)
     {
         // Vérification de base
@@ -952,14 +1509,13 @@ class AjaxController extends Controller
             $heureFinRondes   = $enHeure($finEffectif % 1440);
 
             // Génération de 3 rondes de 15 minutes (ordre chronologique)
-            $resultat['rondes'] = rondeStrategique($heureDebutRondes, $heureFinRondes, 15, 3);
+            $resultat['rondes'] = $this->rondeStrategique($heureDebutRondes, $heureFinRondes, 15, 3);
         } else {
             $resultat['rondes'] = [];
         }
 
         return $resultat;
     }
-
 
     public function exportPdf(Request $request)
     {
@@ -2898,6 +3454,12 @@ class AjaxController extends Controller
         return view('include.refresh_societes', $data);
     }
 
+    public function get_all_stock(Request $request)
+    {
+        $data["stocks"] = Stocks::where(["etat" => 1])->get();
+        return view('include.refresh_stocks', $data);
+    }
+
     public function get_all_depense(Request $request)
     {
         $groupe_user_id = Auth::user()->role;
@@ -3912,6 +4474,81 @@ class AjaxController extends Controller
             $data["articles"] = Articles::where(["supprimer" => 0])->get();
         }
         return view('include.refresh_articles', $data);
+    }
+
+    public function add_articlestocks(Request $request)
+    {
+        try {
+            // Récupération de l'article
+            $article = Articles::find($request->transfer_article_id);
+            if (!$article) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Article introuvable.'
+                ], 404);
+            }
+
+            $isNew = false;
+
+            // 1. Gestion de articlestocks (mise à jour ou création)
+            $articlestocks = articlestocks::where('article_id', $request->transfer_article_id)
+                                        ->where('stock_id', $request->transfert_stock_id)
+                                        ->first();
+
+            if ($articlestocks) {
+                // Existe : on ajoute la quantité
+                $articlestocks->stock += $request->transfert_quantite;
+                $articlestocks->save();
+                $message = 'Stock mis à jour avec succès.';
+            } else {
+                // Nouvel enregistrement avec ID manuel (count() + 1)
+                $articlestocks = new articlestocks();
+                $id = articlestocks::count() + 1; // exactement comme vous le vouliez
+                $articlestocks->id = $id;
+                $articlestocks->user_id = Auth::id();
+                $articlestocks->article_id = $request->transfer_article_id;
+                $articlestocks->devise = $request->transfert_devise_dest;
+                $articlestocks->prix_detail = $request->transfert_prix_detail_dest;
+                $articlestocks->prix_gros = $request->transfert_prix_gros_dest;
+                $articlestocks->taille_lot = $request->transfert_taille_lot_dest;
+                $articlestocks->stock = $request->transfert_quantite;
+                $articlestocks->date_creation = now()->format('d/m/Y');
+                $articlestocks->stock_id = $request->transfert_stock_id;
+                $articlestocks->avoir_stock = $article->avoir_stock;
+                $articlestocks->save();
+                $isNew = true;
+                $message = 'Nouveau stock créé avec succès.';
+            }
+
+            // 2. Enregistrement du transfert (toujours nouveau)
+            $transfert = new transfertstocks();
+            $id2 = transfertstocks::count() + 1; // exactement comme vous le vouliez
+            $transfert->id = $id2;
+            $transfert->user_id = Auth::id();
+            $transfert->article_id = $request->transfer_article_id;
+            $transfert->commentaire = $request->transfert_commentaire;
+            $transfert->qte = $request->transfert_quantite;
+            $transfert->date_creation = now()->format('d/m/Y');
+            $transfert->stock_1 = 0;
+            $transfert->stock_2 = $request->transfert_stock_id;
+            $transfert->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'action'  => $isNew ? 'created' : 'updated',
+                'data'    => [
+                    'articlestocks' => $articlestocks,
+                    'transfert'     => $transfert
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur : ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function edit_article(Request $request)
@@ -5149,8 +5786,168 @@ class AjaxController extends Controller
 
     public function get_detail_programme(Request $request)
     {
-        $data["details"] = Prestations::where(["id" => $request->prestation_id])->first()["details"];
+        $data["details"] = Prestations::where(["id" => $request->prestation_id, "annee_id" =>$request->annee_id, "moi_id" =>$request->moi_id])->first()["details"];
+        $data["prestation_id"] = Prestations::where(["id" => $request->prestation_id, "annee_id" =>$request->annee_id, "moi_id" =>$request->moi_id])->first()["id"];
         return view('include.get_detail_programme', $data);
+    }
+
+    public function update_user_prestation(Request $request)
+    {
+        // Récupération des paramètres via les propriétés de la requête
+        $prestationId = $request->prestation_id;
+        $newUserId    = $request->user_id;
+        $oldUserId    = $request->old_user_id;
+        $date         = $request->date;
+        $service      = $request->service;
+        $horaire      = $request->horaire;
+
+        // Vérification de base que tout est présent
+        if (!$prestationId || !$newUserId || !$oldUserId || !$date || !$service || !$horaire) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Paramètres manquants.'
+            ]);
+        }
+
+        // Récupération de l'enregistrement Prestations
+        $prestation = Prestations::find($prestationId);
+        if (!$prestation) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Prestation introuvable.'
+            ]);
+        }
+
+        // Décodage du champ 'details'
+        $details = json_decode($prestation->details, true);
+        if (!is_array($details)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Le format des détails est invalide.'
+            ]);
+        }
+
+        // Recherche de la ligne à modifier
+        $found = false;
+        foreach ($details as &$ligne) {
+            if ($ligne['user_id'] == $oldUserId &&
+                $ligne['date']    == $date &&
+                $ligne['service'] == $service &&
+                $ligne['horaire'] == $horaire) {
+
+                // Mise à jour de l'utilisateur
+                $ligne['user_id'] = $newUserId;
+                $found = true;
+                break;
+            }
+        }
+        unset($ligne); // Supprimer la référence
+
+        if (!$found) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucune ligne correspondante trouvée pour ces critères.'
+            ]);
+        }
+
+        // Sauvegarde des modifications
+        $prestation->details = json_encode($details, JSON_UNESCAPED_UNICODE);
+        $prestation->save();
+
+        // Récupérer les informations du nouvel utilisateur
+        $user = User::find($newUserId);
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Utilisateur introuvable.'
+            ]);
+        }
+
+        $groupe = Groupes::find($user->role);
+
+        // Retour de la réponse exacte
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'matricule'  => $user->matricule ?? '',
+                'groupe_nom' => $groupe ? $groupe->nom : '',
+                'groupe_id'  => $groupe ? $groupe->id : null,
+            ]
+        ]);
+    }
+
+    public function update_ronde(Request $request)
+    {
+        $prestationId = $request->prestation_id;
+        $rondeIndex   = $request->ronde_index;
+        $heureDebut   = $request->heure_debut;  // "HH:MM"
+        $heureFin     = $request->heure_fin;    // "HH:MM"
+        $duree        = $request->duree;
+        $userId       = $request->user_id;
+        $date         = $request->date;
+        $service      = $request->service;
+        $horaire      = $request->horaire;
+
+        if (!$prestationId || !$rondeIndex || !$heureDebut || !$heureFin || !$userId || !$date || !$service || !$horaire)
+        {
+            return response()->json(['success' => false, 'message' => 'Paramètres manquants.']);
+        }
+
+        $prestation = Prestations::find($prestationId);
+        if (!$prestation)
+        {
+            return response()->json(['success' => false, 'message' => 'Prestation introuvable.']);
+        }
+
+        $details = json_decode($prestation->details, true);
+        if (!is_array($details)) {
+            return response()->json(['success' => false, 'message' => 'Format des détails invalide.']);
+        }
+
+        // Conversion au format HHhMM (petit h)
+        $heureDebutStock = str_replace(':', 'h', $heureDebut);
+        $heureFinStock   = str_replace(':', 'h', $heureFin);
+
+        $found = false;
+        foreach ($details as &$ligne) {
+            if ($ligne['user_id'] == $userId &&
+                $ligne['date'] == $date &&
+                $ligne['service'] == $service &&
+                $ligne['horaire'] == $horaire) {
+
+                $key = 'ronde_a_' . $rondeIndex;
+
+                if (!isset($ligne['pointages'])) {
+                    $ligne['pointages'] = [
+                        'entree' => ['etat' => 0, 'heure' => '', 'longitude' => '', 'latitude' => ''],
+                        'ronde_a_1' => ['etat' => 0, 'heure_debut' => '', 'heure_fin' => '', 'duree_fin' => ''],
+                        'ronde_a_2' => ['etat' => 0, 'heure_debut' => '', 'heure_fin' => '', 'duree_fin' => ''],
+                        'ronde_a_3' => ['etat' => 0, 'heure_debut' => '', 'heure_fin' => '', 'duree_fin' => ''],
+                        'sortie' => ['etat' => 0, 'heure' => '']
+                    ];
+                }
+
+                if (isset($ligne['pointages'][$key])) {
+                    $ligne['pointages'][$key]['heure_debut'] = $heureDebutStock;
+                    $ligne['pointages'][$key]['heure_fin']   = $heureFinStock;
+                    $ligne['pointages'][$key]['duree_fin']   = $duree;
+                    $found = true;
+                    break;
+                }
+            }
+        }
+        unset($ligne);
+
+        if (!$found) {
+            return response()->json(['success' => false, 'message' => 'Aucune ligne correspondante.']);
+        }
+
+        $prestation->details = json_encode($details, JSON_UNESCAPED_UNICODE);
+        $prestation->save();
+
+        return response()->json(['success' => true, 'message' => 'Ronde mise à jour.']);
     }
 
 
@@ -8538,9 +9335,18 @@ class AjaxController extends Controller
     public function etat_affectation_pointdeventes(Request $request)
     {
         $pointdeventes = pointdeventes::where('id', $request->pointdeventes_id)->first();
-        $pointdeventes->stock_id = $request->stock_id;
-        $pointdeventes->save();
-        return response()->json([[1]]);
+        if($pointdeventes->stock_id != -1)
+        {
+            $pointdeventes->stock_id = -1;
+            $pointdeventes->save();
+            return response()->json([[0]]);
+        }
+        else
+        {
+            $pointdeventes->stock_id = $request->stock_id;
+            $pointdeventes->save();
+            return response()->json([[1]]);
+        }
     }
 
     public function permission_fichier(Request $request)
