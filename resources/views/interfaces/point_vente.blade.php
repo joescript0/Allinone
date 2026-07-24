@@ -1,6 +1,10 @@
 @php
     use App\Models\appnames;
+    use App\Models\Stocks;
+    use App\Models\tables;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
+    // Récupération des stocks pour le filtre (si non passés par le contrôleur)
+    $stocks = Stocks::where('supprimer', 0)->get(); // ou ->where('etat', 1) selon votre logique
 @endphp
 @extends('layouts.main')
 @section('title', $nom_app)
@@ -382,6 +386,62 @@ select.form-control {
     justify-content: flex-start;
 }
 
+/* ========== FILTRES ========== */
+.filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    background: white;
+    padding: 0.8rem 1.2rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-light);
+    align-items: flex-end;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--bleu-nuit);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.filter-group .form-control {
+    height: 36px;
+}
+
+.article-count-badge {
+    background: var(--rouge-gradient);
+    color: white;
+    border-radius: 50px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+#resetFilters {
+    background: #64748b !important;
+    color: white !important;
+}
+#resetFilters:hover {
+    transform: translateY(-2px);
+    background: #475569 !important;
+    box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 992px) {
     .content .container {
@@ -404,6 +464,19 @@ select.form-control {
     .btn-primary, .btn-info, .btn-danger {
         padding: 4px 12px !important;
         font-size: 0.7rem;
+    }
+    .filters-container {
+        flex-direction: column;
+        gap: 8px;
+        padding: 0.6rem 0.8rem;
+        margin-bottom: 12px;
+    }
+    .filter-group {
+        width: 100%;
+        min-width: 100%;
+    }
+    .filter-group .form-control {
+        height: 34px !important;
     }
     .table thead th {
         font-size: 0.72rem;
@@ -534,8 +607,42 @@ select.form-control {
                             class="zmdi zmdi-chevron-right"></i> &nbsp; Gestion des points de vente</h6>
                 </div>
                 <div id="bloc_1" style="margin-top: 12px;padding-bottom: 50px" class="col-lg-12">
-                    <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-money text-info"></i>
-                        Liste</h4>
+                    <h4 style="color:rgba(0, 0, 0, 0.6);">
+                        <i style="font-size: 40px;" class="zmdi zmdi-money text-info"></i>
+                        Liste
+                        <span class="article-count-badge" id="pointCountBadge">
+                            <i class="zmdi zmdi-view-list"></i> <span id="pointCount">0</span>
+                        </span>
+                    </h4>
+
+                    <!-- SECTION FILTRES AVEC PERSISTANCE -->
+                    <div class="filters-container">
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-label text-danger"></i> Nom du point de vente</label>
+                            <input type="text" id="filterNom" class="form-control" placeholder="Rechercher par nom...">
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-comment text-danger"></i> Description</label>
+                            <input type="text" id="filterDescription" class="form-control" placeholder="Rechercher par description...">
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-storage text-danger"></i> Stock utilisé</label>
+                            <select id="filterStock" class="form-control">
+                                <option value="all">Tous les stocks</option>
+                                <option value="-1">Aucun</option>
+                                <option value="0">Principal</option>
+                                @foreach ($stocks as $stock)
+                                    <option value="{{ $stock->id }}">{{ $stock->nom }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <button id="resetFilters" class="btn btn-secondary btn-sm" style="border-radius: 40px; padding: 8px 18px;">
+                                <i class="zmdi zmdi-refresh"></i> Réinitialiser
+                            </button>
+                        </div>
+                    </div>
+
                     <div id="content_groupe" class="row">
                         <div class="col-12">
                             <div class="table-responsive">
@@ -553,19 +660,16 @@ select.form-control {
                                         {{ !($i = 1) }}
                                         @foreach ($point_ventes as $data)
                                             <tr>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->nom }}</td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->description }}</td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;">
+                                                <td class="row-num" style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
+                                                <td class="nom-cell" data-nom="{{ $data->nom }}" style="padding-top: 5px;padding-bottom: 5px;">{{ $data->nom }}</td>
+                                                <td class="desc-cell" data-desc="{{ $data->description }}" style="padding-top: 5px;padding-bottom: 5px;">{{ $data->description }}</td>
+                                                <td class="stock-cell" data-stock-id="{{ $data->stock_id }}" style="padding-top: 5px;padding-bottom: 5px;">
                                                     @if ($data->stock_id == -1)
-                                                        <i class="zmdi zmdi-close-circle text-danger"></i> <span
-                                                                    class="text-danger">{{ 'Aucun' }} </span>
+                                                        <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">{{ 'Aucun' }} </span>
                                                     @elseif ($data->stock_id == 0)
-                                                        <i class="zmdi zmdi-check-circle text-success"></i> <span
-                                                                    class="text-success"> Pricipal</span>
+                                                        <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success"> Principal</span>
                                                     @else
-                                                        <i class="zmdi zmdi-check-circle text-success"></i> <span
-                                                                    class="text-success"></span>
+                                                        <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success"> {{ Stocks::where('id', $data->stock_id)->first()['nom'] ?? 'N/A' }}</span>
                                                     @endif
                                                 </td>
                                                 <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
@@ -596,6 +700,12 @@ select.form-control {
                                             </tr>
                                             {{ !$i++ }}
                                         @endforeach
+                                        <!-- Ligne pour aucun résultat -->
+                                        <tr id="noResultRow" style="display: none;">
+                                            <td colspan="6">
+                                                <i class="zmdi zmdi-info-outline"></i> Aucun point de vente ne correspond à vos critères.
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -702,6 +812,8 @@ select.form-control {
             $("#bloc_2").hide();
             $("#bloc_3").hide();
             $("#bloc_4").hide();
+            // On réapplique les filtres quand on revient à la liste
+            filterPoints();
         });
         $("#add").click(function(e) {
             e.preventDefault();
@@ -716,6 +828,7 @@ select.form-control {
             $("#bloc_2").hide();
             $("#bloc_3").hide();
             $("#bloc_4").hide();
+            filterPoints();
         });
         $("#save").click(function(e) {
             e.preventDefault();
@@ -757,6 +870,8 @@ select.form-control {
                                         );
                                     $('#msg').css("color", '#32c787');
                                     $("#content_groupe").html(response);
+                                    // Réapplique les filtres après mise à jour
+                                    filterPoints();
                                     setTimeout(() => {
                                         $('#msg').html("");
                                     }, 9000);
@@ -775,7 +890,127 @@ select.form-control {
                 id: id,
             }, function(refresh_editverbalisateur) {
                 $("#content_groupe").html(refresh_editverbalisateur);
+                filterPoints();
                 $("#non").trigger("click");
+            });
+        });
+
+        // ========== GESTION DES FILTRES AVEC PERSISTANCE ==========
+        let filterTimeout;
+
+        function saveFiltersToStorage() {
+            const filters = {
+                nom: $('#filterNom').val(),
+                description: $('#filterDescription').val(),
+                stock: $('#filterStock').val()
+            };
+            localStorage.setItem('pointVenteFilters', JSON.stringify(filters));
+        }
+
+        function loadFiltersFromStorage() {
+            const saved = localStorage.getItem('pointVenteFilters');
+            if (saved) {
+                const filters = JSON.parse(saved);
+                $('#filterNom').val(filters.nom || '');
+                $('#filterDescription').val(filters.description || '');
+                $('#filterStock').val(filters.stock || 'all');
+                return true;
+            }
+            return false;
+        }
+
+        function resetFilters() {
+            $('#filterNom').val('');
+            $('#filterDescription').val('');
+            $('#filterStock').val('all');
+            saveFiltersToStorage();
+            filterPoints();
+            $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Tous les filtres ont été réinitialisés');
+            $('#msg').css('display', 'flex');
+            setTimeout(() => {
+                $('#msg').html('');
+                $('#msg').css('display', 'none');
+            }, 3000);
+        }
+
+        function filterPoints() {
+            const filterNom = $('#filterNom').val().toLowerCase().trim();
+            const filterDesc = $('#filterDescription').val().toLowerCase().trim();
+            const filterStock = $('#filterStock').val();
+
+            let visibleCount = 0;
+            let newIndex = 1;
+
+            $('#noResultRow').hide();
+
+            $('#content_groupe tbody tr:not(#noResultRow)').each(function() {
+                const $row = $(this);
+                let showRow = true;
+
+                // Récupération des données depuis les attributs data-* ou le texte des cellules
+                const nom = $row.find('.nom-cell').data('nom')?.toLowerCase() || '';
+                const desc = $row.find('.desc-cell').data('desc')?.toLowerCase() || '';
+                const stockId = $row.find('.stock-cell').data('stock-id') !== undefined ? String($row.find('.stock-cell').data('stock-id')) : '';
+
+                // Filtre nom
+                if (filterNom && !nom.includes(filterNom)) {
+                    showRow = false;
+                }
+
+                // Filtre description
+                if (showRow && filterDesc && !desc.includes(filterDesc)) {
+                    showRow = false;
+                }
+
+                // Filtre stock
+                if (showRow && filterStock !== 'all') {
+                    if (stockId !== filterStock) {
+                        showRow = false;
+                    }
+                }
+
+                if (showRow) {
+                    $row.show();
+                    $row.find('.row-num').text(newIndex);
+                    newIndex++;
+                    visibleCount++;
+                } else {
+                    $row.hide();
+                }
+            });
+
+            $('#pointCount').text(visibleCount);
+
+            if (visibleCount === 0) {
+                $('#noResultRow').show();
+            }
+        }
+
+        function debouncedFilter() {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(() => {
+                filterPoints();
+                saveFiltersToStorage();
+            }, 300);
+        }
+
+        // Initialisation au chargement de la page
+        $(document).ready(function() {
+            // Charger les filtres depuis localStorage
+            const hasSaved = loadFiltersFromStorage();
+
+            // Appliquer les filtres immédiatement
+            filterPoints();
+
+            // Écouteurs d'événements
+            $('#filterNom, #filterDescription, #filterStock').on('change keyup', function() {
+                debouncedFilter();
+            });
+
+            // Réinitialisation
+            $('#resetFilters').click(function(e) {
+                e.preventDefault();
+                resetFilters();
             });
         });
     </script>

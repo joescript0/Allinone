@@ -36,7 +36,7 @@
     $menu_16 = Desactiver();
     $menu_17 = Activer();
     $menu_18 = Activer();
-    $menu_19 = Desactiver();
+    $menu_19 = Activer();
     $menu_20 = Activer();
     $menu_21 = Activer();
     $menu_22 = Desactiver();
@@ -50,7 +50,7 @@
     $menu_30 = Activer();
     $menu_31 = Activer();
     $menu_32 = Activer();
-    $menu_33 = Desactiver();
+    $menu_33 = Activer();
     $menu_34 = Desactiver();
     $menu_35 = Desactiver();
     $menu_36 = Desactiver();

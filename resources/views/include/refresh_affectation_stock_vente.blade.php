@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Ressources;
+use App\Models\Stocks;
 ?>
 <h4 style="color:rgba(0, 0, 0, 0.6);">
     <i style="font-size: 40px;" class="zmdi zmdi-settings text-info"></i> Affectation du stock
@@ -65,9 +66,18 @@ use App\Models\Ressources;
                         <tr data-nom="{{ strtolower($data->nom) }}" data-affecte="{{ $data->display }}">
                             <td style="padding-top: 5px;padding-bottom: 5px;"><?= $i ?></td>
                             <td style="padding-top: 5px;padding-bottom: 5px;"><?= $data->nom ?></td>
-                            <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
+                            <td style="text-align: left;padding-top: 5px;padding-bottom: 5px;">
                                 @if ($data->stock_id != -1)
-                                    <a id="affectation__<?= $i ?>" href="#"><i class="zmdi zmdi-check-square"></i></a>
+                                @if ($data->stock_id == $stock_id)
+                                        <a id="affectation__<?= $i ?>" href="#"><i class="zmdi zmdi-check-square text-info"></i></a>
+                                    @else
+                                        <a id="affectation__<?= $i ?>" href="#"><i class="zmdi zmdi-check-square text-danger"></i></a>
+                                        @if ($data->stock_id == 0)
+                                            <span class="text-danger"> {{ "Principal" }}</span>
+                                        @else
+                                            <span class="text-danger"> {{ Stocks::where('id', $data->stock_id)->first()['nom'] ?? 'N/A' }}</span>
+                                        @endif
+                                    @endif
                                 @else
                                     <a id="affectation__<?= $i ?>" href="#"><i class="zmdi zmdi-square-o"></i></a>
                                 @endif

@@ -48,6 +48,7 @@ use App\Models\Listespaies;
 use App\Models\Paiements;
 use App\Models\Paies;
 use App\Models\Activites;
+use App\Models\affectationstables;
 use App\Models\Alertes;
 use App\Models\articlestocks;
 use App\Models\beneficaires;
@@ -55,6 +56,7 @@ use App\Models\beneficiaires;
 use App\Models\classes;
 use App\Models\communes;
 use App\Models\Depenses;
+use App\Models\detailsaffectationstables;
 use App\Models\districts;
 use App\Models\ecoles;
 use App\Models\Remboursements;
@@ -3458,6 +3460,12 @@ class AjaxController extends Controller
     {
         $data["stocks"] = Stocks::where(["etat" => 1])->get();
         return view('include.refresh_stocks', $data);
+    }
+
+    public function get_all_table(Request $request)
+    {
+        $data["tables"] = Tables::where(["etat" => 1])->get();
+        return view('include.refresh_tables', $data);
     }
 
     public function get_all_depense(Request $request)
@@ -9426,6 +9434,20 @@ class AjaxController extends Controller
         return view('include.refresh_affectation_stock_vente', $data);
     }
 
+    public function refresh_affectation_table_utilisateur(Request $request)
+    {
+        $table = Tables::where(["etat" => 1, "supprimer" => 0, "id" => $request->table_id])->first();
+        $data["nom"] = $table->nom;
+        $data["nom_point_vente"] = Pointdeventes::where(["etat" => 1, "id" => $table->pointdeventes_id , "supprimer" => 0])->first()["nom"];
+        $data["tables"] = Tables::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
+        $data["stocks"] = Stocks::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
+        $data["pointdeventes"] = Pointdeventes::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        $data["table_id"] = $request->table_id;
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        return view('include.refresh_affectation_table_utilisateur', $data);
+    }
+
     public function refresh_article_stock(Request $request)
     {
         if($request->stock_id != 0)
@@ -9503,6 +9525,43 @@ class AjaxController extends Controller
             $pointdeventes->stock_id = $request->stock_id;
             $pointdeventes->save();
             return response()->json([[1]]);
+        }
+    }
+
+    public function etat_affectation_table_utilisateur(Request $request)
+    {
+        $tableId = $request->table_id;
+        $userId = $request->user_id;
+
+        $affectation = affectationstables::where([
+            'table_id' => $tableId,
+            'user_id'  => $userId
+        ])->first();
+
+        if ($affectation)
+        {
+            $affectation->delete();
+            return response()->json([0]);
+        }
+        else
+        {
+            $newaffectation = new affectationstables();
+            $id = affectationstables::get()->count() + 1;
+            $newaffectation->id = $id;
+            $newaffectation->table_id = $tableId;
+            $newaffectation->user_id = $userId;
+            // Ajoutez ici d'autres champs si nécessaire
+            $newaffectation->save();
+
+            $detailsaffectationstables = new detailsaffectationstables();
+            $id2 = detailsaffectationstables::get()->count() + 1;
+            $detailsaffectationstables->id = $id2;
+            $detailsaffectationstables->table_id = $tableId;
+            $detailsaffectationstables->user_id = $userId;
+            // Ajoutez ici d'autres champs si nécessaire
+            $detailsaffectationstables->save();
+
+            return response()->json([1]);
         }
     }
 

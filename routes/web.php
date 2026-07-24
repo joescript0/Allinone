@@ -248,9 +248,11 @@ Route::get('/refresh_edit_societe', [AjaxController::class , 'refresh_edit_socie
 Route::get('/refresh_edit_type_infractions', [AjaxController::class , 'refresh_edit_type_infractions'])->name('refresh_edit_type_infractions');
 Route::get('/refresh_write', [AjaxController::class , 'refresh_write'])->name('refresh_write');
 Route::get('/refresh_affectation_stock_vente', [AjaxController::class , 'refresh_affectation_stock_vente'])->name('refresh_affectation_stock_vente');
+Route::get('/refresh_affectation_table_utilisateur', [AjaxController::class , 'refresh_affectation_table_utilisateur'])->name('refresh_affectation_table_utilisateur');
 Route::get('/refresh_article_stock', [AjaxController::class , 'refresh_article_stock'])->name('refresh_article_stock');
 Route::get('/etat_display', [AjaxController::class , 'etat_display'])->name('etat_display');
 Route::get('/etat_affectation_pointdeventes', [AjaxController::class , 'etat_affectation_pointdeventes'])->name('etat_affectation_pointdeventes');
+Route::get('/etat_affectation_table_utilisateur', [AjaxController::class , 'etat_affectation_table_utilisateur'])->name('etat_affectation_table_utilisateur');
 Route::get('/etat_add', [AjaxController::class , 'etat_add'])->name('etat_add');
 Route::get('/etat_edit', [AjaxController::class , 'etat_edit'])->name('etat_edit');
 Route::get('/etat_delete', [AjaxController::class , 'etat_delete'])->name('etat_delete');
@@ -291,6 +293,7 @@ Route::get('/get_all_facture', [AjaxController::class , 'get_all_facture'])->nam
 Route::get('/delete_facture_user_id', [AjaxController::class , 'delete_facture_user_id'])->name('delete_facture_user_id');
 Route::get('/get_all_categorie', [AjaxController::class , 'get_all_categorie'])->name('get_all_categorie');
 Route::get('/get_all_stock', [AjaxController::class , 'get_all_stock'])->name('get_all_stock');
+Route::get('/get_all_table', [AjaxController::class , 'get_all_table'])->name('get_all_table');
 Route::get('/get_all_depense', [AjaxController::class , 'get_all_depense'])->name('get_all_depense');
 Route::get('/get_all_articles', [AjaxController::class , 'get_all_articles'])->name('get_all_articles');
 Route::get('/get_commune_by_district', [AjaxController::class , 'get_commune_by_district'])->name('get_commune_by_district');

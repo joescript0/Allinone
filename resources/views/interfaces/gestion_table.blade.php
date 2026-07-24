@@ -1,5 +1,6 @@
 @php
     use App\Models\appnames;
+    use App\models\affectationstables;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
 <?php
@@ -385,6 +386,62 @@ select.form-control {
     justify-content: flex-start;
 }
 
+/* ========== FILTRES ========== */
+.filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    background: white;
+    padding: 0.8rem 1.2rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-light);
+    align-items: flex-end;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--bleu-nuit);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.filter-group .form-control {
+    height: 36px;
+}
+
+.article-count-badge {
+    background: var(--rouge-gradient);
+    color: white;
+    border-radius: 50px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+#resetFilters {
+    background: #64748b !important;
+    color: white !important;
+}
+#resetFilters:hover {
+    transform: translateY(-2px);
+    background: #475569 !important;
+    box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 992px) {
     .content .container {
@@ -407,6 +464,19 @@ select.form-control {
     .btn-primary, .btn-info, .btn-danger {
         padding: 4px 12px !important;
         font-size: 0.7rem;
+    }
+    .filters-container {
+        flex-direction: column;
+        gap: 8px;
+        padding: 0.6rem 0.8rem;
+        margin-bottom: 12px;
+    }
+    .filter-group {
+        width: 100%;
+        min-width: 100%;
+    }
+    .filter-group .form-control {
+        height: 34px !important;
     }
     .table thead th {
         font-size: 0.72rem;
@@ -537,8 +607,48 @@ select.form-control {
                             class="zmdi zmdi-chevron-right"></i> &nbsp; Gestion de table</h6>
                 </div>
                 <div id="bloc_1" style="margin-top: 12px;padding-bottom: 50px" class="col-lg-12">
-                    <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-money text-info"></i>
-                        Liste</h4>
+                    <h4 style="color:rgba(0, 0, 0, 0.6);">
+                        <i style="font-size: 40px;" class="zmdi zmdi-money text-info"></i>
+                        Liste
+                        <span class="article-count-badge" id="tableCountBadge">
+                            <i class="zmdi zmdi-view-list"></i> <span id="tableCount">0</span>
+                        </span>
+                    </h4>
+
+                    <!-- SECTION FILTRES AVEC PERSISTANCE -->
+                    <div class="filters-container">
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-label text-danger"></i> Nom de la table</label>
+                            <input type="text" id="filterNom" class="form-control" placeholder="Rechercher par nom...">
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-comment text-danger"></i> Description</label>
+                            <input type="text" id="filterDescription" class="form-control" placeholder="Rechercher par description...">
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-store text-danger"></i> Point de vente</label>
+                            <select id="filterPointVente" class="form-control">
+                                <option value="all">Tous les points de vente</option>
+                                @foreach ($point_ventes as $pv)
+                                    <option value="{{ $pv->id }}">{{ $pv->nom }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-check-circle text-danger"></i> État</label>
+                            <select id="filterEtat" class="form-control">
+                                <option value="all">Tous</option>
+                                <option value="0">Libre</option>
+                                <option value="1">Occupée</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <button id="resetFilters" class="btn btn-secondary btn-sm" style="border-radius: 40px; padding: 8px 18px;">
+                                <i class="zmdi zmdi-refresh"></i> Réinitialiser
+                            </button>
+                        </div>
+                    </div>
+
                     <div id="content_groupe" class="row">
                         <div class="col-12">
                             <div class="table-responsive">
@@ -549,6 +659,7 @@ select.form-control {
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Nom</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Description</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Point de vente</th>
+                                            <th style="padding-top: 5px;padding-bottom: 5px;">Affectation</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Etat</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                                         </tr>
@@ -557,20 +668,32 @@ select.form-control {
                                         {{ !($i = 1) }}
                                         @foreach ($tables as $data)
                                             <tr>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->nom }}</td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->description }}
-                                                </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;">
+                                                <td class="row-num" style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
+                                                <td class="nom-cell" data-nom="{{ $data->nom }}" style="padding-top: 5px;padding-bottom: 5px;">{{ $data->nom }}</td>
+                                                <td class="desc-cell" data-desc="{{ $data->description }}" style="padding-top: 5px;padding-bottom: 5px;">{{ $data->description }}</td>
+                                                <td class="pointvente-cell" data-pointvente-id="{{ $data->pointdeventes_id }}" style="padding-top: 5px;padding-bottom: 5px;">
                                                     {{ $data->pointdeventes_id != null ? Pointdeventes::where('id', $data->pointdeventes_id)->first()->nom : 'Aucun point de vente' }}
                                                 </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;">
+                                                <td class="affectation-cell" style="padding-top: 5px;padding-bottom: 5px;text-align:center;">
+                                                    <a style="font-weight: bold" id="affectation_<?= $i ?>" href="#">
+                                                        @if (affectationstables::where(["supprimer" => 0, "table_id" => $data->id])->count() == 0)
+                                                            <span style="font-weight: bold;" class="badge badge-danger">
+                                                                <i class="zmdi zmdi-accounts"></i> <?= affectationstables::where(["table_id" => $data->id])->get()->count(); ?>
+                                                            </span>
+                                                        @else
+                                                            <span style="font-weight: bold;" class="badge badge-info">
+                                                                <i class="zmdi zmdi-accounts"></i> <?= affectationstables::where(["supprimer" => 0, "table_id" => $data->id])->count(); ?>
+                                                            </span>
+                                                        @endif
+                                                    </a>
+                                                </td>
+                                                <td class="etat-cell" data-occupee="{{ $data->occupee }}" style="padding-top: 5px;padding-bottom: 5px;">
                                                     @if ($data->occupee == 0)
                                                         <i class="zmdi zmdi-check-circle text-success"></i> <span
                                                             class="text-success">{{ 'Libre' }} </span>
                                                     @elseif ($data->occupee == 1)
                                                         <i class="zmdi zmdi-check-circle text-danger"></i> <span
-                                                            class="text-danger"> Occupee</span>
+                                                            class="text-danger"> Occupée</span>
                                                     @else
                                                         <i class="zmdi zmdi-close-circle text-warning"></i> <span
                                                             class="text-warning">Aucun detail</span>
@@ -599,11 +722,28 @@ select.form-control {
                                                             $("#data_id").html("<?= $data->id ?>");
                                                             $("#btn_sup").trigger("click");
                                                         });
+                                                        $("#affectation_<?= $i ?>").click(function(e) {
+                                                            e.preventDefault();
+                                                            $.get("{{ url('/refresh_affectation_table_utilisateur') }}", {
+                                                                table_id: <?= $data->id ?>,
+                                                            }, function(refresh_affectation_stock_vente) {
+                                                                $("#bloc_1").hide();
+                                                                $("#bloc_2").hide();
+                                                                $("#bloc_3").show();
+                                                                $("#bloc_3").html(refresh_affectation_stock_vente);
+                                                            });
+                                                        });
                                                     </script>
                                                 </td>
                                             </tr>
                                             {{ !$i++ }}
                                         @endforeach
+                                        <!-- Ligne pour aucun résultat -->
+                                        <tr id="noResultRow" style="display: none;">
+                                            <td colspan="6">
+                                                <i class="zmdi zmdi-info-outline"></i> Aucune table ne correspond à vos critères.
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -729,6 +869,8 @@ select.form-control {
             $("#bloc_2").hide();
             $("#bloc_3").hide();
             $("#bloc_4").hide();
+            // Réapplique les filtres
+            filterTables();
         });
         $("#add").click(function(e) {
             e.preventDefault();
@@ -743,6 +885,7 @@ select.form-control {
             $("#bloc_2").hide();
             $("#bloc_3").hide();
             $("#bloc_4").hide();
+            filterTables();
         });
         $("#save").click(function(e) {
             e.preventDefault();
@@ -793,6 +936,7 @@ select.form-control {
                                         );
                                         $('#msg').css("color", '#32c787');
                                         $("#content_groupe").html(response);
+                                        filterTables();
                                         setTimeout(() => {
                                             $('#msg').html("");
                                         }, 9000);
@@ -812,7 +956,138 @@ select.form-control {
                 id: id,
             }, function(refresh_editverbalisateur) {
                 $("#content_groupe").html(refresh_editverbalisateur);
+                filterTables();
                 $("#non").trigger("click");
+            });
+        });
+
+        // ========== GESTION DES FILTRES AVEC PERSISTANCE ==========
+        let filterTimeout;
+
+        function saveFiltersToStorage() {
+            const filters = {
+                nom: $('#filterNom').val(),
+                description: $('#filterDescription').val(),
+                pointvente: $('#filterPointVente').val(),
+                etat: $('#filterEtat').val()
+            };
+            localStorage.setItem('tableFilters', JSON.stringify(filters));
+        }
+
+        function loadFiltersFromStorage() {
+            const saved = localStorage.getItem('tableFilters');
+            if (saved) {
+                const filters = JSON.parse(saved);
+                $('#filterNom').val(filters.nom || '');
+                $('#filterDescription').val(filters.description || '');
+                $('#filterPointVente').val(filters.pointvente || 'all');
+                $('#filterEtat').val(filters.etat || 'all');
+                return true;
+            }
+            return false;
+        }
+
+        function resetFilters() {
+            $('#filterNom').val('');
+            $('#filterDescription').val('');
+            $('#filterPointVente').val('all');
+            $('#filterEtat').val('all');
+            saveFiltersToStorage();
+            filterTables();
+            $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Tous les filtres ont été réinitialisés');
+            $('#msg').css('display', 'flex');
+            setTimeout(() => {
+                $('#msg').html('');
+                $('#msg').css('display', 'none');
+            }, 3000);
+        }
+
+        function filterTables() {
+            const filterNom = $('#filterNom').val().toLowerCase().trim();
+            const filterDesc = $('#filterDescription').val().toLowerCase().trim();
+            const filterPointVente = $('#filterPointVente').val();
+            const filterEtat = $('#filterEtat').val();
+
+            let visibleCount = 0;
+            let newIndex = 1;
+
+            $('#noResultRow').hide();
+
+            $('#content_groupe tbody tr:not(#noResultRow)').each(function() {
+                const $row = $(this);
+                let showRow = true;
+
+                const nom = $row.find('.nom-cell').data('nom')?.toLowerCase() || '';
+                const desc = $row.find('.desc-cell').data('desc')?.toLowerCase() || '';
+                const pointventeId = $row.find('.pointvente-cell').data('pointvente-id') !== undefined ? String($row.find('.pointvente-cell').data('pointvente-id')) : '';
+                const occupee = $row.find('.etat-cell').data('occupee') !== undefined ? String($row.find('.etat-cell').data('occupee')) : '';
+
+                // Filtre nom
+                if (filterNom && !nom.includes(filterNom)) {
+                    showRow = false;
+                }
+
+                // Filtre description
+                if (showRow && filterDesc && !desc.includes(filterDesc)) {
+                    showRow = false;
+                }
+
+                // Filtre point de vente
+                if (showRow && filterPointVente !== 'all') {
+                    if (pointventeId !== filterPointVente) {
+                        showRow = false;
+                    }
+                }
+
+                // Filtre état
+                if (showRow && filterEtat !== 'all') {
+                    if (occupee !== filterEtat) {
+                        showRow = false;
+                    }
+                }
+
+                if (showRow) {
+                    $row.show();
+                    $row.find('.row-num').text(newIndex);
+                    newIndex++;
+                    visibleCount++;
+                } else {
+                    $row.hide();
+                }
+            });
+
+            $('#tableCount').text(visibleCount);
+
+            if (visibleCount === 0) {
+                $('#noResultRow').show();
+            }
+        }
+
+        function debouncedFilter() {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(() => {
+                filterTables();
+                saveFiltersToStorage();
+            }, 300);
+        }
+
+        // Initialisation au chargement de la page
+        $(document).ready(function() {
+            // Charger les filtres depuis localStorage
+            const hasSaved = loadFiltersFromStorage();
+
+            // Appliquer les filtres immédiatement
+            filterTables();
+
+            // Écouteurs d'événements
+            $('#filterNom, #filterDescription, #filterPointVente, #filterEtat').on('change keyup', function() {
+                debouncedFilter();
+            });
+
+            // Réinitialisation
+            $('#resetFilters').click(function(e) {
+                e.preventDefault();
+                resetFilters();
             });
         });
     </script>
