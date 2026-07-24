@@ -307,8 +307,7 @@ use App\Models\Ressources;
                                     @else <i class="zmdi zmdi-close-circle text-danger"></i> @endif
                                 </td>
                                 <td style="text-align:center;" class="seuil-cell" data-seuil-min="{{ $data->seuil_minimum }}" data-seuil-max="{{ $data->seuil_maximum }}" style="padding-top:5px;padding-bottom:5px;">
-                                    @if (($data->seuil_minimum) && ($data->seuil_maximum)) {{ $data->seuil_minimum . ' - ' . $data->seuil_maximum }}
-                                    @else <i class="zmdi zmdi-close-circle text-danger"></i> @endif
+                                    <i class="zmdi zmdi-close-circle text-danger"></i>
                                 </td>
                                 <td class="user-cell" data-user-id="{{ $data->user_id }}" style="padding-top:5px;padding-bottom:5px;">
                                     {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
