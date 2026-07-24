@@ -1,4 +1,4 @@
-Cette page est bonne : @php
+@php
     use App\Models\appnames;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
@@ -682,6 +682,100 @@ select.form-control {
         gap: 8px;
     }
 }
+
+/* ===== STYLES POUR LE DROPDOWN À CHECKBOXES (stock) ===== */
+.stock-dropdown {
+    width: 100%;
+}
+.stock-dropdown .dropdown-toggle {
+    height: 46px !important;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 10px 36px 10px 16px !important;
+    font-size: .95rem;
+    background: #fff;
+    transition: all .2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,.02);
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    color: #1e2a3e;
+    font-weight: 500;
+    position: relative;
+}
+.stock-dropdown .dropdown-toggle:focus {
+    border-color: var(--bleu-nuit) !important;
+    box-shadow: 0 0 0 4px rgba(10,25,47,.1) !important;
+    transform: translateY(-2px);
+}
+.stock-dropdown .dropdown-toggle span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.stock-dropdown .dropdown-toggle .caret {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: .8rem;
+    color: #94a3b8;
+    flex-shrink: 0;
+}
+.stock-dropdown .dropdown-toggle::after {
+    display: none;
+}
+.stock-dropdown .dropdown-menu {
+    width: 100%;
+    border-radius: 14px;
+    box-shadow: var(--shadow-premium);
+    border: 1px solid #e2e8f0;
+    margin-top: 5px;
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.stock-dropdown .dropdown-menu .checkbox {
+    padding: 5px 0;
+}
+.stock-dropdown .dropdown-menu .checkbox label {
+    font-weight: 500;
+    margin: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .9rem;
+}
+.stock-dropdown .dropdown-menu .checkbox input[type="checkbox"] {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    accent-color: #e31b23;
+    flex-shrink: 0;
+}
+
+/* ===== UNIFORMISATION DES CHAMPS DANS LE MODAL DE TRANSFERT ===== */
+#transferModal .form-control,
+#transferModal input.form-control,
+#transferModal select.form-control,
+#transferModal textarea.form-control {
+    height: 46px !important;
+    padding: 10px 16px !important;
+    font-size: 0.95rem;
+    border-radius: 14px !important;
+}
+#transferModal textarea.form-control {
+    height: 46px !important;
+    resize: vertical;
+}
+#transferModal .stock-dropdown .dropdown-toggle {
+    height: 46px !important;
+    padding: 10px 36px 10px 16px !important;
+}
     </style>
     <section class="content">
         <div class="container">
@@ -851,7 +945,7 @@ select.form-control {
                                                 }
                                                 ?>
                                             </td>
-                                            <td class="stock-cell" data-stock="{{ $data->stock }}" style="padding-top: 5px;padding-bottom: 5px;">
+                                            <td class="stock-cell" data-stock="{{ $data->stock }}" style="padding-top: 5px;padding-bottom: 5px;text-align:center;">
                                                 @if ($data->avoir_stock == 1)
                                                     <?php if($data->stock <= $data->seuil_minimum){ ?>
                                                         <span class="text-danger">{{ $data->stock }}</span>
@@ -860,11 +954,15 @@ select.form-control {
                                                         <span>{{ $data->stock }}</span>
                                                     <?php } ?>
                                                 @else
-                                                    -
+                                                    <i class="zmdi zmdi-close-circle text-danger"></i>
                                                 @endif
                                             </td>
-                                            <td class="seuil-cell" data-seuil-min="{{ $data->seuil_minimum }}" data-seuil-max="{{ $data->seuil_maximum }}" style="padding-top: 5px;padding-bottom: 5px;">
-                                                {{ $data->seuil_minimum . ' - ' . $data->seuil_maximum }}
+                                            <td class="seuil-cell" data-seuil-min="{{ $data->seuil_minimum }}" data-seuil-max="{{ $data->seuil_maximum }}" style="padding-top: 5px;padding-bottom: 5px;text-align:center;">
+                                                @if (($data->seuil_minimum) && ($data->seuil_maximum))
+                                                    {{ $data->seuil_minimum . ' - ' . $data->seuil_maximum }}
+                                                @else
+                                                    <i class="zmdi zmdi-close-circle text-danger"></i>
+                                                @endif
                                             </td>
                                             <td class="user-cell" data-user-id="{{ $data->user_id }}" style="padding-top: 5px;padding-bottom: 5px;">
                                                 {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
@@ -1289,7 +1387,7 @@ select.form-control {
         </div>
     </div>
 
-    <!-- ========== MODAL TRANSFERT (avec stock_id) ========== -->
+    <!-- ========== MODAL TRANSFERT AVEC MULTI-SELECT (CHECKBOXES) ET CHAMPS UNIFORMISÉS ========== -->
     <div class="modal fade" id="transferModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content" style="border-radius: var(--border-radius-xl); box-shadow: var(--shadow-premium);">
@@ -1352,27 +1450,39 @@ select.form-control {
                             <i class="zmdi zmdi-swap text-warning"></i> DESTINATION DU TRANSFERT
                         </div>
 
-                        <!-- Ligne 1 : Liste de stock + Quantité -->
+                        <!-- Ligne 1 : Liste de stock (multi-select) + Quantité -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: #2d3748;">
-                                        <i class="zmdi zmdi-view-list text-danger"></i> Liste de stock <span class="text-danger">*</span>
+                                        <i class="zmdi zmdi-view-list text-danger"></i> Liste(s) de stock <span class="text-danger">*</span>
                                     </label>
-                                    <select id="transfert_stock_id" name="transfert_stock_id" class="form-control" style="width:100%; background:#ffffff;">
-                                        <option selected value="0">Aucune</option>
-                                        @foreach ($stocks as $st)
-                                            <option value="{{ $st->id }}">{{ $st->nom }}</option>
-                                        @endforeach
-                                    </select>
+                                    <div class="dropdown stock-dropdown">
+                                        <button class="form-control dropdown-toggle" type="button" id="dropdownStock" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="text-align: left; background: white; border: 1px solid #e2e8f0; border-radius: 14px; height: 46px; display: flex; align-items: center; justify-content: space-between;">
+                                            <span id="selectedStockText">Aucun stock sélectionné</span>
+                                            <span class="caret">▼</span>
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownStock" style="width: 100%; padding: 10px; max-height: 200px; overflow-y: auto;">
+                                            <div class="checkbox" style="padding: 5px 0;">
+                                                <label><input type="checkbox" class="stock-checkbox" value="none" checked> Aucun</label>
+                                            </div>
+                                            @foreach ($stocks as $st)
+                                                <div class="checkbox" style="padding: 5px 0;">
+                                                    <label><input type="checkbox" class="stock-checkbox" value="{{ $st->id }}"> {{ $st->nom }}</label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    <!-- Conteneur pour les champs cachés (tableau) -->
+                                    <div id="selectedStockContainer"></div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: #2d3748;">
-                                        <i class="zmdi zmdi-storage text-danger"></i> Quantité à transférer <span class="text-danger">*</span>
+                                        <i class="zmdi zmdi-storage text-danger"></i> Quantité à transférer
                                     </label>
-                                    <input type="number" id="transfert_quantite" name="transfert_quantite" class="form-control" value="1" min="1" step="1">
+                                    <input type="number" id="transfert_quantite" name="transfert_quantite" class="form-control" value="1" step="1" placeholder="Optionnel si stock indéterminé">
                                 </div>
                             </div>
                         </div>
@@ -1397,7 +1507,7 @@ select.form-control {
                             </div>
                         </div>
 
-                        <!-- Ligne 3 : Prix de gros + Taille du lot (col-md-6) -->
+                        <!-- Ligne 3 : Prix de gros + Taille du lot -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -1947,13 +2057,72 @@ select.form-control {
         });
 
         // =====================================================
-        // GESTION DU TRANSFERT D'ARTICLE (avec stock_id)
+        // GESTION DU TRANSFERT D'ARTICLE (avec multi-sélection stock)
         // =====================================================
 
         var stockActuelGlobal = 0;
         var seuilMinimumGlobal = 0;
         var avoirStockGlobal = 0;
 
+        // ---- Fonctions pour le multi-select ----
+        function updateStockSelection() {
+            var checked = $('.stock-checkbox:not([value="none"]):checked');
+            var noneChecked = $('.stock-checkbox[value="none"]').prop('checked');
+
+            if (noneChecked) {
+                $('.stock-checkbox:not([value="none"])').prop('checked', false);
+                $('#selectedStockText').text('Aucun stock sélectionné');
+                $('#selectedStockContainer').empty();
+                return;
+            }
+
+            var names = [];
+            var ids = [];
+            checked.each(function() {
+                var $cb = $(this);
+                var label = $cb.closest('label').text().trim();
+                names.push(label);
+                ids.push($cb.val());
+            });
+
+            if (ids.length === 0) {
+                $('#selectedStockText').text('Aucun stock sélectionné');
+                $('.stock-checkbox[value="none"]').prop('checked', true);
+            } else {
+                $('#selectedStockText').text(names.join(', '));
+                $('.stock-checkbox[value="none"]').prop('checked', false);
+            }
+
+            $('#selectedStockContainer').empty();
+            ids.forEach(function(id) {
+                $('<input>', {
+                    type: 'hidden',
+                    name: 'transfert_stock_id[]',
+                    value: id
+                }).appendTo('#selectedStockContainer');
+            });
+        }
+
+        $(document).on('change', '.stock-checkbox', function() {
+            var $this = $(this);
+            var val = $this.val();
+
+            if (val === 'none') {
+                if ($this.prop('checked')) {
+                    $('.stock-checkbox:not([value="none"])').prop('checked', false);
+                }
+            } else {
+                if ($this.prop('checked')) {
+                    $('.stock-checkbox[value="none"]').prop('checked', false);
+                }
+                if ($('.stock-checkbox:not([value="none"]):checked').length === 0) {
+                    $('.stock-checkbox[value="none"]').prop('checked', true);
+                }
+            }
+            updateStockSelection();
+        });
+
+        // ---- Ouverture du modal ----
         $(document).on('click', '.transfer-btn', function(e) {
             e.preventDefault();
             var articleData = $(this).data('article');
@@ -1962,12 +2131,11 @@ select.form-control {
                 return;
             }
 
-            // Stocker les valeurs pour la validation
             stockActuelGlobal = articleData.stock;
             seuilMinimumGlobal = articleData.seuil_minimum;
             avoirStockGlobal = articleData.avoir_stock;
 
-            // --- En-tête (lecture seule) ---
+            // En-tête
             $('#transfer_nom').text(articleData.nom_article);
             $('#transfer_categorie').text(articleData.categorie_nom);
             var deviseLabel = (articleData.devise == 0) ? 'USD' : 'CDF';
@@ -1977,11 +2145,13 @@ select.form-control {
             $('#transfer_activite_actuelle').text(articleData.activite_nom);
             $('#transfer_user_actuel').text(articleData.user_nom);
 
-            // --- Champs de destination (modifiables) ---
             $('#transfer_article_id').val(articleData.id);
 
-            // Liste de stock : on laisse la valeur par défaut "Aucune"
-            $('#transfert_stock_id').val('0'); // on force "Aucune"
+            // Réinitialiser le multi-select à "Aucun"
+            $('.stock-checkbox[value="none"]').prop('checked', true);
+            $('.stock-checkbox:not([value="none"])').prop('checked', false);
+            updateStockSelection();
+
             $('#transfert_quantite').val(1);
             $('#transfert_prix_detail_dest').val(articleData.prix_detail);
             $('#transfert_prix_gros_dest').val(articleData.prix_gros);
@@ -1993,23 +2163,28 @@ select.form-control {
             $('#transferModal').modal('show');
         });
 
-        // Soumission du formulaire avec validations
+        // ==========================================================
+        // ---- SOUMISSION DU TRANSFERT (MODIFICATION ICI) ----
+        // ==========================================================
         $(document).on('click', '#transfer_submit', function(e) {
             e.preventDefault();
-
-            // Réinitialiser le message
             $('#transfer_msg').html('').css('display', 'none');
 
-            // 1. Vérifier que la liste de stock est sélectionnée
-            var stock_id = $('#transfert_stock_id').val();
-            if (stock_id == '0' || stock_id == '' || stock_id == null) {
-                $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> Sélectionnez un stock.');
+            // 1. Récupérer les stocks sélectionnés
+            var stockIds = [];
+            $('input[name="transfert_stock_id[]"]').each(function() {
+                stockIds.push($(this).val());
+            });
+            var nbStocks = stockIds.length;
+
+            if (nbStocks === 0) {
+                $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> Sélectionnez au moins un stock.');
                 $('#transfer_msg').css('display', 'flex');
                 setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
                 return;
             }
 
-            // 2. Vérifier le motif du transfert
+            // 2. Motif
             var commentaire = $('#transfert_commentaire').val().trim();
             if (commentaire == '' || commentaire.length < 3) {
                 $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> Veuillez saisir un motif de transfert (minimum 3 caractères).');
@@ -2020,26 +2195,38 @@ select.form-control {
 
             // 3. Vérification du stock (seulement si avoir_stock = 1)
             if (avoirStockGlobal == 1) {
-                // 3a. Vérifier la quantité (entier positif)
                 var qte = parseInt($('#transfert_quantite').val());
                 if (isNaN(qte) || qte < 1) {
-                    $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> La quantité doit être un nombre entier positif.');
+                    $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> La quantité doit être un nombre entier positif (car le stock est déterminé).');
                     $('#transfer_msg').css('display', 'flex');
                     setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
                     return;
                 }
 
-                // 3b. Vérifier que le stock ne descende pas en dessous du seuil minimum
+                // --- NOUVEAU CALCUL : total = quantité × nombre de stocks ---
+                var totalTransfert = qte * nbStocks;
                 var maxTransferable = stockActuelGlobal - seuilMinimumGlobal;
-                if (qte > maxTransferable) {
-                    $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> La quantité maximale que vous pouvez transférer sans descendre en dessous du seuil minimum ('+seuilMinimumGlobal+') est de '+maxTransferable+'.');
+
+                if (totalTransfert > maxTransferable) {
+                    $('#transfer_msg').html(
+                        '<i class="zmdi zmdi-close-circle"></i> ' +
+                        'La quantité totale à transférer (' + totalTransfert + ') ' +
+                        'dépasse le stock disponible après seuil (' + maxTransferable + ').'
+                    );
                     $('#transfer_msg').css('display', 'flex');
                     setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
                     return;
+                }
+                // --- FIN NOUVEAU CALCUL ---
+            } else {
+                // Si avoir_stock = 0, la quantité n'est pas obligatoire (on met 0 si invalide)
+                var qte = parseInt($('#transfert_quantite').val());
+                if (isNaN(qte) || qte < 0) {
+                    $('#transfert_quantite').val(0);
                 }
             }
 
-            // 4. Vérifier le prix de détail (entier positif)
+            // 4. Prix détail
             var prix_detail = parseInt($('#transfert_prix_detail_dest').val());
             if (isNaN(prix_detail) || prix_detail < 0) {
                 $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> Le prix de détail doit être un nombre entier positif.');
@@ -2048,7 +2235,7 @@ select.form-control {
                 return;
             }
 
-            // 5. Vérifier le prix de gros (entier positif)
+            // 5. Prix gros
             var prix_gros = parseInt($('#transfert_prix_gros_dest').val());
             if (isNaN(prix_gros) || prix_gros < 0) {
                 $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> Le prix de gros doit être un nombre entier positif.');
@@ -2057,7 +2244,7 @@ select.form-control {
                 return;
             }
 
-            // 6. Vérifier la taille du lot (entier positif)
+            // 6. Taille lot
             var taille_lot = parseInt($('#transfert_taille_lot_dest').val());
             if (isNaN(taille_lot) || taille_lot < 1) {
                 $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> La taille du lot doit être un nombre entier positif.');
@@ -2066,7 +2253,7 @@ select.form-control {
                 return;
             }
 
-            // 7. Vérifier que la devise est sélectionnée
+            // 7. Devise
             var devise = $('#transfert_devise_dest').val();
             if (devise == '' || devise == null) {
                 $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> Veuillez sélectionner une devise.');
@@ -2075,11 +2262,9 @@ select.form-control {
                 return;
             }
 
-            // Si toutes les validations sont passées, soumettre le formulaire
+            // Tout est valide → soumettre
             var $btn = $(this);
-            // Sauvegarder le texte original pour le restaurer
             var originalText = $btn.html();
-            // Désactiver le bouton et afficher le spinner
             $btn.prop('disabled', true).html('<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Transfert en cours...');
 
             var formData = $('#form_transfert').serialize();
@@ -2114,22 +2299,26 @@ select.form-control {
                     setTimeout(() => { $('#transfer_msg').html(''); $('#transfer_msg').css('display', 'none'); }, 9000);
                 },
                 complete: function() {
-                    // Réactiver le bouton et restaurer le texte original
                     $btn.prop('disabled', false).html(originalText);
                 }
             });
         });
+        // ==========================================================
+        // FIN DE LA SECTION MODIFIÉE
+        // ==========================================================
 
-        // Réinitialisation du modal à sa fermeture
+        // ---- Réinitialisation à la fermeture ----
         $('#transferModal').on('hidden.bs.modal', function () {
             $('#transfer_msg').html('').css('display', 'none');
-            // Réinitialiser le select à "Aucune" (valeur 0)
-            $('#transfert_stock_id').val('0');
-            // Réinitialiser le bouton (si jamais il reste désactivé)
+            // Réinitialiser le multi-select à "Aucun"
+            $('.stock-checkbox[value="none"]').prop('checked', true);
+            $('.stock-checkbox:not([value="none"])').prop('checked', false);
+            updateStockSelection();
             $('#transfer_submit').prop('disabled', false).html('<i class="zmdi zmdi-swap"></i> Transférer');
             $('#form_transfert')[0].reset();
         });
 
+        // ---- Import / Export ----
         $("#confirmImportBtn").click(function() {
             var formData = new FormData($("#importForm")[0]);
             $.ajax({
@@ -2169,7 +2358,7 @@ select.form-control {
             });
         });
 
-        // ========== EXPORT PDF ==========
+        // Export PDF
         $("#exportPdfBtn").click(function(e) {
             e.preventDefault();
             var $btn = $(this);
@@ -2216,7 +2405,7 @@ select.form-control {
             }, 3000);
         });
 
-        // ========== EXPORT EXCEL ==========
+        // Export Excel
         $("#exportExcelBtn").click(function(e) {
             e.preventDefault();
             var $btn = $(this);

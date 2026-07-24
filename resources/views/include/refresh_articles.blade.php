@@ -61,7 +61,7 @@ use Illuminate\Support\Facades\Auth;
                         ?>
                     </td>
                     <td class="stock-cell" data-stock="{{ $data->stock }}"
-                        style="padding-top: 5px;padding-bottom: 5px;">
+                        style="padding-top: 5px;padding-bottom: 5px;text-align:center;">
                         @if ($data->avoir_stock == 1)
                             <?php if($data->stock <= $data->seuil_minimum){ ?>
                             <span class="text-danger">{{ $data->stock }}</span>
@@ -70,12 +70,17 @@ use Illuminate\Support\Facades\Auth;
                             <span>{{ $data->stock }}</span>
                             <?php } ?>
                         @else
-                            -
+                            <i class="zmdi zmdi-close-circle text-danger"></i>
                         @endif
                     </td>
                     <td class="seuil-cell" data-seuil-min="{{ $data->seuil_minimum }}"
-                        data-seuil-max="{{ $data->seuil_maximum }}" style="padding-top: 5px;padding-bottom: 5px;">
-                        {{ $data->seuil_minimum . ' - ' . $data->seuil_maximum }}
+                        data-seuil-max="{{ $data->seuil_maximum }}"
+                        style="padding-top: 5px;padding-bottom: 5px;text-align:center;">
+                        @if ($data->seuil_minimum && $data->seuil_maximum)
+                            {{ $data->seuil_minimum . ' - ' . $data->seuil_maximum }}
+                        @else
+                            <i class="zmdi zmdi-close-circle text-danger"></i>
+                        @endif
                     </td>
                     <td class="user-cell" data-user-id="{{ $data->user_id }}"
                         style="padding-top: 5px;padding-bottom: 5px;">
@@ -96,7 +101,7 @@ use Illuminate\Support\Facades\Auth;
                         $__d2 = explode('/', $data->date_expiration)[0];
                         $__m2 = explode('/', $data->date_expiration)[1];
                         $__y2 = explode('/', $data->date_expiration)[2];
-                        
+
                         $date_1 = date('' . $__m1 . '/' . $__d1 . '/' . $__y1 . '');
                         $date_2 = date('' . $__m2 . '/' . $__d2 . '/' . $__y2 . '');
                         while (strtotime($date_1) <= strtotime($date_2)) {
@@ -137,6 +142,36 @@ use Illuminate\Support\Facades\Auth;
                         <?php } else { ?>
                         <a id="edit_r<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
                         <?php } ?>
+
+                        <?php if (($edit == 1) || (Auth::user()->role == 0)) { ?>
+                        <a id="transfer_<?= $i ?>" href="#" data-id="<?= $data->id ?>"
+                            data-article='<?= json_encode([
+                                                       'id'=>
+                            $data->id,
+                            'nom_article' => $data->nom_article,
+                            'categorie_nom' => Societes::where('id', $data->societe_id)->first()['nom'] ?? 'N/A',
+                            'prix_detail' => $data->prix_detail,
+                            'prix_gros' => $data->prix_gros,
+                            'devise' => $data->devise,
+                            'stock' => $data->stock,
+                            'seuil_minimum' => $data->seuil_minimum,
+                            'taille_lot' => $data->taille_lot,
+                            'activite_id' => $data->activite_id,
+                            'avoir_stock' => $data->avoir_stock,
+                            'activite_nom' => $data->activite_id == 0 || $data->activite_id == '0' ? 'Aucune' :
+                            Activites::where('id', $data->activite_id)->first()['nom'] ?? 'Aucune',
+                            'user_id' => $data->user_id,
+                            'user_nom' => User::where('id', $data->user_id)->first()['name'] ?? 'N/A',
+                            ]) ?>'
+                            class="transfer-btn">
+                            <i class="zmdi zmdi-swap" style="color:#333;"></i>
+                        </a> &nbsp;
+                        <?php } else { ?>
+                        <a id="transfer_r<?= $i ?>" href="#" class="transfer-disabled">
+                            <i class="zmdi zmdi-swap" style="color:#999;"></i>
+                        </a> &nbsp;
+                        <?php } ?>
+
                         <?php if (($delete == 1) || (Auth::user()->role == 0)) { ?>
                         <a id="delete_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a> &nbsp;
                         <?php } else { ?>

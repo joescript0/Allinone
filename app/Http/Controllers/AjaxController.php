@@ -4476,10 +4476,22 @@ class AjaxController extends Controller
         return view('include.refresh_articles', $data);
     }
 
-    public function add_articlestocks(Request $request)
+    public function transfer_article(Request $request)
     {
         try {
-            // Récupération de l'article
+            DB::beginTransaction();
+
+            // --------------------------------------------------------------
+            // 1. Quantité : toujours un entier >= 0
+            // --------------------------------------------------------------
+            $quantite = $request->filled('transfert_quantite') ? (int) $request->transfert_quantite : 0;
+            if ($quantite < 0) {
+                $quantite = 0;
+            }
+
+            // --------------------------------------------------------------
+            // 2. Récupération de l'article source
+            // --------------------------------------------------------------
             $article = Articles::find($request->transfer_article_id);
             if (!$article) {
                 return response()->json([
@@ -4488,68 +4500,214 @@ class AjaxController extends Controller
                 ], 404);
             }
 
-            $isNew = false;
+            // --------------------------------------------------------------
+            // 3. Détection du mode : transfert depuis un stock spécifique ?
+            // --------------------------------------------------------------
+            $sourceStockId = $request->input('transfer_source_stock_id', null);
+            $isSpecific = $request->has('transfer_source_stock_id');
 
-            // 1. Gestion de articlestocks (mise à jour ou création)
-            $articlestocks = articlestocks::where('article_id', $request->transfer_article_id)
-                                        ->where('stock_id', $request->transfert_stock_id)
-                                        ->first();
+            // --------------------------------------------------------------
+            // 4. Récupération des stocks de destination
+            // --------------------------------------------------------------
+            $stockIds = $request->input('transfert_stock_id', []);
+            if (!is_array($stockIds)) {
+                $stockIds = [$stockIds];
+            }
+            $stockIds = array_filter($stockIds, function($id) {
+                return $id !== '' && $id !== null;
+            });
 
-            if ($articlestocks) {
-                // Existe : on ajoute la quantité
-                $articlestocks->stock += $request->transfert_quantite;
-                $articlestocks->save();
-                $message = 'Stock mis à jour avec succès.';
-            } else {
-                // Nouvel enregistrement avec ID manuel (count() + 1)
-                $articlestocks = new articlestocks();
-                $id = articlestocks::count() + 1; // exactement comme vous le vouliez
-                $articlestocks->id = $id;
-                $articlestocks->user_id = Auth::id();
-                $articlestocks->article_id = $request->transfer_article_id;
-                $articlestocks->devise = $request->transfert_devise_dest;
-                $articlestocks->prix_detail = $request->transfert_prix_detail_dest;
-                $articlestocks->prix_gros = $request->transfert_prix_gros_dest;
-                $articlestocks->taille_lot = $request->transfert_taille_lot_dest;
-                $articlestocks->stock = $request->transfert_quantite;
-                $articlestocks->date_creation = now()->format('d/m/Y');
-                $articlestocks->stock_id = $request->transfert_stock_id;
-                $articlestocks->avoir_stock = $article->avoir_stock;
-                $articlestocks->save();
-                $isNew = true;
-                $message = 'Nouveau stock créé avec succès.';
+            // --- En mode spécifique, on interdit le transfert vers le stock source ---
+            if ($isSpecific && in_array($sourceStockId, $stockIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vous ne pouvez pas transférer vers le même stock source.'
+                ], 400);
             }
 
-            // 2. Enregistrement du transfert (toujours nouveau)
-            $transfert = new transfertstocks();
-            $id2 = transfertstocks::count() + 1; // exactement comme vous le vouliez
-            $transfert->id = $id2;
-            $transfert->user_id = Auth::id();
-            $transfert->article_id = $request->transfer_article_id;
-            $transfert->commentaire = $request->transfert_commentaire;
-            $transfert->qte = $request->transfert_quantite;
-            $transfert->date_creation = now()->format('d/m/Y');
-            $transfert->stock_1 = 0;
-            $transfert->stock_2 = $request->transfert_stock_id;
-            $transfert->save();
+            // --- En mode global, on interdit le transfert vers le stock principal (0) ---
+            if (!$isSpecific && in_array(0, $stockIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Impossible de transférer vers le stock principal depuis la gestion globale.'
+                ], 400);
+            }
 
+            if (empty($stockIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Veuillez sélectionner au moins un stock de destination.'
+                ], 400);
+            }
+
+            $nbDest = count($stockIds);
+
+            // --------------------------------------------------------------
+            // 5. Validation selon avoir_stock
+            // --------------------------------------------------------------
+            if ($article->avoir_stock == 1) {
+                // La quantité doit être > 0
+                if ($quantite <= 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'La quantité doit être supérieure à 0.'
+                    ], 400);
+                }
+
+                // Calcul du total à déduire du stock source
+                if ($isSpecific) {
+                    // Mode spécifique : quantité par destination, donc total = quantite * nbDest
+                    $totalQuantite = $quantite * $nbDest;
+                } else {
+                    // Mode global : quantité est le total à répartir
+                    $totalQuantite = $quantite;
+                }
+
+                // Vérification et déduction du stock source
+                if ($isSpecific && $sourceStockId == 0) {
+                    // Source = stock principal
+                    if ($article->stock < $totalQuantite) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Stock insuffisant dans le stock principal.'
+                        ], 400);
+                    }
+                    $article->stock -= $totalQuantite;
+                    $article->save();
+
+                } elseif ($isSpecific && $sourceStockId > 0) {
+                    // Source = stock secondaire
+                    $articlestockSource = articlestocks::where('article_id', $request->transfer_article_id)
+                                                        ->where('stock_id', $sourceStockId)
+                                                        ->first();
+                    if (!$articlestockSource) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Cet article n\'existe pas dans le stock source sélectionné.'
+                        ], 400);
+                    }
+                    if ($articlestockSource->stock < $totalQuantite) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Stock insuffisant dans le stock source.'
+                        ], 400);
+                    }
+                    $articlestockSource->stock -= $totalQuantite;
+                    $articlestockSource->save();
+
+                } else {
+                    // Mode global : source = stock principal (0)
+                    if ($article->stock < $totalQuantite) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Stock insuffisant pour cet article.'
+                        ], 400);
+                    }
+                    $article->stock -= $totalQuantite;
+                    $article->save();
+                }
+            }
+            // Si avoir_stock != 1, on ne touche pas au stock de l'article
+
+            // --------------------------------------------------------------
+            // 6. Détermination de la quantité par destination
+            // --------------------------------------------------------------
+            if ($isSpecific) {
+                // Chaque destination reçoit exactement la quantité saisie
+                $qteParStock = $quantite;
+                $reste = 0;
+            } else {
+                // Répartition équitable du total
+                $qteParStock = intdiv($quantite, $nbDest);
+                $reste = $quantite - ($qteParStock * $nbDest);
+            }
+
+            // --------------------------------------------------------------
+            // 7. Mise à jour des stocks de destination
+            // --------------------------------------------------------------
+            $results = [];
+            foreach ($stockIds as $index => $stockId) {
+                $qte = $qteParStock + ($index < $reste ? 1 : 0);
+
+                if ($stockId == 0) {
+                    // Destination = stock principal
+                    $article->stock += $qte;
+                    $article->save();
+                    $action = 'updated_principal';
+                    $articlestocks = null;
+                } else {
+                    // Destination = stock secondaire
+                    $articlestocks = articlestocks::where('article_id', $request->transfer_article_id)
+                                                    ->where('stock_id', $stockId)
+                                                    ->first();
+
+                    if ($articlestocks) {
+                        $articlestocks->stock += $qte;
+                        $articlestocks->save();
+                        $action = 'updated';
+                    } else {
+                        $articlestocks = new articlestocks();
+                        $articlestocks->id = articlestocks::count() + 1;
+                        $articlestocks->user_id = Auth::id();
+                        $articlestocks->article_id = $request->transfer_article_id;
+                        $articlestocks->devise = $request->transfert_devise_dest;
+                        $articlestocks->prix_detail = $request->transfert_prix_detail_dest;
+                        $articlestocks->prix_gros = $request->transfert_prix_gros_dest;
+                        $articlestocks->taille_lot = $request->transfert_taille_lot_dest;
+                        $articlestocks->stock = $qte;
+                        $articlestocks->date_creation = now()->format('d/m/Y');
+                        $articlestocks->stock_id = $stockId;
+                        $articlestocks->avoir_stock = $article->avoir_stock;
+                        $articlestocks->save();
+                        $action = 'created';
+                    }
+                }
+
+                // Création du transfert
+                $transfert = new transfertstocks();
+                $transfert->id = transfertstocks::count() + 1;
+                $transfert->user_id = Auth::id();
+                $transfert->article_id = $request->transfer_article_id;
+                $transfert->commentaire = $request->transfert_commentaire;
+                $transfert->qte = $qte;
+                $transfert->date_creation = now()->format('d/m/Y');
+                $transfert->stock_1 = $isSpecific ? $sourceStockId : 0;
+                $transfert->stock_2 = $stockId;
+                $transfert->save();
+
+                $results[] = [
+                    'stock_id' => $stockId,
+                    'quantite' => $qte,
+                    'action'   => $action,
+                    'articlestocks' => $articlestocks,
+                    'transfert' => $transfert
+                ];
+            }
+
+            DB::commit();
+
+            // --------------------------------------------------------------
+            // 8. Réponse JSON
+            // --------------------------------------------------------------
             return response()->json([
                 'success' => true,
-                'message' => $message,
-                'action'  => $isNew ? 'created' : 'updated',
+                'message' => 'Transfert effectué vers ' . $nbDest . ' stock(s).',
                 'data'    => [
-                    'articlestocks' => $articlestocks,
-                    'transfert'     => $transfert
+                    'article' => $article,
+                    'details' => $results
                 ]
             ], 200);
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur : ' . $e->getMessage()
             ], 500);
         }
     }
+
+
 
     public function edit_article(Request $request)
     {
@@ -9270,7 +9428,7 @@ class AjaxController extends Controller
 
     public function refresh_article_stock(Request $request)
     {
-        if(Stocks::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0, "id" => $request->stock_id])->first())
+        if($request->stock_id != 0)
         {
             $stock = Stocks::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0, "id" => $request->stock_id])->first();
             $data["nom"] = $stock->nom;
@@ -9281,16 +9439,15 @@ class AjaxController extends Controller
         }
         if($request->stock_id == 0)
         {
-            $data["articles"] = Stocks::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
+            $data["articles"] = Articles::where(["supprimer" => 0])->get();
         }
         else
         {
-            $data["articles"] = Stocks::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
+            $data["articles"] = articlestocks::where(["supprimer" => 0, "stock_id" => $request->stock_id])->get();
         }
         $data["stocks"] = Stocks::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
         $data["pointdeventes"] = Pointdeventes::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
         $data["stock_id"] = $request->stock_id;
-        $data["articles"] = Articles::where(["supprimer" => 0])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $groupe_user_id = Auth::user()->role;
         $data["ressource_id_1"] = 2;

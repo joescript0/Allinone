@@ -573,6 +573,7 @@ select.form-control {
                                         <tr>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">N°</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Nom</th>
+                                            <th style="padding-top: 5px;padding-bottom: 5px;">Description</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Point de vente</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Article</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
@@ -582,18 +583,31 @@ select.form-control {
                                         <tr>
                                             <td style="padding-top: 5px;padding-bottom: 5px;">{{ 1 }}</td>
                                             <td style="padding-top: 5px;padding-bottom: 5px;">{{ "Stock principal" }}</td>
+                                            <td style="padding-top: 5px;padding-bottom: 5px;">{{ "Depôt" }}</td>
                                             <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                                                 <a id="affectation_1" href="">
-                                                    <span class="badge badge-info">
-                                                        <?= pointdeventes::where(["stock_id" => 0])->get()->count(); ?>
-                                                    </span>
+                                                    @if (pointdeventes::where(["supprimer" => 0, "stock_id" => 0])->count() == 0)
+                                                        <span class="badge badge-danger">
+                                                            <?= pointdeventes::where(["stock_id" => 0])->get()->count(); ?>
+                                                        </span>
+                                                    @else
+                                                        <span class="badge badge-info">
+                                                            <?= pointdeventes::where(["supprimer" => 0, "stock_id" => 0])->count(); ?>
+                                                        </span>
+                                                    @endif
                                                 </a>
                                             </td>
                                             <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                                                 <a id="article_1" href="">
-                                                    <span class="badge badge-success">
-                                                        <?= Articles::where(["supprimer" => 0])->count(); ?>
-                                                    </span>
+                                                    @if (Articles::where(["supprimer" => 0])->count() == 0)
+                                                        <span class="badge badge-danger">
+                                                            <?= Articles::where(["supprimer" => 0])->count(); ?>
+                                                        </span>
+                                                    @else
+                                                        <span class="badge badge-info">
+                                                            <?= Articles::where(["supprimer" => 0])->count(); ?>
+                                                        </span>
+                                                    @endif
                                                 </a>
                                             </td>
                                             <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
@@ -641,18 +655,31 @@ select.form-control {
                                             <tr>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->nom }}</td>
+                                                <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->description }}</td>
                                                 <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                                                     <a id="affectation_<?= $i ?>" href="#">
-                                                         <span class="badge badge-info">
-                                                            <?= pointdeventes::where(["stock_id" => $data->id])->get()->count(); ?>
-                                                        </span>
+                                                        @if (pointdeventes::where(["supprimer" => 0, "stock_id" => $data->id])->count() == 0)
+                                                            <span class="badge badge-danger">
+                                                                <?= pointdeventes::where(["stock_id" => $data->id])->get()->count(); ?>
+                                                            </span>
+                                                        @else
+                                                            <span class="badge badge-info">
+                                                                <?= pointdeventes::where(["supprimer" => 0, "stock_id" => $data->id])->count(); ?>
+                                                            </span>
+                                                        @endif
                                                     </a>
                                                 </td>
                                                 <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                                                     <a id="article_<?= $i ?>" href="#">
-                                                        <span class="badge badge-success">
-                                                            <?= articlestocks::where(["supprimer" => 0, "stock_id" => $data->id])->count(); ?>
-                                                        </span>
+                                                        @if (articlestocks::where(["supprimer" => 0, "stock_id" => $data->id])->count() == 0)
+                                                            <span class="badge badge-danger">
+                                                                <?= articlestocks::where(["supprimer" => 0, "stock_id" => $data->id])->count(); ?>
+                                                            </span>
+                                                        @else
+                                                            <span class="badge badge-info">
+                                                                <?= articlestocks::where(["supprimer" => 0, "stock_id" => $data->id])->count(); ?>
+                                                            </span>
+                                                        @endif
                                                     </a>
                                                 </td>
                                                 <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
