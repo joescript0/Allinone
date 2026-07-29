@@ -336,12 +336,21 @@ use Illuminate\Support\Facades\Auth;
             box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
         }
 
-        #exporter,
+        /* ========== BOUTON EXPORTER EN VERT SUCCÈS ========== */
+        #exporter {
+            background: var(--vert-gradient) !important;
+            color: white !important;
+        }
+        #exporter:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #059669, #047857) !important;
+            box-shadow: 0 8px 18px rgba(16, 185, 129, 0.3);
+        }
+
         .btn-dark {
             background: #1e293b !important;
             color: white !important;
         }
-        #exporter:hover,
         .btn-dark:hover {
             transform: translateY(-2px);
             background: #0f172a !important;
@@ -702,7 +711,7 @@ use Illuminate\Support\Facades\Auth;
                                         <i class="zmdi zmdi-download"></i> Importer
                                     </a>
                                     &nbsp;
-                                    <a id="exporter" class="btn-dark btn-sm" href="">
+                                    <a id="exporter" class="btn-sm" href="">
                                         <i class="zmdi zmdi-upload"></i> Exporter
                                     </a>
                                     <?php } else { ?>
@@ -1562,7 +1571,7 @@ use Illuminate\Support\Facades\Auth;
                     },
                     success: function(response) {
                         $.get("{{ url('/get_all_depense') }}", {}, function(
-                        refresh_editutilisateur) {
+                            refresh_editutilisateur) {
                             $("#content_utilisateur").html(refresh_editutilisateur);
                             loadFilters();
                             filterDepenses();

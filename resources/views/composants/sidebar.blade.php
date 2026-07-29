@@ -55,6 +55,8 @@
     $menu_35 = Desactiver();
     $menu_36 = Desactiver();
     $menu_37 = Desactiver();
+    $menu_38 = Activer();
+    $menu_39 = Activer();
 
   }
   elseif($menueapp == "Divine")
@@ -100,6 +102,8 @@
     $menu_35 = Desactiver();
     $menu_36 = Activer();
     $menu_37 = Desactiver();
+    $menu_38 = Desactiver();
+    $menu_39 = Desactiver();
   }
 ?>
 
@@ -484,6 +488,8 @@
       $data["ressource_id_20"] = 20;
       $data["ressource_id_21"] = 21;
       $data["ressource_id_22"] = 22;
+      $data["ressource_id_23"] = 23;
+      $data["ressource_id_24"] = 24;
       $data["groupe_user_id"] = $groupe_user_id;
       ?>
       <ul class="navigation">
@@ -794,6 +800,34 @@
                 ?>
                 <?php if (((($display_22 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_22"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_22 ==  0) && (Auth::user()->role == 0))) { ?>
                     <li id="link_43"><a href="{{ route('rapport_pointage') }}" id="text_43"> 📊 Rapport de pointage</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+
+        @if ($menu_38 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_23"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_23 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_23"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
+                    $display_23 = Writes::where(["ressource_id" => $data["ressource_id_23"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_23 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_23"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_23 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_44"><a href="{{ route('serveur_se') }}" id="text_43"> 🍽️ Serveur(se)</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+
+        @if ($menu_39 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_24"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_24 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_24"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
+                    $display_24 = Writes::where(["ressource_id" => $data["ressource_id_24"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_24 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_24"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_24 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_45"><a href="{{ route('debarrasseur_se') }}" id="text_43"> 🧹 Débarrasseur(se)</a></li>
                 <?php } ?>
             <?php } ?>
         @endif

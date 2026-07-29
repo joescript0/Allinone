@@ -127,6 +127,239 @@ use App\Models\Clients;
     .daterangepicker .ranges li.active {
         background-color: #e31b23 !important;
     }
+
+    /* ===== TABLEAU RESPONSIVE GLOBAL ===== */
+    .table {
+        table-layout: fixed;
+        width: 100%;
+        margin-bottom: 0;
+    }
+    .table th, .table td {
+        word-break: break-word;
+        overflow-wrap: break-word;
+        vertical-align: middle;
+    }
+
+    /* Définition des largeurs de colonnes (adaptées) */
+    .table th:nth-child(1), .table td:nth-child(1) { width: 5%; }   /* N° */
+    .table th:nth-child(2), .table td:nth-child(2) { width: 18%; }  /* Nom */
+    .table th:nth-child(3), .table td:nth-child(3) { width: 12%; }  /* Contact */
+    .table th:nth-child(4), .table td:nth-child(4) { width: 22%; }  /* Paiement */
+    .table th:nth-child(5), .table td:nth-child(5) { width: 18%; }  /* Date */
+    .table th:nth-child(6), .table td:nth-child(6) { width: 15%; }  /* Control */
+
+    /* Colonne Contact */
+    .contact-cell {
+        text-align: center;
+    }
+    .contact-cell .btn-contact {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #0a192f;
+        transition: transform 0.2s;
+        cursor: pointer;
+        padding: 0 5px;
+    }
+    .contact-cell .btn-contact:hover {
+        transform: scale(1.1);
+        color: #e31b23;
+    }
+
+    /* ===== RESPONSIVE : MOBILE ===== */
+    @media (max-width: 767.98px) {
+        .table {
+            table-layout: fixed;
+            font-size: 0.7rem;
+        }
+        .table th, .table td {
+            padding: 4px 2px !important;
+            font-size: 0.65rem;
+        }
+
+        .table th:nth-child(1), .table td:nth-child(1) { width: 6%; }
+        .table th:nth-child(2), .table td:nth-child(2) { width: 20%; }
+        .table th:nth-child(3), .table td:nth-child(3) { width: 12%; }
+        .table th:nth-child(4), .table td:nth-child(4) { width: 20%; }
+        .table th:nth-child(5), .table td:nth-child(5) { width: 16%; }
+        .table th:nth-child(6), .table td:nth-child(6) { width: 16%; }
+
+        .contact-cell .btn-contact {
+            font-size: 1.2rem;
+        }
+        /* Colonne Paiement */
+        .paiement-cell span {
+            font-size: 0.6rem !important;
+            display: inline-block;
+            word-break: break-all;
+        }
+
+        /* Colonne Control */
+        .control-cell {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 2px 3px !important;
+            padding: 4px 2px !important;
+        }
+        .control-cell a {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 1px !important;
+            font-size: 0.5rem !important;
+            padding: 1px 2px !important;
+            white-space: nowrap !important;
+        }
+        .control-cell a i {
+            font-size: 0.7rem !important;
+        }
+        .control-cell a .text-info,
+        .control-cell a .text-success {
+            font-size: 0.45rem !important;
+        }
+        .control-cell a .zmdi {
+            margin: 0 !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .table th, .table td {
+            font-size: 0.55rem !important;
+            padding: 3px 1px !important;
+        }
+        .table th:nth-child(3), .table td:nth-child(3) { width: 14%; }
+        .table th:nth-child(4), .table td:nth-child(4) { width: 22%; }
+        .table th:nth-child(6), .table td:nth-child(6) { width: 18%; }
+        .contact-cell .btn-contact {
+            font-size: 1rem;
+        }
+        .paiement-cell span {
+            font-size: 0.5rem !important;
+        }
+        .control-cell a {
+            font-size: 0.45rem !important;
+            padding: 1px 1px !important;
+        }
+        .control-cell a i {
+            font-size: 0.6rem !important;
+        }
+        .control-cell a .text-info,
+        .control-cell a .text-success {
+            font-size: 0.4rem !important;
+        }
+    }
+
+    /* ===== STYLE UNIFORMISÉ DES MODALES ===== */
+    .modal-custom .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .modal-custom .modal-header {
+        border-bottom: 2px solid #e31b23;
+        padding: 20px 25px 10px 25px;
+        background: #fafafa;
+        border-radius: 20px 20px 0 0;
+    }
+    .modal-custom .modal-header .modal-title {
+        font-weight: 700;
+        color: #0a192f;
+        font-size: 1.2rem;
+    }
+    .modal-custom .modal-header .close {
+        color: #e31b23;
+        opacity: 0.8;
+        font-size: 1.8rem;
+        outline: none;
+    }
+    .modal-custom .modal-header .close:hover {
+        opacity: 1;
+    }
+    .modal-custom .modal-body {
+        padding: 25px;
+        background: #ffffff;
+        font-size: 1rem;
+        color: #333;
+    }
+    .modal-custom .modal-footer {
+        border-top: 1px solid #eee;
+        padding: 15px 25px 20px;
+        background: #fafafa;
+        border-radius: 0 0 20px 20px;
+    }
+    .modal-custom .modal-footer .btn {
+        border-radius: 40px;
+        padding: 8px 24px;
+        font-weight: 600;
+    }
+    .modal-custom .modal-footer .btn-secondary {
+        background: #64748b;
+        border-color: #64748b;
+        color: white;
+    }
+    .modal-custom .modal-footer .btn-secondary:hover {
+        background: #475569;
+        border-color: #475569;
+    }
+    .modal-custom .contact-detail {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    .modal-custom .contact-detail i {
+        width: 30px;
+        color: #e31b23;
+        font-size: 1.3rem;
+    }
+    .modal-custom .contact-detail a {
+        color: #0a192f;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .modal-custom .contact-detail a:hover {
+        color: #e31b23;
+        text-decoration: underline;
+    }
+    .modal-custom .message-success {
+        text-align: center;
+        padding: 15px;
+    }
+    .modal-custom .message-success i {
+        font-size: 4rem;
+        color: #28a745;
+        display: block;
+        margin-bottom: 15px;
+    }
+    .modal-custom .message-success h5 {
+        font-weight: 700;
+        color: #0a192f;
+    }
+    .modal-custom .message-success p {
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+
+    @media (max-width: 576px) {
+        .modal-custom .modal-body {
+            padding: 15px;
+        }
+        .modal-custom .contact-detail {
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+        .modal-custom .contact-detail i {
+            width: 24px;
+        }
+        .modal-custom .message-success i {
+            font-size: 3rem;
+        }
+    }
 </style>
 
 <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-accounts text-info"></i> Liste de
@@ -168,7 +401,7 @@ use App\Models\Clients;
     </div>
 </div>
 
-<!-- Badge compteur + totaux USD / CDF -->
+<!-- Badge compteur + totaux USD / CDF (avec conversion) -->
 <div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 15px; flex-wrap: wrap;">
     <span class="client-count-badge">
         <i class="zmdi zmdi-view-list"></i> Total clients : <span id="clientCount">0</span>
@@ -182,36 +415,27 @@ use App\Models\Clients;
 </div>
 
 <?php
-$total_3 = 0;
-$total_4 = 0;
-$total_5 = 0;
+// Calcul des totaux globaux (avec conversion)
+$total_usd_global = 0;
+$total_cdf_global = 0;
 foreach ($paiementsfactures as $f) {
-    if ((Clients::where('id', $f->client_id)->first()['activite_id'] == $activite_id && Clients::where('id', $f->client_id)->first()['user_id'] == Auth::user()->id) || Auth::user()->role == 0) {
-        if ($f->paye == 1) {
+    $client = Clients::find($f->client_id);
+    if (!$client) continue;
+    if (($client->activite_id == $activite_id && $client->user_id == Auth::user()->id) || Auth::user()->role == 0) {
+        if ($f->paye == 1) { // seulement les payés
             if ($f->devise == 0) {
-                $total_3 = $total_3 + $f->paie;
+                $total_usd_global += $f->paie;
+                $total_cdf_global += $f->paie * $f->taux;
             } else {
-                $total_3 = $total_3 + $f->paie / $f->taux;
+                $total_usd_global += $f->paie / $f->taux;
+                $total_cdf_global += $f->paie;
             }
         }
     }
 }
-foreach ($paiementsfactures as $f) {
-    if ((Clients::where('id', $f->client_id)->first()['activite_id'] == $activite_id && Clients::where('id', $f->client_id)->first()['user_id'] == Auth::user()->id) || Auth::user()->role == 0) {
-        if ($f->paye == 0) {
-            if ($f->devise == 0) {
-                $total_4 = $total_4 + $f->paie;
-            } else {
-                $total_4 = round($total_4 + $f->paie / $f->taux);
-            }
-        }
-    }
-}
+$total_usd_formatted = number_format($total_usd_global, 2, ',', ' ');
+$total_cdf_formatted = number_format($total_cdf_global, 2, ',', ' ');
 ?>
-<?php $total_5 = $total_3 + $total_4; ?>
-<h6 style="text-align: right;font-weight: bold;display:none;"><span> <i class="zmdi zmdi-check-circle text-success"></i> Paiement
-        total
-        : <span id="nb_total_1"><?= number_format($total_5, 2, ',', ' ') ?></span>$</span></h6>
 
 <div id="content_frais" class="row">
     <div class="col-12">
@@ -222,7 +446,7 @@ foreach ($paiementsfactures as $f) {
                         <th style="padding-top: 5px;padding-bottom: 5px;">N°</th>
                         <th style="padding-top: 5px;padding-bottom: 5px;">Nom</th>
                         <th style="padding-top: 5px;padding-bottom: 5px;">Contact</th>
-                        <th style="padding-top: 5px;padding-bottom: 5px;">Paiment</th>
+                        <th style="padding-top: 5px;padding-bottom: 5px;">Paiement</th>
                         <th style="padding-top: 5px;padding-bottom: 5px;">Date de paiement</th>
                         <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                     </tr>
@@ -231,31 +455,54 @@ foreach ($paiementsfactures as $f) {
                     {{ !($i = 1) }}
                     @foreach ($paiementsfactures as $data)
                         @if (Clients::where('id', $data->client_id)->first()['activite_id'] == $activite_id)
+                            @php
+                                $client = Clients::where('id', $data->client_id)->first();
+                                $email = $client['email'] ?? '';
+                                $phone = $client['phone'] ?? '';
+                                $nom = $client['name'] ?? '';
+                                // Formater le téléphone pour l'affichage
+                                $phoneRaw = preg_replace('/\s+/', '', $phone);
+                                if (!empty($phoneRaw)) {
+                                    if (preg_match('/^\+243/', $phoneRaw)) {
+                                        $prefix = '+243';
+                                        $rest = substr($phoneRaw, 4);
+                                        $formattedPhone = $prefix . ' ' . implode(' ', str_split($rest, 2));
+                                    } else {
+                                        $formattedPhone = implode(' ', str_split($phoneRaw, 2));
+                                    }
+                                } else {
+                                    $formattedPhone = '';
+                                    $phoneRaw = '';
+                                }
+                            @endphp
                             <tr id="row_{{ $data->id }}" class="client-row"
                                 data-paie="{{ $data->paie }}"
-                                data-devise="{{ $data->devise }}">
+                                data-devise="{{ $data->devise }}"
+                                data-taux="{{ $data->taux }}"
+                                data-nom="{{ $nom }}"
+                                data-email="{{ $email }}"
+                                data-phone="{{ $phoneRaw }}"
+                                data-statut="{{ $data->montant != $data->paie ? 'unpaid' : 'paid' }}"
+                                data-date="{{ date('Y-m-d', strtotime($data->created_at)) }}">
                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">
                                     <?= $i ?>
                                 </td>
-                                <td style="padding-top: 5px;padding-bottom: 5px;" class="nom-cell"
-                                    data-nom="<?= Clients::where('id', $data->client_id)->first()['name'] ?>">
-                                    <?= Clients::where('id', $data->client_id)->first()['name'] ?>
+                                <td style="padding-top: 5px;padding-bottom: 5px;" class="nom-cell">
+                                    {{ $nom }}
                                 </td>
-                                <td style="padding-top: 5px;padding-bottom: 5px;" class="contact-cell"
-                                    data-email="<?= Clients::where('id', $data->client_id)->first()['email'] ?>"
-                                    data-phone="<?= Clients::where('id', $data->client_id)->first()['phone'] ?>">
-                                    @if (strlen(trim(Clients::where('id', $data->client_id)->first()['email'])) != 0)
-                                        <a href="#"><i class="zmdi zmdi-email"></i>
-                                            <?= Clients::where('id', $data->client_id)->first()['email'] ?></a>
-                                    @endif
-                                    @if (strlen(trim(Clients::where('id', $data->client_id)->first()['phone'])) != 0)
-                                        <a href="#"><i class="zmdi zmdi-phone"></i>
-                                            <?= Clients::where('id', $data->client_id)->first()['phone'] ?></a>
-                                    @endif
+                                <!-- Colonne Contact avec bouton pour modal -->
+                                <td style="padding-top: 5px;padding-bottom: 5px;" class="contact-cell">
+                                    <button class="btn-contact" data-toggle="modal" data-target="#contactModal"
+                                        data-nom="{{ $nom }}"
+                                        data-email="{{ $email }}"
+                                        data-phone="{{ $formattedPhone }}"
+                                        data-phone-raw="{{ $phoneRaw }}">
+                                        <i class="zmdi zmdi-account"></i>
+                                    </button>
                                 </td>
+                                <!-- Colonne Paiement -->
                                 <th style="padding-top: 5px;padding-bottom: 5px;text-align: right;"
-                                    class="paiement-cell"
-                                    data-statut="<?= $data->montant != $data->paie ? 'unpaid' : 'paid' ?>">
+                                    class="paiement-cell">
                                     @if ($data->montant != $data->paie)
                                         <span class="text-danger" style="font-weight: bold">
                                             @if ($data->devise == 0)
@@ -278,23 +525,25 @@ foreach ($paiementsfactures as $f) {
                                         </span>
                                     @endif
                                 </th>
-                                <!-- Cellule Date avec data-date pour le filtrage -->
+                                <!-- Cellule Date -->
                                 <th style="padding-top: 5px;padding-bottom: 5px;text-align: right;"
-                                    class="date-cell"
-                                    data-date="<?= date('Y-m-d', strtotime($data->created_at)) ?>">
+                                    class="date-cell">
                                     <?php
                                     $date = $data->created_at;
                                     $date_1 = explode(' ', $date);
                                     echo explode('-', $date_1[0])[2] . '/' . explode('-', $date_1[0])[1] . '/' . explode('-', $date_1[0])[0] . ' à ' . $date_1[1];
                                     ?>
                                 </th>
-                                <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
+                                <!-- Colonne Control -->
+                                <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;" class="control-cell">
                                     @if ($data->montant != $data->paie)
                                         <a id="payer_valider_travailleur<?= $i ?>" href="#"><i
                                                 class="zmdi zmdi-close-circle text-danger"></i></a>
                                     @else
-                                        <a id="detail_p_t<?= $i ?>" href="#"><i
-                                                class="zmdi zmdi-check-circle text-success"></i></a>
+                                        <a id="detail_p_t<?= $i ?>" href="#" data-toggle="modal" data-target="#paidModal"
+                                           data-nom="{{ $nom }}" data-montant="{{ $data->paie }}" data-devise="{{ $data->devise ? 'CDF' : 'USD' }}">
+                                            <i class="zmdi zmdi-check-circle text-success"></i>
+                                        </a>
                                     @endif
                                     &nbsp;&nbsp;
                                     <a id="send_e<?= $i ?>" href="#"><i class="zmdi zmdi-email text-info"></i> :
@@ -323,6 +572,19 @@ foreach ($paiementsfactures as $f) {
                                                 $("#data_frais_id").html("<?= $data->id ?>");
                                                 $("#btn_sup_").trigger("click");
                                             });
+                                        });
+
+                                        // Gestion du modal de paiement déjà effectué
+                                        $(document).on('show.bs.modal', '#paidModal', function(event) {
+                                            var link = $(event.relatedTarget);
+                                            var nom = link.data('nom') || 'Client';
+                                            var montant = link.data('montant') || 0;
+                                            var devise = link.data('devise') || 'USD';
+                                            var modal = $(this);
+                                            modal.find('#paidModalNom').text(nom);
+                                            modal.find('#paidModalMontant').text(
+                                                Number(montant).toLocaleString('fr-FR') + ' ' + devise
+                                            );
                                         });
 
                                         $("#send_e<?= $i ?>").click(function(e) {
@@ -393,6 +655,69 @@ foreach ($paiementsfactures as $f) {
                     @endforeach
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================= -->
+<!-- MODAL CONTACT (avec liens cliquables)     -->
+<!-- ========================================= -->
+<div class="modal fade modal-custom" id="contactModal" tabindex="-1" role="dialog" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contactModalLabel"><i class="zmdi zmdi-account-box text-danger"></i> Coordonnées du client</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="contact-detail">
+                    <i class="zmdi zmdi-account"></i>
+                    <span id="modalContactNom">-</span>
+                </div>
+                <div class="contact-detail">
+                    <i class="zmdi zmdi-email"></i>
+                    <a href="#" id="modalContactEmailLink" target="_blank">-</a>
+                </div>
+                <div class="contact-detail">
+                    <i class="zmdi zmdi-phone"></i>
+                    <a href="#" id="modalContactPhoneLink">-</a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================= -->
+<!-- MODAL PAIEMENT DÉJÀ EFFECTUÉ              -->
+<!-- ========================================= -->
+<div class="modal fade modal-custom" id="paidModal" tabindex="-1" role="dialog" aria-labelledby="paidModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paidModalLabel"><i class="zmdi zmdi-check-circle text-success"></i> Paiement déjà effectué</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="message-success">
+                    <i class="zmdi zmdi-check-circle"></i>
+                    <h5>Ce paiement a déjà été validé</h5>
+                    <p>
+                        Le client <strong id="paidModalNom">-</strong> a déjà réglé la somme de
+                        <strong id="paidModalMontant">-</strong>.
+                    </p>
+                    <p class="text-muted" style="font-size:0.9rem;">Aucune action supplémentaire n'est requise.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+            </div>
         </div>
     </div>
 </div>
@@ -502,11 +827,11 @@ foreach ($paiementsfactures as $f) {
                 var $row = $(this);
                 var showRow = true;
 
-                var nomValue = ($row.find('.nom-cell').data('nom') || '').toLowerCase();
-                var emailValue = ($row.find('.contact-cell').data('email') || '').toLowerCase();
-                var phoneValue = ($row.find('.contact-cell').data('phone') || '').toLowerCase();
-                var statutValue = $row.find('.paiement-cell').data('statut') || '';
-                var dateValue = $row.find('.date-cell').data('date') || '';
+                var nomValue = ($row.data('nom') || '').toLowerCase();
+                var emailValue = ($row.data('email') || '').toLowerCase();
+                var phoneValue = ($row.data('phone') || '').toLowerCase();
+                var statutValue = $row.data('statut') || '';
+                var dateValue = $row.data('date') || '';
 
                 if (filterNom && nomValue.indexOf(filterNom) === -1) showRow = false;
                 if (showRow && filterEmail && emailValue.indexOf(filterEmail) === -1) showRow = false;
@@ -542,7 +867,7 @@ foreach ($paiementsfactures as $f) {
         }
 
         // =================================================================
-        // 4. MISE À JOUR DES TOTAUX (USD et CDF)
+        // 4. MISE À JOUR DES TOTAUX (USD et CDF avec conversion)
         // =================================================================
         function updateTotalPaid() {
             var totalUSD = 0;
@@ -550,25 +875,23 @@ foreach ($paiementsfactures as $f) {
 
             $('#clientsTableBody tr.client-row:visible').each(function() {
                 var $row = $(this);
-                var statutValue = $row.find('.paiement-cell').data('statut');
-                // Ne compter que les paiements "payé"
+                var statutValue = $row.data('statut');
                 if (statutValue === 'paid') {
                     var paie = parseFloat($row.data('paie')) || 0;
-                    var devise = parseInt($row.data('devise')) || 0; // 0=USD, 1=CDF
+                    var devise = parseInt($row.data('devise')) || 0;
+                    var taux = parseFloat($row.data('taux')) || 1;
                     if (devise === 0) {
                         totalUSD += paie;
+                        totalCDF += paie * taux;
                     } else {
+                        totalUSD += paie / taux;
                         totalCDF += paie;
                     }
                 }
             });
 
-            // Mise à jour des badges
             $('#totalUsdClients').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalCdfClients').text(totalCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-
-            // Mise à jour de l'ancien total (USD uniquement) si vous le souhaitez
-            // $('#nb_total_1').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
         }
 
         // =================================================================
@@ -620,7 +943,7 @@ foreach ($paiementsfactures as $f) {
         }
 
         // =================================================================
-        // 7. INITIALISATION DU DATE RANGE PICKER
+        // 7. INITIALISATION DU DATE RANGE PICKER (sans plage par défaut)
         // =================================================================
         function initDateRangePicker() {
             if ($('#filterDateRange').length && typeof $.fn.daterangepicker === 'function') {
@@ -647,8 +970,7 @@ foreach ($paiementsfactures as $f) {
                         '7 derniers jours': [moment().subtract(6, 'days'), moment()],
                         '30 derniers jours': [moment().subtract(29, 'days'), moment()],
                         'Ce mois-ci': [moment().startOf('month'), moment().endOf('month')],
-                        'Mois dernier': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
-                            'month').endOf('month')],
+                        'Mois dernier': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
                         'Cette année': [moment().startOf('year'), moment().endOf('year')]
                     }
                 }, function(start, end, label) {
@@ -663,20 +985,50 @@ foreach ($paiementsfactures as $f) {
                     filterClients();
                 });
 
-                var today = moment();
-                $('#filterDateRange').data('daterangepicker').setStartDate(today);
-                $('#filterDateRange').data('daterangepicker').setEndDate(today);
-                $('#filterDateRange').val(today.format('DD/MM/YYYY') + ' - ' + today.format('DD/MM/YYYY'));
+                // Pas de valeur par défaut
             }
         }
 
         // =================================================================
-        // 8. INITIALISATION GÉNÉRALE
+        // 8. GESTION DU MODAL CONTACT (avec liens cliquables)
         // =================================================================
+        $('#contactModal').on('show.bs.modal', function(event) {
+            var button = $(event.relatedTarget);
+            var nom = button.data('nom') || '-';
+            var email = button.data('email') || '-';
+            var phoneFormatted = button.data('phone') || '-';
+            var phoneRaw = button.data('phone-raw') || '';
+
+            var modal = $(this);
+            modal.find('#modalContactNom').text(nom);
+
+            // Lien email
+            var emailLink = modal.find('#modalContactEmailLink');
+            if (email && email !== '-') {
+                emailLink.attr('href', 'mailto:' + email).text(email);
+            } else {
+                emailLink.removeAttr('href').text('-');
+            }
+
+            // Lien téléphone
+            var phoneLink = modal.find('#modalContactPhoneLink');
+            if (phoneRaw && phoneRaw !== '') {
+                phoneLink.attr('href', 'tel:' + phoneRaw).text(phoneFormatted);
+            } else {
+                phoneLink.removeAttr('href').text('-');
+            }
+        });
+
+        // =================================================================
+        // 9. INITIALISATION GÉNÉRALE
+        // =================================================================
+
+        // Initialisation des badges avec les valeurs PHP calculées
+        $('#totalUsdClients').text('<?= $total_usd_formatted ?>');
+        $('#totalCdfClients').text('<?= $total_cdf_formatted ?>');
 
         var totalClients = $('#clientsTableBody tr.client-row').length;
         $('#clientCount').text(totalClients);
-        updateTotalPaid();
 
         var hasSavedFilters = loadClientFiltersFromStorage();
 

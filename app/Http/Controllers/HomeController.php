@@ -973,6 +973,96 @@ class HomeController extends Controller
         }
     }
 
+    public function serveur_se()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 24;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(((($display ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display ==  0) && (Auth::user()->role == 0)))
+            {
+                $data["utilisateurs"] = User::where(["etat" => 1])->get();
+                $data["clients"] = Clients::where(["etat" => 1])->get();
+                $data["verbalisateurs"] = Verbalisateurs::where(["etat" => 1])->get();
+                $data["contrevenants"] = Contrevenants::where(["etat" => 1])->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["invitations"] = Invitations::where(["etat" => 1])->get();
+                $data["decisions"] = Decisions::where(["etat" => 1])->get();
+                $data["articles"] = Articles::where(["supprimer" => 0])->get();
+                $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
+                $data["factures"] = Factureass::where(["user_id" => Auth::user()->id])->get();
+                if(Auth::user()->role == 0)
+                {
+                    $data["factures"] = Factureass::get();
+                }
+                $data["type_frais"] = Type_frais::where(["etat" => 1])->get();
+                return view('interfaces.serveur_se', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+
+    public function debarrasseur_se()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 24;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(((($display ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display ==  0) && (Auth::user()->role == 0)))
+            {
+                $data["utilisateurs"] = User::where(["etat" => 1])->get();
+                $data["clients"] = Clients::where(["etat" => 1])->get();
+                $data["verbalisateurs"] = Verbalisateurs::where(["etat" => 1])->get();
+                $data["contrevenants"] = Contrevenants::where(["etat" => 1])->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["invitations"] = Invitations::where(["etat" => 1])->get();
+                $data["decisions"] = Decisions::where(["etat" => 1])->get();
+                $data["articles"] = Articles::where(["supprimer" => 0])->get();
+                $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
+                $data["factures"] = Factureass::where(["user_id" => Auth::user()->id])->get();
+                if(Auth::user()->role == 0)
+                {
+                    $data["factures"] = Factureass::get();
+                }
+                $data["type_frais"] = Type_frais::where(["etat" => 1])->get();
+                return view('interfaces.debarrasseur_se', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+
     public function gestion_article()
     {
         Fichierss::where('numero_sortie', Auth::user()->id)->delete();

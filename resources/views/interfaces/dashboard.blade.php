@@ -34,7 +34,7 @@
         position: relative;
     }
     .content::before {
-        display: none; /* on retire le grain de la première version */
+        display: none;
     }
 
     .container-fluid {
@@ -44,7 +44,22 @@
         padding-right: 1rem !important;
     }
 
-    /* --- CARTES STATS : carrées, bordures colorées (structure inchangée) --- */
+    /* --- LIENS CLIQUABLES (logique de l'exemple) --- */
+    .stats-link {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+    }
+    .stats-link:hover .quick-stats__item {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.2);
+    }
+    .stats-link:focus .quick-stats__item {
+        outline: 2px solid #3b82f6;
+    }
+
+    /* --- CARTES STATS : carrées, bordures colorées --- */
     .quick-stats__item {
         background: #fefefe;
         border-radius: 0px;
@@ -54,14 +69,8 @@
         margin-bottom: 1rem;
         position: relative;
         border-left: 6px solid;
-        /* on garde le overflow: hidden pour la barre de progression */
         overflow: hidden;
     }
-    .quick-stats__item:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.2);
-    }
-
     /* Les couleurs sont attribuées via les classes bg-* */
     .quick-stats__item.bg-blue {
         border-left-color: #2563eb;
@@ -80,14 +89,14 @@
         background: linear-gradient(135deg, #ffffff, #fef2f2);
     }
 
-    /* Icônes (au-dessus du titre, structure conservée) */
+    /* Icônes (au-dessus du titre) */
     .quick-stats__info i {
         font-size: 2.5rem;
         margin-bottom: 0.5rem;
         display: inline-block;
         transition: transform 0.2s;
     }
-    .quick-stats__item:hover i {
+    .stats-link:hover .quick-stats__info i {
         transform: scale(1.05);
     }
     .bg-blue i { color: #2563eb; }
@@ -114,7 +123,7 @@
         padding: 0;
     }
 
-    /* Barre de progression (structure conservée) */
+    /* Barre de progression */
     .progress-bar-glow {
         position: absolute;
         bottom: 0;
@@ -135,7 +144,7 @@
     .bg-purple .progress-bar-glow span { background: #8b5cf6; }
     .bg-red .progress-bar-glow span { background: #dc2626; }
 
-    /* --- CARTES GRAPHIQUES (style seconde page) --- */
+    /* --- CARTES GRAPHIQUES --- */
     .card {
         background: #ffffff;
         border-radius: 0px;
@@ -208,7 +217,7 @@
         border: 1px solid #cbd5e1;
     }
 
-    /* Animations d’apparition (structure inchangée) */
+    /* Animations d’apparition */
     .quick-stats__item, .card {
         opacity: 0;
         animation: fadeSlideUp 0.4s ease forwards;
@@ -245,52 +254,59 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-12">
-                <!-- Quick stats (structure HTML strictement conservée) -->
+                <!-- Quick stats avec liens cliquables (logique de l'exemple) -->
                 <div class="row quick-stats">
                     <div class="col-sm-6 col-md-3">
-                        <div class="quick-stats__item bg-blue">
-                            <div class="quick-stats__info">
-                                <i class="fas fa-box"></i>
-                                <h2 class="counter" data-target="{{ $articles->count() }}">{{ $articles->count() }}</h2>
-                                {{-- <small>Sites</small> --}}
-                                <small>Articles</small>
+                        <a href="{{ route('gestion_article') }}" class="stats-link">
+                            <div class="quick-stats__item bg-blue">
+                                <div class="quick-stats__info">
+                                    <i class="fas fa-box"></i>
+                                    <h2 class="counter" data-target="{{ $articles->count() }}">{{ $articles->count() }}</h2>
+                                    <small>Articles</small>
+                                </div>
+                                <div class="progress-bar-glow"><span></span></div>
                             </div>
-                            <div class="progress-bar-glow"><span></span></div>
-                        </div>
+                        </a>
                     </div>
                     <div class="col-sm-6 col-md-3">
-                        <div class="quick-stats__item bg-amber">
-                            <div class="quick-stats__info">
-                                <i class="fas fa-users"></i>
-                                <h2 class="counter" data-target="{{ $utilisateurs->count() }}">{{ $utilisateurs->count() }}</h2>
-                                <small>Utilisateurs</small>
+                        <a href="{{ route('utilisateurs') }}" class="stats-link">
+                            <div class="quick-stats__item bg-amber">
+                                <div class="quick-stats__info">
+                                    <i class="fas fa-users"></i>
+                                    <h2 class="counter" data-target="{{ $utilisateurs->count() }}">{{ $utilisateurs->count() }}</h2>
+                                    <small>Utilisateurs</small>
+                                </div>
+                                <div class="progress-bar-glow"><span></span></div>
                             </div>
-                            <div class="progress-bar-glow"><span></span></div>
-                        </div>
+                        </a>
                     </div>
                     <div class="col-sm-6 col-md-3">
-                        <div class="quick-stats__item bg-purple">
-                            <div class="quick-stats__info">
-                                <i class="fas fa-sitemap"></i>
-                                <h2 class="counter" data-target="{{ $categories->count() }}">{{ $categories->count() }}</h2>
-                                <small>Categories</small>
+                        <a href="{{ route('gestion_societe') }}" class="stats-link">
+                            <div class="quick-stats__item bg-purple">
+                                <div class="quick-stats__info">
+                                    <i class="fas fa-sitemap"></i>
+                                    <h2 class="counter" data-target="{{ $categories->count() }}">{{ $categories->count() }}</h2>
+                                    <small>Catégories</small>
+                                </div>
+                                <div class="progress-bar-glow"><span></span></div>
                             </div>
-                            <div class="progress-bar-glow"><span></span></div>
-                        </div>
+                        </a>
                     </div>
                     <div class="col-sm-6 col-md-3">
-                        <div class="quick-stats__item bg-red">
-                            <div class="quick-stats__info">
-                                <i class="fas fa-users"></i>
-                                <h2 class="counter" data-target="{{ $clients->count() }}">{{ $clients->count() }}</h2>
-                                <small>Clients</small>
+                        <a href="{{ route('clients') }}" class="stats-link">
+                            <div class="quick-stats__item bg-red">
+                                <div class="quick-stats__info">
+                                    <i class="fas fa-users"></i>
+                                    <h2 class="counter" data-target="{{ $clients->count() }}">{{ $clients->count() }}</h2>
+                                    <small>Clients</small>
+                                </div>
+                                <div class="progress-bar-glow"><span></span></div>
                             </div>
-                            <div class="progress-bar-glow"><span></span></div>
-                        </div>
+                        </a>
                     </div>
                 </div>
 
-                <!-- Graphiques (structure strictement conservée) -->
+                <!-- Graphiques -->
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card">
@@ -326,18 +342,16 @@
 <script src="{{ asset('assets/vendors/flot.orderbars/jquery.flot.orderBars.js') }}"></script>
 <script>
 $(document).ready(function() {
-    // Mois
     var moisComplets = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
     var moisAbrev = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
-    // Données (les mêmes que votre première version)
     var alertes = @json($alertes_par_mois);
     var affectations = @json($affectations_par_mois);
 
     var alertesPoints = alertes.map((val, idx) => [idx, val]);
     var affectationsPoints = affectations.map((val, idx) => [idx, val]);
 
-    // Graphique à barres pour Alertes (style seconde page : rouge)
+    // Graphique à barres pour Alertes
     $.plot('.flot-bar-chart', [{
         label: 'Alertes',
         data: alertesPoints,
@@ -368,7 +382,7 @@ $(document).ready(function() {
         colors: ['#dc2626']
     });
 
-    // Graphique en lignes pour Affectations (style seconde page : bleu)
+    // Graphique en lignes pour Affectations
     $.plot('.flot-line', [{
         label: 'Affectations',
         data: affectationsPoints,
@@ -404,7 +418,7 @@ $(document).ready(function() {
         }
     });
 
-    // --- Tooltip (style épuré seconde page) ---
+    // Tooltip
     $('body').append('<div id="custom-tooltip" style="position:absolute;display:none;background:#0f172a;color:#f8fafc;padding:6px 14px;border-radius:30px;font-size:12px;font-weight:600;font-family:Inter;pointer-events:none;z-index:1000;box-shadow:0 10px 15px -3px rgba(0,0,0,0.3);border-left:3px solid #3b82f6;"></div>');
     var tooltip = $('#custom-tooltip');
     function showTooltip(x, y, text) { tooltip.css({ top: y-30, left: x+12, display:'block' }).html(text); }
@@ -419,7 +433,7 @@ $(document).ready(function() {
         } else hideTooltip();
     }).on('mouseleave', hideTooltip);
 
-    // Légendes (avec totaux et max)
+    // Légendes
     var totalAlertes = alertes.reduce((a,b)=>a+b,0);
     var maxAlertes = Math.max(...alertes);
     var totalAffect = affectations.reduce((a,b)=>a+b,0);
@@ -427,7 +441,7 @@ $(document).ready(function() {
     $('.flot-chart-legends--bar').html('<i class="fas fa-chart-bar"></i> 🔴 Alertes · Total: ' + totalAlertes + ' · Max: ' + maxAlertes);
     $('.flot-chart-legends--line').html('<i class="fas fa-chart-line"></i> 📈 Affectations · Total: ' + totalAffect + ' · Max: ' + maxAffect);
 
-    // --- Animation des compteurs (structure conservée, correction de $decisions) ---
+    // Animation des compteurs et barres
     function animateCountersAndBars() {
         const counters = document.querySelectorAll('.counter');
         counters.forEach(counter => {
@@ -447,9 +461,7 @@ $(document).ready(function() {
             updateCounter();
         });
 
-        // Barres de progression (utilise les vraies valeurs de vos stats)
         const progressBars = document.querySelectorAll('.progress-bar-glow span');
-        // On remplace l'ancien tableau ($decisions inexistant) par les vraies données
         const values = [
             {{ $articles->count() }},
             {{ $utilisateurs->count() }},
@@ -465,7 +477,7 @@ $(document).ready(function() {
     }
     document.addEventListener('DOMContentLoaded', animateCountersAndBars);
 
-    // Activation du lien dans la sidebar (inchangé)
+    // Activation du lien dans la sidebar
     $("#link_1").addClass("active");
     $("#upload").click(function(e) {
         e.preventDefault();

@@ -86,7 +86,7 @@
         color: transparent !important;
     }
 
-    /* Badge de compteur (comme dans les autres pages) */
+    /* Badge de compteur */
     .role-count-badge {
         background: linear-gradient(135deg, #e31b23, #b91c1c);
         color: white;
@@ -99,6 +99,64 @@
         gap: 6px;
         box-shadow: var(--shadow-light);
         margin-left: 10px;
+    }
+
+    /* ========== FILTRES ========== */
+    .filters-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 16px;
+        background: white;
+        padding: 0.8rem 1.2rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-light);
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--bleu-nuit);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .filter-group .form-control {
+        height: 36px;
+    }
+
+    #resetFilters {
+        background: #64748b !important;
+        color: white !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 6px 16px !important;
+        font-weight: 600;
+        font-size: 0.85rem;
+        border-radius: 40px !important;
+        transition: all 0.25s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        box-shadow: var(--shadow-light);
+        white-space: nowrap;
+        line-height: 1.5;
+    }
+    #resetFilters:hover {
+        transform: translateY(-2px);
+        background: #475569 !important;
+        box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
     }
 
     /* ========== TABLEAU ========== */
@@ -466,11 +524,25 @@
         #edit_save,
         #annuler,
         #edit_annuler,
+        #resetFilters,
         .btn-primary,
         .btn-info,
         .btn-danger {
             padding: 4px 12px !important;
             font-size: 0.7rem;
+        }
+        .filters-container {
+            flex-direction: column;
+            gap: 8px;
+            padding: 0.6rem 0.8rem;
+            margin-bottom: 12px;
+        }
+        .filter-group {
+            width: 100%;
+            min-width: 100%;
+        }
+        .filter-group .form-control {
+            height: 34px !important;
         }
         .table thead th {
             font-size: 0.72rem;
@@ -529,7 +601,8 @@
         #save,
         #edit_save,
         #annuler,
-        #edit_annuler {
+        #edit_annuler,
+        #resetFilters {
             padding: 3px 8px !important;
             font-size: 0.65rem;
         }
@@ -579,6 +652,20 @@
                         <i class="zmdi zmdi-view-list"></i> <span id="roleCount">0</span>
                     </span>
                 </h4>
+
+                <!-- ========== SECTION FILTRES ========== -->
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-label text-danger"></i> Nom</label>
+                        <input type="text" id="filterNom" class="form-control" placeholder="Rechercher par nom...">
+                    </div>
+                    <div class="filter-group">
+                        <button id="resetFilters" class="btn btn-secondary btn-sm" style="border-radius: 40px; padding: 8px 18px;">
+                            <i class="zmdi zmdi-refresh"></i> Réinitialiser
+                        </button>
+                    </div>
+                </div>
+
                 <div id="content_groupe" class="row">
                     <div class="col-12">
                         <div class="table-responsive">
@@ -595,7 +682,7 @@
                                     @foreach ($groupes as $data)
                                     <tr>
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">{{ $i }}</td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->nom }}</td>
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="nom-cell" data-nom="{{ $data->nom }}">{{ $data->nom }}</td>
                                         <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                                             <a id="edit_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
                                             <a id="ressource_<?= $i ?>" href="#"><i class="zmdi zmdi-settings text-info"></i></a> &nbsp;
@@ -710,17 +797,127 @@
 <script src="{{ asset('assets/demo/js/flot-charts/pie.js') }}"></script>
 <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
 <script>
-    // Mise à jour du compteur de rôles
-    function updateRoleCount() {
-        const count = $('#content_groupe tbody tr').length;
-        $('#roleCount').text(count);
+    $("#link_11").addClass("active");
+
+    // ========== FONCTIONS DE FILTRAGE POUR LES RÔLES AVEC PERSISTANCE ==========
+
+    let roleFilterTimeout;
+
+    function saveRoleFiltersToStorage() {
+        const filters = {
+            nom: $('#filterNom').val()
+        };
+        localStorage.setItem('roleFilters', JSON.stringify(filters));
     }
 
+    function loadRoleFiltersFromStorage() {
+        const savedFilters = localStorage.getItem('roleFilters');
+        if (savedFilters) {
+            const filters = JSON.parse(savedFilters);
+            $('#filterNom').val(filters.nom || '');
+            return true;
+        }
+        return false;
+    }
+
+    function filterRoles() {
+        const filterNom = $('#filterNom').val().toLowerCase().trim();
+
+        let visibleCount = 0;
+        let newIndex = 1;
+
+        $('#content_groupe tbody tr').each(function() {
+            const $row = $(this);
+            let showRow = true;
+
+            const nomValue = ($row.find('.nom-cell').data('nom') || '').toLowerCase();
+
+            if (filterNom && !nomValue.includes(filterNom)) {
+                showRow = false;
+            }
+
+            if (showRow) {
+                $row.show();
+                $row.find('.row-num').text(newIndex);
+                newIndex++;
+                visibleCount++;
+            } else {
+                $row.hide();
+            }
+        });
+
+        $('#roleCount').text(visibleCount);
+
+        // Message d'information si aucun résultat
+        if (visibleCount === 0 && filterNom) {
+            $('#msg').html('<i class="zmdi zmdi-info"></i> Aucun rôle ne correspond à la recherche');
+            $('#msg').css('display', 'flex');
+            setTimeout(() => {
+                $('#msg').html('');
+                $('#msg').css('display', 'none');
+            }, 3000);
+        }
+    }
+
+    function resetRoleFilters() {
+        $('#filterNom').val('');
+        saveRoleFiltersToStorage();
+
+        $('#content_groupe tbody tr').show();
+        let newIndex = 1;
+        $('#content_groupe tbody tr:visible').each(function() {
+            $(this).find('.row-num').text(newIndex);
+            newIndex++;
+        });
+        const totalCount = $('#content_groupe tbody tr').length;
+        $('#roleCount').text(totalCount);
+
+        $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Filtre réinitialisé');
+        $('#msg').css('display', 'flex');
+        setTimeout(() => {
+            $('#msg').html('');
+            $('#msg').css('display', 'none');
+        }, 3000);
+    }
+
+    function debouncedRoleFilter() {
+        clearTimeout(roleFilterTimeout);
+        roleFilterTimeout = setTimeout(() => {
+            filterRoles();
+            saveRoleFiltersToStorage();
+        }, 300);
+    }
+
+    // Initialisation
     $(document).ready(function() {
-        updateRoleCount();
+        const totalRoles = $('#content_groupe tbody tr').length;
+        $('#roleCount').text(totalRoles);
+
+        const hasSavedFilters = loadRoleFiltersFromStorage();
+
+        $('#filterNom').on('input', function() {
+            debouncedRoleFilter();
+        });
+
+        $('#resetFilters').click(function(e) {
+            e.preventDefault();
+            resetRoleFilters();
+        });
+
+        if (hasSavedFilters) {
+            setTimeout(function() {
+                filterRoles();
+            }, 100);
+        }
     });
 
-    $("#link_11").addClass("active");
+    // ========== ANCIENNES FONCTIONS (adaptées) ==========
+
+    // Mise à jour du compteur (remplacée par filterRoles)
+    function updateRoleCount() {
+        // On utilise filterRoles pour mettre à jour le compteur
+        filterRoles();
+    }
 
     $("#upload").click(function(e) {
         e.preventDefault();
@@ -733,7 +930,9 @@
         $("#bloc_2").hide();
         $("#bloc_3").hide();
         $("#bloc_4").hide();
-        updateRoleCount();
+        setTimeout(function() {
+            filterRoles();
+        }, 100);
     });
 
     $("#add").click(function(e) {
@@ -750,7 +949,9 @@
         $("#bloc_2").hide();
         $("#bloc_3").hide();
         $("#bloc_4").hide();
-        updateRoleCount();
+        setTimeout(function() {
+            filterRoles();
+        }, 100);
     });
 
     $("#save").click(function(e) {
@@ -774,6 +975,7 @@
                         setTimeout(() => {
                             $('#msg').html("");
                         }, 9000);
+                        $("#save").attr("disabled", false);
                     } else {
                         $.ajax({
                             type: "POST",
@@ -784,7 +986,12 @@
                                 $("#nom").val("");
                                 $('#msg').html('<i class="zmdi zmdi-check-circle"></i> rôle ajouté avec succès');
                                 $("#content_groupe").html(response);
-                                updateRoleCount();
+                                // Sauvegarder les filtres et réappliquer
+                                saveRoleFiltersToStorage();
+                                setTimeout(function() {
+                                    loadRoleFiltersFromStorage();
+                                    filterRoles();
+                                }, 100);
                                 setTimeout(() => {
                                     $('#msg').html("");
                                 }, 9000);
@@ -803,9 +1010,30 @@
             id: id,
         }, function(refresh_editgroupe) {
             $("#content_groupe").html(refresh_editgroupe);
-            updateRoleCount();
             $("#non").trigger("click");
+            saveRoleFiltersToStorage();
+            setTimeout(function() {
+                loadRoleFiltersFromStorage();
+                filterRoles();
+            }, 100);
         });
+    });
+
+    // Sauvegarder les filtres avant de quitter
+    window.addEventListener('beforeunload', function() {
+        saveRoleFiltersToStorage();
+    });
+
+    // Réappliquer les filtres après chaque chargement AJAX
+    $(document).ajaxComplete(function(event, xhr, settings) {
+        if (settings.url && (settings.url.includes('refresh_') || settings.url.includes('add_groupe') || settings.url.includes('deletegroupe'))) {
+            setTimeout(() => {
+                const totalRoles = $('#content_groupe tbody tr').length;
+                $('#roleCount').text(totalRoles);
+                loadRoleFiltersFromStorage();
+                filterRoles();
+            }, 200);
+        }
     });
 </script>
 @endsection

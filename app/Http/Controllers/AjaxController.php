@@ -3056,6 +3056,16 @@ class AjaxController extends Controller
         {
             $clients->description = $request->description;
         }
+        if(strlen(trim($request->latitude)) != 0){
+             $clients->latitude = $request->latitude;
+        }else{
+            $clients->latitude = 0;
+        }
+        if(strlen(trim($request->longitude)) != 0){
+             $clients->longitude = $request->longitude;
+        }else{
+            $clients->longitude = 0;
+        }
         $clients->activite_id = $request->activite_id;
         $clients->type = $request->type_client;
         $clients->paiement = $request->paiement;
@@ -5345,6 +5355,18 @@ class AjaxController extends Controller
         else
         {
             $clients->description = $request->edit_description;
+        }
+
+        if(strlen(trim($request->edit_latitude)) != 0){
+             $clients->latitude = $request->edit_latitude;
+        }else{
+            $clients->latitude = 0;
+        }
+        if(strlen(trim($request->edit_longitude)) != 0){
+             $clients->longitude = $request->edit_longitude;
+        }else
+        {
+            $clients->longitude = 0;
         }
         $clients->activite_id = $request->edit_activite_id;
         $clients->type = $request->edit_type_client;
@@ -10302,6 +10324,306 @@ class AjaxController extends Controller
         return response()->download($nom_fichier, $nom_fichier, [
             'Content-Type' => 'application/octet-stream',
         ]);
+    }
+
+    public function import_excel_article(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Vous devez être connecté.'], 401);
+        }
+
+        if (!$request->hasFile('excel_file')) {
+            return response()->json(['message' => 'Aucun fichier envoyé'], 400);
+        }
+
+        $file = $request->file('excel_file');
+        $allowedExtensions = ['xls', 'xlsx', 'xlsm', 'xlsb', 'csv'];
+        if (!in_array($file->getClientOriginalExtension(), $allowedExtensions)) {
+            return response()->json(['message' => 'Seuls les fichiers Excel sont autorisés'], 400);
+        }
+
+        $targetDir = public_path();
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $safeName = $originalName . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $file->move($targetDir, $safeName);
+
+        try {
+            $spreadsheet = IOFactory::load($safeName);
+            $worksheet = $spreadsheet->getActiveSheet();
+            $highestRow = $worksheet->getHighestRow();
+
+            $nb_importation = 0;
+            $nb_erreurs = 0;
+            $erreurs = [];
+
+            // Récupération des référentiels
+            $categories = Societes::where('etat', 1)->get()->keyBy('id');
+            $activites  = Activites::where('etat', 1)->get()->keyBy('id');
+            $mesures    = Mesures::where('etat', 1)->get()->keyBy('id');
+
+            // ------------------------------------------------------------
+            // 1. Construction d'un index des articles existants par mesure_id
+            //    (nom en minuscule)
+            // ------------------------------------------------------------
+            $existingByMeasure = [];
+            $allArticles = Articles::all(['mesure_id', 'nom_article']);
+            foreach ($allArticles as $art) {
+                $mid = $art->mesure_id;
+                if (!isset($existingByMeasure[$mid])) {
+                    $existingByMeasure[$mid] = [];
+                }
+                $existingByMeasure[$mid][] = strtolower(trim($art->nom_article));
+            }
+
+            // Pour les articles déjà importés dans cette session (éviter doublons entre lignes)
+            $importedByMeasure = [];
+
+            DB::beginTransaction();
+            date_default_timezone_set('Africa/Lubumbashi');
+
+            // Fonction de normalisation pour les types de stockage (accent, casse)
+            $normalizeType = function($str) {
+                $str = trim($str);
+                $accents = [
+                    'À'=>'A','Á'=>'A','Â'=>'A','Ã'=>'A','Ä'=>'A','Å'=>'A',
+                    'à'=>'a','á'=>'a','â'=>'a','ã'=>'a','ä'=>'a','å'=>'a',
+                    'Ò'=>'O','Ó'=>'O','Ô'=>'O','Õ'=>'O','Ö'=>'O','Ø'=>'O',
+                    'ò'=>'o','ó'=>'o','ô'=>'o','õ'=>'o','ö'=>'o','ø'=>'o',
+                    'È'=>'E','É'=>'E','Ê'=>'E','Ë'=>'E',
+                    'è'=>'e','é'=>'e','ê'=>'e','ë'=>'e',
+                    'Ç'=>'C','ç'=>'c',
+                    'Ì'=>'I','Í'=>'I','Î'=>'I','Ï'=>'I',
+                    'ì'=>'i','í'=>'i','î'=>'i','ï'=>'i',
+                    'Ù'=>'U','Ú'=>'U','Û'=>'U','Ü'=>'U',
+                    'ù'=>'u','ú'=>'u','û'=>'u','ü'=>'u',
+                    'ÿ'=>'y','Ÿ'=>'Y'
+                ];
+                return strtolower(strtr($str, $accents));
+            };
+
+            // Fonction de normalisation pour les mesures : supprime les espaces, met en minuscule
+            $normalizeMeasure = function($str) {
+                return strtolower(preg_replace('/\s+/', '', trim($str)));
+            };
+
+            for ($row = 2; $row <= $highestRow; $row++) {
+                $valide = true;
+                $ligneErreurs = [];
+
+                try {
+                    $nomArticle = trim($worksheet->getCell('C' . $row)->getValue() ?? '');
+                    $categorieNom = trim($worksheet->getCell('B' . $row)->getValue() ?? '');
+                    $prixDetailRaw = $worksheet->getCell('D' . $row)->getValue();
+                    $prixGrosRaw = $worksheet->getCell('E' . $row)->getValue();
+                    $tailleLotRaw = $worksheet->getCell('F' . $row)->getValue();
+                    $deviseRaw = trim($worksheet->getCell('G' . $row)->getValue() ?? '');
+                    $mesureNom = trim($worksheet->getCell('H' . $row)->getValue() ?? '');
+                    $typeStockageRaw = trim($worksheet->getCell('I' . $row)->getValue() ?? '');
+                    $seuilMinRaw = $worksheet->getCell('J' . $row)->getValue();
+                    $seuilMaxRaw = $worksheet->getCell('K' . $row)->getValue();
+                    $dateExpirationRaw = $worksheet->getCell('L' . $row)->getValue();
+                    $description = trim($worksheet->getCell('M' . $row)->getValue() ?? '');
+                    $activiteNom = trim($worksheet->getCell('N' . $row)->getValue() ?? '');
+
+                    // --- Validations obligatoires ---
+                    if (empty($nomArticle)) { $ligneErreurs[] = "Nom vide"; $valide = false; }
+                    if (empty($categorieNom)) { $ligneErreurs[] = "Catégorie vide"; $valide = false; }
+                    if (empty($prixDetailRaw) || !is_numeric(str_replace(',', '.', trim($prixDetailRaw)))) {
+                        $ligneErreurs[] = "Prix détail invalide"; $valide = false;
+                    }
+                    if (empty($prixGrosRaw) || !is_numeric(str_replace(',', '.', trim($prixGrosRaw)))) {
+                        $ligneErreurs[] = "Prix gros invalide"; $valide = false;
+                    }
+                    if (empty($tailleLotRaw) || !is_numeric($tailleLotRaw)) {
+                        $ligneErreurs[] = "Taille lot invalide"; $valide = false;
+                    }
+                    if (empty($deviseRaw)) { $ligneErreurs[] = "Devise vide"; $valide = false; }
+                    if (empty($mesureNom)) { $ligneErreurs[] = "Mesure vide"; $valide = false; }
+                    if (empty($typeStockageRaw)) { $ligneErreurs[] = "Type stockage vide"; $valide = false; }
+                    // La date n'est plus obligatoire
+
+                    // --- Catégorie ---
+                    $societeId = 0;
+                    $cat = $categories->first(fn($c) => strtolower($c->nom) == strtolower($categorieNom));
+                    if ($cat) {
+                        $societeId = $cat->id;
+                    } else {
+                        $ligneErreurs[] = "Catégorie '$categorieNom' introuvable"; $valide = false;
+                    }
+
+                    // --- Activité (optionnelle) ---
+                    $activiteId = 0;
+                    if (!empty($activiteNom)) {
+                        $act = $activites->first(fn($a) => strtolower($a->nom) == strtolower($activiteNom));
+                        if ($act) $activiteId = $act->id;
+                    }
+
+                    // --- Mesure ---
+                    $mesureId = 0;
+                    if (!empty($mesureNom)) {
+                        $normalizedInput = $normalizeMeasure($mesureNom);
+                        $mes = $mesures->first(function($m) use ($normalizedInput, $normalizeMeasure) {
+                            return $normalizeMeasure($m->nom) == $normalizedInput;
+                        });
+                        if ($mes) {
+                            $mesureId = $mes->id;
+                        } else {
+                            $ligneErreurs[] = "Mesure '$mesureNom' introuvable (vérifiez l'orthographe et les espaces)";
+                            $valide = false;
+                        }
+                    }
+
+                    // ------------------------------------------------------------
+                    // 2. Vérification des doublons par (mesure_id, nom)
+                    //    (si mesure_id est 0, on ignore car la mesure est invalide)
+                    // ------------------------------------------------------------
+                    if ($valide && $mesureId > 0) {
+                        $nomLower = strtolower(trim($nomArticle));
+
+                        // Vérifier dans les existants en base
+                        $existsInDb = isset($existingByMeasure[$mesureId])
+                                    && in_array($nomLower, $existingByMeasure[$mesureId]);
+
+                        // Vérifier dans les importés lors de cette session
+                        $existsInSession = isset($importedByMeasure[$mesureId])
+                                        && in_array($nomLower, $importedByMeasure[$mesureId]);
+
+                        if ($existsInDb || $existsInSession) {
+                            $ligneErreurs[] = "Nom '$nomArticle' déjà utilisé pour cette mesure (ID $mesureId)";
+                            $valide = false;
+                        }
+                    }
+
+                    // --- Parsing des nombres ---
+                    $prixDetail = floatval(str_replace(',', '.', trim($prixDetailRaw)));
+                    $prixGros = floatval(str_replace(',', '.', trim($prixGrosRaw)));
+                    $tailleLot = intval($tailleLotRaw);
+                    if ($prixDetail <= 0) { $ligneErreurs[] = "Prix détail doit être > 0"; $valide = false; }
+                    if ($prixGros <= 0) { $ligneErreurs[] = "Prix gros doit être > 0"; $valide = false; }
+                    if ($tailleLot <= 0) { $ligneErreurs[] = "Taille lot doit être > 0"; $valide = false; }
+                    $prix = $prixDetail;
+
+                    // --- Devise ---
+                    $devise = 0;
+                    $deviseUpper = strtoupper(trim($deviseRaw));
+                    if ($deviseUpper == 'CDF') { $devise = 1; }
+                    elseif ($deviseUpper == 'USD') { $devise = 0; }
+                    else { $ligneErreurs[] = "Devise '$deviseRaw' invalide (utilisez CDF ou USD)"; $valide = false; }
+
+                    // --- Type de stockage ---
+                    $typeNormalized = $normalizeType($typeStockageRaw);
+                    $determineTerms = ['determine', 'déterminé', 'oui', 'yes', '1', 'true', 'vrai'];
+                    $avoirStock = in_array($typeNormalized, $determineTerms) ? 1 : 0;
+
+                    // --- Seuils (conditionnels) ---
+                    $seuilMin = 0;
+                    $seuilMax = 0;
+                    if ($avoirStock == 1) {
+                        if (empty($seuilMinRaw) || !is_numeric(str_replace(',', '.', trim($seuilMinRaw)))) {
+                            $ligneErreurs[] = "Seuil minimum requis pour stock déterminé"; $valide = false;
+                        } else {
+                            $seuilMin = floatval(str_replace(',', '.', trim($seuilMinRaw)));
+                            if ($seuilMin < 0) { $ligneErreurs[] = "Seuil min ne peut être négatif"; $valide = false; }
+                        }
+                        if (empty($seuilMaxRaw) || !is_numeric(str_replace(',', '.', trim($seuilMaxRaw)))) {
+                            $ligneErreurs[] = "Seuil maximum requis pour stock déterminé"; $valide = false;
+                        } else {
+                            $seuilMax = floatval(str_replace(',', '.', trim($seuilMaxRaw)));
+                            if ($seuilMax < 0) { $ligneErreurs[] = "Seuil max ne peut être négatif"; $valide = false; }
+                        }
+                        if (isset($seuilMin) && isset($seuilMax) && $seuilMin > $seuilMax) {
+                            $ligneErreurs[] = "Seuil min ($seuilMin) > seuil max ($seuilMax)"; $valide = false;
+                        }
+                    }
+
+                    // --- Date d'expiration (avec gestion 00/00/0000) ---
+                    $dateExpiration = null;
+                    $dateRaw = trim($dateExpirationRaw ?? '');
+                    if ($dateRaw === '' || $dateRaw === '00/00/0000') {
+                        $dateExpiration = '00/00/0000';
+                    } elseif (is_numeric($dateRaw)) {
+                        try {
+                            $dt = Date::excelToDateTimeObject($dateRaw);
+                            $dateExpiration = $dt->format('d/m/Y');
+                        } catch (\Exception $e) {
+                            $ligneErreurs[] = "Date expiration Excel invalide (série)";
+                            $valide = false;
+                        }
+                    } else {
+                        $dt = \DateTime::createFromFormat('d/m/Y', $dateRaw);
+                        if ($dt && $dt->format('d/m/Y') === $dateRaw) {
+                            $dateExpiration = $dt->format('d/m/Y');
+                        } else {
+                            $ligneErreurs[] = "Date expiration invalide (format JJ/MM/AAAA attendu)";
+                            $valide = false;
+                        }
+                    }
+
+                    // --- Enregistrement ---
+                    if ($valide)
+                    {
+                        $id = Articles::get()->count() + 1;
+                        $article = new Articles();
+                        $article->id = $id;
+                        $article->user_id = Auth::id();
+                        $article->societe_id = $societeId;
+                        $article->nom_article = $nomArticle;
+                        $article->prix = $prix;
+                        $article->devise = $devise;
+                        $article->seuil_minimum = $seuilMin;
+                        $article->seuil_maximum = $seuilMax;
+                        $article->prix_detail = $prixDetail;
+                        $article->prix_gros = $prixGros;
+                        $article->taille_lot = $tailleLot;
+                        $article->stock = 0;
+                        $article->date_expiration = $dateExpiration;
+                        $article->date_creation = date("d/m/Y");
+                        $article->description = $description;
+                        $article->activite_id = $activiteId;
+                        $article->mesure_id = $mesureId;
+                        $article->avoir_stock = $avoirStock;
+                        $article->image = '';
+                        $article->save();
+
+                        // Ajouter ce nom dans la liste des importés (pour éviter doublons entre lignes)
+                        if ($mesureId > 0) {
+                            if (!isset($importedByMeasure[$mesureId])) {
+                                $importedByMeasure[$mesureId] = [];
+                            }
+                            $importedByMeasure[$mesureId][] = strtolower(trim($nomArticle));
+                        }
+
+                        $nb_importation++;
+                    } else {
+                        $erreurs[] = "Ligne $row : " . implode('; ', $ligneErreurs);
+                        $nb_erreurs++;
+                    }
+
+                } catch (\Exception $e) {
+                    $erreurs[] = "Ligne $row : Exception - " . $e->getMessage();
+                    $nb_erreurs++;
+                }
+            }
+
+            DB::commit();
+
+            $message = $nb_importation . ' article(s) importé(s) avec succès.';
+            if ($nb_erreurs > 0) {
+                $message .= ' ' . $nb_erreurs . ' ligne(s) en erreur (non importées).';
+            }
+
+            return response()->json([
+                'message' => $message,
+                'details' => $erreurs,
+                'nb_importes' => $nb_importation,
+                'nb_erreurs' => $nb_erreurs,
+                'path' => $safeName
+            ], $nb_importation > 0 ? 200 : 500);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Erreur critique : ' . $e->getMessage()], 500);
+        }
     }
 
     public function export_excel_article(Request $request)

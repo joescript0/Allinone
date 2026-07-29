@@ -19,6 +19,13 @@ use Illuminate\Support\Facades\Auth;
 @include('composants.header')
 @include('composants.sidebar')
 @include('composants.chat')
+
+<!-- ===== FEUILLE DE STYLE LEAFLET ===== -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- ===== FEUILLE DE STYLE LEAFLET.MARKERCLUSTER ===== -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
 <style>
 /* ============================================================
    DESIGN PREMIUM – UNIFIÉ AVEC LES PAGES "GESTION ARTICLE",
@@ -178,9 +185,12 @@ h4 i.zmdi {
 #edit_annuler,
 #print,
 #print_r,
+#mapAll,
+#mapAll_r,
 .btn-primary,
 .btn-info,
 .btn-danger,
+.btn-success,
 .btn-secondary {
     display: inline-flex !important;
     align-items: center;
@@ -248,6 +258,16 @@ h4 i.zmdi {
     box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
 }
 
+.btn-success {
+    background: var(--vert-gradient) !important;
+    color: white !important;
+}
+.btn-success:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.3);
+}
+
 #resetFilters {
     background: #64748b !important;
     color: white !important;
@@ -258,10 +278,11 @@ h4 i.zmdi {
     box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
 }
 
-/* Boutons désactivés (add_r, save_r, print_r) */
+/* Boutons désactivés (add_r, save_r, print_r, mapAll_r) */
 #add_r,
 #save_r,
-#print_r {
+#print_r,
+#mapAll_r {
     background: #cbd5e1 !important;
     color: #475569 !important;
     cursor: not-allowed !important;
@@ -270,7 +291,7 @@ h4 i.zmdi {
     box-shadow: none !important;
 }
 
-/* Bouton d'impression (spécifique à cette page) */
+/* ===== BOUTON "CARTE" (ROUGE) ET BOUTON "IMPRIMER" ===== */
 #print {
     background: #3B82F6 !important;
     color: white !important;
@@ -281,7 +302,17 @@ h4 i.zmdi {
     box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
 }
 
-/* ========== FILTRES (non présents dans cette page, mais gardé pour cohérence) ========== */
+#mapAll {
+    background: var(--rouge-gradient) !important;
+    color: white !important;
+}
+#mapAll:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
+}
+
+/* ========== FILTRES ========== */
 .filters-container {
     display: flex;
     flex-wrap: wrap;
@@ -314,7 +345,6 @@ h4 i.zmdi {
     height: 36px;
 }
 
-/* Badge compteur (comme dans les autres pages) */
 .client-count-badge {
     background: var(--rouge-gradient);
     color: white;
@@ -404,8 +434,7 @@ select.form-control {
 }
 
 /* ========== MESSAGES STYLISÉS (SUCCÈS / ERREUR / INFO) ========== */
-#msg,
-#edit_msg {
+#msg, #edit_msg {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
@@ -419,8 +448,7 @@ select.form-control {
     overflow: hidden !important;
 }
 
-#msg:not(:empty),
-#edit_msg:not(:empty) {
+#msg:not(:empty), #edit_msg:not(:empty) {
     display: inline-flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -436,25 +464,25 @@ select.form-control {
     animation: slideInMsg 0.3s ease-out;
 }
 
-#msg:not(:empty):has(i.zmdi-check-circle),
-#edit_msg:not(:empty):has(i.zmdi-check-circle) {
+/* Succès */
+#msg.msg-success, #edit_msg.msg-success {
     background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
-    color: #065f46;
-    border-left: 4px solid #10b981;
+    color: #065f46 !important;
+    border-left: 4px solid #10b981 !important;
 }
 
-#msg:not(:empty):has(i.zmdi-close-circle),
-#edit_msg:not(:empty):has(i.zmdi-close-circle) {
+/* Erreur */
+#msg.msg-error, #edit_msg.msg-error {
     background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
-    color: #991b1b;
-    border-left: 4px solid #ef4444;
+    color: #991b1b !important;
+    border-left: 4px solid #ef4444 !important;
 }
 
-#msg:not(:empty):has(i.zmdi-info),
-#edit_msg:not(:empty):has(i.zmdi-info) {
+/* Information */
+#msg.msg-info, #edit_msg.msg-info {
     background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important;
-    color: #1e3a8a;
-    border-left: 4px solid #3b82f6;
+    color: #1e3a8a !important;
+    border-left: 4px solid #3b82f6 !important;
 }
 
 @keyframes slideInMsg {
@@ -491,6 +519,9 @@ select.form-control {
 .table tbody td a i.zmdi-delete {
     color: #ef4444;
 }
+.table tbody td a i.zmdi-pin {
+    color: #3b82f6;
+}
 .table tbody td a:hover {
     background: #e0f2fe;
     transform: translateY(-2px);
@@ -500,6 +531,9 @@ select.form-control {
 }
 .table tbody td a:hover i.zmdi-edit {
     color: #059669;
+}
+.table tbody td a:hover i.zmdi-pin {
+    color: #1d4ed8;
 }
 
 /* ========== BARRE D'ACTIONS (EN TÊTE) ========== */
@@ -512,6 +546,99 @@ select.form-control {
     flex-wrap: wrap;
     gap: 12px;
     justify-content: flex-start;
+}
+
+/* ========== STYLES POUR LA CARTE (formulaire) ========== */
+.map-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 16px 0 12px 0;
+}
+.map-toolbar button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    border-radius: 40px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bleu-nuit-gradient);
+    color: white;
+    box-shadow: var(--shadow-light);
+}
+.map-toolbar button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
+}
+
+#map-container {
+    position: relative;
+}
+#map {
+    width: 100%;
+    height: 350px;
+    border-radius: 16px;
+    margin-bottom: 15px;
+    z-index: 1;
+    background: #e9ecef;
+}
+.map-overlay-buttons {
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    padding: 8px;
+    border-radius: 50px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+.map-overlay-buttons .map-btn {
+    background: white;
+    border: none;
+    border-radius: 40px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #0a192f;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.map-overlay-buttons .map-btn:hover {
+    transform: scale(1.05);
+    background: #f0f0f0;
+}
+@media (max-width: 768px) {
+    .map-overlay-buttons {
+        bottom: 15px;
+        right: 15px;
+        gap: 5px;
+    }
+    .map-overlay-buttons .map-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+}
+
+/* ========== STYLES POUR LA CARTE DANS LE MODAL ========== */
+#mapModalMap,
+#mapAllModalMap {
+    width: 100%;
+    height: 400px;
+    border-radius: 12px;
+    background: #e9ecef;
 }
 
 /* ========== RESPONSIVE ========== */
@@ -547,7 +674,9 @@ select.form-control {
     .btn-primary,
     .btn-info,
     .btn-danger,
-    #print {
+    .btn-success,
+    #print,
+    #mapAll {
         padding: 4px 12px !important;
         font-size: 0.7rem;
     }
@@ -597,6 +726,24 @@ select.form-control {
         justify-content: center;
         gap: 8px;
     }
+    .map-toolbar button {
+        padding: 4px 10px;
+        font-size: 0.7rem;
+    }
+    .map-overlay-buttons {
+        bottom: 15px;
+        right: 15px;
+        gap: 5px;
+    }
+    .map-overlay-buttons .map-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+    #mapModalMap,
+    #mapAllModalMap {
+        height: 280px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -623,7 +770,8 @@ select.form-control {
     #annuler,
     #edit_annuler,
     #resetFilters,
-    #print {
+    #print,
+    #mapAll {
         padding: 3px 8px !important;
         font-size: 0.65rem;
     }
@@ -636,8 +784,18 @@ select.form-control {
         font-size: 0.7rem;
         line-height: 1.2;
     }
+    .map-overlay-buttons .map-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.9rem;
+    }
+    #mapModalMap,
+    #mapAllModalMap {
+        height: 220px;
+    }
 }
 </style>
+
 <section class="content">
     <div class="container">
         <div class="row">
@@ -665,6 +823,11 @@ select.form-control {
                                         <a id="print" class="btn-primary btn-sm" href="">
                                             <i class="zmdi zmdi-print"></i> Imprimer
                                         </a>
+                                        &nbsp;
+                                        <!-- ===== BOUTON CARTE (ROUGE) ===== -->
+                                        <a id="mapAll" class="btn-sm" href="#">
+                                            <i class="zmdi zmdi-pin"></i> Carte
+                                        </a>
                                     <?php } else { ?>
                                         <a id="add_r" href="">
                                             <i class="zmdi zmdi-accounts-add"></i> Ajouter
@@ -672,6 +835,10 @@ select.form-control {
                                         &nbsp;
                                         <a id="print_r" href="">
                                             <i class="zmdi zmdi-print"></i> Imprimer
+                                        </a>
+                                        &nbsp;
+                                        <a id="mapAll_r" href="">
+                                            <i class="zmdi zmdi-pin"></i> Carte
                                         </a>
                                     <?php } ?>
                                 <?php } ?>
@@ -695,6 +862,53 @@ select.form-control {
                         <i class="zmdi zmdi-view-list"></i> <span id="clientCount">0</span>
                     </span>
                 </h4>
+
+                <!-- ========== SECTION FILTRES ========== -->
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-account text-danger"></i> Nom</label>
+                        <input type="text" id="filterNom" class="form-control" placeholder="Rechercher par nom...">
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-email text-danger"></i> Email</label>
+                        <input type="text" id="filterEmail" class="form-control" placeholder="Rechercher par email...">
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-phone text-danger"></i> Téléphone</label>
+                        <input type="text" id="filterPhone" class="form-control" placeholder="Rechercher par téléphone...">
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-settings text-danger"></i> Type</label>
+                        <select id="filterType" class="form-control">
+                            <option value="all">Tous les types</option>
+                            <option value="0">Privé</option>
+                            <option value="1">Entreprise</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-toll text-danger"></i> Activité</label>
+                        <select id="filterActivite" class="form-control">
+                            <option value="all">Toutes les activités</option>
+                            @foreach ($activites as $activite)
+                                <option value="{{ $activite->id }}">{{ $activite->nom }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-map text-danger"></i> Adresse</label>
+                        <input type="text" id="filterAdresse" class="form-control" placeholder="Rechercher par adresse...">
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-account text-danger"></i> Utilisateur</label>
+                        <input type="text" id="filterUser" class="form-control" placeholder="Rechercher par utilisateur...">
+                    </div>
+                    <div class="filter-group">
+                        <button id="resetFilters" class="btn btn-secondary btn-sm" style="border-radius: 40px; padding: 8px 18px;">
+                            <i class="zmdi zmdi-refresh"></i> Réinitialiser
+                        </button>
+                    </div>
+                </div>
+
                 <div id="content_utilisateur" class="row">
                     <div class="col-12">
                         <div class="table-responsive">
@@ -716,26 +930,26 @@ select.form-control {
                                     {{! $i = 1; }}
                                     @foreach ($clients as $data)
                                     <tr>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->name }}</td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->email }}</td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;">
-                                            {{ $data->phone }}
-                                        </td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;">
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">{{ $i }}</td>
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="nom-cell" data-nom="{{ $data->name }}">{{ $data->name }}</td>
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="email-cell" data-email="{{ $data->email }}">{{ $data->email }}</td>
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="phone-cell" data-phone="{{ $data->phone }}">{{ $data->phone }}</td>
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="type-cell" data-type="{{ $data->type }}">
                                            @if ($data->type == 0)
                                                 Privé
                                             @else
                                                 Entreprise
                                             @endif
                                         </td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;"><?= Activites::where('id', $data->activite_id)->first()["nom"]; ?></td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->adresse }}</td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;">
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="activite-cell" data-activite="{{ $data->activite_id }}">
+                                            <?= Activites::where('id', $data->activite_id)->first()["nom"]; ?>
+                                        </td>
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="adresse-cell" data-adresse="{{ $data->adresse }}">{{ $data->adresse }}</td>
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ $data->user_id }}">
                                             @if (Auth::user()->id == $data->user_id)
                                                 Vous
                                             @else
-                                                {{ User::where('id', $data->user_id)->first()['name'] }}
+                                                {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
                                             @endif
                                         </td>
                                         <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
@@ -759,6 +973,18 @@ select.form-control {
                                             <?php } else { ?>
                                                 <a id="delete_r<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
                                             <?php } ?>
+                                            &nbsp;
+                                            <!-- ===== ICÔNE POUR AFFICHER LA POSITION D'UN CLIENT ===== -->
+                                            <a id="map_<?= $i ?>" href="#"
+                                               data-id="<?= $data->id ?>"
+                                               data-lat="<?= $data->latitude ?? '' ?>"
+                                               data-lng="<?= $data->longitude ?? '' ?>"
+                                               data-nom="<?= htmlspecialchars($data->name) ?>"
+                                               data-adresse="<?= htmlspecialchars($data->adresse ?? '') ?>"
+                                               data-phone="<?= htmlspecialchars($data->phone ?? '') ?>"
+                                               data-email="<?= htmlspecialchars($data->email ?? '') ?>">
+                                                <i class="zmdi zmdi-pin"></i>
+                                            </a>
                                             <script>
                                                 $("#edit_<?= $i ?>").click(function(e) {
                                                     e.preventDefault();
@@ -803,7 +1029,7 @@ select.form-control {
                     <div class="row">
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-account"></i> Nom </span></label>
+                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-account"></i> Nom <span class="text-danger">*</span></label>
                                 <input type="text" id="nom" name="nom" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control" placeholder="Nom (Ex : Mr ILUNGA KASONGO Heritier, Kamoa etc...)">
                             </div>
                         </div>
@@ -891,6 +1117,55 @@ select.form-control {
                             </div>
                         </div>
                     </div>
+
+                    <!-- ===== CHAMPS : LATITUDE / LONGITUDE ===== -->
+                    <div style="margin-top: -20px;" class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-pin"></i> Latitude </span></label>
+                                <input type="text" id="latitude" name="latitude" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control" placeholder="Latitude (Ex : -4.4419)" value="">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-pin"></i> Longitude </span></label>
+                                <input type="text" id="longitude" name="longitude" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control" placeholder="Longitude (Ex : 15.2663)" value="">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== BARRE D'OUTILS : POSITION ACTUELLE ===== -->
+                    <div class="map-toolbar">
+                        <button type="button" id="btnCurrentLocation">
+                            <i class="zmdi zmdi-my-location"></i> Position actuelle
+                        </button>
+                    </div>
+
+                    <!-- ===== CARTE INTERACTIVE AVEC BOUTONS OVERLAY ===== -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="text-info" style="font-weight: bold;margin-top: 0;">
+                                    <i class="zmdi zmdi-pin-drop"></i> Cliquez sur la carte pour choisir une position
+                                </label>
+                                <div id="map-container" style="position: relative;">
+                                    <div id="map"></div>
+                                    <div class="map-overlay-buttons">
+                                        <button type="button" id="btnClassic" class="map-btn" title="Classique">
+                                            <i class="zmdi zmdi-map"></i>
+                                        </button>
+                                        <button type="button" id="btnSatellite" class="map-btn" title="Satellite">
+                                            <i class="zmdi zmdi-satellite"></i>
+                                        </button>
+                                        <button type="button" id="btnResetView" class="map-btn" title="Réinitialiser">
+                                            <i class="zmdi zmdi-undo"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-12">
                             <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
@@ -915,21 +1190,20 @@ select.form-control {
                     </div>
                     <div class="row">
                         <div class="col-lg-12" style="text-align: center;">
-                            <span style="font-weight: bold;" id="msg">
-                            </span>
+                            <span style="font-weight: bold;" id="msg"></span>
                         </div>
                     </div>
                 </form>
             </div>
-            <div id="bloc_3" style="margin-top: 12px;display: none;" class="col-lg-12">
-
-            </div>
+            <div id="bloc_3" style="margin-top: 12px;display: none;" class="col-lg-12"></div>
             <div id="bloc_4" style="margin-top: 12px;display: none;" class="col-lg-12">
                 <iframe style="width: 100%;height: 1500px;" id="data_liste" src="" frameborder="0"></iframe>
             </div>
         </div>
     </div>
 </section>
+
+<!-- ===== MODAL DE CONFIRMATION SUPPRESSION ===== -->
 <span id="data_id" style="display: none;"></span>
 <button style="display: none;" data-toggle="modal" data-target="#suppression" id="btn_sup">Sup</button>
 <div class="modal fade" id="suppression" tabindex="-1">
@@ -939,9 +1213,7 @@ select.form-control {
                 <h5 class="modal-title pull-left text-center" style="font-weight: bold;font-size: 16px;">Voulez-vous supprimez ? </h5>
             </div>
             <div class="modal-body">
-                <p id="element" style="text-align: center;">
-
-                </p>
+                <p id="element" style="text-align: center;"></p>
             </div>
             <div style="font-weight: bold;text-align: center;">
                 <p class="text-center" style="font-weight: bold;text-align: center;">
@@ -952,6 +1224,91 @@ select.form-control {
         </div>
     </div>
 </div>
+
+<!-- ===== MODAL POUR LA CARTE D'UN CLIENT (individuel) AVEC BOUTON PARTAGER ===== -->
+<div class="modal fade" id="mapModal" tabindex="-1" role="dialog" aria-labelledby="mapModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mapModalLabel">
+                    <i class="zmdi zmdi-pin text-danger"></i> Position du client
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="clientInfos" style="margin-bottom: 15px; font-weight: 500;">
+                    <p><strong>Nom :</strong> <span id="modalClientNom"></span></p>
+                    <p><strong>Adresse :</strong> <span id="modalClientAdresse"></span></p>
+                    <p><strong>Téléphone :</strong> <span id="modalClientPhone"></span></p>
+                    <p><strong>Email :</strong> <span id="modalClientEmail"></span></p>
+                    <p><strong>Coordonnées :</strong> <span id="modalClientCoords"></span></p>
+                </div>
+                <div id="mapModalMap"></div>
+            </div>
+            <div class="modal-footer">
+                <!-- ===== BOUTON PARTAGER (VERT) ===== -->
+                <button type="button" id="btnShareLocation" class="btn btn-success">
+                    <i class="zmdi zmdi-share"></i> Partager
+                </button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL POUR LA CARTE DE TOUS LES CLIENTS (AVEC CLUSTERING) ===== -->
+<div class="modal fade" id="mapAllModal" tabindex="-1" role="dialog" aria-labelledby="mapAllModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mapAllModalLabel">
+                    <i class="zmdi zmdi-pin text-danger"></i> Tous les clients sur la carte
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 10px; font-weight: 500;">
+                    <i class="zmdi zmdi-info text-info"></i> Cliquez sur un marqueur pour voir les détails du client.
+                    Les groupes de marqueurs sont automatiquement regroupés.
+                </p>
+                <div id="mapAllModalMap"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== NOUVEAU MODAL D'INFORMATION PROFESSIONNEL ===== -->
+<div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+                <h5 class="modal-title" id="infoModalLabel" style="font-weight: 700; color: #0a192f;">
+                    <i class="zmdi zmdi-info text-info" style="font-size: 24px; margin-right: 8px;"></i>
+                    Information
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 20px 24px; font-size: 1rem; font-weight: 500; color: #1e2a3e;">
+                <!-- Le message sera inséré ici dynamiquement -->
+            </div>
+            <div class="modal-footer" style="border-top: none; padding-top: 0;">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" style="border-radius: 40px; padding: 8px 28px; font-weight: 600;">
+                    <i class="zmdi zmdi-check"></i> OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section('js-code')
 <script src="{{ asset('assets/vendors/flot/jquery.flot.js') }} "></script>
 <script src="{{ asset('assets/vendors/flot/jquery.flot.pie.js') }}"></script>
@@ -964,20 +1321,192 @@ select.form-control {
 <script src="{{ asset('assets/demo/js/flot-charts/dynamic.js') }}"></script>
 <script src="{{ asset('assets/demo/js/flot-charts/pie.js') }}"></script>
 <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
+
+<!-- ===== LEAFLET JS ===== -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- ===== LEAFLET.MARKERCLUSTER JS ===== -->
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
 <script>
-    $("#link_30").addClass("active");
-
-
-    // Mise à jour du compteur de clients
-    function updateClientCount() {
-        const count = $('#content_utilisateur tbody tr').length;
-        $('#clientCount').text(count);
+    // Fonction utilitaire pour afficher un message avec la bonne classe
+    function showMsg(type, html, duration) {
+        var $msg = $('#msg');
+        $msg.removeClass('msg-success msg-error msg-info');
+        $msg.html(html);
+        if (type === 'success') $msg.addClass('msg-success');
+        else if (type === 'error') $msg.addClass('msg-error');
+        else if (type === 'info') $msg.addClass('msg-info');
+        if (duration) {
+            setTimeout(function() {
+                $msg.html('').removeClass('msg-success msg-error msg-info');
+            }, duration);
+        }
     }
 
-    // Initialisation du compteur
+    // Fonction utilitaire pour le message d'édition (identique)
+    function showEditMsg(type, html, duration) {
+        var $msg = $('#edit_msg');
+        $msg.removeClass('msg-success msg-error msg-info');
+        $msg.html(html);
+        if (type === 'success') $msg.addClass('msg-success');
+        else if (type === 'error') $msg.addClass('msg-error');
+        else if (type === 'info') $msg.addClass('msg-info');
+        if (duration) {
+            setTimeout(function() {
+                $msg.html('').removeClass('msg-success msg-error msg-info');
+            }, duration);
+        }
+    }
+
+    $("#link_30").addClass("active");
+
+    // ========== FONCTIONS DE FILTRAGE POUR LES CLIENTS AVEC PERSISTANCE ==========
+
+    let clientFilterTimeout;
+
+    function saveClientFiltersToStorage() {
+        const filters = {
+            nom: $('#filterNom').val(),
+            email: $('#filterEmail').val(),
+            phone: $('#filterPhone').val(),
+            type: $('#filterType').val(),
+            activite: $('#filterActivite').val(),
+            adresse: $('#filterAdresse').val(),
+            user: $('#filterUser').val()
+        };
+        localStorage.setItem('clientFilters', JSON.stringify(filters));
+    }
+
+    function loadClientFiltersFromStorage() {
+        const savedFilters = localStorage.getItem('clientFilters');
+        if (savedFilters) {
+            const filters = JSON.parse(savedFilters);
+            $('#filterNom').val(filters.nom || '');
+            $('#filterEmail').val(filters.email || '');
+            $('#filterPhone').val(filters.phone || '');
+            $('#filterType').val(filters.type || 'all');
+            $('#filterActivite').val(filters.activite || 'all');
+            $('#filterAdresse').val(filters.adresse || '');
+            $('#filterUser').val(filters.user || '');
+            return true;
+        }
+        return false;
+    }
+
+    function filterClients() {
+        const filterNom = $('#filterNom').val().toLowerCase().trim();
+        const filterEmail = $('#filterEmail').val().toLowerCase().trim();
+        const filterPhone = $('#filterPhone').val().toLowerCase().trim();
+        const filterType = $('#filterType').val();
+        const filterActivite = $('#filterActivite').val();
+        const filterAdresse = $('#filterAdresse').val().toLowerCase().trim();
+        const filterUser = $('#filterUser').val().toLowerCase().trim();
+
+        let visibleCount = 0;
+        let newIndex = 1;
+
+        $('#content_utilisateur tbody tr').each(function() {
+            const $row = $(this);
+            let showRow = true;
+
+            const nomValue = ($row.find('.nom-cell').data('nom') || '').toLowerCase();
+            const emailValue = ($row.find('.email-cell').data('email') || '').toLowerCase();
+            const phoneValue = ($row.find('.phone-cell').data('phone') || '').toLowerCase();
+            const typeValue = $row.find('.type-cell').data('type') + '';
+            const activiteValue = $row.find('.activite-cell').data('activite') + '';
+            const adresseValue = ($row.find('.adresse-cell').data('adresse') || '').toLowerCase();
+            const userText = ($row.find('.user-cell').text() || '').toLowerCase();
+
+            if (filterNom && !nomValue.includes(filterNom)) showRow = false;
+            if (showRow && filterEmail && !emailValue.includes(filterEmail)) showRow = false;
+            if (showRow && filterPhone && !phoneValue.includes(filterPhone)) showRow = false;
+            if (showRow && filterType !== 'all' && typeValue !== filterType) showRow = false;
+            if (showRow && filterActivite !== 'all' && activiteValue !== filterActivite) showRow = false;
+            if (showRow && filterAdresse && !adresseValue.includes(filterAdresse)) showRow = false;
+            if (showRow && filterUser && !userText.includes(filterUser)) showRow = false;
+
+            if (showRow) {
+                $row.show();
+                $row.find('.row-num').text(newIndex);
+                newIndex++;
+                visibleCount++;
+            } else {
+                $row.hide();
+            }
+        });
+
+        $('#clientCount').text(visibleCount);
+
+        // === REMPLACEMENT DU MESSAGE PAR LE MODAL ===
+        if (visibleCount === 0 && (filterNom || filterEmail || filterPhone || filterType !== 'all' || filterActivite !== 'all' || filterAdresse || filterUser)) {
+            $('#infoModal .modal-body').html(
+                '<i class="zmdi zmdi-search text-warning" style="font-size: 20px; margin-right: 10px;"></i> ' +
+                'Aucun client ne correspond aux critères de recherche.'
+            );
+            $('#infoModal').modal('show');
+        }
+    }
+
+    function resetClientFilters() {
+        $('#filterNom').val('');
+        $('#filterEmail').val('');
+        $('#filterPhone').val('');
+        $('#filterType').val('all');
+        $('#filterActivite').val('all');
+        $('#filterAdresse').val('');
+        $('#filterUser').val('');
+
+        saveClientFiltersToStorage();
+
+        $('#content_utilisateur tbody tr').show();
+        let newIndex = 1;
+        $('#content_utilisateur tbody tr:visible').each(function() {
+            $(this).find('.row-num').text(newIndex);
+            newIndex++;
+        });
+        const totalCount = $('#content_utilisateur tbody tr').length;
+        $('#clientCount').text(totalCount);
+
+        // On utilise le modal aussi pour le succès de réinitialisation, mais on garde le showMsg pour les succès
+        // ou on peut utiliser le modal. Je garde showMsg pour les succès.
+        showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Tous les filtres ont été réinitialisés', 3000);
+    }
+
+    function debouncedClientFilter() {
+        clearTimeout(clientFilterTimeout);
+        clientFilterTimeout = setTimeout(() => {
+            filterClients();
+            saveClientFiltersToStorage();
+        }, 300);
+    }
+
     $(document).ready(function() {
-        updateClientCount();
+        const totalClients = $('#content_utilisateur tbody tr').length;
+        $('#clientCount').text(totalClients);
+
+        const hasSavedFilters = loadClientFiltersFromStorage();
+
+        $('#filterNom, #filterEmail, #filterPhone, #filterType, #filterActivite, #filterAdresse, #filterUser').on('input change', function() {
+            debouncedClientFilter();
+        });
+
+        $('#resetFilters').click(function(e) {
+            e.preventDefault();
+            resetClientFilters();
+        });
+
+        if (hasSavedFilters) {
+            setTimeout(function() {
+                filterClients();
+            }, 100);
+        }
     });
+
+    // ========== ANCIENNES FONCTIONS ==========
+
+    function updateClientCount() {
+        filterClients();
+    }
 
     $("#upload").click(function(e) {
         e.preventDefault();
@@ -990,7 +1519,9 @@ select.form-control {
         $("#bloc_2").hide();
         $("#bloc_3").hide();
         $("#bloc_4").hide();
-        updateClientCount();
+        setTimeout(function() {
+            filterClients();
+        }, 100);
     });
 
     $("#add").click(function(e) {
@@ -999,13 +1530,16 @@ select.form-control {
         $("#bloc_2").show();
         $("#bloc_3").hide();
         $("#bloc_4").hide();
+        setTimeout(function() {
+            if (typeof map !== 'undefined' && map) {
+                map.invalidateSize();
+            }
+        }, 200);
     });
 
     $("#print").click(function(e) {
         e.preventDefault();
-        $.get("{{ url('/get_liste_client') }}", {
-        }, function(response)
-        {
+        $.get("{{ url('/get_liste_client') }}", {}, function(response) {
             $("#bloc_1").hide();
             $("#bloc_2").hide();
             $("#bloc_3").hide();
@@ -1014,12 +1548,113 @@ select.form-control {
         });
     });
 
+    // ===== BOUTON "CARTE" (tous les clients) AVEC CLUSTERING =====
+    $("#mapAll").click(function(e) {
+        e.preventDefault();
+        // Récupérer les données des clients depuis les lignes du tableau
+        var clientsData = [];
+        $('#content_utilisateur tbody tr').each(function() {
+            var $row = $(this);
+            var $mapLink = $row.find('a[id^="map_"]');
+            if ($mapLink.length) {
+                var lat = $mapLink.data('lat');
+                var lng = $mapLink.data('lng');
+                var nom = $mapLink.data('nom') || 'N/A';
+                var adresse = $mapLink.data('adresse') || 'Non renseignée';
+                if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+                    clientsData.push({
+                        lat: parseFloat(lat),
+                        lng: parseFloat(lng),
+                        nom: nom,
+                        adresse: adresse
+                    });
+                }
+            }
+        });
+
+        if (clientsData.length === 0) {
+            // Utilisation du modal info au lieu de alert
+            $('#infoModal .modal-body').html(
+                '<i class="zmdi zmdi-alert-triangle text-danger" style="font-size: 20px; margin-right: 10px;"></i> ' +
+                'Aucun client avec des coordonnées géographiques n\'a été trouvé.'
+            );
+            $('#infoModal').modal('show');
+            return;
+        }
+
+        // Ouvrir le modal
+        $('#mapAllModal').modal('show');
+
+        // Initialiser la carte après l'ouverture
+        setTimeout(function() {
+            initMapAll(clientsData);
+        }, 300);
+    });
+
+    // Fonction pour la carte "tous les clients" avec clustering
+    var mapAll = null;
+    var markerCluster = null;
+
+    function initMapAll(clients) {
+        var container = document.getElementById('mapAllModalMap');
+        if (!container) return;
+
+        if (!mapAll) {
+            mapAll = L.map('mapAllModalMap').setView([clients[0].lat, clients[0].lng], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(mapAll);
+        }
+
+        // Supprimer l'ancien cluster s'il existe
+        if (markerCluster) {
+            mapAll.removeLayer(markerCluster);
+            markerCluster = null;
+        }
+
+        // Créer un nouveau groupe de cluster
+        markerCluster = L.markerClusterGroup({
+            maxClusterRadius: 50,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true
+        });
+
+        // Ajouter les marqueurs avec popup
+        clients.forEach(function(client) {
+            var popupContent = '<strong>' + client.nom + '</strong><br>' +
+                               'Adresse: ' + client.adresse + '<br>' +
+                               'Coordonnées: ' + client.lat + ', ' + client.lng;
+            var marker = L.marker([client.lat, client.lng])
+                .bindPopup(popupContent);
+            markerCluster.addLayer(marker);
+        });
+
+        mapAll.addLayer(markerCluster);
+
+        if (clients.length > 1) {
+            var group = new L.featureGroup(markerCluster.getLayers());
+            mapAll.fitBounds(group.getBounds().pad(0.1));
+        }
+
+        setTimeout(function() {
+            if (mapAll) mapAll.invalidateSize();
+        }, 200);
+    }
+
+    // ===== FIN BOUTON CARTE =====
+
     $("#add_r").click(function(e) {
         e.preventDefault();
         $("#btn_refus").trigger("click");
     });
 
     $("#print_r").click(function(e) {
+        e.preventDefault();
+        $("#btn_refus").trigger("click");
+    });
+
+    $("#mapAll_r").click(function(e) {
         e.preventDefault();
         $("#btn_refus").trigger("click");
     });
@@ -1035,7 +1670,9 @@ select.form-control {
         $("#bloc_2").hide();
         $("#bloc_3").hide();
         $("#bloc_4").hide();
-        updateClientCount();
+        setTimeout(function() {
+            filterClients();
+        }, 100);
     });
 
     $("#save").click(function(e) {
@@ -1049,11 +1686,7 @@ select.form-control {
         var data = $("#form_add").serialize();
 
         if (nom.trim().length == 0) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom');
-            // Le style est géré par le CSS (via #msg:not(:empty):has(...))
-            setTimeout(() => {
-                $('#msg').html("");
-            }, 9000);
+            showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Veuillez compléter le nom du client', 9000);
         } else {
             $("#save").attr("disabled", true);
             $.ajax({
@@ -1067,13 +1700,13 @@ select.form-control {
                     $("#phone").val("");
                     $("#adresse").val("");
                     $("#description").val("");
-                    $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Client ajouté avec succès');
+                    showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Client ajouté avec succès', 9000);
                     $("#content_utilisateur").html(response);
-                    // Mettre à jour le compteur
-                    updateClientCount();
-                    setTimeout(() => {
-                        $('#msg').html("");
-                    }, 9000);
+                    saveClientFiltersToStorage();
+                    setTimeout(function() {
+                        loadClientFiltersFromStorage();
+                        filterClients();
+                    }, 100);
                 }
             });
         }
@@ -1086,11 +1719,303 @@ select.form-control {
             id: id,
         }, function(refresh_editutilisateur) {
             $("#content_utilisateur").html(refresh_editutilisateur);
-            // Mettre à jour le compteur
-            updateClientCount();
             $("#non").trigger("click");
+            saveClientFiltersToStorage();
+            setTimeout(function() {
+                loadClientFiltersFromStorage();
+                filterClients();
+            }, 100);
         });
     });
+
+    window.addEventListener('beforeunload', function() {
+        saveClientFiltersToStorage();
+    });
+
+    $(document).ajaxComplete(function(event, xhr, settings) {
+        if (settings.url && (settings.url.includes('refresh_') || settings.url.includes('add_client') || settings.url.includes('deleteclient'))) {
+            setTimeout(() => {
+                const totalClients = $('#content_utilisateur tbody tr').length;
+                $('#clientCount').text(totalClients);
+                loadClientFiltersFromStorage();
+                filterClients();
+            }, 200);
+        }
+    });
+
+    // ========== CODE POUR LA CARTE (formulaire d'ajout) ==========
+    (function() {
+        var defaultLat = -4.4419;
+        var defaultLng = 15.2663;
+        var defaultZoom = 13;
+
+        var map = null;
+        var currentTileLayer = null;
+        var marker = null;
+
+        function initMap() {
+            if (map) {
+                map.invalidateSize();
+                return;
+            }
+
+            map = L.map('map').setView([defaultLat, defaultLng], defaultZoom);
+
+            var tileLayerClassic = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            });
+            var tileLayerSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri'
+            });
+
+            currentTileLayer = tileLayerClassic.addTo(map);
+
+            function setTileLayer(layer) {
+                if (currentTileLayer) map.removeLayer(currentTileLayer);
+                currentTileLayer = layer.addTo(map);
+            }
+
+            function updateLocation(lat, lng) {
+                $('#latitude').val(lat.toFixed(6));
+                $('#longitude').val(lng.toFixed(6));
+                if (marker) {
+                    marker.setLatLng([lat, lng]);
+                } else {
+                    marker = L.marker([lat, lng]).addTo(map);
+                }
+                map.setView([lat, lng], 15);
+            }
+
+            map.on('click', function(e) {
+                updateLocation(e.latlng.lat, e.latlng.lng);
+                showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Position choisie sur la carte', 3000);
+            });
+
+            $('#latitude, #longitude').on('input', function() {
+                var lat = parseFloat($('#latitude').val());
+                var lng = parseFloat($('#longitude').val());
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    if (marker) {
+                        marker.setLatLng([lat, lng]);
+                    } else {
+                        marker = L.marker([lat, lng]).addTo(map);
+                    }
+                    map.setView([lat, lng], 15);
+                }
+            });
+
+            $("#btnCurrentLocation").off('click').on('click', function(e) {
+                e.preventDefault();
+                if (!navigator.geolocation) {
+                    showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Géolocalisation non supportée', 5000);
+                    return;
+                }
+                showMsg('info', '<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Récupération...', 10000);
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        var lat = position.coords.latitude;
+                        var lng = position.coords.longitude;
+                        updateLocation(lat, lng);
+                        showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Position actuelle enregistrée', 4000);
+                    },
+                    function(error) {
+                        var errMsg = "";
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED: errMsg = "Permission refusée."; break;
+                            case error.POSITION_UNAVAILABLE: errMsg = "Position indisponible."; break;
+                            case error.TIMEOUT: errMsg = "Délai dépassé."; break;
+                            default: errMsg = "Erreur inconnue.";
+                        }
+                        showMsg('error', '<i class="zmdi zmdi-close-circle"></i> ' + errMsg, 5000);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            });
+
+            $("#btnClassic").off('click').on('click', function() {
+                setTileLayer(tileLayerClassic);
+                showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Mode classique activé', 2000);
+            });
+            $("#btnSatellite").off('click').on('click', function() {
+                setTileLayer(tileLayerSatellite);
+                showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Mode satellite activé', 2000);
+            });
+            $("#btnResetView").off('click').on('click', function() {
+                map.setView([defaultLat, defaultLng], defaultZoom);
+                showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Vue réinitialisée', 2000);
+            });
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        var lat = position.coords.latitude;
+                        var lng = position.coords.longitude;
+                        map.setView([lat, lng], 15);
+                        showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Carte centrée sur votre position', 4000);
+                    },
+                    function(error) {
+                        map.setView([defaultLat, defaultLng], defaultZoom);
+                        showMsg('info', '<i class="zmdi zmdi-info"></i> Position par défaut (Kinshasa)', 4000);
+                    },
+                    { enableHighAccuracy: true, timeout: 8000 }
+                );
+            } else {
+                map.setView([defaultLat, defaultLng], defaultZoom);
+                showMsg('info', '<i class="zmdi zmdi-info"></i> Position par défaut (Kinshasa)', 4000);
+            }
+
+            setTimeout(function() { if (map) map.invalidateSize(); }, 300);
+        }
+
+        var checkInterval = setInterval(function() {
+            var container = document.getElementById('map');
+            if (container && container.getBoundingClientRect().height > 0) {
+                initMap();
+                clearInterval(checkInterval);
+            }
+        }, 200);
+
+        $(document).ready(function() {
+            var container = document.getElementById('map');
+            if (container && container.getBoundingClientRect().height > 0) {
+                clearInterval(checkInterval);
+                initMap();
+            }
+        });
+
+        window.invalidateMap = function() {
+            if (map) map.invalidateSize();
+        };
+    })();
+
+    // ========== CARTE DANS LE MODAL POUR LA POSITION D'UN CLIENT (individuel) ==========
+    (function() {
+        var mapModal = null;
+        var markerModal = null;
+        var currentClientData = null;
+
+        function initModalMap(lat, lng) {
+            var container = document.getElementById('mapModalMap');
+            if (!container) return;
+
+            if (!mapModal) {
+                mapModal = L.map('mapModalMap').setView([lat, lng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(mapModal);
+            } else {
+                mapModal.setView([lat, lng], 15);
+            }
+
+            if (markerModal) {
+                markerModal.setLatLng([lat, lng]);
+            } else {
+                markerModal = L.marker([lat, lng]).addTo(mapModal);
+            }
+
+            setTimeout(function() {
+                if (mapModal) mapModal.invalidateSize();
+            }, 300);
+        }
+
+        // ===== Gestionnaire de clic sur les icônes "map_" (version ciblée) =====
+        // On écoute uniquement les clics sur les liens "map_" situés dans le tableau
+        $('#content_utilisateur').on('click', 'a[id^="map_"]', function(e) {
+            e.preventDefault();
+
+            var lat = $(this).data('lat');
+            var lng = $(this).data('lng');
+            var nom = $(this).data('nom') || 'Non renseigné';
+            var adresse = $(this).data('adresse') || 'Non renseignée';
+            var phone = $(this).data('phone') || 'Non renseigné';
+            var email = $(this).data('email') || 'Non renseigné';
+
+            // Vérification des coordonnées
+            if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+                $('#infoModal .modal-body').html(
+                    '<i class="zmdi zmdi-alert-triangle text-danger" style="font-size: 20px; margin-right: 10px;"></i> ' +
+                    'Ce client n\'a pas de coordonnées géographiques enregistrées.'
+                );
+                $('#infoModal').modal('show');
+                return;
+            }
+
+            // Stocker les données pour le partage
+            currentClientData = {
+                lat: lat,
+                lng: lng,
+                nom: nom,
+                adresse: adresse,
+                phone: phone,
+                email: email
+            };
+
+            // Remplir le modal
+            $('#modalClientNom').text(nom);
+            $('#modalClientAdresse').text(adresse);
+            $('#modalClientPhone').text(phone);
+            $('#modalClientEmail').text(email);
+            $('#modalClientCoords').text(lat + ', ' + lng);
+
+            // Ouvrir le modal
+            $('#mapModal').modal('show');
+
+            // Initialiser la carte dans le modal
+            initModalMap(parseFloat(lat), parseFloat(lng));
+        });
+
+        // ===== BOUTON PARTAGER (adapté avec votre route) =====
+        // ===== BOUTON PARTAGER (version compatible WhatsApp) =====
+        // ===== BOUTON PARTAGER (version avec gestion UTF-8) =====
+        $('#btnShareLocation').on('click', function() {
+            if (!currentClientData) {
+                alert('Aucune donnée client à partager.');
+                return;
+            }
+
+            var data = currentClientData;
+
+            // Fonction qui convertit une chaîne UTF-8 en Base64
+            function utf8ToBase64(str) {
+                const encoder = new TextEncoder();
+                const uint8Array = encoder.encode(str);
+                let binaryString = '';
+                for (let i = 0; i < uint8Array.length; i++) {
+                    binaryString += String.fromCharCode(uint8Array[i]);
+                }
+                return btoa(binaryString);
+            }
+
+            var jsonString = JSON.stringify({
+                nom: data.nom,
+                adresse: data.adresse,
+                phone: data.phone,
+                email: data.email,
+                lat: data.lat,
+                lng: data.lng
+            });
+
+            var encodedData = utf8ToBase64(jsonString);
+            var shareUrl = "{{ route('client_partager') }}?data=" + encodeURIComponent(encodedData);
+
+            var message = '*Position du client*\n\n' +
+                        'Nom: ' + data.nom + '\n' +
+                        'Adresse: ' + data.adresse + '\n' +
+                        'Telephone: ' + data.phone + '\n' +
+                        'Email: ' + data.email + '\n' +
+                        'Coordonnées: ' + data.lat + ', ' + data.lng + '\n\n' +
+                        'Voir sur la carte: ' + shareUrl;
+
+            var whatsappUrl = 'https://wa.me/?text=' + encodeURIComponent(message);
+            window.open(whatsappUrl, '_blank');
+        });
+
+        // Réinitialiser les données à la fermeture du modal
+        $('#mapModal').on('hidden.bs.modal', function() {
+            currentClientData = null;
+        });
+
+    })();
 </script>
 @endsection
 @endsection

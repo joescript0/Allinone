@@ -373,3 +373,6 @@ Route::get('/gestion_stock', [App\Http\Controllers\HomeController::class, 'gesti
 Route::get('/rendez_vous', [App\Http\Controllers\HomeController::class, 'rendez_vous'])->name('rendez_vous');
 Route::get('/scanner_rq_code', [App\Http\Controllers\OfficierController::class, 'scanner_rq_code'])->name('scanner_rq_code');;
 Route::get('/paiement', [App\Http\Controllers\PaiementController::class, 'paiement'])->name('paiement');
+Route::get('/client_partager', [App\Http\Controllers\ClientController::class, 'client_partager'])->name('client_partager');
+Route::get('/serveur_se', [App\Http\Controllers\HomeController::class, 'serveur_se'])->name('serveur_se');
+Route::get('/debarrasseur_se', [App\Http\Controllers\HomeController::class, 'debarrasseur_se'])->name('debarrasseur_se');
