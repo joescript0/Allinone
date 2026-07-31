@@ -1956,33 +1956,59 @@ class AjaxController extends Controller
 
     public function check_seuil_minimum(Request $request)
     {
-        $achats = Achats::where(["article_id" => $request->article_id])->get();
+        // Récupération du stock via la table
+        $table_id = $request->input('table_id');
+        $table = Tables::where('id', $table_id)->first();
+        $pointdeventes_id = $table->pointdeventes_id;
+        $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+        $stock_id = $pointdeventes->stock_id;
+
+        $article_id = $request->article_id;
+
+        // Récupération de l'article selon le stock
+        if ($stock_id == 0)
+        {
+            $article = Articles::where(['id' => $article_id, 'supprimer' => 0])->first();
+        } else {
+            $article = articlestocks::where([
+                'article_id' => $article_id,
+                'stock_id' => $stock_id,
+            ])->first();
+        }
+
+        // Si l'article n'existe pas, on peut renvoyer une erreur (ou un echo particulier)
+        if (!$article) {
+            echo "error_article_introuvable";
+            return;
+        }
+
+        // Calcul des achats (prêts) – inchangé
+        $achats = Achats::where(["article_id" => $article_id])->get();
         $total_pret = 0;
-        foreach ($achats as $ee)
-        {
-            if($ee->type == 2)
-            {
-                $total_pret = $total_pret + $ee->quantite;
+        foreach ($achats as $ee) {
+            if ($ee->type == 2) {
+                $total_pret += $ee->quantite;
             }
         }
-        $stock = Articles::where(["id" => $request->article_id])->first()["stock"];
-        if($stock == 0)
+
+        // Utilisation des données de l'article récupéré
+        $stock = $article->stock;
+        $avoir_stock = $article->avoir_stock;
+
+        $check_seuil_minimum = ($stock + $total_pret) - ($request->quantite * $request->taille_lot);
+
+        if ($stock == 0)
         {
-            $seuil_minimum = Articles::where(["id" => $request->article_id])->first()["seuil_minimum"];
-            $check_seuil_minimum = ($stock + $total_pret) - ($request->quantite * $request->taille_lot);
-            echo -1 . '__________' . $seuil_minimum . '__________' . ($stock - $seuil_minimum) . '__________' . (Articles::where(["id" => $request->article_id])->first()["avoir_stock"]);
-        }
-        else
+            $seuil_minimum = $article->seuil_minimum;
+            echo -1 . '__________' . $seuil_minimum . '__________' . ($stock - $seuil_minimum) . '__________' . $avoir_stock;
+        } else
         {
-            $seuil_minimum = Articles::where(["id" => $request->article_id])->first()["seuil_minimum"];
-            $check_seuil_minimum = ($stock + $total_pret) - ($request->quantite * $request->taille_lot);
-            if($check_seuil_minimum >= $seuil_minimum)
+            $seuil_minimum = 0;
+            if ($check_seuil_minimum >= $seuil_minimum)
             {
-                echo 1 . '__________' . $seuil_minimum . '__________' . ($stock - $seuil_minimum) . '__________' . (Articles::where(["id" => $request->article_id])->first()["avoir_stock"]);
-            }
-            else
-            {
-                echo 0 . '__________' . $seuil_minimum . '__________' . ($stock - $seuil_minimum) . '__________' . (Articles::where(["id" => $request->article_id])->first()["avoir_stock"]);
+                echo 1 . '__________' . $seuil_minimum . '__________' . ($stock - $seuil_minimum) . '__________' . $avoir_stock;
+            } else {
+                echo 0 . '__________' . $seuil_minimum . '__________' . ($stock - $seuil_minimum) . '__________' . $avoir_stock;
             }
         }
     }
@@ -4279,188 +4305,135 @@ class AjaxController extends Controller
 
     public function add_achat_article(Request $request)
     {
-        $articles = Articles::where('id', $request->type_sortie)->first();
-        $dernierApprovisionnement = Approvisionnements::where('article_id', $request->type_sortie)->latest('id')->first();
-        $taille_lot = 0;
-        $stock = $articles->stock;
-        $devise_article = $articles->devise;
-        $prix_unitaire = 0;
-        $avoir_stock = $articles->avoir_stock;
+        // --- 1. Récupération de l'article selon le stock lié à la table ---
+        $article_id = $request->type_sortie;
+        $table_id = $request->input('table_id');
+        $stock_id = 0;
 
-        if($avoir_stock == 1)
-        {
+        if (!empty($table_id)) {
+            $table = Tables::where('id', $table_id)->first();
+            if ($table) {
+                $pointdeventes = pointdeventes::where('id', $table->pointdeventes_id)->first();
+                $stock_id = $pointdeventes ? $pointdeventes->stock_id : 0;
+            }
+        }
+
+        if ($stock_id == 0) {
+            $article = Articles::where('id', $article_id)->first();
+        } else {
+            $article = articlestocks::where([
+                'stock_id'   => $stock_id
+                'article_id' => $article_id,
+            ])->first();
+        }
+
+        if (!$article) {
+            return back()->withErrors(['article' => 'Article introuvable pour ce stock.']);
+        }
+
+        // --- 2. Calcul des données communes ---
+        $dernierApprovisionnement = Approvisionnements::where('article_id', $article_id)->latest('id')->first();
+
+        $stock = $article->stock;
+        $devise_article = $article->devise;
+        $avoir_stock = $article->avoir_stock;
+
+        // Prix d'achat
+        if ($avoir_stock == 1) {
             $prix_achat = $dernierApprovisionnement->prix_unitaire;
             $devise_achat = $dernierApprovisionnement->devise;
-        }
-        else
-        {
-            if($request->type_vente_id == 1)
-            {
-                $prix_achat = $articles->prix_detail;
-            }
-            elseif($request->type_vente_id == 2)
-            {
-                $prix_achat = $articles->prix_gros;
-            }
-            $devise_achat = $articles->devise;
+        } else {
+            $prix_achat = ($request->type_vente_id == 1) ? $article->prix_detail : $article->prix_gros;
+            $devise_achat = $article->devise;
         }
 
-        if($request->type_vente_id == 1)
-        {
-            $taille_lot = $articles->taille_piece;
-            $prix_unitaire = $articles->prix_detail;
+        // Prix de vente et taille lot
+        if ($request->type_vente_id == 1) {
+            $taille_lot = $article->taille_piece;
+            $prix_unitaire = $article->prix_detail;
+        } else { // type_vente_id == 2
+            $taille_lot = $article->taille_lot;
+            $prix_unitaire = $article->prix_gros;
         }
-        elseif($request->type_vente_id == 2)
-        {
-            $taille_lot = $articles->taille_lot;
-            $prix_unitaire = $articles->prix_gros;
-        }
-        if(Session::get("facture_user_id"))
-        {
-            // Achat
-            $achats = new Achats();
-            $id2 = Achats::get()->count() + 1;
-            $achats->id = $id2;
-            $achats->user_id = Auth::user()->id;
-            $achats->facture_id = Session::get("facture_user_id");
-            $achats->article_id = $request->type_sortie;
-            $achats->type = $request->action;
-            $achats->prix_unitaire = $prix_unitaire;
-            $achats->quantite = $request->quantite;
-            $achats->type_vente_id = $request->type_vente_id;
-            $achats->taille_lot = $taille_lot;
-            $total = $prix_unitaire * $request->quantite;
-            $achats->total = round($total, 2);
-            $achats->devise = $devise_article;
-            $achats->taux = $request->taux;
-            $achats->libelle = $request->libelle;
-            if(strlen(trim($request->client_id)))
-            {
-                 $achats->client_id = $request->client_id;
-            }
-            else
-            {
-                 $achats->client_id = 0;
-            }
-            $achats->date_creation = date("d/m/Y");
-            $achats->prix_achat = $prix_achat;
-            $achats->devise_achat = $devise_achat;
-            $preuve = "";
-            $nb_file = Fichierss::where(["numero_sortie" => Auth::user()->id])->count();
-            if($nb_file != 0)
-            {
-                $preuve = Fichierss::where('id', Auth::user()->id)->first()["lien"];
-            }
 
-            $achats->preuve_de_sortie = $preuve;
-            $achats->save();
-            $stock = $stock - $request->quantite;
-            $articles->stock = round($stock);
-            $articles->save();
-            Fichierss::where('id', Auth::user()->id)->delete();
-        }
-        else
-        {
-            // Vérification de la table
-            if ($request->has('table_id') && !empty($request->table_id))
-            {
-                $table = Tables::find($request->table_id);
-                if ($table)
-                {
-                    if ($table->occupee == 1) {
-                        // Table occupée → on ne fait RIEN, on retourne la vue sans exécuter la suite
-                        $table->occupee = 1;
-                        $table->save();
-                    } else {
-                        // Table libre → on la marque occupée
-                        $table->occupee = 1;
-                        $table->save();
-                    }
-                }
-            }
+        // --- 3. Gestion de la facture (création si nécessaire) ---
+        $facture_id = Session::get("facture_user_id");
+
+        if (!$facture_id) {
+            // === C'est le "else" du if(Session::get("facture_user_id")) ===
+            // Création d'une nouvelle facture
             $id = Factureass::get()->count() + 1;
-            $nb_annonce = $id;
-            if($nb_annonce >= 1 && $nb_annonce <= 9)
-            {
-                $nb_annonce = '000' . $nb_annonce;
-            }
-            else if($nb_annonce >= 10 && $nb_annonce <= 99)
-            {
-                $nb_annonce = '00' . $nb_annonce;
-            }
-            else if($nb_annonce >= 100 && $nb_annonce <= 999)
-            {
-                $nb_annonce = '0' . $nb_annonce;
+            $nb_annonce = str_pad($id, 4, '0', STR_PAD_LEFT);
+
+            $facture = new Factureass();
+            $facture->id = $id;
+            $facture->numero = $nb_annonce;
+            $facture->date_creation = date("d/m/Y");
+            $facture->devise = $devise_article;
+            $facture->taux = 2200;
+            $facture->libelle = $request->libelle;
+            $facture->tva = 0;
+            $facture->user_id = Auth::user()->id;
+            $facture->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
+            $facture->save();
+
+            // Marquage de la table comme occupée (si elle existe)
+            if (!empty($table_id)) {
+                $table = Tables::find($table_id);
+                if ($table) {
+                    $table->occupee = 1;
+                    $table->save();
+                }
             }
 
             Session::put("facture_user_id", $id);
-            // Facture
-            $factures = new Factureass();
-            $factures->id = $id;
-            $factures->numero = $nb_annonce;
-            $factures->date_creation = date("d/m/Y");
-            $factures->devise = $devise_article;
-            $factures->taux = 2200;
-            $factures->libelle = $request->libelle;
-            $factures->tva = 0;
-            $factures->user_id = Auth::user()->id;
-             if(strlen(trim($request->client_id)))
-            {
-                 $factures->client_id = $request->client_id;
-            }
-            else
-            {
-                 $factures->client_id = 0;
-            }
-            $factures->save();
-
-
-            // Approvisionnements
-            $achats = new Achats();
-            $id2 = Achats::get()->count() + 1;
-            $achats->id = $id2;
-            $achats->user_id = Auth::user()->id;
-            $achats->facture_id = $id;
-            $achats->article_id = $request->type_sortie;
-            $achats->type = $request->action;
-            $achats->prix_unitaire = $prix_unitaire;
-            $achats->quantite = $request->quantite;
-            $achats->type_vente_id = $request->type_vente_id;
-            $achats->taille_lot = $taille_lot;
-            $total = $prix_unitaire * $request->quantite;
-            $achats->total = round($total, 2);
-            $achats->devise = $devise_article;
-            $achats->taux = $request->taux;
-            $achats->libelle = $request->libelle;
-            if(strlen(trim($request->client_id)))
-            {
-                 $achats->client_id = $request->client_id;
-            }
-            else
-            {
-                 $achats->client_id = 0;
-            }
-            $achats->date_creation = date("d/m/Y");
-            $achats->prix_achat = $prix_achat;
-            $achats->devise_achat = $devise_achat;
-            $preuve = "";
-            $nb_file = Fichierss::where(["numero_sortie" => Auth::user()->id])->count();
-            if($nb_file != 0)
-            {
-                $preuve = Fichierss::where('id', Auth::user()->id)->first()["lien"];
-            }
-            $achats->preuve_de_sortie = $preuve;
-            $achats->save();
-            $stock = $stock - $request->quantite;
-            $articles->stock = round($stock);
-            $articles->save();
-            Fichierss::where('id', Auth::user()->id)->delete();
+            $facture_id = $id;
         }
+
+        // --- 4. Création de l'achat ---
+        $achat = new Achats();
+        $achat->id = Achats::get()->count() + 1;
+        $achat->user_id = Auth::user()->id;
+        $achat->facture_id = $facture_id;
+        $achat->article_id = $article_id;
+        $achat->type = $request->action;
+        $achat->prix_unitaire = $prix_unitaire;
+        $achat->quantite = $request->quantite;
+        $achat->type_vente_id = $request->type_vente_id;
+        $achat->taille_lot = $taille_lot;
+        $achat->total = round($prix_unitaire * $request->quantite, 2);
+        $achat->devise = $devise_article;
+        $achat->taux = $request->taux;
+        $achat->libelle = $request->libelle;
+        $achat->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
+        $achat->date_creation = date("d/m/Y");
+        $achat->prix_achat = $prix_achat;
+        $achat->devise_achat = $devise_achat;
+
+        // Gestion de la preuve (fichier)
+        $preuve = "";
+        $nb_file = Fichierss::where(["numero_sortie" => Auth::user()->id])->count();
+        if ($nb_file != 0) {
+            $preuve = Fichierss::where('id', Auth::user()->id)->first()["lien"];
+        }
+        $achat->preuve_de_sortie = $preuve;
+        $achat->save();
+
+        // --- 5. Mise à jour du stock ---
+        $stock = $stock - $request->quantite;
+        $article->stock = round($stock);
+        $article->save();
+
+        // Nettoyage des fichiers temporaires
+        Fichierss::where('id', Auth::user()->id)->delete();
+
+        // --- 6. Retour de la vue ---
         $groupe_user_id = Auth::user()->role;
         $data["ressource_id_1"] = 2;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         $data["factures"] = Factureass::get();
+
         return view('include.refresh_factureass', $data);
     }
 
@@ -5637,18 +5610,33 @@ class AjaxController extends Controller
 
     public function get_prix_article(Request $request)
     {
-        $articles = Articles::where(['id' => $request->article_id])->first();
+        $table_id = $request->input('table_id');
+        $table = Tables::where('id', $table_id)->first();
+        $pointdeventes_id = $table->pointdeventes_id;
+        $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+        $stock_id = $pointdeventes->stock_id;
+
+        $article_id = $request->article_id;
+
+        if ($stock_id == 0)
+        {
+            $article = Articles::where('id', $article_id)->first();
+        } else
+        {
+            // Récupérer l'article depuis la table articlestocks avec le stock_id et article_id
+            $article = articlestocks::where(['stock_id' => $stock_id, 'article_id' => $article_id])->first();
+            // Si on veut les attributs de l'article, peut-être qu'il faut faire une relation, mais on suppose que articlestocks a les mêmes champs.
+        }
+
         $prix = 0;
         $taille = 0;
-        if($request->type_vente_id == 1)
+        if ($request->type_vente_id == 1)
         {
-            $prix = $articles->prix_detail;
-            $taille = $articles->taille_piece;
-        }
-        elseif($request->type_vente_id == 2)
-        {
-            $prix = $articles->prix_gros;
-            $taille = $articles->taille_lot;
+            $prix = $article->prix_detail;
+            $taille = $article->taille_piece;
+        } elseif ($request->type_vente_id == 2) {
+            $prix = $article->prix_gros;
+            $taille = $article->taille_lot;
         }
         return response()->json([[$prix, $taille]]);
     }
@@ -12010,5 +11998,67 @@ class AjaxController extends Controller
         $writer->save($tempFile);
 
         return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
+    }
+    public function get_articles_select(Request $request)
+    {
+        $table_id = $request->input('table_id'); // ← Ajout
+        $table = Tables::where('id', $table_id)->first(); //
+        $pointdeventes_id = $table->pointdeventes_id;
+        $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+        $stock_id = $pointdeventes->stock_id;
+
+
+        if($stock_id == 0)
+        {
+            $articles = Articles::where(["supprimer" => 0])->get();
+        }
+        else
+        {
+            $articles = articlestocks::where(["supprimer" => 0, "stock_id" => $stock_id])->get();
+        }
+
+        $html = '<option selected value="">Sélectionnez un article</option>';
+
+        if ($stock_id == 0)
+        {
+            // Cas général : tous les articles
+            $articles = Articles::where('supprimer', 0)->get();
+            foreach ($articles as $article)
+            {
+                $nomMesure = Mesures::where('id', $article->mesure_id)->first()['nom'] ?? 'N/A';
+                $nomSociete = Societes::where('id', $article->societe_id)->first()['nom'] ?? 'N/A';
+                $label = $article->nom_article . ' ' . $nomMesure . ' (' . $nomSociete . ')';
+                $disabled = ($article->activite_id == 0) ? 'disabled' : '';
+                $icon = ($article->activite_id != 0) ? '🟢' : '🔴';
+                $html .= '<option value="' . $article->id . '" ' . $disabled . '>'
+                    . $icon . ' ' . e($label)
+                    . ($disabled ? ' : Activité non définie' : '')
+                    . '</option>';
+            }
+        } else
+        {
+            // Cas spécifique : articles associés à un stock
+            $articlestocks = articlestocks::where(['supprimer' => 0, 'stock_id' => $stock_id])->get();
+            foreach ($articlestocks as $articlestock)
+            {
+                $article = Articles::find($articlestock->article_id);
+                if (!$article)
+                {
+                    continue; // ou log d'erreur
+                }
+                $nomMesure = Mesures::where('id', $article->mesure_id)->first()['nom'] ?? 'N/A';
+                $nomSociete = Societes::where('id', $article->societe_id)->first()['nom'] ?? 'N/A';
+                $label = $article->nom_article . ' ' . $nomMesure . ' (' . $nomSociete . ')';
+                $disabled = ($article->activite_id == 0) ? 'disabled' : '';
+                $icon = ($article->activite_id != 0) ? '🟢' : '🔴';
+                $html .= '<option value="' . $articlestock->id . '" ' . $disabled . '>'
+                    . $icon . ' ' . e($label)
+                    . ($disabled ? ' : Activité non définie' : '')
+                    . '</option>';
+            }
+        }
+
+        return $html;
+
     }
 }

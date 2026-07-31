@@ -1264,17 +1264,6 @@ select.form-control {
                                         <select id="type_sortie" name="type_sortie" class="select2"
                                             data-placeholder="Selectionnez un article">
                                             <option selected value="">Selectionnez un article</option>
-                                            @foreach ($articles as $data)
-                                                @if ($data->activite_id != 0)
-                                                    <option value="{{ $data->id }}">
-                                                        🟢 <?= $data->nom_article .' ' . (Mesures::where('id', $data->mesure_id)->first()['nom'] ?? 'N/A') . ' (' . Societes::where('id', $data->societe_id)->first()['nom'] . ')' ?>
-                                                    </option>
-                                                @else
-                                                    <option disabled value="{{ $data->id }}">
-                                                        🔴 <?= $data->nom_article .' ' . (Mesures::where('id', $data->mesure_id)->first()['nom'] ?? 'N/A') . ' (' . Societes::where('id', $data->societe_id)->first()['nom'] . ')' ?> :  Activité non defini
-                                                    </option>
-                                                @endif
-                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
@@ -1642,6 +1631,25 @@ select.form-control {
             });
             $.get("{{ url('/get_tables_select') }}", {}, function(response) {
                 $("#table_id").html(response);
+                var table_id = $("#table_id").val();
+                 $.get("{{ url('/get_articles_select') }}", { table_id : tableId })
+                    .done(function(response) {
+                        // Remplacer le contenu du select #type_sortie par la réponse HTML (options)
+                        $("#type_sortie").html(response);
+
+                        // Si un article était déjà sélectionné, on déclenche son événement change
+                        // pour que l'écouteur existant sur #type_sortie mette à jour les détails
+                        var currentArticle = $("#type_sortie").val();
+                        if (currentArticle && currentArticle.trim() !== '') {
+                            $("#type_sortie").trigger('change');
+                        }
+                    })
+                    .fail(function() {
+                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors du chargement des articles pour cette table');
+                        setTimeout(function() {
+                            $('#msg').html('');
+                        }, 9000);
+                    });
             });
             e.preventDefault();
             $("#bloc_1").hide();
@@ -1773,7 +1781,8 @@ select.form-control {
                 return;
             }
 
-            if (numero_facture.trim().length == 0) {
+            if (numero_facture.trim().length == 0)
+            {
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le numero d\'entré');
                 setTimeout(() => { $('#msg').html(""); }, 9000);
             } else {
@@ -1800,6 +1809,7 @@ select.form-control {
                                     $.get("{{ url('/get_prix_article') }}", {
                                         article_id: $("#type_sortie").val(),
                                         type_vente_id: $("#type_vente_id").val(),
+                                        table_id: $("#table_id").val(),
                                     }, function(get_prix_article) {
                                         $.get("{{ url('/check_seuil_minimum') }}", {
                                             article_id: type_sortie,
@@ -1809,19 +1819,15 @@ select.form-control {
                                             prix_unitaire: get_prix_article[0][0],
                                             devise: $("#devise").val(),
                                             taux: taux,
+                                            table_id: $("#table_id").val(),
                                         }, function(repp) {
                                             var data_rep = repp.split("__________")
-                                            if ((data_rep[0] == 0) && (data_rep[3] == 1))
-                                            {
-                                                $('#msg').html(
-                                                    '<i class="zmdi zmdi-close-circle"></i> Le seuil minimum de cette article est de : ' +
-                                                    data_rep[1] + ', sortie disponible : ' + data_rep[2]);
-                                                setTimeout(() => { $('#msg').html(""); }, 9000);
-                                            } else if ((data_rep[0] == -1) && (data_rep[3] == 1)) {
+                                            if ((data_rep[0] == -1) && (data_rep[3] == 1)) {
                                                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le stock de cette article est vide');
                                                 setTimeout(() => { $('#msg').html(""); }, 9000);
                                             } else {
-                                                if(client.trim().length == 0 && libelle.trim().length == 0) {
+                                                if(client.trim().length == 0 && libelle.trim().length == 0)
+                                                {
                                                     $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le client ou le libellé');
                                                     setTimeout(() => { $('#msg').html(""); }, 9000);
                                                     return;
@@ -2337,6 +2343,56 @@ select.form-control {
 
         $("#pdfModal").on("hidden.bs.modal", function() {
             $("#pdfIframe").attr("src", "");
+        });
+
+        // ================================================================
+        // GESTION DU CHARGEMENT DES ARTICLES SELON LA TABLE
+        // ================================================================
+
+        // Fonction pour charger les articles disponibles pour une table donnée
+        function loadArticlesForTable(tableId) {
+            // Si aucun ID de table ou vide, on vide le select des articles
+            if (!tableId || tableId.trim() === '') {
+                $("#type_sortie").html('<option value="">Selectionnez un article</option>');
+                return;
+            }
+
+            // Appel AJAX à la route get_articles_by_table (à créer côté Laravel)
+            $.get("{{ url('/get_articles_select') }}", { table_id : tableId })
+                .done(function(response) {
+                    // Remplacer le contenu du select #type_sortie par la réponse HTML (options)
+                    $("#type_sortie").html(response);
+
+                    // Si un article était déjà sélectionné, on déclenche son événement change
+                    // pour que l'écouteur existant sur #type_sortie mette à jour les détails
+                    var currentArticle = $("#type_sortie").val();
+                    if (currentArticle && currentArticle.trim() !== '') {
+                        $("#type_sortie").trigger('change');
+                    }
+                })
+                .fail(function() {
+                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors du chargement des articles pour cette table');
+                    setTimeout(function() {
+                        $('#msg').html('');
+                    }, 9000);
+                });
+        }
+
+        // Écouteur sur le changement de la table
+        $("#table_id").on('change', function() {
+            var tableId = $(this).val();
+            loadArticlesForTable(tableId);
+        });
+
+        // Initialisation au chargement de la page
+        $(document).ready(function() {
+            // ... vos autres initialisations (datepicker, filtres, etc.) ...
+
+            // Si une table est déjà sélectionnée dans le select, on charge ses articles
+            var initialTableId = $("#table_id").val();
+            if (initialTableId && initialTableId.trim() !== '') {
+                loadArticlesForTable(initialTableId);
+            }
         });
     </script>
 @endsection

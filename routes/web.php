@@ -315,6 +315,7 @@ Route::post('/update_user_prestation', [AjaxController::class, 'update_user_pres
 Route::post('/update_ronde', [AjaxController::class, 'update_ronde'])->name('update_ronde');
 Route::get('/liberer_table', [AjaxController::class, 'liberer_table'])->name('liberer_table');
 Route::get('/get_tables_select', [AjaxController::class, 'get_tables_select'])->name('get_tables_select');
+Route::get('/get_articles_select', [AjaxController::class, 'get_articles_select'])->name('get_articles_select');
 
 
 // Route::get('/', function () {
