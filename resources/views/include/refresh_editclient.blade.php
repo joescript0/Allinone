@@ -13,7 +13,6 @@
         position: relative;
     }
 
-    /* Styles supplémentaires pour cohérence */
     .leaflet-popup-content {
         font-size: 0.85rem;
         line-height: 1.4;
@@ -215,10 +214,14 @@
         </div>
     </div>
 
-    <!-- ===== BARRE D'OUTILS ===== -->
+    <!-- ===== BARRE D'OUTILS : POSITION ACTUELLE + CHERCHER PAR ADRESSE ===== -->
     <div class="map-toolbar">
         <button type="button" id="btnCurrentLocationEdit">
             <i class="zmdi zmdi-my-location"></i> Position actuelle
+        </button>
+        <!-- BOUTON CHERCHER PAR ADRESSE – STYLE SUCCESS -->
+        <button type="button" id="btnSearchAddressEdit" class="btn btn-success btn-sm">
+            <i class="zmdi zmdi-search"></i> Chercher par adresse
         </button>
     </div>
 
@@ -264,8 +267,7 @@
 <script src="{{ asset('assets/vendors/jquery-mask-plugin/jquery.mask.min.js') }}"></script>
 <script>
     // ============================================================
-    // Gestion des messages d'édition avec showEditMsg
-    // Note : showEditMsg est définie dans la page parente
+    // Gestion des messages d'édition
     // ============================================================
 
     $("#edit_annuler").click(function(e) {
@@ -282,7 +284,6 @@
             clearInterval(window.mapEditInterval);
             window.mapEditInterval = null;
         }
-        // Supprimer le message éventuel
         $('#edit_msg').html('').removeClass('msg-success msg-error msg-info');
     });
 
@@ -299,7 +300,6 @@
                 url: "/edit_client",
                 data: data,
                 success: function(response) {
-                    // On conserve la carte, on ne la recrée pas
                     var currentLat = $('#edit_latitude').val();
                     var currentLng = $('#edit_longitude').val();
 
@@ -308,10 +308,7 @@
                         '<i class="zmdi zmdi-check-circle"></i> Client modifié avec succès',
                         9000);
 
-                    // Recharger le contenu pour mettre à jour les autres champs
                     $("#content_utilisateur").html(response);
-
-                    // Restaurer les valeurs de latitude/longitude
                     $('#edit_latitude').val(currentLat);
                     $('#edit_longitude').val(currentLng);
 
@@ -329,7 +326,7 @@
     });
 
     // ============================================================
-    // Initialisation de la carte – avec l'icône par défaut
+    // Initialisation de la carte d'édition
     // ============================================================
     (function initEditMap() {
         var defaultLat = -4.4419;
@@ -370,150 +367,186 @@
         }
 
         function createMap() {
-    if (typeof mapEdit !== 'undefined' && mapEdit) {
-        mapEdit.remove();
-        mapEdit = null;
-    }
+            if (typeof mapEdit !== 'undefined' && mapEdit) {
+                mapEdit.remove();
+                mapEdit = null;
+            }
 
-    // Coordonnées par défaut (Kinshasa)
-    var defaultLat = -4.4419;
-    var defaultLng = 15.2663;
-    var defaultZoom = 13;
+            mapEdit = L.map('map_edit').setView([initialLat, initialLng], hasCoordinates ? 15 : defaultZoom);
 
-    var latVal = $('#edit_latitude').val().trim();
-    var lngVal = $('#edit_longitude').val().trim();
+            var tileLayerClassic = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            });
+            var tileLayerSatellite = L.tileLayer(
+                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri'
+                });
 
-    function isValidCoordinate(val) {
-        if (val === '') return false;
-        var num = parseFloat(val);
-        return !isNaN(num) && num !== 0;
-    }
+            var currentLayer = tileLayerClassic.addTo(mapEdit);
+            var markerEdit = null;
 
-    var hasCoordinates = isValidCoordinate(latVal) && isValidCoordinate(lngVal);
-    var initialLat = hasCoordinates ? parseFloat(latVal) : defaultLat;
-    var initialLng = hasCoordinates ? parseFloat(lngVal) : defaultLng;
-    var initialZoom = hasCoordinates ? 15 : defaultZoom;
-
-    // Création de la carte centrée sur la position pertinente (coordonnées existantes ou défaut)
-    mapEdit = L.map('map_edit').setView([initialLat, initialLng], initialZoom);
-
-    var tileLayerClassic = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    });
-    var tileLayerSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri'
-    });
-
-    var currentLayer = tileLayerClassic.addTo(mapEdit);
-    var markerEdit = null;
-
-    // ============================================================
-    // 1. Si des coordonnées valides existent → afficher le marqueur
-    // 2. Sinon, tenter la géolocalisation pour centrer sur l'utilisateur
-    // ============================================================
-    if (hasCoordinates) {
-        // On place le marqueur
-        markerEdit = L.marker([initialLat, initialLng]).addTo(mapEdit);
-        markerEdit.bindPopup("<strong>Position actuelle</strong><br>Lat: " + initialLat.toFixed(6) + "<br>Lng: " + initialLng.toFixed(6));
-        mapEdit.setView([initialLat, initialLng], 15);
-        showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Position chargée', 3000);
-    } else {
-        // Pas de coordonnées → on tente de récupérer la position actuelle
-        if (navigator.geolocation) {
-            showEditMsg('info', '<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Récupération de votre position...', 8000);
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    var lat = position.coords.latitude;
-                    var lng = position.coords.longitude;
-                    // On centre la carte sur la position, sans ajouter de marqueur
-                    mapEdit.setView([lat, lng], 15);
-                    showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Carte centrée sur votre position', 4000);
-                    // Optionnel : pré-remplir les champs ? (on peut les laisser vides)
-                    $('#edit_latitude').val(lat.toFixed(6));
-                    $('#edit_longitude').val(lng.toFixed(6));
-                },
-                function(error) {
-                    // Échec → on reste sur Kinshasa
-                    var errMsg = error.message || "Erreur inconnue";
+            if (hasCoordinates) {
+                markerEdit = L.marker([initialLat, initialLng]).addTo(mapEdit);
+                markerEdit.bindPopup("<strong>Position actuelle</strong><br>Lat: " + initialLat.toFixed(6) +
+                    "<br>Lng: " + initialLng.toFixed(6));
+                mapEdit.setView([initialLat, initialLng], 15);
+                showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Position chargée', 3000);
+            } else {
+                if (navigator.geolocation) {
+                    showEditMsg('info',
+                        '<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Récupération de votre position...',
+                        8000);
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            var lat = position.coords.latitude;
+                            var lng = position.coords.longitude;
+                            mapEdit.setView([lat, lng], 15);
+                            showEditMsg('success',
+                                '<i class="zmdi zmdi-check-circle"></i> Carte centrée sur votre position',
+                                4000);
+                            $('#edit_latitude').val(lat.toFixed(6));
+                            $('#edit_longitude').val(lng.toFixed(6));
+                        },
+                        function(error) {
+                            var errMsg = error.message || "Erreur inconnue";
+                            mapEdit.setView([defaultLat, defaultLng], defaultZoom);
+                            showEditMsg('warning',
+                                '<i class="zmdi zmdi-alert-triangle"></i> Géolocalisation impossible : ' +
+                                errMsg + ' - Position par défaut', 6000);
+                        }, { enableHighAccuracy: true, timeout: 10000 }
+                    );
+                } else {
                     mapEdit.setView([defaultLat, defaultLng], defaultZoom);
-                    showEditMsg('warning', '<i class="zmdi zmdi-alert-triangle"></i> Géolocalisation impossible : ' + errMsg + ' - Position par défaut', 6000);
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        } else {
-            // Pas de géolocalisation → Kinshasa
-            mapEdit.setView([defaultLat, defaultLng], defaultZoom);
-            showEditMsg('info', '<i class="zmdi zmdi-info"></i> Géolocalisation non supportée - Position par défaut', 5000);
-        }
-    }
-
-    // ============================================================
-    // Événements (clic, boutons, etc.) – inchangés
-    // ============================================================
-    mapEdit.on('click', function(e) {
-        markerEdit = updateLocation(mapEdit, markerEdit, e.latlng.lat, e.latlng.lng);
-        showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Position choisie sur la carte', 3000);
-    });
-
-    $('#edit_latitude, #edit_longitude').off('change').on('change', function() {
-        var lat = parseFloat($('#edit_latitude').val());
-        var lng = parseFloat($('#edit_longitude').val());
-        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-            markerEdit = updateLocation(mapEdit, markerEdit, lat, lng);
-        }
-    });
-
-    $("#btnCurrentLocationEdit").off('click').on('click', function(e) {
-        e.preventDefault();
-        if (!navigator.geolocation) {
-            showEditMsg('error', '<i class="zmdi zmdi-close-circle"></i> Géolocalisation non supportée', 5000);
-            return;
-        }
-        showEditMsg('info', '<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Récupération...', 10000);
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                var lat = position.coords.latitude;
-                var lng = position.coords.longitude;
-                markerEdit = updateLocation(mapEdit, markerEdit, lat, lng);
-                showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Position actuelle enregistrée', 4000);
-            },
-            function(error) {
-                var errMsg = "";
-                switch(error.code) {
-                    case error.PERMISSION_DENIED: errMsg = "Permission refusée."; break;
-                    case error.POSITION_UNAVAILABLE: errMsg = "Position indisponible."; break;
-                    case error.TIMEOUT: errMsg = "Délai dépassé."; break;
-                    default: errMsg = "Erreur inconnue.";
+                    showEditMsg('info', '<i class="zmdi zmdi-info"></i> Géolocalisation non supportée - Position par défaut',
+                        5000);
                 }
-                showEditMsg('error', '<i class="zmdi zmdi-close-circle"></i> ' + errMsg, 5000);
-            },
-            { enableHighAccuracy: true, timeout: 10000 }
-        );
-    });
+            }
 
-    $("#btnClassicEdit").off('click').on('click', function() {
-        if (currentLayer) mapEdit.removeLayer(currentLayer);
-        currentLayer = tileLayerClassic.addTo(mapEdit);
-        showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Mode classique', 2000);
-    });
-    $("#btnSatelliteEdit").off('click').on('click', function() {
-        if (currentLayer) mapEdit.removeLayer(currentLayer);
-        currentLayer = tileLayerSatellite.addTo(mapEdit);
-        showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Mode satellite', 2000);
-    });
-    $("#btnResetViewEdit").off('click').on('click', function() {
-        mapEdit.setView([defaultLat, defaultLng], defaultZoom);
-        showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Vue réinitialisée', 2000);
-    });
+            mapEdit.on('click', function(e) {
+                markerEdit = updateLocation(mapEdit, markerEdit, e.latlng.lat, e.latlng.lng);
+                showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Position choisie sur la carte', 3000);
+            });
 
-    setTimeout(function() { if (mapEdit) mapEdit.invalidateSize(); }, 300);
-    setTimeout(function() { if (mapEdit) mapEdit.invalidateSize(); }, 600);
-    setTimeout(function() { if (mapEdit) mapEdit.invalidateSize(); }, 1000);
+            $('#edit_latitude, #edit_longitude').off('change').on('change', function() {
+                var lat = parseFloat($('#edit_latitude').val());
+                var lng = parseFloat($('#edit_longitude').val());
+                if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                    markerEdit = updateLocation(mapEdit, markerEdit, lat, lng);
+                }
+            });
 
-    console.log("Carte créée avec succès");
-}
+            $("#btnCurrentLocationEdit").off('click').on('click', function(e) {
+                e.preventDefault();
+                if (!navigator.geolocation) {
+                    showEditMsg('error', '<i class="zmdi zmdi-close-circle"></i> Géolocalisation non supportée',
+                        5000);
+                    return;
+                }
+                showEditMsg('info', '<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Récupération...', 10000);
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        var lat = position.coords.latitude;
+                        var lng = position.coords.longitude;
+                        markerEdit = updateLocation(mapEdit, markerEdit, lat, lng);
+                        showEditMsg('success',
+                            '<i class="zmdi zmdi-check-circle"></i> Position actuelle enregistrée', 4000);
+                    },
+                    function(error) {
+                        var errMsg = "";
+                        switch (error.code) {
+                            case error.PERMISSION_DENIED:
+                                errMsg = "Permission refusée.";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errMsg = "Position indisponible.";
+                                break;
+                            case error.TIMEOUT:
+                                errMsg = "Délai dépassé.";
+                                break;
+                            default:
+                                errMsg = "Erreur inconnue.";
+                        }
+                        showEditMsg('error', '<i class="zmdi zmdi-close-circle"></i> ' + errMsg, 5000);
+                    }, { enableHighAccuracy: true, timeout: 10000 }
+                );
+            });
 
-        // Intervalle de vérification pour attendre que le conteneur soit visible
+            // ===== BOUTON CHERCHER PAR ADRESSE (MODIFICATION) – STYLE SUCCESS =====
+            $("#btnSearchAddressEdit").off('click').on('click', function(e) {
+                e.preventDefault();
+                var adresse = $("#edit_adresse").val().trim();
+                if (adresse === '') {
+                    showEditMsg('error',
+                        '<i class="zmdi zmdi-close-circle"></i> Veuillez saisir une adresse dans le champ adresse',
+                        5000);
+                    return;
+                }
+                showEditMsg('info', '<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Recherche de l\'adresse...',
+                    10000);
+                var url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(adresse) +
+                    '&format=json&limit=1';
+                fetch(url, {
+                    headers: {
+                        'User-Agent': 'ControlApp/1.0 (votre-email@domaine.com)'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        var lat = parseFloat(data[0].lat);
+                        var lng = parseFloat(data[0].lon);
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            $('#edit_latitude').val(lat.toFixed(6));
+                            $('#edit_longitude').val(lng.toFixed(6));
+                            if (markerEdit) {
+                                markerEdit.setLatLng([lat, lng]);
+                            } else {
+                                markerEdit = L.marker([lat, lng]).addTo(mapEdit);
+                                markerEdit.bindPopup("<strong>Position choisie</strong><br>Lat: " + lat
+                                    .toFixed(6) + "<br>Lng: " + lng.toFixed(6));
+                            }
+                            mapEdit.setView([lat, lng], 15);
+                            showEditMsg('success',
+                                '<i class="zmdi zmdi-check-circle"></i> Adresse trouvée : ' + data[0]
+                                .display_name, 5000);
+                        } else {
+                            showEditMsg('error', '<i class="zmdi zmdi-close-circle"></i> Coordonnées invalides',
+                                5000);
+                        }
+                    } else {
+                        showEditMsg('error', '<i class="zmdi zmdi-close-circle"></i> Aucune adresse trouvée',
+                            5000);
+                    }
+                })
+                .catch(error => {
+                    showEditMsg('error',
+                        '<i class="zmdi zmdi-close-circle"></i> Erreur de recherche : ' + error.message,
+                        5000);
+                });
+            });
+
+            $("#btnClassicEdit").off('click').on('click', function() {
+                if (currentLayer) mapEdit.removeLayer(currentLayer);
+                currentLayer = tileLayerClassic.addTo(mapEdit);
+                showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Mode classique', 2000);
+            });
+            $("#btnSatelliteEdit").off('click').on('click', function() {
+                if (currentLayer) mapEdit.removeLayer(currentLayer);
+                currentLayer = tileLayerSatellite.addTo(mapEdit);
+                showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Mode satellite', 2000);
+            });
+            $("#btnResetViewEdit").off('click').on('click', function() {
+                mapEdit.setView([defaultLat, defaultLng], defaultZoom);
+                showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Vue réinitialisée', 2000);
+            });
+
+            setTimeout(function() { if (mapEdit) mapEdit.invalidateSize(); }, 300);
+            setTimeout(function() { if (mapEdit) mapEdit.invalidateSize(); }, 600);
+            setTimeout(function() { if (mapEdit) mapEdit.invalidateSize(); }, 1000);
+
+            console.log("Carte d'édition créée avec succès");
+        }
+
         var checkInterval = setInterval(function() {
             var rect = container.getBoundingClientRect();
             if (rect.height > 0 && rect.width > 0) {

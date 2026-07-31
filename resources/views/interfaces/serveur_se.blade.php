@@ -3,7 +3,7 @@
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
 <?php
-
+use App\Models\affectationstables;
 use App\Models\Contrevenants;
 use App\Models\Groupes;
 use App\Models\Verbalisateurs;
@@ -15,6 +15,7 @@ use App\Models\Achats;
 use App\Models\Societes;
 use App\Models\Clients;
 use App\Models\Mesures;
+use App\Models\pointdeventes;
 use App\Models\Entres;
 use Illuminate\Support\Facades\Auth;
 ?>
@@ -186,7 +187,8 @@ h4 i.zmdi {
 .btn-primary,
 .btn-info,
 .btn-danger,
-.btn-secondary {
+.btn-secondary,
+#liberer_table {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
@@ -251,6 +253,19 @@ h4 i.zmdi {
     transform: translateY(-2px);
     background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
     box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
+}
+
+/* Bouton Libérer la table - VERT */
+#liberer_table,
+.btn-success {
+    background: var(--vert-gradient) !important;
+    color: white !important;
+}
+#liberer_table:hover,
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.3);
+    background: linear-gradient(135deg, #059669, #047857) !important;
 }
 
 #resetFilters {
@@ -769,7 +784,8 @@ select.form-control {
     #resetFilters,
     .btn-primary,
     .btn-info,
-    .btn-danger {
+    .btn-danger,
+    #liberer_table {
         padding: 4px 12px !important;
         font-size: 0.7rem;
     }
@@ -870,7 +886,8 @@ select.form-control {
     #edit_save,
     #annuler,
     #edit_annuler,
-    #resetFilters {
+    #resetFilters,
+    #liberer_table {
         padding: 3px 8px !important;
         font-size: 0.65rem;
     }
@@ -1203,6 +1220,46 @@ select.form-control {
                                 <div class="col-12">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
+                                                class="zmdi zmdi-info"></i> Pour quelle table ?</span></label>
+                                        <select id="table_id" name="table_id" class="select2"
+                                            data-placeholder="Selectionnez une table">
+                                            <option selected value="">Selectionnez une table</option>
+                                            @foreach ($tables as $data)
+                                                @php
+                                                    $affecte = affectationstables::where(["user_id" => Auth::user()->id, "table_id" => $data->id])->count() != 0 ? 1 : 0;
+                                                    $nomPointDeVente = pointdeventes::where('id', $data->pointdeventes_id)->first()['nom'] ?? 'N/A';
+                                                @endphp
+                                                @if (Auth::user()->role == 0)
+                                                    @if ($data->occupee == 0)
+                                                        <option value="{{ $data->id }}" data-occupee="0">
+                                                            🟢 {{ $data->nom }} ({{ $nomPointDeVente }})
+                                                        </option>
+                                                    @else
+                                                        <option value="{{ $data->id }}" data-occupee="1">
+                                                            🔴 {{ $data->nom }} ({{ $nomPointDeVente }})
+                                                        </option>
+                                                    @endif
+                                                @else
+                                                    @if (($data->occupee == 0) && ($affecte == 1))
+                                                        <option value="{{ $data->id }}" data-occupee="0">
+                                                            🟢 {{ $data->nom }} ({{ $nomPointDeVente }})
+                                                        </option>
+                                                    @endif
+                                                    @if (($data->occupee == 1) && ($affecte == 1))
+                                                        <option value="{{ $data->id }}" data-occupee="1">
+                                                            🔴 {{ $data->nom }} ({{ $nomPointDeVente }})
+                                                        </option>
+                                                    @endif
+                                                @endif
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 10px;" class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
                                                 class="zmdi zmdi-info"></i> Il s'agit de quel article ?</span></label>
                                         <select id="type_sortie" name="type_sortie" class="select2"
                                             data-placeholder="Selectionnez un article">
@@ -1222,7 +1279,7 @@ select.form-control {
                                     </div>
                                 </div>
                             </div>
-                            <div style="margin-top: -15px;" class="row">
+                            <div style="margin-top: 10px;" class="row">
                                 <div style="display: none;" class="col-6">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
@@ -1354,6 +1411,10 @@ select.form-control {
                                     <?php } ?>
                                     <button id="annuler" class="btn btn-danger btn-sm">Annuler <i
                                             class="zmdi zmdi-close-circle"></i></button>
+                                    <!-- ⬇️ BOUTON LIBÉRER EN VERT -->
+                                    <button id="liberer_table" class="btn btn-success btn-sm" style="display:none;">
+                                        Libérer la table <i class="zmdi zmdi-check-circle"></i>
+                                    </button>
                                 </div>
                             </div>
                             <div class="row">
@@ -1444,6 +1505,40 @@ select.form-control {
             </div>
         </div>
     </div>
+
+    <!-- ====== MODAL POUR LIBÉRER LA TABLE (CONFIRMATION) ====== -->
+    <div class="modal fade" id="libererTableModal" tabindex="-1" role="dialog" aria-labelledby="libererTableModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
+                    <h5 class="modal-title" id="libererTableModalLabel">
+                        <i class="zmdi zmdi-check-circle"></i> Libérer la table
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Fermer" style="color: white;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <p style="font-size: 1.1rem; font-weight: 500;">
+                        <i class="zmdi zmdi-alert-triangle" style="color: #f59e0b; font-size: 2.5rem;"></i>
+                    </p>
+                    <p style="font-size: 1.1rem; font-weight: 500;">
+                        Voulez-vous vraiment libérer cette table ?
+                    </p>
+                    <p class="text-muted small" id="tableNameDisplay"></p>
+                </div>
+                <div class="modal-footer" style="justify-content: center; border-top: none;">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="zmdi zmdi-close"></i> Non
+                    </button>
+                    <button type="button" class="btn btn-success" id="confirmLibererTable">
+                        <i class="zmdi zmdi-check"></i> Oui, libérer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal/Fenêtre modale pour afficher le PDF -->
     <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 100%; width: 60%;">
@@ -1545,12 +1640,17 @@ select.form-control {
             $.get("{{ url('/delete_facture_user_id') }}", {}, function(response) {
                 // bien
             });
+            $.get("{{ url('/get_tables_select') }}", {}, function(response) {
+                $("#table_id").html(response);
+            });
             e.preventDefault();
             $("#bloc_1").hide();
             $("#bloc_2").show();
             $("#bloc_3").show();
             $("#bloc_3").html('<h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="fa fa-info-circle text-info"></i> Détails facture</h4>');
             $("#bloc_t").show();
+            // Cacher le bouton libérer au départ
+            $("#liberer_table").hide();
         });
 
         $("#add_r").click(function(e) {
@@ -1568,11 +1668,93 @@ select.form-control {
             $("#bloc_1").show();
             $("#bloc_2").hide();
             $("#bloc_3").hide();
+            $("#liberer_table").hide();
         });
 
+        // ========== GESTION DU BOUTON LIBÉRER LA TABLE (AVEC VÉRIFICATION) ==========
+        // Afficher/cacher le bouton selon la sélection de la table
+        // Modification : le bouton n'apparaît que si la table est occupée (data-occupee=1)
+        $("#table_id").on('change', function() {
+            var selected = $(this).find('option:selected');
+            var occupee = selected.data('occupee');
+            if ($(this).val() && $(this).val().trim() !== '' && occupee == 1) {
+                $("#liberer_table").show();
+            } else {
+                $("#liberer_table").hide();
+            }
+        });
+
+        // Au chargement, cacher par défaut
+        $("#liberer_table").hide();
+
+        // Clic sur le bouton "Libérer la table"
+        $("#liberer_table").click(function(e) {
+            e.preventDefault();
+            var table_id = $("#table_id").val();
+            if (!table_id || table_id.trim().length === 0) {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Veuillez sélectionner une table à libérer');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+                return;
+            }
+
+            // Vérifier si la table est déjà libre (data-occupee=0)
+            var occupee = $("#table_id option:selected").data('occupee');
+            if (occupee == 0) {
+                // Table déjà libre → afficher un message d'erreur
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Cette table n\'est pas occupée.');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+                return;
+            }
+
+            // Sinon, la table est occupée → ouvrir le modal de confirmation
+            var tableName = $("#table_id option:selected").text();
+            $("#tableNameDisplay").text('Table : ' + tableName);
+
+            // Stocker l'ID dans un attribut data du modal
+            $("#libererTableModal").data('table-id', table_id);
+            $("#libererTableModal").modal('show');
+        });
+
+        // Gestion du clic sur "Oui, libérer" dans le modal
+        $("#confirmLibererTable").click(function() {
+            var table_id = $("#libererTableModal").data('table-id');
+            if (!table_id) {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Identifiant de table manquant');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+                $("#libererTableModal").modal('hide');
+                return;
+            }
+
+            // Désactiver le bouton le temps de l'opération
+            var btn = $(this);
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span> Chargement...');
+
+            $.get("{{ url('/liberer_table') }}", { table_id: table_id })
+                .done(function(response) {
+                    $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Table libérée avec succès');
+                    setTimeout(() => { $('#msg').html(""); }, 9000);
+                    // Rafraîchir la liste des tables
+                    $.get("{{ url('/get_tables_select') }}", function(html) {
+                        $("#table_id").html(html);
+                        $("#liberer_table").hide();
+                    });
+                    $("#libererTableModal").modal('hide');
+                })
+                .fail(function() {
+                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de la libération');
+                    setTimeout(() => { $('#msg').html(""); }, 9000);
+                    $("#libererTableModal").modal('hide');
+                })
+                .always(function() {
+                    btn.prop('disabled', false).html('<i class="zmdi zmdi-check"></i> Oui, libérer');
+                });
+        });
+
+        // ========== SAUVEGARDE AVEC VÉRIFICATION DE LA TABLE ==========
         $("#save").click(function(e) {
             e.preventDefault();
             var numero_facture = $("#numero_facture").val();
+            var table_id = $("#table_id").val();
             var type_sortie = $("#type_sortie").val();
             var action = $("#action").val();
             var quantite = $("#quantite").val();
@@ -1582,6 +1764,14 @@ select.form-control {
             var client = $("#client_id").val();
             var type_vente_id = $("#type_vente_id").val();
             var data = $("#form_add").serialize();
+
+            // 1️⃣ Vérification de la table
+            if (table_id.trim().length === 0)
+            {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Veuillez sélectionner une table');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+                return;
+            }
 
             if (numero_facture.trim().length == 0) {
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le numero d\'entré');
@@ -1650,6 +1840,12 @@ select.form-control {
                                                             $.get("{{ url('/get_achat') }}", {}, function(response) {
                                                                 $("#bloc_3").html(response);
                                                             });
+                                                            // 👇 AJOUT : Rafraîchir la liste des tables
+                                                            $.get("{{ url('/get_tables_select') }}", function(response) {
+                                                                $("#table_id").html(response);
+                                                                // Cacher le bouton libérer car la table devient occupée
+                                                                $("#liberer_table").hide();
+                                                            });
                                                             setTimeout(() => { $('#msg').html(""); }, 9000);
                                                             // Sauvegarder et réappliquer les filtres
                                                             saveFiltersToStorage();
@@ -1657,6 +1853,7 @@ select.form-control {
                                                                 loadFiltersFromStorage();
                                                                 filterInvoices();
                                                             }, 100);
+                                                            // Cacher le bouton libérer après succès (déjà fait)
                                                         }
                                                     });
                                                 }
@@ -1778,7 +1975,7 @@ select.form-control {
             const filterStatut = $('#filterStatut').val();
             const filterMontant = parseFloat($('#filterMontant').val());
 
-            // Récupération de la plage de dates (comme dans filterTable du rapport)
+            // Récupération de la plage de dates
             var dateRange = $('#filterDateRange').val() || '';
             var dateDebut = null, dateFin = null;
             if (dateRange) {
@@ -1821,7 +2018,6 @@ select.form-control {
                 if (showRow && filterStatut !== 'all' && statutValue !== filterStatut) showRow = false;
                 if (showRow && !isNaN(filterMontant) && Math.abs(montantRaw - filterMontant) > 0.009) showRow = false;
 
-                // Filtre par plage de dates (logique identique à filterTable)
                 if (showRow && dateDebut && dateFin) {
                     var dateText = $row.find('.date-cell').text().trim();
                     var cellDate = null;
@@ -1873,11 +2069,9 @@ select.form-control {
         }
 
         function resetAllFilters() {
-            // Remettre la date par défaut (aujourd'hui) comme dans le rapport
             var today = moment();
             var todayStr = today.format('DD/MM/YYYY');
             $('#filterDateRange').val(todayStr + ' - ' + todayStr);
-            // Mettre à jour le picker pour qu'il soit en phase
             if ($('#filterDateRange').data('daterangepicker')) {
                 $('#filterDateRange').data('daterangepicker').setStartDate(today);
                 $('#filterDateRange').data('daterangepicker').setEndDate(today);
@@ -1961,7 +2155,6 @@ select.form-control {
 
             // Charger les filtres sauvegardés (s'ils existent, écrase la valeur par défaut)
             const hasSaved = loadFiltersFromStorage();
-            // Si aucun filtre sauvegardé, on garde la date du jour (déjà initialisée)
             if (!hasSaved) {
                 // déjà initialisée
             }

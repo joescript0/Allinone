@@ -998,6 +998,7 @@ class HomeController extends Controller
                 $data["articles"] = Articles::where(["supprimer" => 0])->get();
                 $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
                 $data["factures"] = Factureass::where(["user_id" => Auth::user()->id])->get();
+                $data["tables"] = Tables::where(["etat" => 1, "supprimer" => 0])->get();
                 if(Auth::user()->role == 0)
                 {
                     $data["factures"] = Factureass::get();

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AjaxController;
 use App\Models\User;
+use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
@@ -312,6 +313,8 @@ Route::get('/export_article_pdf', [AjaxController::class , 'export_article_pdf']
 Route::get('/export_depense_pdf', [AjaxController::class , 'export_depense_pdf'])->name('export_depense_pdf');
 Route::post('/update_user_prestation', [AjaxController::class, 'update_user_prestation'])->name('update_user_prestation');
 Route::post('/update_ronde', [AjaxController::class, 'update_ronde'])->name('update_ronde');
+Route::get('/liberer_table', [AjaxController::class, 'liberer_table'])->name('liberer_table');
+Route::get('/get_tables_select', [AjaxController::class, 'get_tables_select'])->name('get_tables_select');
 
 
 // Route::get('/', function () {

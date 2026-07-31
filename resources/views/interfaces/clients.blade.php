@@ -574,6 +574,13 @@ select.form-control {
     transform: translateY(-2px);
     box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
 }
+/* On surcharge pour que le bouton success garde son style vert */
+.map-toolbar button.btn-success {
+    background: var(--vert-gradient) !important;
+}
+.map-toolbar button.btn-success:hover {
+    background: linear-gradient(135deg, #059669, #047857) !important;
+}
 
 #map-container {
     position: relative;
@@ -1134,10 +1141,14 @@ select.form-control {
                         </div>
                     </div>
 
-                    <!-- ===== BARRE D'OUTILS : POSITION ACTUELLE ===== -->
+                    <!-- ===== BARRE D'OUTILS : POSITION ACTUELLE + CHERCHER PAR ADRESSE ===== -->
                     <div class="map-toolbar">
                         <button type="button" id="btnCurrentLocation">
                             <i class="zmdi zmdi-my-location"></i> Position actuelle
+                        </button>
+                        <!-- BOUTON CHERCHER PAR ADRESSE – STYLE SUCCESS -->
+                        <button type="button" id="btnSearchAddress" class="btn btn-success btn-sm">
+                            <i class="zmdi zmdi-search"></i> Chercher par adresse
                         </button>
                     </div>
 
@@ -1228,31 +1239,39 @@ select.form-control {
 <!-- ===== MODAL POUR LA CARTE D'UN CLIENT (individuel) AVEC BOUTON PARTAGER ===== -->
 <div class="modal fade" id="mapModal" tabindex="-1" role="dialog" aria-labelledby="mapModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="mapModalLabel">
-                    <i class="zmdi zmdi-pin text-danger"></i> Position du client
-                </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <div class="modal-content" style="border-radius: 28px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+            <!-- ========== EN-TÊTE STYLE PREMIUM ========== -->
+            <div class="modal-header" style="flex-shrink: 0; background: linear-gradient(135deg, #1e3a5f, #0a192f); padding: 20px 25px; color: white !important; border-radius: 28px 28px 0 0; border-bottom: none; position: relative;">
+                <h3 style="margin:0; font-weight:700; font-size:1.4rem; color:white !important; display:flex; align-items:center; gap:12px; width:100%;">
+                    <i class="zmdi zmdi-pin" style="font-size:1.8rem; color: #e31b23;"></i>
+                    LOCALISATION DU CLIENT
+                    <span style="font-size:0.75rem; background:rgba(255,255,255,0.2); padding:4px 12px; border-radius:50px; margin-left:auto;">
+                        <i class="zmdi zmdi-pin"></i> Position
+                    </span>
+                </h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8; position: absolute; right: 20px; top: 20px; font-size: 1.8rem; line-height: 1; background: none; border: none;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <div id="clientInfos" style="margin-bottom: 15px; font-weight: 500;">
-                    <p><strong>Nom :</strong> <span id="modalClientNom"></span></p>
-                    <p><strong>Adresse :</strong> <span id="modalClientAdresse"></span></p>
-                    <p><strong>Téléphone :</strong> <span id="modalClientPhone"></span></p>
-                    <p><strong>Email :</strong> <span id="modalClientEmail"></span></p>
-                    <p><strong>Coordonnées :</strong> <span id="modalClientCoords"></span></p>
+
+            <div class="modal-body" style="padding: 20px 25px;">
+                <div id="clientInfos" style="margin-bottom: 15px; font-weight: 500; background: #f8fafc; padding: 15px; border-radius: 16px; border: 1px solid #eef2f6;">
+                    <p style="margin: 5px 0;"><strong>Nom :</strong> <span id="modalClientNom"></span></p>
+                    <p style="margin: 5px 0;"><strong>Adresse :</strong> <span id="modalClientAdresse"></span></p>
+                    <p style="margin: 5px 0;"><strong>Téléphone :</strong> <span id="modalClientPhone"></span></p>
+                    <p style="margin: 5px 0;"><strong>Email :</strong> <span id="modalClientEmail"></span></p>
+                    <p style="margin: 5px 0;"><strong>Coordonnées :</strong> <span id="modalClientCoords"></span></p>
                 </div>
-                <div id="mapModalMap"></div>
+                <div id="mapModalMap" style="width: 100%; height: 400px; border-radius: 16px; border: 1px solid #eef2f6; background: #eef2f6;"></div>
             </div>
-            <div class="modal-footer">
-                <!-- ===== BOUTON PARTAGER (VERT) ===== -->
-                <button type="button" id="btnShareLocation" class="btn btn-success">
+
+            <div class="modal-footer" style="padding: 15px 25px; border-top: 1px solid #eef2f6; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" id="btnShareLocation" class="btn btn-success" style="border-radius: 40px; padding: 8px 24px; font-weight: 600;">
                     <i class="zmdi zmdi-share"></i> Partager
                 </button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 40px; padding: 8px 24px; font-weight: 600;">
+                    Fermer
+                </button>
             </div>
         </div>
     </div>
@@ -1284,7 +1303,7 @@ select.form-control {
     </div>
 </div>
 
-<!-- ===== NOUVEAU MODAL D'INFORMATION PROFESSIONNEL ===== -->
+<!-- ===== MODAL D'INFORMATION ===== -->
 <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -1297,9 +1316,7 @@ select.form-control {
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body" style="padding: 20px 24px; font-size: 1rem; font-weight: 500; color: #1e2a3e;">
-                <!-- Le message sera inséré ici dynamiquement -->
-            </div>
+            <div class="modal-body" style="padding: 20px 24px; font-size: 1rem; font-weight: 500; color: #1e2a3e;"></div>
             <div class="modal-footer" style="border-top: none; padding-top: 0;">
                 <button type="button" class="btn btn-primary" data-dismiss="modal" style="border-radius: 40px; padding: 8px 28px; font-weight: 600;">
                     <i class="zmdi zmdi-check"></i> OK
@@ -1343,7 +1360,6 @@ select.form-control {
         }
     }
 
-    // Fonction utilitaire pour le message d'édition (identique)
     function showEditMsg(type, html, duration) {
         var $msg = $('#edit_msg');
         $msg.removeClass('msg-success msg-error msg-info');
@@ -1360,8 +1376,7 @@ select.form-control {
 
     $("#link_30").addClass("active");
 
-    // ========== FONCTIONS DE FILTRAGE POUR LES CLIENTS AVEC PERSISTANCE ==========
-
+    // ========== FILTRES AVEC PERSISTANCE ==========
     let clientFilterTimeout;
 
     function saveClientFiltersToStorage() {
@@ -1437,7 +1452,6 @@ select.form-control {
 
         $('#clientCount').text(visibleCount);
 
-        // === REMPLACEMENT DU MESSAGE PAR LE MODAL ===
         if (visibleCount === 0 && (filterNom || filterEmail || filterPhone || filterType !== 'all' || filterActivite !== 'all' || filterAdresse || filterUser)) {
             $('#infoModal .modal-body').html(
                 '<i class="zmdi zmdi-search text-warning" style="font-size: 20px; margin-right: 10px;"></i> ' +
@@ -1467,8 +1481,6 @@ select.form-control {
         const totalCount = $('#content_utilisateur tbody tr').length;
         $('#clientCount').text(totalCount);
 
-        // On utilise le modal aussi pour le succès de réinitialisation, mais on garde le showMsg pour les succès
-        // ou on peut utiliser le modal. Je garde showMsg pour les succès.
         showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Tous les filtres ont été réinitialisés', 3000);
     }
 
@@ -1502,17 +1514,7 @@ select.form-control {
         }
     });
 
-    // ========== ANCIENNES FONCTIONS ==========
-
-    function updateClientCount() {
-        filterClients();
-    }
-
-    $("#upload").click(function(e) {
-        e.preventDefault();
-        $("#dropzone-upload").trigger("click");
-    });
-
+    // ========== NAVIGATION ==========
     $("#liste").click(function(e) {
         e.preventDefault();
         $("#bloc_1").show();
@@ -1548,10 +1550,20 @@ select.form-control {
         });
     });
 
+    $("#annuler").click(function(e) {
+        e.preventDefault();
+        $("#bloc_1").show();
+        $("#bloc_2").hide();
+        $("#bloc_3").hide();
+        $("#bloc_4").hide();
+        setTimeout(function() {
+            filterClients();
+        }, 100);
+    });
+
     // ===== BOUTON "CARTE" (tous les clients) AVEC CLUSTERING =====
     $("#mapAll").click(function(e) {
         e.preventDefault();
-        // Récupérer les données des clients depuis les lignes du tableau
         var clientsData = [];
         $('#content_utilisateur tbody tr').each(function() {
             var $row = $(this);
@@ -1573,7 +1585,6 @@ select.form-control {
         });
 
         if (clientsData.length === 0) {
-            // Utilisation du modal info au lieu de alert
             $('#infoModal .modal-body').html(
                 '<i class="zmdi zmdi-alert-triangle text-danger" style="font-size: 20px; margin-right: 10px;"></i> ' +
                 'Aucun client avec des coordonnées géographiques n\'a été trouvé.'
@@ -1582,16 +1593,12 @@ select.form-control {
             return;
         }
 
-        // Ouvrir le modal
         $('#mapAllModal').modal('show');
-
-        // Initialiser la carte après l'ouverture
         setTimeout(function() {
             initMapAll(clientsData);
         }, 300);
     });
 
-    // Fonction pour la carte "tous les clients" avec clustering
     var mapAll = null;
     var markerCluster = null;
 
@@ -1606,13 +1613,11 @@ select.form-control {
             }).addTo(mapAll);
         }
 
-        // Supprimer l'ancien cluster s'il existe
         if (markerCluster) {
             mapAll.removeLayer(markerCluster);
             markerCluster = null;
         }
 
-        // Créer un nouveau groupe de cluster
         markerCluster = L.markerClusterGroup({
             maxClusterRadius: 50,
             spiderfyOnMaxZoom: true,
@@ -1620,7 +1625,6 @@ select.form-control {
             zoomToBoundsOnClick: true
         });
 
-        // Ajouter les marqueurs avec popup
         clients.forEach(function(client) {
             var popupContent = '<strong>' + client.nom + '</strong><br>' +
                                'Adresse: ' + client.adresse + '<br>' +
@@ -1642,49 +1646,10 @@ select.form-control {
         }, 200);
     }
 
-    // ===== FIN BOUTON CARTE =====
-
-    $("#add_r").click(function(e) {
-        e.preventDefault();
-        $("#btn_refus").trigger("click");
-    });
-
-    $("#print_r").click(function(e) {
-        e.preventDefault();
-        $("#btn_refus").trigger("click");
-    });
-
-    $("#mapAll_r").click(function(e) {
-        e.preventDefault();
-        $("#btn_refus").trigger("click");
-    });
-
-    $("#save_r").click(function(e) {
-        e.preventDefault();
-        $("#btn_refus").trigger("click");
-    });
-
-    $("#annuler").click(function(e) {
-        e.preventDefault();
-        $("#bloc_1").show();
-        $("#bloc_2").hide();
-        $("#bloc_3").hide();
-        $("#bloc_4").hide();
-        setTimeout(function() {
-            filterClients();
-        }, 100);
-    });
-
+    // ===== AJOUT CLIENT =====
     $("#save").click(function(e) {
         e.preventDefault();
         var nom = $("#nom").val();
-        var email = $("#email").val();
-        var phone = $("#phone").val();
-        var type_client = $("#type_client").val();
-        var activite_id = $("#activite_id").val();
-        var adresse = $("#adresse").val();
-        var data = $("#form_add").serialize();
-
         if (nom.trim().length == 0) {
             showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Veuillez compléter le nom du client', 9000);
         } else {
@@ -1692,7 +1657,7 @@ select.form-control {
             $.ajax({
                 type: "POST",
                 url: "/add_client",
-                data: data,
+                data: $("#form_add").serialize(),
                 success: function(response) {
                     $("#save").attr("disabled", false);
                     $("#nom").val("");
@@ -1712,6 +1677,7 @@ select.form-control {
         }
     });
 
+    // ===== SUPPRESSION =====
     $("#oui").click(function(e) {
         e.preventDefault();
         var id = $("#data_id").html();
@@ -1743,7 +1709,7 @@ select.form-control {
         }
     });
 
-    // ========== CODE POUR LA CARTE (formulaire d'ajout) ==========
+    // ========== CARTE AJOUT (avec bouton chercher par adresse en SUCCESS) ==========
     (function() {
         var defaultLat = -4.4419;
         var defaultLng = 15.2663;
@@ -1832,6 +1798,41 @@ select.form-control {
                 );
             });
 
+            // ===== BOUTON CHERCHER PAR ADRESSE (AJOUT) – STYLE SUCCESS =====
+            $("#btnSearchAddress").off('click').on('click', function(e) {
+                e.preventDefault();
+                var adresse = $("#adresse").val().trim();
+                if (adresse === '') {
+                    showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Veuillez saisir une adresse dans le champ adresse', 5000);
+                    return;
+                }
+                showMsg('info', '<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Recherche de l\'adresse...', 10000);
+                var url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(adresse) + '&format=json&limit=1';
+                fetch(url, {
+                    headers: {
+                        'User-Agent': 'ControlApp/1.0 (votre-email@domaine.com)'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        var lat = parseFloat(data[0].lat);
+                        var lng = parseFloat(data[0].lon);
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            updateLocation(lat, lng);
+                            showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Adresse trouvée : ' + data[0].display_name, 5000);
+                        } else {
+                            showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Coordonnées invalides', 5000);
+                        }
+                    } else {
+                        showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Aucune adresse trouvée', 5000);
+                    }
+                })
+                .catch(error => {
+                    showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Erreur de recherche : ' + error.message, 5000);
+                });
+            });
+
             $("#btnClassic").off('click').on('click', function() {
                 setTileLayer(tileLayerClassic);
                 showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Mode classique activé', 2000);
@@ -1888,7 +1889,7 @@ select.form-control {
         };
     })();
 
-    // ========== CARTE DANS LE MODAL POUR LA POSITION D'UN CLIENT (individuel) ==========
+    // ========== CARTE MODAL INDIVIDUEL ==========
     (function() {
         var mapModal = null;
         var markerModal = null;
@@ -1918,8 +1919,6 @@ select.form-control {
             }, 300);
         }
 
-        // ===== Gestionnaire de clic sur les icônes "map_" (version ciblée) =====
-        // On écoute uniquement les clics sur les liens "map_" situés dans le tableau
         $('#content_utilisateur').on('click', 'a[id^="map_"]', function(e) {
             e.preventDefault();
 
@@ -1930,7 +1929,6 @@ select.form-control {
             var phone = $(this).data('phone') || 'Non renseigné';
             var email = $(this).data('email') || 'Non renseigné';
 
-            // Vérification des coordonnées
             if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
                 $('#infoModal .modal-body').html(
                     '<i class="zmdi zmdi-alert-triangle text-danger" style="font-size: 20px; margin-right: 10px;"></i> ' +
@@ -1940,7 +1938,6 @@ select.form-control {
                 return;
             }
 
-            // Stocker les données pour le partage
             currentClientData = {
                 lat: lat,
                 lng: lng,
@@ -1950,23 +1947,17 @@ select.form-control {
                 email: email
             };
 
-            // Remplir le modal
             $('#modalClientNom').text(nom);
             $('#modalClientAdresse').text(adresse);
             $('#modalClientPhone').text(phone);
             $('#modalClientEmail').text(email);
             $('#modalClientCoords').text(lat + ', ' + lng);
 
-            // Ouvrir le modal
             $('#mapModal').modal('show');
-
-            // Initialiser la carte dans le modal
             initModalMap(parseFloat(lat), parseFloat(lng));
         });
 
-        // ===== BOUTON PARTAGER (adapté avec votre route) =====
-        // ===== BOUTON PARTAGER (version compatible WhatsApp) =====
-        // ===== BOUTON PARTAGER (version avec gestion UTF-8) =====
+        // ===== BOUTON PARTAGER =====
         $('#btnShareLocation').on('click', function() {
             if (!currentClientData) {
                 alert('Aucune donnée client à partager.');
@@ -1975,7 +1966,6 @@ select.form-control {
 
             var data = currentClientData;
 
-            // Fonction qui convertit une chaîne UTF-8 en Base64
             function utf8ToBase64(str) {
                 const encoder = new TextEncoder();
                 const uint8Array = encoder.encode(str);
@@ -2010,7 +2000,6 @@ select.form-control {
             window.open(whatsappUrl, '_blank');
         });
 
-        // Réinitialiser les données à la fermeture du modal
         $('#mapModal').on('hidden.bs.modal', function() {
             currentClientData = null;
         });

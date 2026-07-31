@@ -1222,7 +1222,7 @@ select.form-control {
                                     </div>
                                 </div>
                             </div>
-                            <div style="margin-top: -15px;" class="row">
+                            <div style="margin-top: 10px;" class="row">
                                 <div style="display: none;" class="col-6">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i

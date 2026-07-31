@@ -4361,6 +4361,23 @@ class AjaxController extends Controller
         }
         else
         {
+            // Vérification de la table
+            if ($request->has('table_id') && !empty($request->table_id))
+            {
+                $table = Tables::find($request->table_id);
+                if ($table)
+                {
+                    if ($table->occupee == 1) {
+                        // Table occupée → on ne fait RIEN, on retourne la vue sans exécuter la suite
+                        $table->occupee = 1;
+                        $table->save();
+                    } else {
+                        // Table libre → on la marque occupée
+                        $table->occupee = 1;
+                        $table->save();
+                    }
+                }
+            }
             $id = Factureass::get()->count() + 1;
             $nb_annonce = $id;
             if($nb_annonce >= 1 && $nb_annonce <= 9)
@@ -10032,6 +10049,59 @@ class AjaxController extends Controller
         }
     }
 
+    public function liberer_table(Request $request)
+    {
+        $table_id = $request->table_id;
+        $table = Tables::find($table_id);
+        if ($table)
+        {
+            $table->occupee = 0;
+            $table->save();
+            return response()->json(['success' => true]);
+        }
+        return response()->json(['success' => false], 404);
+    }
+
+
+    public function get_tables_select(Request $request)
+    {
+        $user = Auth::user();
+        $tables = Tables::all();
+        $html = '<option selected value="">Selectionnez une table</option>';
+
+        foreach ($tables as $data)
+        {
+            $affecte = affectationstables::where('user_id', $user->id)
+                                        ->where('table_id', $data->id)
+                                        ->exists();
+
+            // Récupération du nom du point de vente
+            $pointDeVente = \App\Models\pointdeventes::where('id', $data->pointdeventes_id)->first();
+            $nomPointDeVente = $pointDeVente ? $pointDeVente->nom : 'N/A';
+
+            // Déterminer la valeur de data-occupee
+            $occupee = $data->occupee ? 1 : 0;
+
+            if ($user->role == 0)
+            {
+                // Administrateur : voit toutes les tables
+                $icone = ($occupee == 0) ? '🟢' : '🔴';
+                $html .= '<option value="'.$data->id.'" data-occupee="'.$occupee.'">'.$icone.' '.e($data->nom).' ('.$nomPointDeVente.')</option>';
+            }
+            else
+            {
+                // Serveur : voit uniquement les tables affectées
+                if ($affecte)
+                {
+                    $icone = ($occupee == 0) ? '🟢' : '🔴';
+                    $html .= '<option value="'.$data->id.'" data-occupee="'.$occupee.'">'.$icone.' '.e($data->nom).' ('.$nomPointDeVente.')</option>';
+                }
+            }
+        }
+
+        return $html;
+    }
+
     public function upload_logo_edit(Request $request)
     {
         if ($request->hasFile('edit_input_user_img_profil')) {
@@ -10054,6 +10124,7 @@ class AjaxController extends Controller
             }
         }
     }
+
     public function submitfilters(Request $request)
     {
         $filters = $request->only(['encodeur', 'date', 'eleve', 'genre', 'classe', 'parent']);

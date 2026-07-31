@@ -155,6 +155,12 @@
             background: #F8FAFC;
         }
 
+        /* --- AJOUT : padding-right pour laisser place au toggle --- */
+        .input-wrapper input[type="password"],
+        .input-wrapper input[type="text"] {
+            padding-right: 2.8rem;
+        }
+
         .input-wrapper input:focus {
             outline: none;
             border-color: #3B82F6;
@@ -168,6 +174,23 @@
             top: 50%;
             transform: translateY(-50%);
             font-size: 1rem;
+        }
+
+        /* --- AJOUT : style du toggle œil --- */
+        .input-wrapper .toggle-pwd {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #94A3B8;
+            transition: color 0.2s;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        .input-wrapper .toggle-pwd:hover {
+            color: #3B82F6;
         }
 
         .btn-login {
@@ -443,7 +466,11 @@
                         <label><i class="fas fa-lock"></i> Mot de passe</label>
                         <div class="input-wrapper">
                             <input type="password" id="mdp_01" name="mdp_01" placeholder="Votre mot de passe">
-                            <span class="validation-icon" id="pwd-icon"></span>
+                            <!-- AJOUT : toggle œil -->
+                            <span class="toggle-pwd" id="togglePwd" title="Afficher/masquer le mot de passe">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                            <!-- L'ancienne icône de validation (pwd-icon) est supprimée car inutilisée -->
                         </div>
                         <div class="field-error" id="pwd-error">Le mot de passe ne peut pas être vide.</div>
                     </div>
@@ -585,6 +612,21 @@
             if (e.key === 'Enter' || e.keyCode === 13) {
                 e.preventDefault();
                 $('#btn_login').click();
+            }
+        });
+
+        // ===== AJOUT : TOGGLE AFFICHAGE DU MOT DE PASSE =====
+        document.getElementById('togglePwd').addEventListener('click', function() {
+            var input = document.getElementById('mdp_01');
+            var icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
             }
         });
 
