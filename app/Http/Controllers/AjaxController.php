@@ -4307,7 +4307,7 @@ class AjaxController extends Controller
     {
         // --- 1. Récupération de l'article selon le stock lié à la table ---
         $article_id = $request->type_sortie;
-        $table_id = $request->input('table_id');
+        $table_id = $request->table_id;
         $stock_id = 0;
 
         if (!empty($table_id)) {
@@ -4322,7 +4322,7 @@ class AjaxController extends Controller
             $article = Articles::where('id', $article_id)->first();
         } else {
             $article = articlestocks::where([
-                'stock_id'   => $stock_id
+                'stock_id'   => $stock_id,
                 'article_id' => $article_id,
             ])->first();
         }
@@ -4375,6 +4375,7 @@ class AjaxController extends Controller
             $facture->tva = 0;
             $facture->user_id = Auth::user()->id;
             $facture->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
+            $facture->client_id = (strlen(trim($request->table_id))) ? $request->table_id : 0;
             $facture->save();
 
             // Marquage de la table comme occupée (si elle existe)
