@@ -1822,7 +1822,8 @@ select.form-control {
                                             table_id: $("#table_id").val(),
                                         }, function(repp) {
                                             var data_rep = repp.split("__________")
-                                            if ((data_rep[0] == -1) && (data_rep[3] == 1)) {
+                                            if ((data_rep[0] == -1) && (data_rep[3] == 1))
+                                            {
                                                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le stock de cette article est vide');
                                                 setTimeout(() => { $('#msg').html(""); }, 9000);
                                             } else {

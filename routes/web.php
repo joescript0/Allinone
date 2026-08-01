@@ -316,6 +316,8 @@ Route::post('/update_ronde', [AjaxController::class, 'update_ronde'])->name('upd
 Route::get('/liberer_table', [AjaxController::class, 'liberer_table'])->name('liberer_table');
 Route::get('/get_tables_select', [AjaxController::class, 'get_tables_select'])->name('get_tables_select');
 Route::get('/get_articles_select', [AjaxController::class, 'get_articles_select'])->name('get_articles_select');
+Route::get('/nettoyer_table', [AjaxController::class, 'nettoyer_table'])->name('nettoyer_table');
+Route::get('/get_all_table_d', [AjaxController::class, 'get_all_table_d'])->name('get_all_table_d');
 
 
 // Route::get('/', function () {

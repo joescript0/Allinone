@@ -3504,6 +3504,12 @@ class AjaxController extends Controller
         return view('include.refresh_tables', $data);
     }
 
+    public function get_all_table_d(Request $request)
+    {
+        $data["tables"] = Tables::where(["etat" => 1])->get();
+        return view('include.refresh_tables_d', $data);
+    }
+
     public function get_all_depense(Request $request)
     {
         $groupe_user_id = Auth::user()->role;
@@ -10047,6 +10053,20 @@ class AjaxController extends Controller
             $table->occupee = 0;
             $table->save();
             return response()->json(['success' => true]);
+        }
+        return response()->json(['success' => false], 404);
+    }
+
+    public function nettoyer_table(Request $request)
+    {
+        $table_id = $request->table_id;
+        $table = Tables::find($table_id);
+        if ($table)
+        {
+            $table->propre = 0;
+            $table->save();
+            $data["tables"] = Tables::where(["etat" => 1])->get();
+            return view('include.refresh_tables_d', $data);
         }
         return response()->json(['success' => false], 404);
     }
