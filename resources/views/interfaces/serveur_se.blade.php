@@ -1,5 +1,5 @@
 @php
-    use App\Models\appnames;
+    use App\Models\Appnames;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
 <?php
@@ -15,7 +15,7 @@ use App\Models\Achats;
 use App\Models\Societes;
 use App\Models\Clients;
 use App\Models\Mesures;
-use App\Models\pointdeventes;
+use App\Models\Pointdeventes;
 use App\Models\Entres;
 use Illuminate\Support\Facades\Auth;
 ?>

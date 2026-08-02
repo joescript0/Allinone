@@ -1583,7 +1583,8 @@ select.form-control {
             var type_vente_id = $("#type_vente_id").val();
             var data = $("#form_add").serialize();
 
-            if (numero_facture.trim().length == 0) {
+            if (numero_facture.trim().length == 0) 
+            {
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le numero d\'entré');
                 setTimeout(() => { $('#msg').html(""); }, 9000);
             } else {

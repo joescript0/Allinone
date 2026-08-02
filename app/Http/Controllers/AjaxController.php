@@ -1957,11 +1957,15 @@ class AjaxController extends Controller
     public function check_seuil_minimum(Request $request)
     {
         // Récupération du stock via la table
-        $table_id = $request->input('table_id');
-        $table = Tables::where('id', $table_id)->first();
-        $pointdeventes_id = $table->pointdeventes_id;
-        $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
-        $stock_id = $pointdeventes->stock_id;
+        $stock_id = 0;
+        if($request->table_id)
+        {
+             $table_id = $request->table_id;
+            $table = Tables::where('id', $table_id)->first();
+            $pointdeventes_id = $table->pointdeventes_id;
+            $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+            $stock_id = $pointdeventes->stock_id;
+        }
 
         $article_id = $request->article_id;
 
@@ -5617,11 +5621,15 @@ class AjaxController extends Controller
 
     public function get_prix_article(Request $request)
     {
-        $table_id = $request->input('table_id');
-        $table = Tables::where('id', $table_id)->first();
-        $pointdeventes_id = $table->pointdeventes_id;
-        $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
-        $stock_id = $pointdeventes->stock_id;
+        $stock_id = 0;
+        if($table_id = $request->table_id)
+        {
+            $table_id = $request->table_id;
+            $table = Tables::where('id', $table_id)->first();
+            $pointdeventes_id = $table->pointdeventes_id;
+            $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+            $stock_id = $pointdeventes->stock_id;
+        }
 
         $article_id = $request->article_id;
 

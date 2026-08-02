@@ -2,7 +2,7 @@
     use App\Models\appnames;
     use App\Models\Articles;
     use App\Models\articlestocks;
-    use App\Models\pointdeventes;
+    use App\Models\Pointdeventes;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
 @extends('layouts.main')
