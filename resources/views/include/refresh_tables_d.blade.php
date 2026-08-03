@@ -7,75 +7,203 @@ use App\models\affectationstables;
         <table class="table table-bordered mb-0">
             <thead>
                 <tr>
-                    <th style="padding-top: 5px;padding-bottom: 5px;">N°</th>
-                    <th style="padding-top: 5px;padding-bottom: 5px;">Nom</th>
-                    <th style="padding-top: 5px;padding-bottom: 5px;">Description</th>
-                    <th style="padding-top: 5px;padding-bottom: 5px;">Point de vente</th>
-                    <th style="padding-top: 5px;padding-bottom: 5px;">Propreté</th>
-                    <th style="padding-top: 5px;padding-bottom: 5px;">Action</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">N° Facture</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">Utilisateur</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">Libelle / Client</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">Table</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">Montant</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">Date</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">Mode de paiement</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                 </tr>
             </thead>
             <tbody>
-                @php
-                    $user = Auth::user();
-                    $i = 1;
-                @endphp
-                @foreach ($tables as $data)
+                {{ !($i = 1) }}
+                @foreach ($factures as $data)
                     @php
-                        $affecte = false;
-                        if ($user->role != 0) {
-                            $affecte = affectationstables::where('user_id', $user->id)
-                                ->where('table_id', $data->id)
-                                ->exists();
+                        $taux = $data->taux;
+                        $total = 0;
+                        $ent = Achats::where('facture_id', $data->id)->get();
+                        foreach ($ent as $e) {
+                            $total += $e->total;
+                        }
+                        if ($data->devise == 0) {
+                            $montant_usd = $total;
+                            $montant_cdf = $total * $taux;
+                            $montant_affichage =
+                                number_format($total, 2, ',', ' ') .
+                                ' USD (' .
+                                number_format($montant_cdf, 2, ',', ' ') .
+                                ' CDF)';
+                        } else {
+                            $montant_cdf = $total;
+                            $montant_usd = $total / $taux;
+                            $montant_affichage =
+                                number_format($total, 2, ',', ' ') .
+                                ' CDF (' .
+                                number_format($montant_usd, 2, ',', ' ') .
+                                ' USD)';
                         }
                     @endphp
-                    @if ($user->role == 0 || $affecte)
-                        <tr id="table_row_{{ $data->id }}" data-propre="{{ $data->propre }}"
-                            data-nom="{{ $data->nom }}" data-desc="{{ $data->description }}"
-                            data-pointvente="{{ $data->pointdeventes_id }}">
-                            <td class="row-num" style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
-                            <td class="nom-cell" data-nom="{{ $data->nom }}"
-                                style="padding-top: 5px;padding-bottom: 5px;">{{ $data->nom }}</td>
-                            <td class="desc-cell" data-desc="{{ $data->description }}"
-                                style="padding-top: 5px;padding-bottom: 5px;">{{ $data->description }}</td>
-                            <td class="pointvente-cell" data-pointvente-id="{{ $data->pointdeventes_id }}"
-                                style="padding-top: 5px;padding-bottom: 5px;">
-                                {{ $data->pointdeventes_id != null ? \App\Models\Pointdeventes::where('id', $data->pointdeventes_id)->first()->nom : 'Aucun point de vente' }}
-                            </td>
-                            <td class="propre-cell" data-propre="{{ $data->propre }}"
-                                style="padding-top: 5px;padding-bottom: 5px;">
-                                @if ($data->propre == 1)
-                                    <span class="status-badge sale">
-                                        <i class="zmdi zmdi-close-circle"></i> Sale
-                                    </span>
-                                @else
-                                    <span class="status-badge propre">
-                                        <i class="zmdi zmdi-check-circle"></i> Propre
-                                    </span>
+                    <tr id="row_{{ $data->id }}" data-montant-usd="{{ $montant_usd }}"
+                        data-montant-cdf="{{ $montant_cdf }}">
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell"
+                            data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell"
+                            data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
+                            {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
+                        </td>
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="client-cell"
+                            data-client="{{ $data->client_id == 0 ? $data->libelle : Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' }}">
+                            @if ($data->client_id == 0)
+                                {{ $data->libelle }}
+                            @else
+                                <?= Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' ?>
+                            @endif
+                        </td>
+                        <!-- Cellule Table avec data-table -->
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="table-cell"
+                            data-table="{{ $data->table_id == 0 ? 'Aucune' : Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A' }}">
+                            @if ($data->table_id == 0)
+                                Aucune
+                            @else
+                                <?php $table = Tables::where('id', $data->table_id)->first() ?? 'N/A'; ?>
+                                @if ($table->occupee == 1)
+                                    <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">
+                                        {{ $table->nom }}</span>
                                 @endif
-                            </td>
-                            <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
-                                @if ($data->propre == 1)
-                                    <a href="#" class="clean-link" data-table-id="{{ $data->id }}"
-                                        data-propre="1">
-                                        <i class="zmdi zmdi-close-circle"></i>
-                                    </a>
-                                @else
-                                    <a href="#" class="clean-link disabled-link"
-                                        data-table-id="{{ $data->id }}" data-propre="0">
-                                        <i class="zmdi zmdi-check-circle"></i>
-                                    </a>
+                                @if ($table->occupee == 0)
+                                    <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">
+                                        {{ $table->nom }}</span>
                                 @endif
-                            </td>
-                        </tr>
-                        @php $i++; @endphp
-                    @endif
+                            @endif
+                        </td>
+
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell"
+                            data-montant="{{ $total }}">
+                            {{ $montant_affichage }}
+                        </td>
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell"
+                            data-date="{{ $data->created_at }}">
+                            <?php
+                            $date = $data->created_at;
+                            $date_1 = explode(' ', $date);
+                            echo explode('-', $date_1[0])[2] . '/' . explode('-', $date_1[0])[1] . '/' . explode('-', $date_1[0])[0] . ' à ' . $date_1[1];
+                            ?>
+                        </td>
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="statut-cell"
+                            data-statut="{{ $data->payer == 0 ? 'unpaid' : 'paid' }}">
+                            @if ($data->payer == 0)
+                                <i class="zmdi zmdi-close-circle text-danger"></i> <span
+                                    class="text-danger">{{ 'Aucun' }} </span>
+                            @else
+                                @if ($data->mode_de_paiement == 1)
+                                    <i class="zmdi zmdi-check-circle text-success"></i> <span
+                                        class="text-success">CASH</span>
+                                @endif
+                                @if ($data->mode_de_paiement == 2)
+                                    <i class="zmdi zmdi-check-circle text-success"></i> <span
+                                        class="text-success">Mobile money</span>
+                                @endif
+                                @if ($data->mode_de_paiement == 3)
+                                    <i class="zmdi zmdi-check-circle text-success"></i> <span
+                                        class="text-success">Bank</span>
+                                @endif
+                            @endif
+                        </td>
+                        <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
+                            <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                            <?php
+                            $edit = 0;
+                            $delete = 0;
+                            $display = 0;
+                            if (
+                                Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])
+                                    ->get()
+                                    ->count() != 0
+                            ) {
+                                $edit = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->edit;
+                                $delete = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->delete;
+                                $display = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->display;
+                            }
+                            ?>
+                            <?php } ?>
+                            <?php if ((($display == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display == 0) && (Auth::user()->role == 0))) { ?>
+                            @if ($data->payer == 0)
+                                <a id="detail_{{ $i }}" href="#"><i
+                                        class="zmdi zmdi-money text-danger"></i></a> &nbsp;
+                            @else
+                                <a id="detail_{{ $i }}" href="#"><i
+                                        class="zmdi zmdi-eye text-success"></i></a> &nbsp;
+                            @endif
+                            <?php } else { ?>
+                            @if ($data->payer == 0)
+                                <a id="detail_r{{ $i }}" href="#"><i
+                                        class="zmdi zmdi-money text-danger"></i></a> &nbsp;
+                            @else
+                                <a id="detail_r{{ $i }}" href="#"><i
+                                        class="zmdi zmdi-eye text-success"></i></a> &nbsp;
+                            @endif
+                            <?php } ?>
+                            <script>
+                                $("#detail_{{ $i }}").click(function(e) {
+                                    e.preventDefault();
+                                    var payer = "<?= $data->payer ?>";
+                                    if (payer == 0) {
+                                        $.get("{{ url('/refresh_detailfactureass') }}", {
+                                            invitation_id: <?= $data->id ?>,
+                                        }, function(refresh_editinvitations) {
+                                            $("#bloc_1").hide();
+                                            $("#bloc_2").show();
+                                            $("#bloc_3").show();
+                                            $("#bloc_t").show();
+                                            $("#bloc_3").html(refresh_editinvitations);
+                                        });
+                                    }
+                                    if (payer == 1) {
+                                        $("#n_fac").html("<?= $data->numero ?>");
+                                        $("#id_fac").val("<?= $data->id ?>");
+                                        var pdfUrl = "{{ isset($data->lien) ? $data->lien : '' }}";
+                                        if (pdfUrl && pdfUrl !== '') {
+                                            currentPdfUrl = pdfUrl;
+                                            $("#pdfIframe").attr("src", pdfUrl);
+                                            $("#pdfModal").modal("show");
+                                        } else {
+                                            $.get("{{ url('/print_facture') }}", {
+                                                "facture_id": "<?= $data->id ?>"
+                                            }, function(response) {
+                                                if (response && response[0][0]) {
+                                                    currentPdfUrl = response[0][0];
+                                                    $("#pdfIframe").attr("src", response[0][0]);
+                                                    $("#cdf_montant_payer").val(response[0][1]);
+                                                    $("#usd_montant_payer").val(response[0][2]);
+                                                    $("#payer").val(response[0][5]);
+                                                    $("#pdfModal").modal("show");
+                                                } else if (response && typeof response[0][0] === 'string') {
+                                                    currentPdfUrl = response[0][0];
+                                                    $("#pdfIframe").attr("src", response[0][0]);
+                                                    $("#cdf_montant_payer").val(response[0][1]);
+                                                    $("#usd_montant_payer").val(response[0][2]);
+                                                    $("#payer").val(response[0][5]);
+                                                    $("#pdfModal").modal("show");
+                                                } else {
+                                                    alert("Aucun PDF disponible pour cette facture.");
+                                                }
+                                            }).fail(function() {
+                                                alert("Erreur lors de la récupération du PDF.");
+                                            });
+                                        }
+                                    }
+                                });
+                                $("#detail_r{{ $i }}").click(function(e) {
+                                    e.preventDefault();
+                                    $("#btn_refus").trigger("click");
+                                });
+                            </script>
+                        </td>
+                    </tr>
+                    {{ !$i++ }}
                 @endforeach
-                <tr id="noResultRow" style="display: none;">
-                    <td colspan="6">
-                        <i class="zmdi zmdi-info-outline"></i> Aucune table ne correspond à vos critères.
-                    </td>
-                </tr>
             </tbody>
         </table>
     </div>

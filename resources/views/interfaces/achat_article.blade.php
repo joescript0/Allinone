@@ -6,6 +6,7 @@
 
 use App\Models\Contrevenants;
 use App\Models\Groupes;
+use App\Models\Tables;
 use App\Models\Verbalisateurs;
 use App\Models\Writes;
 use App\Models\User;
@@ -978,6 +979,11 @@ select.form-control {
                                 <option value="unpaid">Impayées</option>
                             </select>
                         </div>
+                        <!-- NOUVEAU FILTRE TABLE -->
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-table text-danger"></i> Table</label>
+                            <input type="text" id="filterTable" class="form-control" placeholder="Rechercher par table...">
+                        </div>
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-calendar text-danger"></i> Période (DD/MM/YYYY)</label>
                             <input type="text" id="filterDateRange" class="form-control" placeholder="Sélectionner une période">
@@ -1015,6 +1021,7 @@ select.form-control {
                                             <th style="padding-top: 5px;padding-bottom: 5px;">N° Facture</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Utilisateur</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Libelle / Client</th>
+                                            <th style="padding-top: 5px;padding-bottom: 5px;">Table</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Montant</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Date</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Mode de paiement</th>
@@ -1055,6 +1062,23 @@ select.form-control {
                                                         <?= Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' ?>
                                                     @endif
                                                 </td>
+                                                <!-- Cellule Table modifiée avec data-table -->
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="table-cell" data-table="{{ $data->table_id == 0 ? 'Aucune' : (Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A') }}">
+                                                    @if ($data->table_id == 0)
+                                                        Aucune
+                                                    @else
+                                                        <?php  $table = Tables::where('id', $data->table_id)->first() ?? 'N/A' ?>
+                                                        @if ($table->occupee == 1)
+                                                            <i class="zmdi zmdi-close-circle text-danger"></i> <span
+                                                            class="text-danger"> {{ $table->nom }}</span>
+                                                        @endif
+                                                        @if ($table->occupee == 0)
+                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span
+                                                                class="text-success"> {{ $table->nom }}</span>
+                                                        @endif
+                                                    @endif
+                                                </td>
+
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="{{ $total }}">
                                                     {{ $montant_affichage }}
                                                 </td>
@@ -1583,7 +1607,7 @@ select.form-control {
             var type_vente_id = $("#type_vente_id").val();
             var data = $("#form_add").serialize();
 
-            if (numero_facture.trim().length == 0) 
+            if (numero_facture.trim().length == 0)
             {
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le numero d\'entré');
                 setTimeout(() => { $('#msg').html(""); }, 9000);
@@ -1752,7 +1776,8 @@ select.form-control {
                 user: $('#filterUser').val(),
                 statut: $('#filterStatut').val(),
                 dateRange: $('#filterDateRange').val(),
-                montant: $('#filterMontant').val()
+                montant: $('#filterMontant').val(),
+                table: $('#filterTable').val()   // NOUVEAU : filtre Table
             };
             localStorage.setItem('invoiceFilters', JSON.stringify(filters));
         }
@@ -1767,6 +1792,7 @@ select.form-control {
                 $('#filterStatut').val(filters.statut || 'all');
                 $('#filterDateRange').val(filters.dateRange || '');
                 $('#filterMontant').val(filters.montant || '');
+                $('#filterTable').val(filters.table || ''); // NOUVEAU : restauration du filtre Table
                 return true;
             }
             return false;
@@ -1778,6 +1804,7 @@ select.form-control {
             const filterUser = $('#filterUser').val().toLowerCase();
             const filterStatut = $('#filterStatut').val();
             const filterMontant = parseFloat($('#filterMontant').val());
+            const filterTable = $('#filterTable').val().toLowerCase(); // NOUVEAU : valeur du filtre Table
 
             // Récupération de la plage de dates (comme dans filterTable du rapport)
             var dateRange = $('#filterDateRange').val() || '';
@@ -1814,6 +1841,7 @@ select.form-control {
                 const clientValue = $row.find('.client-cell').data('client')?.toLowerCase() || '';
                 const userValue = $row.find('.user-cell').data('user')?.toLowerCase() || '';
                 const statutValue = $row.find('.statut-cell').data('statut') || '';
+                const tableValue = $row.find('.table-cell').data('table')?.toLowerCase() || ''; // NOUVEAU
                 const montantRaw = parseFloat($row.find('.montant-cell').data('montant')) || 0;
 
                 if (filterNumero && !numeroValue.includes(filterNumero)) showRow = false;
@@ -1821,6 +1849,8 @@ select.form-control {
                 if (showRow && filterUser && !userValue.includes(filterUser)) showRow = false;
                 if (showRow && filterStatut !== 'all' && statutValue !== filterStatut) showRow = false;
                 if (showRow && !isNaN(filterMontant) && Math.abs(montantRaw - filterMontant) > 0.009) showRow = false;
+                // NOUVEAU : filtre sur la table
+                if (showRow && filterTable && !tableValue.includes(filterTable)) showRow = false;
 
                 // Filtre par plage de dates (logique identique à filterTable)
                 if (showRow && dateDebut && dateFin) {
@@ -1863,7 +1893,7 @@ select.form-control {
             $('#totalUsd').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalCdf').text(totalCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 
-            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || filterStatut !== 'all' || dateRange || !isNaN(filterMontant))) {
+            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || filterStatut !== 'all' || dateRange || !isNaN(filterMontant) || filterTable)) {
                 $('#msg').html('<i class="zmdi zmdi-info"></i> Aucune facture ne correspond aux critères de recherche');
                 $('#msg').css('display', 'flex');
                 setTimeout(() => {
@@ -1889,6 +1919,7 @@ select.form-control {
             $('#filterUser').val('');
             $('#filterStatut').val('all');
             $('#filterMontant').val('');
+            $('#filterTable').val(''); // NOUVEAU : réinitialisation du filtre Table
 
             saveFiltersToStorage();
             filterInvoices();
@@ -1968,8 +1999,8 @@ select.form-control {
             }
             filterInvoices();
 
-            // Événements des autres filtres
-            $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant').on('input change', function() {
+            // Événements des autres filtres (inclut le nouveau filtre Table)
+            $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant, #filterTable').on('input change', function() {
                 debouncedFilter();
             });
 

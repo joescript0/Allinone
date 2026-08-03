@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
                     <th style="padding-top: 5px;padding-bottom: 5px;">N° Facture</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Utilisateur</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Libelle / Client</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">Table</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Montant</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Date</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Mode de paiement</th>
@@ -72,6 +73,24 @@ use Illuminate\Support\Facades\Auth;
                                 <?= Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' ?>
                             @endif
                         </td>
+                        <!-- Cellule Table modifiée avec data-table -->
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="table-cell"
+                            data-table="{{ $data->table_id == 0 ? 'Aucune' : Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A' }}">
+                            @if ($data->table_id == 0)
+                                Aucune
+                            @else
+                                <?php $table = Tables::where('id', $data->table_id)->first() ?? 'N/A'; ?>
+                                @if ($table->occupee == 1)
+                                    <i class="zmdi zmdi-close-circle text-danger"></i> <span
+                                    class="text-danger"> {{ $table->nom }}</span>
+                                @endif
+                                @if ($table->occupee == 0)
+                                    <i class="zmdi zmdi-check-circle text-success"></i> <span
+                                        class="text-success"> {{ $table->nom }}</span>
+                                @endif
+                            @endif
+                        </td>
+
                         <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell"
                             data-montant="{{ $total }}">
                             {{ $montant_affichage }}

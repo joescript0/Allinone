@@ -4385,14 +4385,16 @@ class AjaxController extends Controller
             $facture->tva = 0;
             $facture->user_id = Auth::user()->id;
             $facture->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
-            $facture->client_id = (strlen(trim($request->table_id))) ? $request->table_id : 0;
+            $facture->table_id = (strlen(trim($request->table_id))) ? $request->table_id : 0;
             $facture->save();
 
             // Marquage de la table comme occupée (si elle existe)
-            if (!empty($table_id)) {
+            if (!empty($table_id))
+            {
                 $table = Tables::find($table_id);
                 if ($table) {
                     $table->occupee = 1;
+                    $table->propre = 1;
                     $table->save();
                 }
             }
