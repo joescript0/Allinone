@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "24aee01bd045d93d9eacc8b822c21ad8",
+    "content-hash": "0d8f149d56fbc566689e2366c8a84fff",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1669,6 +1669,62 @@
                 }
             ],
             "time": "2026-06-23T13:02:23+00:00"
+        },
+        {
+            "name": "ismaeltoe/osms",
+            "version": "v2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ismaeltoe/osms-php.git",
+                "reference": "e02668093ce4105ab0de8efb74c1697d68c2c71c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ismaeltoe/osms-php/zipball/e02668093ce4105ab0de8efb74c1697d68c2c71c",
+                "reference": "e02668093ce4105ab0de8efb74c1697d68c2c71c",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Osms\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ismael Toé",
+                    "email": "ismael.toe@gmail.com"
+                }
+            ],
+            "description": "PHP library wrapper of the Orange SMS API.",
+            "homepage": "https://github.com/ismaeltoe/osms-php",
+            "keywords": [
+                "api",
+                "client",
+                "curl",
+                "http client",
+                "json",
+                "orange",
+                "php",
+                "requests",
+                "rest",
+                "restful",
+                "sms",
+                "web service"
+            ],
+            "support": {
+                "issues": "https://github.com/ismaeltoe/osms-php/issues",
+                "source": "https://github.com/ismaeltoe/osms-php/tree/v2.0.2"
+            },
+            "time": "2025-12-25T12:35:20+00:00"
         },
         {
             "name": "laravel/framework",

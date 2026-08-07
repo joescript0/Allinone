@@ -1,6 +1,6 @@
 @php
     use App\Models\appnames;
-    use App\models\affectationstables;
+    use App\Models\affectationstables;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
 <?php

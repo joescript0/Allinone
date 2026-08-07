@@ -11,6 +11,7 @@
         "erag/laravel-pwa": "^2.1",
         "fpdf/fpdf": "^1.86",
         "guzzlehttp/guzzle": "^7.2",
+        "ismaeltoe/osms": "^2.0",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",

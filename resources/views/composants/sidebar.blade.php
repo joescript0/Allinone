@@ -437,16 +437,16 @@
           <img id="user__img" class="user__img" src="{{ asset( Auth::user()->image ) }}" alt="">
           <div>
             @if (Auth::user()->role == 1)
-            <div class="user__name">{{ "OASISTECH - ADMIN" }}</div>
+            <div style="display: none;" class="user__name">{{ "OASISTECH - ADMIN" }}</div>
             @endif
             @if (Auth::user()->role == 2)
-            <div class="user__name">{{ "ADMINISTRATEUR" }}</div>
+            <div style="display: none;" class="user__name">{{ "ADMINISTRATEUR" }}</div>
             @endif
             @if (Auth::user()->role == 3)
-            <div class="user__name">{{ "ETUDIANT" }}</div>
+            <div style="display: none;" class="user__name">{{ "ETUDIANT" }}</div>
             @endif
             @if (Auth::user()->role == 4)
-            <div class="user__name">{{ "COLLABORATEUR" }}</div>
+            <div style="display: none;" class="user__name">{{ "COLLABORATEUR" }}</div>
             @endif
             <div class="user__email">{{ Auth::user()->name }}</div>
           </div>

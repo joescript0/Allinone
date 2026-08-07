@@ -892,7 +892,7 @@ class HomeController extends Controller
     public function app_article()
     {
         $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 5;
+        $data["ressource_id_1"] = 9;
         $data["groupe_user_id"] = $groupe_user_id;
         if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
         {
@@ -931,7 +931,7 @@ class HomeController extends Controller
     public function achat_article()
     {
         $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 5;
+        $data["ressource_id_1"] = 10;
         $data["groupe_user_id"] = $groupe_user_id;
         if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
         {
