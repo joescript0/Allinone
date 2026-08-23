@@ -1873,7 +1873,7 @@ class AjaxController extends Controller
     {
         // Recherche de la facture
         $facture = Factureass::find($request->facture_id);
-        if (!$facture) 
+        if (!$facture)
         {
             return response()->json(['error' => 'Facture non trouvée'], 404);
         }

@@ -18,6 +18,7 @@ use App\Models\Clients;
 use App\Models\Mesures;
 use App\Models\Pointdeventes;
 use App\Models\Entres;
+use App\Models\detailpaiessachats;
 use Illuminate\Support\Facades\Auth;
 ?>
 @extends('layouts.main')
@@ -335,26 +336,60 @@ h4 i.zmdi {
     height: 36px;
 }
 
-/* Badges (compteur et totaux) */
-.invoice-count-badge {
-    background: var(--rouge-gradient);
+/* ========== BADGE DANS LE TITRE ========== */
+.badge-invoice {
+    background: linear-gradient(135deg, #e31b23, #b91c1c);
     color: white;
     border-radius: 50px;
-    padding: 4px 12px;
+    padding: 4px 16px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-left: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(227, 27, 35, 0.3);
+}
+
+/* ========== BADGES PAR CATÉGORIE (couleurs selon votre demande) ========== */
+.invoice-badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+    justify-content: flex-end;
+}
+
+.invoice-count-badge {
+    border-radius: 50px;
+    padding: 4px 14px;
     font-size: 0.75rem;
     font-weight: bold;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-bottom: 12px;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-/* Badge pour total USD et CDF (on garde les dégradés personnalisés) */
-.invoice-count-badge.usd-badge {
-    background: linear-gradient(135deg, #0f4c5f, #1e6f5c);
+/* Total : bleu #3B82F6 (comme le bouton primaire) */
+.badge-total {
+    background: linear-gradient(135deg, #3B82F6, #2563eb);
 }
-.invoice-count-badge.cdf-badge {
-    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+
+/* Payé : bleu de nuit */
+.badge-paye {
+    background: linear-gradient(135deg, #0a192f, #1e3a5f);
+}
+
+/* Crédit : rouge */
+.badge-credit {
+    background: linear-gradient(135deg, #dc3545, #b02a37);
+}
+
+/* Bénéfice : vert succès */
+.badge-benefice {
+    background: linear-gradient(135deg, #198754, #146c43);
 }
 
 /* ========== FORMULAIRES : AJOUT ET MODIFICATION ========== */
@@ -970,9 +1005,18 @@ select.form-control {
                     <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i
                             class="zmdi zmdi-chevron-right"></i> &nbsp; Serveur(se)</h6>
                 </div>
+
+                <!-- ============================================================ -->
+                <!-- NOUVEAU BLOC_1 AVEC BADGE, TOTAUX ÉTENDUS, COLONNES PAYÉ/CRÉDIT -->
+                <!-- ============================================================ -->
                 <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
-                    <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;"
-                            class="zmdi zmdi-email-open text-info"></i> Liste</h4>
+                    <!-- TITRE AVEC BADGE INTÉGRÉ -->
+                    <h4 style="color:rgba(0, 0, 0, 0.6);">
+                        <i style="font-size: 40px;" class="zmdi zmdi-email-open text-info"></i> Liste
+                        <span class="badge-invoice">
+                            <i class="zmdi zmdi-view-list" style="color: white;"></i> Factures : <span id="invoiceCount">0</span>
+                        </span>
+                    </h4>
 
                     <!-- SECTION FILTRES AVEC DATE RANGE PICKER -->
                     <div class="filters-container">
@@ -997,17 +1041,16 @@ select.form-control {
                             </select>
                         </div>
                         <div class="filter-group">
+                            <label><i class="zmdi zmdi-table text-danger"></i> Table</label>
+                            <input type="text" id="filterTable" class="form-control" placeholder="Rechercher par table...">
+                        </div>
+                        <div class="filter-group">
                             <label><i class="zmdi zmdi-calendar text-danger"></i> Période (DD/MM/YYYY)</label>
                             <input type="text" id="filterDateRange" class="form-control" placeholder="Sélectionner une période">
                         </div>
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-chart text-danger"></i> Montant</label>
                             <input type="number" id="filterMontant" class="form-control" placeholder="Montant exact" step="0.01">
-                        </div>
-                        <!-- NOUVEAU FILTRE PAR NOM DE TABLE -->
-                        <div class="filter-group">
-                            <label><i class="zmdi zmdi-grid text-danger"></i> Table</label>
-                            <input type="text" id="filterTable" class="form-control" placeholder="Nom de la table...">
                         </div>
                         <div class="filter-group">
                             <button id="resetFilters" class="btn btn-secondary btn-sm" style="border-radius: 40px; padding: 8px 18px;">
@@ -1016,16 +1059,31 @@ select.form-control {
                         </div>
                     </div>
 
-                    <!-- Badges de comptage et totaux -->
-                    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 15px; flex-wrap: wrap;">
-                        <span class="invoice-count-badge" style="background: linear-gradient(135deg, #0a192f, #1e3a5f);">
-                            <i class="zmdi zmdi-view-list"></i> Factures : <span id="invoiceCount">0</span>
-                        </span>
-                        <span class="invoice-count-badge usd-badge">
+                    <!-- BADGES DE TOTAUX AVEC COULEURS DEMANDÉES -->
+                    <div class="invoice-badges-container">
+                        <span class="invoice-count-badge badge-total">
                             <i class="zmdi zmdi-money"></i> Total USD : <span id="totalUsd">0,00</span> $
                         </span>
-                        <span class="invoice-count-badge cdf-badge">
+                        <span class="invoice-count-badge badge-total">
                             <i class="zmdi zmdi-money-box"></i> Total CDF : <span id="totalCdf">0,00</span> Fc
+                        </span>
+                        <span class="invoice-count-badge badge-paye">
+                            <i class="zmdi zmdi-money"></i> Payé USD : <span id="totalPaidUsd">0,00</span> $
+                        </span>
+                        <span class="invoice-count-badge badge-paye">
+                            <i class="zmdi zmdi-money-box"></i> Payé CDF : <span id="totalPaidCdf">0,00</span> Fc
+                        </span>
+                        <span class="invoice-count-badge badge-credit">
+                            <i class="zmdi zmdi-time"></i> Crédit USD : <span id="totalCreditUsd">0,00</span> $
+                        </span>
+                        <span class="invoice-count-badge badge-credit">
+                            <i class="zmdi zmdi-time"></i> Crédit CDF : <span id="totalCreditCdf">0,00</span> Fc
+                        </span>
+                        <span class="invoice-count-badge badge-benefice">
+                            <i class="zmdi zmdi-trending-up"></i> Bénéfice USD : <span id="totalBeneficeUsd">0,00</span> $
+                        </span>
+                        <span class="invoice-count-badge badge-benefice">
+                            <i class="zmdi zmdi-trending-up"></i> Bénéfice CDF : <span id="totalBeneficeCdf">0,00</span> Fc
                         </span>
                     </div>
 
@@ -1040,6 +1098,8 @@ select.form-control {
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Libelle / Client</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Table</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Montant</th>
+                                            <th style="padding-top: 5px;padding-bottom: 5px;">Payé</th>
+                                            <th style="padding-top: 5px;padding-bottom: 5px;">Crédit</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Date</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Mode de paiement</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
@@ -1051,9 +1111,21 @@ select.form-control {
                                             @php
                                                 $taux = $data->taux;
                                                 $total = 0;
+                                                $achat_total_usd = 0;
+                                                $achat_total_cdf = 0;
                                                 $ent = Achats::where('facture_id', $data->id)->get();
                                                 foreach ($ent as $e) {
                                                     $total += $e->total;
+                                                    // Coût d'achat
+                                                    $prix_achat = $e->prix_achat ?? 0;
+                                                    $devise_achat = $e->devise_achat ?? $data->devise;
+                                                    if ($devise_achat == 0) { // USD
+                                                        $achat_total_usd += $prix_achat;
+                                                        $achat_total_cdf += $prix_achat * $taux;
+                                                    } else { // CDF
+                                                        $achat_total_cdf += $prix_achat;
+                                                        $achat_total_usd += $prix_achat / $taux;
+                                                    }
                                                 }
                                                 if ($data->devise == 0) {
                                                     $montant_usd = $total;
@@ -1064,10 +1136,41 @@ select.form-control {
                                                     $montant_usd = $total / $taux;
                                                     $montant_affichage = number_format($total, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
                                                 }
+
+                                                // Bénéfices
+                                                $benefice_usd = $montant_usd - $achat_total_usd;
+                                                $benefice_cdf = $montant_cdf - $achat_total_cdf;
+
+                                                // Calcul des paiements
+                                                $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
+                                                $montant_usd_paye = 0;
+                                                $montant_cdf_paye = 0;
+
+                                                foreach ($paiements as $paiement) {
+                                                    if ($paiement->devise_recu == 0) {
+                                                        $montant_usd_paye += $paiement->montant_recu;
+                                                        $montant_cdf_paye += $paiement->montant_recu * $taux;
+                                                    } else {
+                                                        $montant_cdf_paye += $paiement->montant_recu;
+                                                        $montant_usd_paye += $paiement->montant_recu / $taux;
+                                                    }
+                                                }
+
+                                                $reste_usd = $montant_usd - $montant_usd_paye;
+                                                $reste_cdf = $montant_cdf - $montant_cdf_paye;
+
+                                                $paye_affichage = number_format($montant_usd_paye, 2, ',', ' ') . ' USD (' . number_format($montant_cdf_paye, 2, ',', ' ') . ' CDF)';
+                                                $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
                                             @endphp
                                             <tr id="row_{{ $data->id }}"
                                                 data-montant-usd="{{ $montant_usd }}"
-                                                data-montant-cdf="{{ $montant_cdf }}">
+                                                data-montant-cdf="{{ $montant_cdf }}"
+                                                data-paye-usd="{{ $montant_usd_paye }}"
+                                                data-paye-cdf="{{ $montant_cdf_paye }}"
+                                                data-credit-usd="{{ $reste_usd }}"
+                                                data-credit-cdf="{{ $reste_cdf }}"
+                                                data-benefice-usd="{{ $benefice_usd }}"
+                                                data-benefice-cdf="{{ $benefice_cdf }}">
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell" data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
                                                     {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
@@ -1076,52 +1179,55 @@ select.form-control {
                                                     @if ($data->client_id == 0)
                                                         {{ $data->libelle }}
                                                     @else
-                                                        <?= Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' ?>
+                                                        {{ Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' }}
                                                     @endif
                                                 </td>
-                                                <!-- Cellule Table avec data-table -->
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="table-cell" data-table="{{ $data->table_id == 0 ? 'Aucune' : (Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A') }}">
                                                     @if ($data->table_id == 0)
                                                         Aucune
                                                     @else
-                                                        <?php  $table = Tables::where('id', $data->table_id)->first() ?? 'N/A' ?>
-                                                        @if ($table->occupee == 1)
-                                                            <i class="zmdi zmdi-close-circle text-danger"></i> <span
-                                                            class="text-danger"> {{ $table->nom }}</span>
-                                                        @endif
-                                                        @if ($table->occupee == 0)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span
-                                                                class="text-success"> {{ $table->nom }}</span>
+                                                        @php $table = Tables::where('id', $data->table_id)->first(); @endphp
+                                                        @if ($table && $table->occupee == 1)
+                                                            <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">{{ $table->nom }}</span>
+                                                        @elseif ($table && $table->occupee == 0)
+                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">{{ $table->nom }}</span>
+                                                        @else
+                                                            N/A
                                                         @endif
                                                     @endif
                                                 </td>
-
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="{{ $total }}">
                                                     {{ $montant_affichage }}
                                                 </td>
+                                                <td class="paye-cell {{ $reste_usd > 0 ? 'text-danger' : 'text-success' }}">
+                                                    {{ $paye_affichage }}
+                                                </td>
+                                                <td class="reste-cell {{ $reste_usd > 0 ? 'text-danger' : 'text-success' }}">
+                                                    {{ $reste_affichage }}
+                                                </td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell" data-date="{{ $data->created_at }}">
-                                                    <?php
+                                                    @php
                                                         $date = $data->created_at;
                                                         $date_1 = explode(' ', $date);
                                                         echo explode('-', $date_1[0])[2] . '/' . explode('-', $date_1[0])[1] . '/' . explode('-', $date_1[0])[0] . ' à ' . $date_1[1];
-                                                    ?>
+                                                    @endphp
                                                 </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="statut-cell" data-statut="{{ $data->payer == 0 ? 'unpaid' : 'paid' }}">
-                                                    @if ($data->payer == 0)
-                                                        <i class="zmdi zmdi-close-circle text-danger"></i> <span
-                                                            class="text-danger">{{ 'Aucun' }} </span>
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="statut-cell" data-statut="{{ $reste_usd > 0 ? 'unpaid' : 'paid' }}">
+                                                    @if ($reste_usd > 0)
+                                                        @if ($montant_usd_paye > 0)
+                                                            <i class="zmdi zmdi-time text-warning"></i> <span class="text-warning">Partiel</span>
+                                                        @else
+                                                            <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">Impayé</span>
+                                                        @endif
                                                     @else
                                                         @if ($data->mode_de_paiement == 1)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span
-                                                                class="text-success">CASH</span>
-                                                        @endif
-                                                        @if ($data->mode_de_paiement == 2)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span
-                                                                class="text-success">Mobile money</span>
-                                                        @endif
-                                                        @if ($data->mode_de_paiement == 3)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span
-                                                                class="text-success">Bank</span>
+                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">CASH</span>
+                                                        @elseif ($data->mode_de_paiement == 2)
+                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Mobile money</span>
+                                                        @elseif ($data->mode_de_paiement == 3)
+                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Bank</span>
+                                                        @else
+                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Payé</span>
                                                         @endif
                                                     @endif
                                                 </td>
@@ -1143,13 +1249,13 @@ select.form-control {
                                                     ?>
                                                     <?php } ?>
                                                     <?php if ((($display == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display == 0) && (Auth::user()->role == 0))) { ?>
-                                                        @if ($data->payer == 0)
+                                                        @if ($reste_usd > 0)
                                                             <a id="detail_{{ $i }}" href="#"><i class="zmdi zmdi-money text-danger"></i></a> &nbsp;
                                                         @else
                                                             <a id="detail_{{ $i }}" href="#"><i class="zmdi zmdi-eye text-success"></i></a> &nbsp;
                                                         @endif
                                                     <?php } else { ?>
-                                                        @if ($data->payer == 0)
+                                                        @if ($reste_usd > 0)
                                                             <a id="detail_r{{ $i }}" href="#"><i class="zmdi zmdi-money text-danger"></i></a> &nbsp;
                                                         @else
                                                             <a id="detail_r{{ $i }}" href="#"><i class="zmdi zmdi-eye text-success"></i></a> &nbsp;
@@ -1222,6 +1328,7 @@ select.form-control {
                         </div>
                     </div>
                 </div>
+                <!-- FIN NOUVEAU BLOC_1 -->
 
                 <!-- LIGNE POUR BLOC_2 ET BLOC_3 CÔTE À CÔTE -->
                 <div id="bloc_t" class="row" style="width: 100%; margin: 0;">
@@ -1969,7 +2076,7 @@ select.form-control {
             });
         });
 
-        // ========== FONCTIONS DE FILTRAGE AVEC DATE RANGE PICKER (COMME DANS RAPPORT) ==========
+        // ========== FONCTIONS DE FILTRAGE AVEC DATE RANGE PICKER (MISE À JOUR) ==========
         let filterTimeout;
 
         function saveFiltersToStorage() {
@@ -1980,7 +2087,7 @@ select.form-control {
                 statut: $('#filterStatut').val(),
                 dateRange: $('#filterDateRange').val(),
                 montant: $('#filterMontant').val(),
-                table: $('#filterTable').val()  // NOUVEAU
+                table: $('#filterTable').val()
             };
             localStorage.setItem('invoiceFilters', JSON.stringify(filters));
         }
@@ -1995,7 +2102,7 @@ select.form-control {
                 $('#filterStatut').val(filters.statut || 'all');
                 $('#filterDateRange').val(filters.dateRange || '');
                 $('#filterMontant').val(filters.montant || '');
-                $('#filterTable').val(filters.table || '');  // NOUVEAU
+                $('#filterTable').val(filters.table || '');
                 return true;
             }
             return false;
@@ -2007,7 +2114,7 @@ select.form-control {
             const filterUser = $('#filterUser').val().toLowerCase();
             const filterStatut = $('#filterStatut').val();
             const filterMontant = parseFloat($('#filterMontant').val());
-            const filterTable = $('#filterTable').val().toLowerCase();  // NOUVEAU
+            const filterTable = $('#filterTable').val().toLowerCase();
 
             // Récupération de la plage de dates
             var dateRange = $('#filterDateRange').val() || '';
@@ -2035,6 +2142,9 @@ select.form-control {
 
             let visibleCount = 0;
             let totalUSD = 0, totalCDF = 0;
+            let totalPaidUSD = 0, totalPaidCDF = 0;
+            let totalCreditUSD = 0, totalCreditCDF = 0;
+            let totalBeneficeUSD = 0, totalBeneficeCDF = 0;
 
             $('#content_utilisateur tbody tr').each(function() {
                 const $row = $(this);
@@ -2045,14 +2155,13 @@ select.form-control {
                 const userValue = $row.find('.user-cell').data('user')?.toLowerCase() || '';
                 const statutValue = $row.find('.statut-cell').data('statut') || '';
                 const montantRaw = parseFloat($row.find('.montant-cell').data('montant')) || 0;
-                const tableValue = $row.find('.table-cell').data('table')?.toLowerCase() || '';  // NOUVEAU
+                const tableValue = $row.find('.table-cell').data('table')?.toLowerCase() || '';
 
                 if (filterNumero && !numeroValue.includes(filterNumero)) showRow = false;
                 if (showRow && filterClient && !clientValue.includes(filterClient)) showRow = false;
                 if (showRow && filterUser && !userValue.includes(filterUser)) showRow = false;
                 if (showRow && filterStatut !== 'all' && statutValue !== filterStatut) showRow = false;
                 if (showRow && !isNaN(filterMontant) && Math.abs(montantRaw - filterMontant) > 0.009) showRow = false;
-                // NOUVEAU : filtre table
                 if (showRow && filterTable && !tableValue.includes(filterTable)) showRow = false;
 
                 if (showRow && dateDebut && dateFin) {
@@ -2086,14 +2195,27 @@ select.form-control {
                     visibleCount++;
                     totalUSD += parseFloat($row.data('montant-usd')) || 0;
                     totalCDF += parseFloat($row.data('montant-cdf')) || 0;
+                    totalPaidUSD += parseFloat($row.data('paye-usd')) || 0;
+                    totalPaidCDF += parseFloat($row.data('paye-cdf')) || 0;
+                    totalCreditUSD += parseFloat($row.data('credit-usd')) || 0;
+                    totalCreditCDF += parseFloat($row.data('credit-cdf')) || 0;
+                    totalBeneficeUSD += parseFloat($row.data('benefice-usd')) || 0;
+                    totalBeneficeCDF += parseFloat($row.data('benefice-cdf')) || 0;
                 } else {
                     $row.hide();
                 }
             });
 
+            // Mise à jour des badges
             $('#invoiceCount').text(visibleCount);
             $('#totalUsd').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalCdf').text(totalCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalPaidUsd').text(totalPaidUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalPaidCdf').text(totalPaidCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalCreditUsd').text(totalCreditUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalCreditCdf').text(totalCreditCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalBeneficeUsd').text(totalBeneficeUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalBeneficeCdf').text(totalBeneficeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 
             if (visibleCount === 0 && (filterNumero || filterClient || filterUser || filterStatut !== 'all' || dateRange || !isNaN(filterMontant) || filterTable)) {
                 $('#msg').html('<i class="zmdi zmdi-info"></i> Aucune facture ne correspond aux critères de recherche');
@@ -2119,7 +2241,7 @@ select.form-control {
             $('#filterUser').val('');
             $('#filterStatut').val('all');
             $('#filterMontant').val('');
-            $('#filterTable').val('');  // NOUVEAU
+            $('#filterTable').val('');
 
             saveFiltersToStorage();
             filterInvoices();
@@ -2198,7 +2320,7 @@ select.form-control {
             }
             filterInvoices();
 
-            // Événements des autres filtres (incluant le nouveau)
+            // Événements des autres filtres
             $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant, #filterTable').on('input change', function() {
                 debouncedFilter();
             });
@@ -2230,16 +2352,13 @@ select.form-control {
         }
 
         document.getElementById('btn_payer').addEventListener('click', async function() {
-            cdf_montant_payer = $("#cdf_montant_payer").val();
-            usd_montant_payer = $("#usd_montant_payer").val();
-            payer = $("#payer").val();
             const btnPayer = this;
             btnPayer.disabled = true;
             const msgFacture = document.getElementById('msg_facture');
-            msgFacture.innerHTML = '⏳ Traitement en cours...';
-            msgFacture.style.color = '#17a2b8';
             const originalBtnText = btnPayer.innerHTML;
             btnPayer.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Chargement...';
+            msgFacture.innerHTML = '⏳ Traitement en cours...';
+            msgFacture.style.color = '#17a2b8';
 
             try {
                 const factureId = $("#id_fac").val();
@@ -2250,120 +2369,134 @@ select.form-control {
                     return;
                 }
 
-                try {
-                    const response = await $.get("{{ url('/check_paie_facture') }}", { facture_id: factureId });
-                    if (response == 1) {
-                        msgFacture.innerHTML = '⚠️ Facture déjà payée';
-                        msgFacture.style.color = '#ffc107';
-                        setTimeout(() => { msgFacture.innerHTML = ''; }, 5000);
-                        return;
-                    }
+                // 1. Vérifier si déjà payée
+                const checkPaie = await $.get("{{ url('/check_paie_facture') }}", { facture_id: factureId });
+                if (checkPaie == 1) {
+                    msgFacture.innerHTML = '⚠️ Facture déjà payée';
+                    msgFacture.style.color = '#ffc107';
+                    setTimeout(() => { msgFacture.innerHTML = ''; }, 5000);
+                    return;
+                }
 
-                    const montantRecuRaw = document.getElementById('montant_recu').value;
-                    const montantRecu = convertirEnNombre(montantRecuRaw);
-                    const deviseRecu = document.getElementById('devise_recu').value;
+                // 2. Récupérer les montants restants
+                const detailData = await $.get("{{ url('/get_all_detail_achat_paie') }}", { facture_id: factureId });
+                const {
+                    montant_usd_1,
+                    montant_cdf_1,
+                    montant_usd_2,
+                    montant_cdf_2,
+                    usd_montant_total_a_payer,
+                    cdf_montant_total_a_payer
+                } = detailData;
 
-                    if (isNaN(montantRecu) || montantRecu <= 0) {
-                        msgFacture.innerHTML = '❌ Veuillez entrer un montant valide';
-                        msgFacture.style.color = '#dc3545';
-                        document.getElementById('montant_recu').focus();
-                        setTimeout(() => { msgFacture.innerHTML = ''; }, 5000);
-                        return;
-                    }
+                $("#usd_montant_payer").val(usd_montant_total_a_payer);
+                $("#cdf_montant_payer").val(cdf_montant_total_a_payer);
 
-                    if (!deviseRecu || deviseRecu === "") {
-                        msgFacture.innerHTML = '❌ Veuillez sélectionner une devise';
-                        msgFacture.style.color = '#dc3545';
-                        document.getElementById('devise_recu').focus();
-                        setTimeout(() => { msgFacture.innerHTML = ''; }, 5000);
-                        return;
-                    }
+                const montantRecuRaw = document.getElementById('montant_recu').value;
+                const montantRecu = convertirEnNombre(montantRecuRaw);
+                const deviseRecu = document.getElementById('devise_recu').value;
 
-                    const deviseLabel = deviseRecu === "0" ? "USD" : "CDF";
-                    let montantAPayer;
-                    if (deviseRecu === "0") {
-                        montantAPayer = convertirEnNombre(usd_montant_payer);
+                if (isNaN(montantRecu) || montantRecu <= 0) {
+                    msgFacture.innerHTML = '❌ Veuillez entrer un montant valide';
+                    msgFacture.style.color = '#dc3545';
+                    document.getElementById('montant_recu').focus();
+                    setTimeout(() => { msgFacture.innerHTML = ''; }, 5000);
+                    return;
+                }
+
+                if (!deviseRecu || deviseRecu === "") {
+                    msgFacture.innerHTML = '❌ Veuillez sélectionner une devise';
+                    msgFacture.style.color = '#dc3545';
+                    document.getElementById('devise_recu').focus();
+                    setTimeout(() => { msgFacture.innerHTML = ''; }, 5000);
+                    return;
+                }
+
+                const deviseLabel = deviseRecu === "0" ? "USD" : "CDF";
+                let montantRestant;
+                if (deviseRecu === "0") {
+                    montantRestant = usd_montant_total_a_payer;
+                } else {
+                    montantRestant = cdf_montant_total_a_payer;
+                }
+
+                if (isNaN(montantRestant) || montantRestant <= 0) {
+                    msgFacture.innerHTML = '❌ Facture déjà payée ou aucun montant restant à payer dans cette devise';
+                    msgFacture.style.color = '#dc3545';
+                    setTimeout(() => { msgFacture.innerHTML = ''; }, 15000);
+                    return;
+                }
+
+                let montantPaye, monnaie;
+                if (montantRecu >= montantRestant) {
+                    montantPaye = montantRestant;
+                    monnaie = montantRecu - montantRestant;
+                } else {
+                    montantPaye = montantRecu;
+                    monnaie = 0;
+                }
+
+                // 3. Sauvegarder le paiement
+                const saveResponse = await $.post("{{ url('/save_paie_facture') }}", {
+                    _token: "{{ csrf_token() }}",
+                    facture_id: factureId,
+                    montant_recu: montantRecu,
+                    devise_recu: deviseRecu,
+                    montant_paye: montantPaye,
+                    monnaie: monnaie,
+                });
+
+                if (saveResponse.success || saveResponse == 1) {
+                    const msg = `✅ PAIEMENT ${montantPaye === montantRestant ? 'TOTAL' : 'PARTIEL'} RÉUSSI !<br>
+                                📄 Reste avant paiement : ${montantRestant.toFixed(2)} ${deviseLabel}<br>
+                                💵 Montant reçu : ${montantRecu.toFixed(2)} ${deviseLabel}<br>
+                                💰 Montant imputé : ${montantPaye.toFixed(2)} ${deviseLabel}<br>
+                                ${monnaie > 0 ? `🔄 Monnaie rendue : ${monnaie.toFixed(2)} ${deviseLabel}` : ''}
+                                ${montantPaye < montantRestant ? `📌 Nouveau reste : ${(montantRestant - montantPaye).toFixed(2)} ${deviseLabel}` : '✅ Facture soldée'}`;
+                    msgFacture.innerHTML = msg;
+                    msgFacture.style.color = '#28a745';
+                    document.getElementById('montant_recu').value = '';
+
+                    // Rafraîchir le PDF si nécessaire
+                    const pdfUrl = "{{ isset($data->lien) ? $data->lien : '' }}";
+                    if (pdfUrl && pdfUrl !== '') {
+                        currentPdfUrl = pdfUrl;
+                        $("#pdfIframe").attr("src", pdfUrl);
                     } else {
-                        montantAPayer = convertirEnNombre(cdf_montant_payer);
+                        const pdfResponse = await $.get("{{ url('/print_facture') }}", { facture_id: factureId });
+                        if (pdfResponse && pdfResponse[0] && pdfResponse[0][0]) {
+                            currentPdfUrl = pdfResponse[0][0];
+                            $("#pdfIframe").attr("src", pdfResponse[0][0]);
+                            $("#cdf_montant_payer").val(pdfResponse[0][1] || 0);
+                            $("#usd_montant_payer").val(pdfResponse[0][2] || 0);
+                            $("#payer").val(pdfResponse[0][5] || '');
+                        } else {
+                            alert("Aucun PDF disponible pour cette facture.");
+                        }
                     }
 
-                    if (isNaN(montantAPayer) || montantAPayer <= 0) {
-                        msgFacture.innerHTML = '❌ Erreur: Montant à payer invalide';
-                        msgFacture.style.color = '#dc3545';
-                        setTimeout(() => { msgFacture.innerHTML = ''; }, 9000);
-                        return;
-                    }
-
-                    if (montantRecu < montantAPayer) {
-                        const reste = montantAPayer - montantRecu;
-                        msgFacture.innerHTML = `❌ MONTANT INSUFFISANT !<br>📄 Montant à payer : ${montantAPayer.toFixed(2)} ${deviseLabel}<br>`;
-                        msgFacture.style.color = '#dc3545';
-                        document.getElementById('montant_recu').focus();
-                        setTimeout(() => { msgFacture.innerHTML = ''; }, 9000);
-                        return;
-                    }
-
-                    const monnaie = montantRecu - montantAPayer;
-                    const saveResponse = await $.post("{{ url('/save_paie_facture') }}", {
-                        _token: "{{ csrf_token() }}",
-                        facture_id: factureId,
-                        montant_recu: montantRecu,
-                        devise_recu: deviseRecu,
-                        montant_paye: montantAPayer,
-                        monnaie: monnaie
+                    // Mettre à jour le tableau des factures
+                    await $.get("{{ url('/get_all_facture') }}", {}, function(response) {
+                        $("#content_utilisateur").html(response);
                     });
 
-                    if (saveResponse.success || saveResponse == 1) {
-                        msgFacture.innerHTML = `✅ PAIEMENT RÉUSSI !<br>📄 Montant à payer : ${montantAPayer.toFixed(2)} ${deviseLabel}<br>💵 Montant reçu : ${montantRecu.toFixed(2)} ${deviseLabel}<br>💰 Reste (monnaie) : ${monnaie.toFixed(2)} ${deviseLabel}`;
-                        msgFacture.style.color = '#28a745';
-                        document.getElementById('montant_recu').value = '';
-
-                        var pdfUrl = "{{ isset($data->lien) ? $data->lien : '' }}";
-                        if (pdfUrl && pdfUrl !== '') {
-                            currentPdfUrl = pdfUrl;
-                            $("#pdfIframe").attr("src", pdfUrl);
-                        } else {
-                            await $.get("{{ url('/print_facture') }}", { "facture_id": factureId }, function(response) {
-                                if (response && response[0][0]) {
-                                    currentPdfUrl = response[0][0];
-                                    $("#pdfIframe").attr("src", response[0][0]);
-                                    $("#cdf_montant_payer").val(response[0][1]);
-                                    $("#usd_montant_payer").val(response[0][2]);
-                                    $("#payer").val(response[0][5]);
-                                } else if (response && typeof response[0][0] === 'string') {
-                                    currentPdfUrl = response[0][0];
-                                    $("#pdfIframe").attr("src", response[0][0]);
-                                    $("#cdf_montant_payer").val(response[0][1]);
-                                    $("#usd_montant_payer").val(response[0][2]);
-                                    $("#payer").val(response[0][5]);
-                                } else {
-                                    alert("Aucun PDF disponible pour cette facture.");
-                                }
-                            }).fail(function() {
-                                alert("Erreur lors de la récupération du PDF.");
-                            });
-                        }
-
-                        await $.get("{{ url('/get_all_facture') }}", {}, function(response) {
-                            $("#content_utilisateur").html(response);
-                        });
-
-                        saveFiltersToStorage();
-                        setTimeout(function() {
-                            loadFiltersFromStorage();
-                            filterInvoices();
-                        }, 200);
-                    } else {
-                        msgFacture.innerHTML = '❌ Erreur lors de l\'enregistrement du paiement';
-                        msgFacture.style.color = '#dc3545';
-                    }
-                    setTimeout(() => { msgFacture.innerHTML = ''; }, 15000);
-                } catch (error) {
-                    console.error("Erreur API:", error);
-                    msgFacture.innerHTML = '❌ Erreur de connexion à l\'API';
+                    // Réappliquer les filtres
+                    saveFiltersToStorage();
+                    setTimeout(function() {
+                        loadFiltersFromStorage();
+                        filterInvoices();
+                    }, 200);
+                } else {
+                    msgFacture.innerHTML = '❌ Erreur lors de l\'enregistrement du paiement';
                     msgFacture.style.color = '#dc3545';
-                    setTimeout(() => { msgFacture.innerHTML = ''; }, 9000);
                 }
+                setTimeout(() => { msgFacture.innerHTML = ''; }, 9000);
+
+            } catch (error) {
+                console.error("Erreur API:", error);
+                msgFacture.innerHTML = '❌ Erreur de connexion à l\'API';
+                msgFacture.style.color = '#dc3545';
+                setTimeout(() => { msgFacture.innerHTML = ''; }, 9000);
             } finally {
                 btnPayer.disabled = false;
                 btnPayer.innerHTML = originalBtnText;

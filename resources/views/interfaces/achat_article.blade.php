@@ -107,9 +107,9 @@ h4 i.zmdi {
     color: transparent !important;
 }
 
-/* Badge dans le titre (responsive) */
+/* ===== BADGE DANS LE TITRE – MAINTENANT EN ROUGE ===== */
 h4 .badge-invoice {
-    background: linear-gradient(135deg, #0a192f, #1e3a5f);
+    background: linear-gradient(135deg, #e31b23, #b91c1c);
     color: white;
     border-radius: 50px;
     padding: 4px 12px;
@@ -365,8 +365,6 @@ h4 .badge-invoice {
 }
 
 .invoice-count-badge {
-    background: var(--rouge-gradient);
-    color: white;
     border-radius: 50px;
     padding: 4px 12px;
     font-size: 0.75rem;
@@ -375,32 +373,39 @@ h4 .badge-invoice {
     align-items: center;
     gap: 6px;
     white-space: nowrap;
+    color: white;
 }
 
-/* Badge pour total USD et CDF (on garde les dégradés personnalisés) */
+/* ===== BADGE POUR TOTAL USD ET CDF – #3B82F6 ===== */
 .invoice-count-badge.usd-badge {
-    background: linear-gradient(135deg, #0f4c5f, #1e6f5c);
+    background: linear-gradient(135deg, #3B82F6, #2563eb);
 }
 .invoice-count-badge.cdf-badge {
-    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    background: linear-gradient(135deg, #3B82F6, #2563eb);
 }
-.invoice-count-badge.benefice-usd {
-    background: linear-gradient(135deg, #1e3a5f, #3b82f6);
-}
-.invoice-count-badge.benefice-cdf {
-    background: linear-gradient(135deg, #92400e, #f59e0b);
-}
+
+/* ===== BADGE PAYÉ USD / CDF – BLEU DE NUIT ===== */
 .invoice-count-badge.paye-usd {
-    background: linear-gradient(135deg, #0f4c5f, #1e6f5c);
+    background: linear-gradient(135deg, #0a192f, #1e3a5f);
 }
 .invoice-count-badge.paye-cdf {
-    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    background: linear-gradient(135deg, #0a192f, #1e3a5f);
 }
+
+/* ===== BADGE CRÉDIT USD / CDF – ROUGE ===== */
 .invoice-count-badge.credit-usd {
-    background: linear-gradient(135deg, #b91c1c, #dc2626);
+    background: linear-gradient(135deg, #dc3545, #b02a37);
 }
 .invoice-count-badge.credit-cdf {
-    background: linear-gradient(135deg, #d97706, #f59e0b);
+    background: linear-gradient(135deg, #dc3545, #b02a37);
+}
+
+/* ===== BADGE BÉNÉFICE USD / CDF – VERT SUCCÈS ===== */
+.invoice-count-badge.benefice-usd {
+    background: linear-gradient(135deg, #198754, #146c43);
+}
+.invoice-count-badge.benefice-cdf {
+    background: linear-gradient(135deg, #198754, #146c43);
 }
 
 /* ========== FORMULAIRES : AJOUT ET MODIFICATION ========== */
@@ -1022,6 +1027,7 @@ select.form-control {
                     <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i
                             class="zmdi zmdi-chevron-right"></i> &nbsp; Gestion de facture</h6>
                 </div>
+
                 <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
                     <!-- TITRE AVEC BADGE INTÉGRÉ -->
                     <h4 style="color:rgba(0, 0, 0, 0.6);">
