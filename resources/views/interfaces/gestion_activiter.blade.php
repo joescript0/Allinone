@@ -787,6 +787,8 @@ use App\Models\Soldes;
                                         <tr>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">N°</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Nom</th>
+                                            <th style="padding-top: 5px;padding-bottom: 5px;">Taux facture (CDF)</th>
+                                            <th style="padding-top: 5px;padding-bottom: 5px;">TVA (%)</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Description</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                                         </tr>
@@ -801,6 +803,12 @@ use App\Models\Soldes;
                                                         <img src="{{ asset($data->logo) }}" alt="logo"
                                                             class="profile-thumb">
                                                     </a> {{ $data->nom }}
+                                                </td>
+                                                <td style="padding-top: 5px;padding-bottom: 5px;">
+                                                    {{ $data->taux ?? '' }}
+                                                </td>
+                                                <td style="padding-top: 5px;padding-bottom: 5px;">
+                                                    {{ $data->tva ?? '' }}
                                                 </td>
                                                 <td class="description-cell" data-description="{{ $data->description }}" style="padding-top: 5px;padding-bottom: 5px;">
                                                     {{ $data->description }}
@@ -845,7 +853,7 @@ use App\Models\Soldes;
                                         @endforeach
                                         <!-- Ligne pour aucun résultat -->
                                         <tr id="noResultRow" style="display: none;">
-                                            <td colspan="4">
+                                            <td colspan="6">
                                                 <i class="zmdi zmdi-info-outline"></i> Aucune activité ne correspond à vos critères.
                                             </td>
                                         </tr>
@@ -878,7 +886,7 @@ use App\Models\Soldes;
                             <div class="col-6">
                                 <div class="form-group">
                                     <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                            class="zmdi zmdi-account"></i> Nom </span></label>
+                                            class="zmdi zmdi-account"></i> Nom </span><span style="color:red;">*</span></label>
                                     <input type="text" id="nom" name="nom"
                                         style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);"
                                         class="form-control" placeholder="Nom (Ex : Noryang)">
@@ -891,6 +899,22 @@ use App\Models\Soldes;
                                     <textarea style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);"
                                         class="form-control" placeholder="Description" name="description" id="description" cols="2"
                                         rows="1"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NOUVEAUX CHAMPS : Taux facture et TVA (obligatoires, entiers) -->
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-money"></i> Taux facture (CDF) <span style="color:red;">*</span></label>
+                                    <input type="number" id="taux_facture" name="taux_facture" class="form-control" placeholder="Ex: 2200" step="1" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-percent"></i> TVA (%) <span style="color:red;">*</span></label>
+                                    <input type="number" id="tva" name="tva" class="form-control" placeholder="Ex: 16" step="1" min="0" required>
                                 </div>
                             </div>
                         </div>
@@ -1174,53 +1198,85 @@ use App\Models\Soldes;
                 });
             });
 
-            // ========== AJOUT D'UNE ACTIVITÉ ==========
+            // ========== AJOUT D'UNE ACTIVITÉ (avec validation des nouveaux champs) ==========
             $("#save").click(function(e) {
                 e.preventDefault();
-                var nom = $("#nom").val();
+
+                var nom = $("#nom").val().trim();
                 var description = $("#description").val();
-                var data = $("#form_add").serialize();
-                if (nom.trim().length == 0) {
-                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom');
+                var taux_facture = $("#taux_facture").val();
+                var tva = $("#tva").val();
+
+                // 1. Validation du nom (obligatoire)
+                if (nom.length === 0) {
+                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Veuillez saisir le nom');
                     $('#msg').css('display', 'flex');
                     setTimeout(() => {
                         $('#msg').html('');
                         $('#msg').css('display', 'none');
                     }, 9000);
-                } else {
-                    $.get("{{ url('/check_nom_activiter') }}", {
-                        nom: nom,
-                    }, function(rep) {
-                        if (rep != 0) {
-                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Cette activité existe déjà');
-                            $('#msg').css('display', 'flex');
-                            setTimeout(() => {
-                                $('#msg').html('');
-                                $('#msg').css('display', 'none');
-                            }, 9000);
-                        } else {
-                            $("#save").attr("disabled", true);
-                            $.ajax({
-                                type: "POST",
-                                url: "/add_activiter",
-                                data: data,
-                                success: function(response) {
-                                    $("#save").attr("disabled", false);
-                                    $("#nom").val("");
-                                    $("#description").val("");
-                                    $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Activité ajoutée avec succès');
-                                    $('#msg').css('display', 'flex');
-                                    $("#content_groupe").html(response);
-                                    filterActivities();
-                                    setTimeout(() => {
-                                        $('#msg').html('');
-                                        $('#msg').css('display', 'none');
-                                    }, 9000);
-                                }
-                            });
-                        }
-                    });
+                    return;
                 }
+
+                // 2. Validation du taux facture : obligatoire et entier >= 0
+                if (taux_facture === '' || isNaN(taux_facture) || !Number.isInteger(parseFloat(taux_facture)) || parseFloat(taux_facture) < 0) {
+                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le taux facture est obligatoire et doit être un nombre entier (ex: 2200)');
+                    $('#msg').css('display', 'flex');
+                    setTimeout(() => {
+                        $('#msg').html('');
+                        $('#msg').css('display', 'none');
+                    }, 9000);
+                    return;
+                }
+
+                // 3. Validation de la TVA : obligatoire et entier >= 0
+                if (tva === '' || isNaN(tva) || !Number.isInteger(parseFloat(tva)) || parseFloat(tva) < 0) {
+                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> La TVA est obligatoire et doit être un nombre entier (ex: 16)');
+                    $('#msg').css('display', 'flex');
+                    setTimeout(() => {
+                        $('#msg').html('');
+                        $('#msg').css('display', 'none');
+                    }, 9000);
+                    return;
+                }
+
+                // 4. Vérification de l'existence du nom (déjà présent dans le code original)
+                $.get("{{ url('/check_nom_activiter') }}", {
+                    nom: nom,
+                }, function(rep) {
+                    if (rep != 0) {
+                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Cette activité existe déjà');
+                        $('#msg').css('display', 'flex');
+                        setTimeout(() => {
+                            $('#msg').html('');
+                            $('#msg').css('display', 'none');
+                        }, 9000);
+                    } else {
+                        // 5. Envoi du formulaire
+                        $("#save").attr("disabled", true);
+                        var data = $("#form_add").serialize();
+                        $.ajax({
+                            type: "POST",
+                            url: "/add_activiter",
+                            data: data,
+                            success: function(response) {
+                                $("#save").attr("disabled", false);
+                                $("#nom").val("");
+                                $("#description").val("");
+                                $("#taux_facture").val("");
+                                $("#tva").val("");
+                                $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Activité ajoutée avec succès');
+                                $('#msg').css('display', 'flex');
+                                $("#content_groupe").html(response);
+                                filterActivities();
+                                setTimeout(() => {
+                                    $('#msg').html('');
+                                    $('#msg').css('display', 'none');
+                                }, 9000);
+                            }
+                        });
+                    }
+                });
             });
 
             // ========== SUPPRESSION ==========

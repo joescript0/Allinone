@@ -24,17 +24,34 @@ use Illuminate\Support\Facades\Auth;
             <tbody>
                 {{ !($i = 1) }}
                 @foreach ($factures as $data)
-                    <tr>
-                        <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->numero }}</td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;">
-                            {{ User::where('id', $data->user_id)->first()['name'] }}</td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;">
-                            <?php
-                            $t = 0;
-                            $ent = Approvisionnements::where('facture_id', $data->id)->get();
-                            foreach ($ent as $e) {
-                                $t = $t + $e->total;
+                    @php
+                        $t = 0;
+                        $ent = Approvisionnements::where('facture_id', $data->id)->get();
+                        foreach ($ent as $e) {
+                            $t = $t + $e->total;
+
+                            // Taux de la facture (si disponible, sinon 1)
+                            $tauxFacture = $e->taux ?? 1;
+                            if ($data->devise == 0) {
+                                $montant_usd = $t;
+                                $montant_cdf = $t * $tauxFacture;
+                            } else {
+                                $montant_cdf = $t;
+                                $montant_usd = $t / $tauxFacture;
                             }
+                        }
+                    @endphp
+                    <tr id="row_{{ $data->id }}" data-montant-usd="{{ $montant_usd }}"
+                        data-montant-cdf="{{ $montant_cdf }}">
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell"
+                            data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell"
+                            data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
+                            {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
+                        </td>
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell"
+                            data-montant="<?php echo $t; ?>">
+                            <?php
                             if ($data->devise == 0) {
                                 echo number_format($t, 2, ',', ' ') . '(USD)';
                             } else {
@@ -42,8 +59,9 @@ use Illuminate\Support\Facades\Auth;
                             }
                             ?>
                         </td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;">
-                            {{ $data->date_creation }}
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell"
+                            data-date="{{ date('Y-m-d', strtotime($data->date_creation)) }}">
+                            {{ date('d/m/Y', strtotime($data->date_creation)) }}
                         </td>
                         <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                             <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
@@ -68,21 +86,6 @@ use Illuminate\Support\Facades\Auth;
                             <a id="detail_r<?= $i ?>" href="#"><i class="zmdi zmdi-eye text-info"></i></a> &nbsp;
                             <?php } ?>
                             <script>
-                                $("#edit_<?= $i ?>").click(function(e) {
-                                    e.preventDefault();
-                                    $.get("{{ url('/refresh_editdecisions') }}", {
-                                        invitation_id: <?= $data->id ?>,
-                                    }, function(refresh_editinvitations) {
-                                        $("#bloc_1").hide();
-                                        $("#bloc_2").hide();
-                                        $("#bloc_3").show();
-                                        $("#bloc_3").html(refresh_editinvitations);
-                                    });
-                                });
-                                $("#edit_r<?= $i ?>").click(function(e) {
-                                    e.preventDefault();
-                                    $("#btn_refus").trigger("click");
-                                });
                                 $("#detail_<?= $i ?>").click(function(e) {
                                     e.preventDefault();
                                     $.get("{{ url('/refresh_detailfactureas') }}", {
@@ -97,16 +100,6 @@ use Illuminate\Support\Facades\Auth;
                                 $("#detail_r<?= $i ?>").click(function(e) {
                                     e.preventDefault();
                                     $("#btn_refus").trigger("click");
-                                });
-                                $("#delete_r<?= $i ?>").click(function(e) {
-                                    e.preventDefault();
-                                    $("#btn_refus").trigger("click");
-                                });
-                                $("#delete_<?= $i ?>").click(function(e) {
-                                    e.preventDefault();
-                                    $("#element").html("<?= $data->numero_decision ?>");
-                                    $("#data_id").html("<?= $data->id ?>");
-                                    $("#btn_sup").trigger("click");
                                 });
                             </script>
                         </td>

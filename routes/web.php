@@ -318,6 +318,7 @@ Route::get('/get_tables_select', [AjaxController::class, 'get_tables_select'])->
 Route::get('/get_articles_select', [AjaxController::class, 'get_articles_select'])->name('get_articles_select');
 Route::get('/nettoyer_table', [AjaxController::class, 'nettoyer_table'])->name('nettoyer_table');
 Route::get('/get_all_table_d', [AjaxController::class, 'get_all_table_d'])->name('get_all_table_d');
+Route::get('/get_all_detail_achat_paie', [AjaxController::class, 'get_all_detail_achat_paie'])->name('get_all_detail_achat_paie');
 
 
 // Route::get('/', function () {

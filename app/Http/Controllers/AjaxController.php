@@ -56,6 +56,7 @@ use App\Models\beneficiaires;
 use App\Models\classes;
 use App\Models\communes;
 use App\Models\Depenses;
+use App\Models\detailpaiessachats;
 use App\Models\detailsaffectationstables;
 use App\Models\districts;
 use App\Models\ecoles;
@@ -1868,26 +1869,188 @@ class AjaxController extends Controller
         return view('include.refresh_factureass', $data);
     }
 
+    public function get_all_detail_achat_paie(Request $request)
+    {
+        // Recherche de la facture
+        $facture = Factureass::find($request->facture_id);
+        if (!$facture) 
+        {
+            return response()->json(['error' => 'Facture non trouvée'], 404);
+        }
+
+        // --- 1. Calcul du montant total dû ---
+        $achats = Achats::where('facture_id', $facture->id)->get();
+        $total_ht = $achats->sum('total');
+        $taux = $facture->taux;
+
+        $montant_usd_1 = 0;
+        $montant_cdf_1 = 0;
+        if ($facture->devise == 0) { // facture en USD
+            $montant_usd_1 = $total_ht;
+            $montant_cdf_1 = $total_ht * $taux;
+        } else { // facture en CDF
+            $montant_cdf_1 = $total_ht;
+            $montant_usd_1 = $total_ht / $taux;
+        }
+
+        // --- 2. Calcul du total déjà payé ---
+        $paiements = detailpaiessachats::where('facture_id', $request->facture_id)->get();
+
+        $montant_usd_2 = 0;
+        $montant_cdf_2 = 0;
+
+        foreach ($paiements as $paiement) {
+            if ($paiement->devise_recu == 0) { // paiement en USD
+                $montant_usd_2 += $paiement->montant_recu;
+                $montant_cdf_2 += $paiement->montant_recu * $taux;
+            } else { // paiement en CDF
+                $montant_cdf_2 += $paiement->montant_recu;
+                $montant_usd_2 += $paiement->montant_recu / $taux;
+            }
+        }
+
+        // --- 3. Calcul des soldes restants ---
+        $usd_montant_total_a_payer = $montant_usd_1 - $montant_usd_2;
+        $cdf_montant_total_a_payer = $montant_cdf_1 - $montant_cdf_2;
+
+        // --- 4. Retour des données ---
+        return response()->json([
+            'montant_usd_1'          => round($montant_usd_1, 2),
+            'montant_cdf_1'          => round($montant_cdf_1, 2),
+            'montant_usd_2'          => round($montant_usd_2, 2),
+            'montant_cdf_2'          => round($montant_cdf_2, 2),
+            'usd_montant_total_a_payer' => round($usd_montant_total_a_payer, 2),
+            'cdf_montant_total_a_payer' => round($cdf_montant_total_a_payer, 2),
+        ]);
+    }
+
     public function save_paie_facture(Request $request)
     {
-        DB::beginTransaction();
-
         try {
             $facture = Factureass::find($request->facture_id);
-
             if (!$facture) {
                 DB::rollBack();
                 return response()->json([0]);
             }
 
-            $facture->payer = 1;
-            $facture->montant_recu = $request->montant_recu;
-            $facture->devise_recu = $request->devise_recu;
+            $taux = $facture->taux;
+
+            // ------------------------------------------------------------
+            // 1. Calcul du total dû (depuis les achats) en USD et CDF
+            // ------------------------------------------------------------
+            $total_du = Achats::where('facture_id', $facture->id)->sum('total');
+            // total_du est dans la devise de la facture (0=USD, 1=CDF)
+            if ($facture->devise == 0) { // facture en USD
+                $total_du_usd = $total_du;
+                $total_du_cdf = $total_du * $taux;
+            } else { // facture en CDF
+                $total_du_cdf = $total_du;
+                $total_du_usd = $total_du / $taux;
+            }
+
+            // ------------------------------------------------------------
+            // 2. Calcul du total déjà payé (depuis les détails) en USD et CDF
+            // ------------------------------------------------------------
+            $paiements = detailpaiessachats::where('facture_id', $facture->id)->get();
+            $total_paye_usd = 0;
+            $total_paye_cdf = 0;
+            foreach ($paiements as $p) {
+                if ($p->devise_recu == 0) { // paiement en USD
+                    $total_paye_usd += $p->montant_recu;
+                } else { // paiement en CDF
+                    $total_paye_cdf += $p->montant_recu;
+                }
+            }
+
+            // ------------------------------------------------------------
+            // 3. Restant dû dans la devise du paiement reçu (pour plafonner)
+            // ------------------------------------------------------------
+            $devise_paiement = $request->devise_recu; // 0=USD, 1=CDF
+            // On calcule le restant dû en USD et CDF
+            $reste_du_usd = max($total_du_usd - $total_paye_usd, 0);
+            $reste_du_cdf = max($total_du_cdf - $total_paye_cdf, 0);
+
+            if ($reste_du_usd <= 0 && $reste_du_cdf <= 0) {
+                // déjà entièrement payé
+                DB::rollBack();
+                return response()->json([0]); // ou message "facture soldée"
+            }
+
+            // Restant dû dans la devise du paiement
+            if ($devise_paiement == 0) { // paiement en USD
+                $reste_en_devise_paiement = $reste_du_usd;
+            } else { // paiement en CDF
+                $reste_en_devise_paiement = $reste_du_cdf;
+            }
+
+            // ------------------------------------------------------------
+            // 4. Plafonnement du montant saisi
+            // ------------------------------------------------------------
+            $montant_saisi = $request->montant_recu;
+            if ($montant_saisi <= 0) {
+                DB::rollBack();
+                return response()->json([0]);
+            }
+            $montant_effectif = min($montant_saisi, $reste_en_devise_paiement);
+            $monnaie_a_rendre = max($montant_saisi - $montant_effectif, 0);
+
+            // ------------------------------------------------------------
+            // 5. Mise à jour de la facture (champs montant_recu et reste)
+            // ------------------------------------------------------------
+            // On ajoute le montant effectif dans la devise du paiement
+            // Mais on doit stocker montant_recu dans la devise de la facture ?
+            // Dans votre code original, vous ajoutiez directement $request->montant_recu
+            // sans conversion, donc je suppose que montant_recu est dans la devise de la facture.
+            // Pour conserver la cohérence, on convertit le montant effectif dans la devise de la facture.
+            if ($facture->devise == 0) { // facture en USD
+                $montant_a_ajouter = ($devise_paiement == 0) ? $montant_effectif : $montant_effectif / $taux;
+            } else { // facture en CDF
+                $montant_a_ajouter = ($devise_paiement == 1) ? $montant_effectif : $montant_effectif * $taux;
+            }
+            $facture->montant_recu += $montant_a_ajouter;
+            $facture->devise_recu = $devise_paiement;
             $facture->mode_de_paiement = 1;
-            $facture->reste = $request->monnaie;
-            $facture->save();
+            $facture->reste = $monnaie_a_rendre; // monnaie à rendre
+
+            // ------------------------------------------------------------
+            // 6. Insertion du détail de paiement avec le montant effectif
+            // ------------------------------------------------------------
+            $id = detailpaiessachats::max('id') + 1;
+            $detail = new detailpaiessachats();
+            $detail->id = $id;
+            $detail->facture_id = $request->facture_id;
+            $detail->montant_effectif = $montant_effectif; // on enregistre le montant effectif (plafonné)
+            $detail->devise_recu = $devise_paiement;
+            $detail->date_creation = date("d/m/Y à H:i:s");
+            $detail->montant_recu = $montant_a_ajouter;
+            $detail->mode_de_paiement = 1;
+            $detail->reste = $monnaie_a_rendre; // monnaie à rendre
+            $detail->save();
 
             DB::commit();
+
+            // ------------------------------------------------------------
+            // 7. Recalcul des totaux payés (après insertion) pour la comparaison stricte
+            // ------------------------------------------------------------
+            $paiements_apres = detailpaiessachats::where('facture_id', $facture->id)->get();
+            $total_paye_usd_apres = 0;
+            $total_paye_cdf_apres = 0;
+            foreach ($paiements_apres as $p) {
+                if ($p->devise_recu == 0) {
+                    $total_paye_usd_apres += $p->montant_recu;
+                } else {
+                    $total_paye_cdf_apres += $p->montant_recu;
+                }
+            }
+
+            // Comparaison stricte (sans tolérance) entre le dû et le payé
+            if (($total_du_usd == $total_paye_usd_apres) && ($total_du_cdf == $total_paye_cdf_apres)) {
+                $facture->payer = 1;
+            } else {
+                $facture->payer = 0;
+            }
+            $facture->save();
+
             return response()->json([1]);
 
         } catch (\Exception $e) {
@@ -3559,6 +3722,22 @@ class AjaxController extends Controller
         {
             $activites->description = $request->description;
         }
+        if(strlen(trim($request->taux_facture)) == 0)
+        {
+            $activites->taux = 0;
+        }
+        else
+        {
+            $activites->taux = $request->taux_facture;
+        }
+        if(strlen(trim($request->tva)) == 0)
+        {
+            $activites->tva = 0;
+        }
+        else
+        {
+            $activites->tva = $request->tva;
+        }
         $activites->save();
         $data["activites"] = Activites::where(["supprimer" => 0])->get();
         return view('include.refresh_activites', $data);
@@ -3576,6 +3755,22 @@ class AjaxController extends Controller
         else
         {
             $activites->description = $request->edit_description;
+        }
+        if(strlen(trim($request->edit_taux_facture)) == 0)
+        {
+            $activites->taux = 0;
+        }
+        else
+        {
+            $activites->taux = $request->edit_taux_facture;
+        }
+        if(strlen(trim($request->edit_tva)) == 0)
+        {
+            $activites->tva = 0;
+        }
+        else
+        {
+            $activites->tva = $request->edit_tva;
         }
         $activites->save();
         $data["activites"] = Activites::where(["supprimer" => 0])->get();
@@ -4320,7 +4515,8 @@ class AjaxController extends Controller
         $table_id = $request->table_id;
         $stock_id = 0;
 
-        if (!empty($table_id)) {
+        if (!empty($table_id))
+        {
             $table = Tables::where('id', $table_id)->first();
             if ($table) {
                 $pointdeventes = pointdeventes::where('id', $table->pointdeventes_id)->first();
@@ -4328,7 +4524,8 @@ class AjaxController extends Controller
             }
         }
 
-        if ($stock_id == 0) {
+        if ($stock_id == 0)
+        {
             $article = Articles::where('id', $article_id)->first();
         } else {
             $article = articlestocks::where([
@@ -4358,7 +4555,8 @@ class AjaxController extends Controller
         }
 
         // Prix de vente et taille lot
-        if ($request->type_vente_id == 1) {
+        if ($request->type_vente_id == 1)
+        {
             $taille_lot = $article->taille_piece;
             $prix_unitaire = $article->prix_detail;
         } else { // type_vente_id == 2
@@ -4375,14 +4573,20 @@ class AjaxController extends Controller
             $id = Factureass::get()->count() + 1;
             $nb_annonce = str_pad($id, 4, '0', STR_PAD_LEFT);
 
+            // Taux general et tva des facture
+            $activite_id = Articles::where('id', $article_id)->first()["activite_id"];
+            $activites = Activites::where('id', $article_id)->first();
+            $taux_general = $activites->taux;
+            $tva_general = $activites->tva;
+
             $facture = new Factureass();
             $facture->id = $id;
             $facture->numero = $nb_annonce;
             $facture->date_creation = date("d/m/Y");
             $facture->devise = $devise_article;
-            $facture->taux = 2200;
+            $facture->taux = $taux_general;
             $facture->libelle = $request->libelle;
-            $facture->tva = 0;
+            $facture->tva = $tva_general;
             $facture->user_id = Auth::user()->id;
             $facture->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
             $facture->table_id = (strlen(trim($request->table_id))) ? $request->table_id : 0;
@@ -7103,6 +7307,424 @@ class AjaxController extends Controller
         return $converted;
     }
 
+    // public function print_facture(Request $request)
+    // {
+    //     // ---------- 1. Récupération centralisée ----------
+    //     $facture = Factureass::find($request->facture_id);
+    //     if (!$facture) return response()->json(['error' => 'Facture introuvable'], 404);
+
+    //     $achats = Achats::where('facture_id', $facture->id)->get();
+    //     if ($achats->isEmpty()) return response()->json(['error' => 'Aucun achat'], 404);
+
+    //     $articlesIds = $achats->pluck('article_id')->unique();
+    //     $clientsIds = $achats->pluck('client_id')->filter(fn($id) => $id > 0)->unique();
+    //     $articles = Articles::whereIn('id', $articlesIds)->get()->keyBy('id');
+    //     $activiteId = $articles->first()?->activite_id;
+    //     $activite = Activites::find($activiteId);
+    //     $clients = Clients::whereIn('id', $clientsIds)->get()->keyBy('id');
+
+    //     $mesuresIds = $articles->pluck('mesure_id')->filter()->unique();
+    //     $mesures = Mesures::whereIn('id', $mesuresIds)->get()->keyBy('id');
+
+    //     $taux = $facture->taux;
+    //     $tva = $facture->tva;
+    //     $montant_recu = $facture->montant_recu;
+    //     $devise_recu = $facture->devise_recu;
+    //     $devise = $facture->devise;
+    //     $payer = $facture->payer;
+    //     $date_creation = $facture->created_at;
+    //     $date_creation = explode(" ", $date_creation);
+    //     $mode_de_paiement = $facture->mode_de_paiement;
+    //     $cdf_montant_payer = 0;
+    //     $usd_montant_payer = 0;
+
+    //     $lignes = [];
+    //     $total_general = 0;
+    //     $nom_client_final = '';
+    //     $devise_generale = '';
+
+    //     foreach ($achats as $achat)
+    //     {
+    //         $article = $articles[$achat->article_id] ?? null;
+    //         if (!$article) continue;
+
+    //         $total_general += $achat->total;
+
+    //         if ($devise_generale === '') {
+    //             $devise_generale = ($achat->devise == 0) ? 'USD' : 'CDF';
+    //         }
+
+    //         if ($achat->client_id == 0) {
+    //             $nom_client_final = $achat->libelle;
+    //         } else {
+    //             $nom_client_final = $clients[$achat->client_id]->name ?? $nom_client_final;
+    //         }
+
+    //         $lignes[] = [
+    //             'nom_article' => $article->nom_article,
+    //             'quantite' => $achat->quantite,
+    //             'prix_unitaire' => $achat->prix_unitaire,
+    //             'total_ligne' => $achat->total,
+    //         ];
+    //     }
+
+    //     // Précalcul des équivalents pour la différence
+    //     if ($devise_generale == 'USD') {
+    //         $total_en_usd = $total_general;
+    //         $total_en_cdf = $total_general * $taux;
+    //     } else {
+    //         $total_en_cdf = $total_general;
+    //         $total_en_usd = $total_general / $taux;
+    //     }
+
+    //     // Calcul des différences
+    //     if ($devise_recu == 0) {
+    //         $diff_usd = $total_en_usd - $montant_recu;
+    //         $diff_cdf = 0;
+    //     } else
+    //     {
+    //         $diff_cdf = $total_en_cdf - $montant_recu;
+    //         $diff_usd = 0;
+    //     }
+
+    //     $diff_usd_formate = number_format(abs($diff_usd), 2, ',', ' ') . ' USD';
+    //     $diff_cdf_formate = number_format(abs($diff_cdf), 2, ',', ' ') . ' CDF';
+
+    //     if($mode_de_paiement == 1) {
+    //         $paiement_libelle = 'CASH';
+    //     } elseif($mode_de_paiement == 2) {
+    //         $paiement_libelle = 'Mobile money';
+    //     } else if($mode_de_paiement == 3) {
+    //         $paiement_libelle = 'Bank';
+    //     } else {
+    //         $paiement_libelle = 'CASH';
+    //     }
+
+    //     // ========== AJOUT : Calcul anticipé des montants pour le QR code ==========
+    //     if ($devise_generale == 'USD')
+    //     {
+    //         $usd_montant_payer = $total_general;
+    //         $cdf_montant_payer = $total_general * $taux;
+    //     }
+    //     else
+    //     {
+    //         $cdf_montant_payer = $total_general;
+    //         $usd_montant_payer = $total_general / $taux;
+    //     }
+    //     // ========== FIN DU CALCUL ANTICIPÉ ==========
+
+    //     // ========== GÉNÉRATION DU QR CODE (avant le PDF) ==========
+    //     $key_1 = base64_encode('facture_id');
+    //     $value_1 = base64_encode($request->facture_id);
+    //     $key_2 = base64_encode('cdf_montant');
+    //     $value_2 = base64_encode($cdf_montant_payer);
+    //     $key_3 = base64_encode('usd_montant');
+    //     $value_3 = base64_encode($usd_montant_payer);
+    //     $url = route('paiement') . '?' . http_build_query([$key_1 => $value_1, $key_2 => $value_2, $key_3 => $value_3]);
+
+    //     $builder = new Builder(
+    //         writer: new PngWriter(),
+    //         data: $url,
+    //         encoding: new Encoding('UTF-8'),
+    //         errorCorrectionLevel: ErrorCorrectionLevel::High,
+    //         size: 1000,
+    //         margin:15
+    //     );
+    //     $result = $builder->build();
+
+    //     $fileName = "./storage/images/fichiers/" . 'qrcode_' . time() . '.png';
+    //     $filePath = ($fileName);
+    //     $result->saveToFile($filePath);
+    //     // ========== FIN GÉNÉRATION QR CODE ==========
+
+    //     // ---------- 2. PDF format 72 mm ----------
+    //     $pdf = new \FPDF('P', 'mm', [72, 300]);
+    //     $pdf->AddPage();
+    //     $pdf->SetLeftMargin(3);
+    //     $pdf->SetRightMargin(3);
+    //     $largeur_utile = 66;
+    //     $marge_gauche = 3;
+
+    //     // Logo et QR code sur la même ligne
+    //     $y_depart = 3;
+    //     $logo_largeur = 15;
+    //     $logo_hauteur = 15;
+    //     $qr_largeur = 12;
+    //     $qr_hauteur = 12;
+
+    //     // Positionnement du logo (à gauche)
+    //     $pdf->Image($activite->logo, $marge_gauche, $y_depart, $logo_largeur, $logo_hauteur);
+    //     // Positionnement du QR code (à droite, sur la même ligne)
+    //     $pdf->Image($fileName, $marge_gauche + $largeur_utile - $qr_largeur, $y_depart, $qr_largeur, $qr_hauteur);
+
+    //     $y_apres_logo = $y_depart + max($logo_hauteur, $qr_hauteur) + 2;
+
+    //     // Activité centrée
+    //     $pdf->SetY($y_apres_logo);
+    //     $pdf->SetFont('Arial', 'B', 10);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $nom_activite = $activite ? $activite->nom : '';
+    //     $nom_description = $activite ? $activite->description : '';
+    //     $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', strtoupper($nom_activite)), 0, 1, 'C');
+
+    //     // Ligne de points sous l'activité
+    //     $pdf->SetFont('Arial', '', 7);
+    //     $largeur_point = $pdf->GetStringWidth('.');
+    //     $nb_points = (int)($largeur_utile / $largeur_point);
+    //     $ligne_points = str_repeat('.', $nb_points);
+    //     $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', $ligne_points), 0, 1, 'C');
+
+    //     // Texte "Munua vs la katangaise"
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->Cell($largeur_utile, 5, iconv('UTF-8', 'Windows-1252', $nom_description), 0, 1, 'C');
+
+    //     // Date
+    //     $pdf->SetFont('Arial', '', 7);
+    //     $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', 'Date : ' . explode("-", $date_creation[0])[2] . '/' . explode("-", $date_creation[0])[1] . '/' . explode("-", $date_creation[0])[0] .' à '. $date_creation[1]), 0, 1, 'L');
+    //     $pdf->Ln(1);
+
+    //     // Facture / Client
+    //     $pdf->SetFont('Arial', 'B', 7);
+    //     $col_gauche = 33;
+    //     $col_droite = 33;
+    //     $pdf->Cell($col_gauche, 4, iconv('UTF-8', 'Windows-1252', 'Facture : ' . strtoupper($facture->numero)), 0, 0, 'L');
+    //     $pdf->Cell($col_droite, 4, iconv('UTF-8', 'Windows-1252', 'Client : ' . $nom_client_final), 0, 1, 'R');
+
+    //     // Caissier
+    //     $pdf->SetFont('Arial', 'B', 7);
+    //     $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', 'Caissier(ère) : ' . User::where('id', $facture->user_id)->first()['name']), 0, 1, 'R');
+
+    //     // Original
+    //     $pdf->SetFont('Arial', 'B', 12);
+    //     $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Original'), 0, 1, 'C');
+
+    //     // Espace avant tableau
+    //     $pdf->Ln(3);
+
+    //     // --- Tableau ---
+    //     $col_article = 28;
+    //     $col_qte = 10;
+    //     $col_pu = 14;
+    //     $col_total = 14;
+
+    //     $pdf->SetLineWidth(0.6);
+    //     $y1 = $pdf->GetY();
+    //     $pdf->Line($marge_gauche, $y1, $marge_gauche + $largeur_utile, $y1);
+    //     $pdf->SetLineWidth(0.2);
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', 'B', 7);
+    //     $pdf->Cell($col_article, 5, iconv('UTF-8', 'Windows-1252', 'ITEM'), 0, 0, 'L');
+    //     $pdf->Cell($col_qte, 5, iconv('UTF-8', 'Windows-1252', 'QTE'), 0, 0, 'C');
+    //     $pdf->Cell($col_pu, 5, iconv('UTF-8', 'Windows-1252', 'PRIX'), 0, 0, 'C');
+    //     $pdf->Cell($col_total, 5, iconv('UTF-8', 'Windows-1252', 'MONTANT'), 0, 1, 'C');
+
+    //     $pdf->SetLineWidth(0.6);
+    //     $y2 = $pdf->GetY();
+    //     $pdf->Line($marge_gauche, $y2, $marge_gauche + $largeur_utile, $y2);
+    //     $pdf->SetLineWidth(0.2);
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 7);
+    //     foreach ($lignes as $ligne)
+    //     {
+    //         $nom = $ligne['nom_article'];
+    //         if (mb_strlen($nom) > 18) $nom = mb_substr($nom, 0, 16) . '..';
+    //         $quantite_str = $ligne['quantite'];
+    //         $prix_str = number_format($ligne['prix_unitaire'], 2, ',', ' ');
+    //         $total_str = number_format($ligne['total_ligne'], 2, ',', ' ');
+
+    //         $pdf->Cell($col_article, 5, iconv('UTF-8', 'Windows-1252', $nom), 0, 0, 'L');
+    //         $pdf->SetFont('Arial', 'B', 7);
+    //         $pdf->Cell($col_qte, 5, iconv('UTF-8', 'Windows-1252', $quantite_str), 0, 0, 'C');
+    //         $pdf->SetFont('Arial', '', 7);
+    //         $pdf->Cell($col_pu, 5, iconv('UTF-8', 'Windows-1252', $prix_str), 0, 0, 'C');
+    //         $pdf->Cell($col_total, 5, iconv('UTF-8', 'Windows-1252', $total_str), 0, 1, 'R');
+    //     }
+
+    //     $pdf->SetLineWidth(0.6);
+    //     $y3 = $pdf->GetY();
+    //     $pdf->Line($marge_gauche, $y3, $marge_gauche + $largeur_utile, $y3);
+    //     $pdf->SetLineWidth(0.2);
+    //     $pdf->Ln(2);
+
+    //     // Montant HT
+    //     $pdf->SetFont('Arial', 'B', 7);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $total_formate = number_format($total_general, 2, ',', ' ');
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant HT (' . $devise_generale . ')'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $total_formate), 0, 1, 'R');
+
+    //     // Première ligne de conversion (gris clair)
+    //     $pdf->SetFont('Arial', '', 6);
+    //     $pdf->SetTextColor(128, 128, 128);
+    //     $taux_formate = number_format($taux, 0, ',', ' ');
+
+    //     // ========== BLOC CONVERSION (sans le QR code) ==========
+    //     if ($devise_generale == 'USD') {
+    //         $equivalent_cdf = $total_general * $taux;
+    //         $equivalent_formate = number_format($equivalent_cdf, 2, ',', ' ');
+    //         $texte_equivalent = $equivalent_formate . " CDF = " . number_format($total_general, 2, ',', ' ') . " USD (taux 1 USD = " . $taux_formate . " CDF)";
+    //         // Ne pas redéfinir $usd_montant_payer et $cdf_montant_payer (déjà faits)
+    //     } else {
+    //         $equivalent_usd = $total_general / $taux;
+    //         $equivalent_formate = number_format($equivalent_usd, 2, ',', ' ');
+    //         $texte_equivalent = $equivalent_formate . " USD = " . number_format($total_general, 2, ',', ' ') . " CDF (taux 1 USD = " . $taux_formate . " CDF)";
+    //     }
+    //     $pdf->MultiCell($largeur_utile, 3, iconv('UTF-8', 'Windows-1252', $texte_equivalent), 2, 'L');
+    //     $pdf->Ln(1);
+
+    //     // (L'ancien bloc QR CODE a été supprimé)
+
+    //     $pdf->SetFont('Arial', 'B', 15);
+
+    //     // --- Condition : si montant_recu == 0 OU payer == 0 ---
+    //     if ($montant_recu == 0)
+    //     {
+    //         $nom_activite_clean = preg_replace('/[^a-zA-Z0-9_-]/', '_', $activite->nom ?? 'activite');
+    //         $nom_fichier = 'Facture_' . $nom_activite_clean . '_' . $facture->numero . '.pdf';
+    //         $pdf->Output('F', $nom_fichier);
+    //         return response()->json([[$nom_fichier, number_format($cdf_montant_payer, 2, ',', ' '), number_format($usd_montant_payer, 2, ',', ' '), $tva, $taux], $payer]);
+    //     }
+
+    //     // ---------------------------------------------------------
+    //     // Suite uniquement si montant_recu > 0 et < total_general
+    //     // ---------------------------------------------------------
+
+    //     // TVA devise d'origine
+    //     $montant_tva = $total_general * ($tva / 100);
+    //     $montant_tva_formate = number_format($montant_tva, 0, ',', ' ') . ' ' . $devise_generale;
+    //     $libelle_tva = 'TVA (' . $devise_generale . ') ' . $tva . '%';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', $libelle_tva), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_tva_formate), 0, 1, 'R');
+
+    //     // TVA autre devise
+    //     $autre_devise = ($devise_generale == 'USD') ? 'CDF' : 'USD';
+    //     if ($devise_generale == 'USD') {
+    //         $montant_tva_autre = $montant_tva * $taux;
+    //         $montant_tva_autre_formate = number_format($montant_tva_autre, 2, ',', ' ') . ' ' . $autre_devise;
+    //     } else {
+    //         $montant_tva_autre = $montant_tva / $taux;
+    //         $montant_tva_autre_formate = number_format($montant_tva_autre, 2, ',', ' ') . ' ' . $autre_devise;
+    //     }
+    //     $libelle_tva_autre = 'TVA (' . $autre_devise . ') ' . $tva . '%';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', $libelle_tva_autre), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_tva_autre_formate), 0, 1, 'R');
+
+    //     // Montant reçu (USD)
+    //     $montant_recu_usd = ($devise_recu == 0) ? number_format($montant_recu, 2, ',', ' ') . ' USD' : '0 USD';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant reçu (USD)'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_recu_usd), 0, 1, 'R');
+
+    //     // Montant reçu (CDF)
+    //     $montant_recu_cdf = ($devise_recu == 1) ? number_format($montant_recu, 2, ',', ' ') . ' CDF' : '0 CDF';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant reçu (CDF)'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_recu_cdf), 0, 1, 'R');
+
+    //     // Différence USD
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Différence (USD)'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $diff_usd_formate), 0, 1, 'R');
+
+    //     // Différence CDF
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Différence (CDF)'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $diff_cdf_formate), 0, 1, 'R');
+
+    //     // --- Lignes pointillées et Montants TTC ---
+    //     $pdf->SetFont('Arial', '', 8);
+    //     $largeur_point = $pdf->GetStringWidth('.');
+    //     $nb_points = (int)($largeur_utile / $largeur_point);
+    //     $ligne_points_fin = str_repeat('.', $nb_points);
+    //     $hauteur_point = 5;
+
+    //     $pdf->Cell($largeur_utile, $hauteur_point, iconv('UTF-8', 'Windows-1252', $ligne_points_fin), 0, 1, 'C');
+    //     $pdf->Ln(1);
+
+    //     $ttc = $total_general + ($total_general * $tva / 100);
+    //     $ttc_formate = number_format($ttc, 0, ',', ' ');
+    //     $pdf->SetFont('Arial', 'B', 10);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Montant TTC (' . $devise_generale . ') : ' . $ttc_formate), 0, 1, 'R');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 8);
+    //     $pdf->Cell($largeur_utile, $hauteur_point, iconv('UTF-8', 'Windows-1252', $ligne_points_fin), 0, 1, 'C');
+    //     $pdf->Ln(1);
+
+    //     $autre_devise_ttc = ($devise_generale == 'USD') ? 'CDF' : 'USD';
+    //     if ($devise_generale == 'USD') {
+    //         $ttc_autre = $ttc * $taux;
+    //         $ttc_autre_formate = number_format($ttc_autre, 0, ',', ' ');
+    //     } else {
+    //         $ttc_autre = $ttc / $taux;
+    //         $ttc_autre_formate = number_format($ttc_autre, 2, ',', ' ');
+    //     }
+    //     $pdf->SetFont('Arial', 'B', 10);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Montant TTC (' . $autre_devise_ttc . ') : ' . $ttc_autre_formate), 0, 1, 'R');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 8);
+    //     $pdf->Cell($largeur_utile, $hauteur_point, iconv('UTF-8', 'Windows-1252', $ligne_points_fin), 0, 1, 'C');
+    //     $pdf->Ln(1);
+
+    //     // Deuxième ligne de conversion (dupliquée)
+    //     $pdf->SetFont('Arial', '', 6);
+    //     $pdf->SetTextColor(128, 128, 128);
+    //     if ($devise_generale == 'USD') {
+    //         $equivalent_cdf = $total_general * $taux;
+    //         $equivalent_formate = number_format($equivalent_cdf, 0, ',', ' ');
+    //         $texte_equivalent = $equivalent_formate . " CDF = " . number_format($total_general, 2, ',', ' ') . " USD (taux 1 USD = " . $taux_formate . " CDF)";
+    //     } else {
+    //         $equivalent_usd = $total_general / $taux;
+    //         $equivalent_formate = number_format($equivalent_usd, 2, ',', ' ');
+    //         $texte_equivalent = $equivalent_formate . " USD = " . number_format($total_general, 2, ',', ' ') . " CDF (taux 1 USD = " . $taux_formate . " CDF)";
+    //     }
+    //     $pdf->MultiCell($largeur_utile, 3, iconv('UTF-8', 'Windows-1252', $texte_equivalent), 0, 'L');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 5, iconv('UTF-8', 'Windows-1252', 'Taux plancher'), 0, 0, 'L');
+    //     $pdf->Cell(26, 5, iconv('UTF-8', 'Windows-1252', number_format($taux, 2, ',', ' ') . ' CDF'), 0, 1, 'R');
+
+    //     $montant_recu_dans_devise = ($devise_recu == 0) ? number_format($montant_recu, 2, ',', ' ') . ' USD' : number_format($montant_recu, 2, ',', ' ') . ' CDF';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 5, iconv('UTF-8', 'Windows-1252', 'Montant TTC plancher (' . $devise_generale . ')'), 0, 0, 'L');
+    //     $pdf->Cell(26, 5, iconv('UTF-8', 'Windows-1252', $montant_recu_dans_devise), 0, 1, 'R');
+
+    //     $pdf->SetFont('Arial', '', 6);
+    //     $pdf->SetTextColor(128, 128, 128);
+    //     $pdf->MultiCell($largeur_utile, 3, iconv('UTF-8', 'Windows-1252', 'Payé par : ' . $paiement_libelle), 0, 'L');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell($largeur_utile, 5, iconv('UTF-8', 'Windows-1252', 'Merci pour votre visite'), 0, 1, 'C');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 7);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->MultiCell($largeur_utile, 3.5, iconv('UTF-8', 'Windows-1252', 'Les marchandises vendues ne sont pas reprises ni échangées'), 0, 'C');
+
+    //     $nom_activite_clean = preg_replace('/[^a-zA-Z0-9_-]/', '_', $activite->nom ?? 'activite');
+    //     $nom_fichier = 'Facture_' . $nom_activite_clean . '_' . $facture->numero . '.pdf';
+    //     $pdf->Output('F', $nom_fichier);
+    //     return response()->json([[$nom_fichier, number_format($cdf_montant_payer, 2, ',', ' '), number_format($usd_montant_payer, 2, ',', ' '), $tva, $taux, $payer]]);
+    // }
+
     public function print_facture(Request $request)
     {
         // ---------- 1. Récupération centralisée ----------
@@ -7119,28 +7741,24 @@ class AjaxController extends Controller
         $activite = Activites::find($activiteId);
         $clients = Clients::whereIn('id', $clientsIds)->get()->keyBy('id');
 
-        $mesuresIds = $articles->pluck('mesure_id')->filter()->unique();
-        $mesures = Mesures::whereIn('id', $mesuresIds)->get()->keyBy('id');
-
         $taux = $facture->taux;
         $tva = $facture->tva;
-        $montant_recu = $facture->montant_recu;
-        $devise_recu = $facture->devise_recu;
-        $devise = $facture->devise;
         $payer = $facture->payer;
-        $date_creation = $facture->created_at;
-        $date_creation = explode(" ", $date_creation);
+        $date_creation = explode(" ", $facture->created_at);
         $mode_de_paiement = $facture->mode_de_paiement;
-        $cdf_montant_payer = 0;
-        $usd_montant_payer = 0;
 
+        // ---------- Récupération des paiements ----------
+        $paiements = detailpaiessachats::where('facture_id', $facture->id)
+                                    ->orderBy('created_at', 'asc')
+                                    ->get();
+
+        // ---------- Construction des lignes d'achats ----------
         $lignes = [];
         $total_general = 0;
         $nom_client_final = '';
         $devise_generale = '';
 
-        foreach ($achats as $achat)
-        {
+        foreach ($achats as $achat) {
             $article = $articles[$achat->article_id] ?? null;
             if (!$article) continue;
 
@@ -7157,56 +7775,85 @@ class AjaxController extends Controller
             }
 
             $lignes[] = [
-                'nom_article' => $article->nom_article,
-                'quantite' => $achat->quantite,
+                'nom_article'   => $article->nom_article,
+                'quantite'      => $achat->quantite,
                 'prix_unitaire' => $achat->prix_unitaire,
-                'total_ligne' => $achat->total,
+                'total_ligne'   => $achat->total,
             ];
         }
 
-        // Précalcul des équivalents pour la différence
+        // ---------- Calcul du TTC et des totaux dans les deux devises ----------
+        $ttc = $total_general + ($total_general * $tva / 100);
         if ($devise_generale == 'USD') {
-            $total_en_usd = $total_general;
-            $total_en_cdf = $total_general * $taux;
+            $total_ttc_usd = $ttc;
+            $total_ttc_cdf = $ttc * $taux;
         } else {
-            $total_en_cdf = $total_general;
-            $total_en_usd = $total_general / $taux;
+            $total_ttc_cdf = $ttc;
+            $total_ttc_usd = $ttc / $taux;
         }
 
-        // Calcul des différences
-        if ($devise_recu == 0) {
-            $diff_usd = $total_en_usd - $montant_recu;
-            $diff_cdf = 0;
-        } else {
-            $diff_cdf = $total_en_cdf - $montant_recu;
-            $diff_usd = 0;
+        // ---------- Parcours des paiements pour cumul et détail ----------
+        $cumul_usd = 0;
+        $cumul_cdf = 0;
+        $paiements_detail = [];
+
+        foreach ($paiements as $p) {
+            if ($p->devise_recu == 0) { // paiement en USD
+                $montant_usd = $p->montant_recu;
+                $montant_cdf = $p->montant_recu * $taux;
+            } else { // paiement en CDF
+                $montant_cdf = $p->montant_recu;
+                $montant_usd = $p->montant_recu / $taux;
+            }
+
+            $cumul_usd += $montant_usd;
+            $cumul_cdf += $montant_cdf;
+
+            // Reste à payer
+            $reste_usd = max(0, $total_ttc_usd - $cumul_usd);
+            $reste_cdf = max(0, $total_ttc_cdf - $cumul_cdf);
+
+            // Crédit (payé en trop)
+            $credit_usd = max(0, $cumul_usd - $total_ttc_usd);
+            $credit_cdf = max(0, $cumul_cdf - $total_ttc_cdf);
+
+            $paiements_detail[] = [
+                'date'         => $p->created_at,
+                'montant'      => $p->montant_recu,
+                'devise_recu'  => $p->devise_recu,
+                'reste_usd'    => $reste_usd,
+                'reste_cdf'    => $reste_cdf,
+                'credit_usd'   => $credit_usd,
+                'credit_cdf'   => $credit_cdf,
+            ];
         }
 
-        $diff_usd_formate = number_format(abs($diff_usd), 2, ',', ' ') . ' USD';
-        $diff_cdf_formate = number_format(abs($diff_cdf), 2, ',', ' ') . ' CDF';
+        // Totaux finaux
+        $total_paye_usd = $cumul_usd;
+        $total_paye_cdf = $cumul_cdf;
+        $diff_usd = max(0, $total_ttc_usd - $total_paye_usd);
+        $diff_cdf = max(0, $total_ttc_cdf - $total_paye_cdf);
+        $credit_final_usd = max(0, $total_paye_usd - $total_ttc_usd);
+        $credit_final_cdf = max(0, $total_paye_cdf - $total_ttc_cdf);
 
-        if($mode_de_paiement == 1) {
-            $paiement_libelle = 'CASH';
-        } elseif($mode_de_paiement == 2) {
-            $paiement_libelle = 'Mobile money';
-        } else if($mode_de_paiement == 3) {
-            $paiement_libelle = 'Bank';
-        } else {
-            $paiement_libelle = 'CASH';
-        }
+        // Formatage
+        $diff_usd_formate = number_format($diff_usd, 2, ',', ' ') . ' USD';
+        $diff_cdf_formate = number_format($diff_cdf, 2, ',', ' ') . ' CDF';
+        $paiement_libelle = '';
+        if ($mode_de_paiement == 1) $paiement_libelle = 'CASH';
+        elseif ($mode_de_paiement == 2) $paiement_libelle = 'Mobile money';
+        elseif ($mode_de_paiement == 3) $paiement_libelle = 'Bank';
+        else $paiement_libelle = 'CASH';
 
-        // ========== AJOUT : Calcul anticipé des montants pour le QR code ==========
-        if ($devise_generale == 'USD')
-        {
+        // ---------- QR code ----------
+        if ($devise_generale == 'USD') {
             $usd_montant_payer = $total_general;
             $cdf_montant_payer = $total_general * $taux;
         } else {
             $cdf_montant_payer = $total_general;
             $usd_montant_payer = $total_general / $taux;
         }
-        // ========== FIN DU CALCUL ANTICIPÉ ==========
 
-        // ========== GÉNÉRATION DU QR CODE (avant le PDF) ==========
         $key_1 = base64_encode('facture_id');
         $value_1 = base64_encode($request->facture_id);
         $key_2 = base64_encode('cdf_montant');
@@ -7221,38 +7868,32 @@ class AjaxController extends Controller
             encoding: new Encoding('UTF-8'),
             errorCorrectionLevel: ErrorCorrectionLevel::High,
             size: 1000,
-            margin:15
+            margin: 15
         );
         $result = $builder->build();
-
         $fileName = "./storage/images/fichiers/" . 'qrcode_' . time() . '.png';
-        $filePath = ($fileName);
-        $result->saveToFile($filePath);
-        // ========== FIN GÉNÉRATION QR CODE ==========
+        $result->saveToFile($fileName);
 
-        // ---------- 2. PDF format 72 mm ----------
-        $pdf = new \FPDF('P', 'mm', [72, 300]);
+        // ---------- 2. PDF ----------
+        $pdf = new \FPDF('P', 'mm', [72, 380]);
         $pdf->AddPage();
         $pdf->SetLeftMargin(3);
         $pdf->SetRightMargin(3);
         $largeur_utile = 66;
         $marge_gauche = 3;
 
-        // Logo et QR code sur la même ligne
+        // Logo + QR
         $y_depart = 3;
         $logo_largeur = 15;
         $logo_hauteur = 15;
         $qr_largeur = 12;
         $qr_hauteur = 12;
-
-        // Positionnement du logo (à gauche)
         $pdf->Image($activite->logo, $marge_gauche, $y_depart, $logo_largeur, $logo_hauteur);
-        // Positionnement du QR code (à droite, sur la même ligne)
         $pdf->Image($fileName, $marge_gauche + $largeur_utile - $qr_largeur, $y_depart, $qr_largeur, $qr_hauteur);
 
         $y_apres_logo = $y_depart + max($logo_hauteur, $qr_hauteur) + 2;
 
-        // Activité centrée
+        // En-tête
         $pdf->SetY($y_apres_logo);
         $pdf->SetFont('Arial', 'B', 10);
         $pdf->SetTextColor(0, 0, 0);
@@ -7260,41 +7901,33 @@ class AjaxController extends Controller
         $nom_description = $activite ? $activite->description : '';
         $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', strtoupper($nom_activite)), 0, 1, 'C');
 
-        // Ligne de points sous l'activité
         $pdf->SetFont('Arial', '', 7);
         $largeur_point = $pdf->GetStringWidth('.');
         $nb_points = (int)($largeur_utile / $largeur_point);
         $ligne_points = str_repeat('.', $nb_points);
         $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', $ligne_points), 0, 1, 'C');
 
-        // Texte "Munua vs la katangaise"
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->Cell($largeur_utile, 5, iconv('UTF-8', 'Windows-1252', $nom_description), 0, 1, 'C');
 
-        // Date
         $pdf->SetFont('Arial', '', 7);
-        $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', 'Date : ' . explode("-", $date_creation[0])[2] . '/' . explode("-", $date_creation[0])[1] . '/' . explode("-", $date_creation[0])[0] .' à '. $date_creation[1]), 0, 1, 'L');
+        $date_fr = explode("-", $date_creation[0])[2] . '/' . explode("-", $date_creation[0])[1] . '/' . explode("-", $date_creation[0])[0];
+        $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', 'Date : ' . $date_fr . ' à ' . $date_creation[1]), 0, 1, 'L');
         $pdf->Ln(1);
 
         // Facture / Client
         $pdf->SetFont('Arial', 'B', 7);
-        $col_gauche = 33;
-        $col_droite = 33;
-        $pdf->Cell($col_gauche, 4, iconv('UTF-8', 'Windows-1252', 'Facture : ' . strtoupper($facture->numero)), 0, 0, 'L');
-        $pdf->Cell($col_droite, 4, iconv('UTF-8', 'Windows-1252', 'Client : ' . $nom_client_final), 0, 1, 'R');
+        $pdf->Cell(33, 4, iconv('UTF-8', 'Windows-1252', 'Facture : ' . strtoupper($facture->numero)), 0, 0, 'L');
+        $pdf->Cell(33, 4, iconv('UTF-8', 'Windows-1252', 'Client : ' . $nom_client_final), 0, 1, 'R');
 
-        // Caissier
         $pdf->SetFont('Arial', 'B', 7);
         $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', 'Caissier(ère) : ' . User::where('id', $facture->user_id)->first()['name']), 0, 1, 'R');
 
-        // Original
         $pdf->SetFont('Arial', 'B', 12);
         $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Original'), 0, 1, 'C');
-
-        // Espace avant tableau
         $pdf->Ln(3);
 
-        // --- Tableau ---
+        // --- Tableau des articles ---
         $col_article = 28;
         $col_qte = 10;
         $col_pu = 14;
@@ -7319,8 +7952,7 @@ class AjaxController extends Controller
         $pdf->Ln(1);
 
         $pdf->SetFont('Arial', '', 7);
-        foreach ($lignes as $ligne)
-        {
+        foreach ($lignes as $ligne) {
             $nom = $ligne['nom_article'];
             if (mb_strlen($nom) > 18) $nom = mb_substr($nom, 0, 16) . '..';
             $quantite_str = $ligne['quantite'];
@@ -7341,24 +7973,82 @@ class AjaxController extends Controller
         $pdf->SetLineWidth(0.2);
         $pdf->Ln(2);
 
-        // Montant HT
+        // ---------- Détail des paiements (6 colonnes, largeur totale 66 mm) ----------
+        if ($paiements->count() > 0) {
+            $pdf->SetFont('Arial', 'B', 6);
+            $pdf->Cell($largeur_utile, 5, iconv('UTF-8', 'Windows-1252', '--- Paiements & soldes ---'), 0, 1, 'L');
+            $pdf->Ln(1);
+
+            // En-têtes : Date (8), Montant (18), R (USD) (10), R (CDF) (10), C (USD) (10), C (CDF) (10) → total 66
+            $pdf->SetFont('Arial', 'B', 6);
+            $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', 'Date'), 0, 0, 'L');
+            $pdf->Cell(18, 4, iconv('UTF-8', 'Windows-1252', 'Montant'), 0, 0, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (USD)'), 0, 0, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (CDF)'), 0, 0, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (USD)'), 0, 0, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (CDF)'), 0, 1, 'R');
+
+            $pdf->SetFont('Arial', '', 6);
+
+            foreach ($paiements_detail as $p) {
+                // Date : jj/mm (sans année, sans heure)
+                $date_p = explode(" ", $p['date']);
+                $parts = explode('-', $date_p[0]);
+                $date_courte = $parts[2] . '/' . $parts[1];
+                $date_aff = $date_courte;
+
+                // Montant + devise
+                $devise = ($p['devise_recu'] == 0) ? 'USD' : 'CDF';
+                $montant_str = number_format($p['montant'], 2, ',', ' ') . ' ' . $devise;
+
+                // Restes
+                $reste_usd_str = number_format($p['reste_usd'], 2, ',', ' ');
+                $reste_cdf_str = number_format($p['reste_cdf'], 2, ',', ' ');
+
+                // Crédits (uniquement si > 0)
+                $credit_usd_str = ($p['credit_usd'] > 0) ? number_format($p['credit_usd'], 2, ',', ' ') : '';
+                $credit_cdf_str = ($p['credit_cdf'] > 0) ? number_format($p['credit_cdf'], 2, ',', ' ') : '';
+
+                $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', $date_aff), 0, 0, 'L');
+                $pdf->Cell(18, 4, iconv('UTF-8', 'Windows-1252', $montant_str), 0, 0, 'R');
+                $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $reste_usd_str), 0, 0, 'R');
+                $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $reste_cdf_str), 0, 0, 'R');
+                $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $credit_usd_str), 0, 0, 'R');
+                $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $credit_cdf_str), 0, 1, 'R');
+            }
+
+            $pdf->Ln(1);
+
+            // Total payé récapitulatif
+            $pdf->SetFont('Arial', 'B', 6);
+            $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', 'Total payé'), 0, 0, 'L');
+            $pdf->Cell(18, 4, '', 0, 0, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', number_format($total_paye_usd, 2, ',', ' ')), 0, 0, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', number_format($total_paye_cdf, 2, ',', ' ')), 0, 0, 'R');
+            $pdf->Cell(10, 4, '', 0, 0, 'R');
+            $pdf->Cell(10, 4, '', 0, 1, 'R');
+            $pdf->Ln(1);
+        } else {
+            $pdf->SetFont('Arial', 'I', 6);
+            $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', 'Aucun paiement enregistré'), 0, 1, 'C');
+            $pdf->Ln(1);
+        }
+
+        // ---------- Montant HT ----------
         $pdf->SetFont('Arial', 'B', 7);
         $pdf->SetTextColor(0, 0, 0);
         $total_formate = number_format($total_general, 2, ',', ' ');
         $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant HT (' . $devise_generale . ')'), 0, 0, 'L');
         $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $total_formate), 0, 1, 'R');
 
-        // Première ligne de conversion (gris clair)
+        // Première ligne de conversion
         $pdf->SetFont('Arial', '', 6);
         $pdf->SetTextColor(128, 128, 128);
         $taux_formate = number_format($taux, 0, ',', ' ');
-
-        // ========== BLOC CONVERSION (sans le QR code) ==========
         if ($devise_generale == 'USD') {
             $equivalent_cdf = $total_general * $taux;
             $equivalent_formate = number_format($equivalent_cdf, 2, ',', ' ');
             $texte_equivalent = $equivalent_formate . " CDF = " . number_format($total_general, 2, ',', ' ') . " USD (taux 1 USD = " . $taux_formate . " CDF)";
-            // Ne pas redéfinir $usd_montant_payer et $cdf_montant_payer (déjà faits)
         } else {
             $equivalent_usd = $total_general / $taux;
             $equivalent_formate = number_format($equivalent_usd, 2, ',', ' ');
@@ -7367,26 +8057,18 @@ class AjaxController extends Controller
         $pdf->MultiCell($largeur_utile, 3, iconv('UTF-8', 'Windows-1252', $texte_equivalent), 2, 'L');
         $pdf->Ln(1);
 
-        // (L'ancien bloc QR CODE a été supprimé)
-
-        $pdf->SetFont('Arial', 'B', 15);
-
-        // --- Condition : si montant_recu == 0 OU payer == 0 ---
-        if ($montant_recu == 0 || $payer == 0)
-        {
+        // Si aucun paiement, on sort sans les détails supplémentaires
+        if ($total_paye_usd == 0 && $total_paye_cdf == 0) {
             $nom_activite_clean = preg_replace('/[^a-zA-Z0-9_-]/', '_', $activite->nom ?? 'activite');
             $nom_fichier = 'Facture_' . $nom_activite_clean . '_' . $facture->numero . '.pdf';
             $pdf->Output('F', $nom_fichier);
             return response()->json([[$nom_fichier, number_format($cdf_montant_payer, 2, ',', ' '), number_format($usd_montant_payer, 2, ',', ' '), $tva, $taux], $payer]);
         }
 
-        // ---------------------------------------------------------
-        // Suite uniquement si montant_recu > 0 et < total_general
-        // ---------------------------------------------------------
-
-        // TVA devise d'origine
+        // ---------- Suite : facture avec paiements ----------
+        // TVA
         $montant_tva = $total_general * ($tva / 100);
-        $montant_tva_formate = number_format($montant_tva, 0, ',', ' ') . ' ' . $devise_generale;
+        $montant_tva_formate = number_format($montant_tva, 2, ',', ' ') . ' ' . $devise_generale;
         $libelle_tva = 'TVA (' . $devise_generale . ') ' . $tva . '%';
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetTextColor(0, 0, 0);
@@ -7408,33 +8090,42 @@ class AjaxController extends Controller
         $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', $libelle_tva_autre), 0, 0, 'L');
         $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_tva_autre_formate), 0, 1, 'R');
 
-        // Montant reçu (USD)
-        $montant_recu_usd = ($devise_recu == 0) ? number_format($montant_recu, 2, ',', ' ') . ' USD' : '0 USD';
+        // Montant reçu
+        $montant_recu_usd = number_format($total_paye_usd, 2, ',', ' ') . ' USD';
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetTextColor(0, 0, 0);
         $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant reçu (USD)'), 0, 0, 'L');
         $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_recu_usd), 0, 1, 'R');
 
-        // Montant reçu (CDF)
-        $montant_recu_cdf = ($devise_recu == 1) ? number_format($montant_recu, 2, ',', ' ') . ' CDF' : '0 CDF';
+        $montant_recu_cdf = number_format($total_paye_cdf, 2, ',', ' ') . ' CDF';
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetTextColor(0, 0, 0);
         $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant reçu (CDF)'), 0, 0, 'L');
         $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_recu_cdf), 0, 1, 'R');
 
-        // Différence USD
+        // Reste
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetTextColor(0, 0, 0);
-        $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Différence (USD)'), 0, 0, 'L');
+        $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Reste (USD)'), 0, 0, 'L');
         $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $diff_usd_formate), 0, 1, 'R');
 
-        // Différence CDF
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetTextColor(0, 0, 0);
-        $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Différence (CDF)'), 0, 0, 'L');
+        $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Reste (CDF)'), 0, 0, 'L');
         $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $diff_cdf_formate), 0, 1, 'R');
 
-        // --- Lignes pointillées et Montants TTC ---
+        // Crédit éventuel
+        if ($credit_final_usd > 0 || $credit_final_cdf > 0) {
+            $credit_aff = '';
+            if ($credit_final_usd > 0) $credit_aff .= number_format($credit_final_usd, 2, ',', ' ') . ' USD';
+            if ($credit_final_cdf > 0) $credit_aff .= (empty($credit_aff) ? '' : ' / ') . number_format($credit_final_cdf, 2, ',', ' ') . ' CDF';
+            $pdf->SetFont('Arial', 'B', 8);
+            $pdf->SetTextColor(255, 0, 0);
+            $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Crédit client :'), 0, 0, 'L');
+            $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $credit_aff), 0, 1, 'R');
+        }
+
+        // --- Lignes pointillées et TTC ---
         $pdf->SetFont('Arial', '', 8);
         $largeur_point = $pdf->GetStringWidth('.');
         $nb_points = (int)($largeur_utile / $largeur_point);
@@ -7444,8 +8135,7 @@ class AjaxController extends Controller
         $pdf->Cell($largeur_utile, $hauteur_point, iconv('UTF-8', 'Windows-1252', $ligne_points_fin), 0, 1, 'C');
         $pdf->Ln(1);
 
-        $ttc = $total_general + ($total_general * $tva / 100);
-        $ttc_formate = number_format($ttc, 0, ',', ' ');
+        $ttc_formate = number_format($ttc, 2, ',', ' ');
         $pdf->SetFont('Arial', 'B', 10);
         $pdf->SetTextColor(0, 0, 0);
         $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Montant TTC (' . $devise_generale . ') : ' . $ttc_formate), 0, 1, 'R');
@@ -7458,7 +8148,7 @@ class AjaxController extends Controller
         $autre_devise_ttc = ($devise_generale == 'USD') ? 'CDF' : 'USD';
         if ($devise_generale == 'USD') {
             $ttc_autre = $ttc * $taux;
-            $ttc_autre_formate = number_format($ttc_autre, 0, ',', ' ');
+            $ttc_autre_formate = number_format($ttc_autre, 2, ',', ' ');
         } else {
             $ttc_autre = $ttc / $taux;
             $ttc_autre_formate = number_format($ttc_autre, 2, ',', ' ');
@@ -7472,12 +8162,12 @@ class AjaxController extends Controller
         $pdf->Cell($largeur_utile, $hauteur_point, iconv('UTF-8', 'Windows-1252', $ligne_points_fin), 0, 1, 'C');
         $pdf->Ln(1);
 
-        // Deuxième ligne de conversion (dupliquée)
+        // Deuxième ligne de conversion
         $pdf->SetFont('Arial', '', 6);
         $pdf->SetTextColor(128, 128, 128);
         if ($devise_generale == 'USD') {
             $equivalent_cdf = $total_general * $taux;
-            $equivalent_formate = number_format($equivalent_cdf, 0, ',', ' ');
+            $equivalent_formate = number_format($equivalent_cdf, 2, ',', ' ');
             $texte_equivalent = $equivalent_formate . " CDF = " . number_format($total_general, 2, ',', ' ') . " USD (taux 1 USD = " . $taux_formate . " CDF)";
         } else {
             $equivalent_usd = $total_general / $taux;
@@ -7492,11 +8182,10 @@ class AjaxController extends Controller
         $pdf->Cell(40, 5, iconv('UTF-8', 'Windows-1252', 'Taux plancher'), 0, 0, 'L');
         $pdf->Cell(26, 5, iconv('UTF-8', 'Windows-1252', number_format($taux, 2, ',', ' ') . ' CDF'), 0, 1, 'R');
 
-        $montant_recu_dans_devise = ($devise_recu == 0) ? number_format($montant_recu, 2, ',', ' ') . ' USD' : number_format($montant_recu, 2, ',', ' ') . ' CDF';
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetTextColor(0, 0, 0);
-        $pdf->Cell(40, 5, iconv('UTF-8', 'Windows-1252', 'Montant TTC plancher (' . $devise_generale . ')'), 0, 0, 'L');
-        $pdf->Cell(26, 5, iconv('UTF-8', 'Windows-1252', $montant_recu_dans_devise), 0, 1, 'R');
+        $pdf->Cell(40, 5, iconv('UTF-8', 'Windows-1252', 'Montant TTC dû (' . $devise_generale . ')'), 0, 0, 'L');
+        $pdf->Cell(26, 5, iconv('UTF-8', 'Windows-1252', number_format($ttc, 2, ',', ' ') . ' ' . $devise_generale), 0, 1, 'R');
 
         $pdf->SetFont('Arial', '', 6);
         $pdf->SetTextColor(128, 128, 128);
@@ -12032,64 +12721,66 @@ class AjaxController extends Controller
     }
     public function get_articles_select(Request $request)
     {
-        $table_id = $request->input('table_id'); // ← Ajout
-        $table = Tables::where('id', $table_id)->first(); //
+        $table_id = $request->input('table_id');
+        $table = Tables::where('id', $table_id)->first();
         $pointdeventes_id = $table->pointdeventes_id;
         $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
         $stock_id = $pointdeventes->stock_id;
 
-
-        if($stock_id == 0)
-        {
-            $articles = Articles::where(["supprimer" => 0])->get();
-        }
-        else
-        {
-            $articles = articlestocks::where(["supprimer" => 0, "stock_id" => $stock_id])->get();
-        }
-
         $html = '<option selected value="">Sélectionnez un article</option>';
 
-        if ($stock_id == 0)
-        {
-            // Cas général : tous les articles
+        if ($stock_id == 0) {
+            // Cas sans stock : on ne vérifie que l'activité
             $articles = Articles::where('supprimer', 0)->get();
-            foreach ($articles as $article)
-            {
+            foreach ($articles as $article) {
                 $nomMesure = Mesures::where('id', $article->mesure_id)->first()['nom'] ?? 'N/A';
                 $nomSociete = Societes::where('id', $article->societe_id)->first()['nom'] ?? 'N/A';
                 $label = $article->nom_article . ' ' . $nomMesure . ' (' . $nomSociete . ')';
                 $disabled = ($article->activite_id == 0) ? 'disabled' : '';
                 $icon = ($article->activite_id != 0) ? '🟢' : '🔴';
+                $message = $disabled ? ' : Activité non définie' : '';
                 $html .= '<option value="' . $article->id . '" ' . $disabled . '>'
-                    . $icon . ' ' . e($label)
-                    . ($disabled ? ' : Activité non définie' : '')
+                    . $icon . ' ' . e($label) . $message
                     . '</option>';
             }
-        } else
-        {
-            // Cas spécifique : articles associés à un stock
+        } else {
+            // Cas avec stock : on vérifie activité ET stock
             $articlestocks = articlestocks::where(['supprimer' => 0, 'stock_id' => $stock_id])->get();
-            foreach ($articlestocks as $articlestock)
-            {
+            foreach ($articlestocks as $articlestock) {
                 $article = Articles::find($articlestock->article_id);
-                if (!$article)
-                {
-                    continue; // ou log d'erreur
+                if (!$article) {
+                    continue;
                 }
                 $nomMesure = Mesures::where('id', $article->mesure_id)->first()['nom'] ?? 'N/A';
                 $nomSociete = Societes::where('id', $article->societe_id)->first()['nom'] ?? 'N/A';
                 $label = $article->nom_article . ' ' . $nomMesure . ' (' . $nomSociete . ')';
-                $disabled = ($article->activite_id == 0) ? 'disabled' : '';
-                $icon = ($article->activite_id != 0) ? '🟢' : '🔴';
-                $html .= '<option value="' . $articlestock->id . '" ' . $disabled . '>'
-                    . $icon . ' ' . e($label)
-                    . ($disabled ? ' : Activité non définie' : '')
+
+                // Vérifications
+                $activiteOk = ($article->activite_id != 0);
+                $stockOk = ($articlestock->stock > $articlestock->seuil_minimum); // supposé existant
+
+                $disabled = false;
+                $messages = [];
+                if (!$activiteOk) {
+                    $messages[] = 'Activité non définie';
+                }
+                if (!$stockOk) {
+                    $messages[] = 'Stock insuffisant';
+                }
+                if (!empty($messages)) {
+                    $disabled = true;
+                    $message = ' : ' . implode(' et ', $messages);
+                } else {
+                    $message = '';
+                }
+
+                $icon = ($activiteOk && $stockOk) ? '🟢' : '🔴';
+                $html .= '<option value="' . $articlestock->id . '" ' . ($disabled ? 'disabled' : '') . '>'
+                    . $icon . ' ' . e($label) . $message
                     . '</option>';
             }
         }
 
         return $html;
-
     }
 }

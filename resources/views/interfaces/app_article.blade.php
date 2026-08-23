@@ -338,6 +338,14 @@ h4 i.zmdi {
     margin-bottom: 12px;
 }
 
+/* Badge Total USD / CDF (ajoutés) */
+.appro-count-badge.usd-badge {
+    background: linear-gradient(135deg, #0f4c5f, #1e6f5c);
+}
+.appro-count-badge.cdf-badge {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+}
+
 /* ========== FORMULAIRES : AJOUT ET MODIFICATION ========== */
 #form_add .row,
 #form_edit .row {
@@ -703,7 +711,7 @@ select.form-control {
                     <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;"
                             class="zmdi zmdi-email-open text-info"></i> Liste</h4>
 
-                    <!-- SECTION FILTRES -->
+                    <!-- SECTION FILTRES AVEC DATE RANGE PICKER -->
                     <div class="filters-container">
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-label text-danger"></i> N° Facture</label>
@@ -715,11 +723,11 @@ select.form-control {
                         </div>
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-money text-danger"></i> Montant</label>
-                            <input type="number" id="filterMontant" class="form-control" placeholder="Rechercher par montant...">
+                            <input type="number" id="filterMontant" class="form-control" placeholder="Montant exact" step="0.01">
                         </div>
                         <div class="filter-group">
-                            <label><i class="zmdi zmdi-calendar text-danger"></i> Date</label>
-                            <input type="date" id="filterDate" class="form-control">
+                            <label><i class="zmdi zmdi-calendar text-danger"></i> Période (DD/MM/YYYY)</label>
+                            <input type="text" id="filterDateRange" class="form-control" placeholder="Sélectionner une période">
                         </div>
                         <div class="filter-group">
                             <button id="resetFilters" class="btn btn-secondary btn-sm" style="border-radius: 40px; padding: 8px 18px;">
@@ -728,10 +736,16 @@ select.form-control {
                         </div>
                     </div>
 
-                    <!-- Badge compteur -->
-                    <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
-                        <span class="appro-count-badge">
+                    <!-- Badges compteur et totaux -->
+                    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <span class="appro-count-badge" style="background: linear-gradient(135deg, #0a192f, #1e3a5f);">
                             <i class="zmdi zmdi-view-list"></i> Total approvisionnements : <span id="approCount">0</span>
+                        </span>
+                        <span class="appro-count-badge usd-badge">
+                            <i class="zmdi zmdi-money"></i> Total USD : <span id="totalUsd">0,00</span> $
+                        </span>
+                        <span class="appro-count-badge cdf-badge">
+                            <i class="zmdi zmdi-money-box"></i> Total CDF : <span id="totalCdf">0,00</span> Fc
                         </span>
                     </div>
 
@@ -751,78 +765,88 @@ select.form-control {
                                     <tbody>
                                         {{ !($i = 1) }}
                                         @foreach ($factures as $data)
-                                        <tr id="row_{{ $data->id }}">
-                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell" data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
-                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
-                                                {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
-                                            </td>
-                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="<?php
-                                                    $t = 0;
-                                                    $ent = Approvisionnements::where('facture_id', $data->id)->get();
-                                                    foreach ($ent as $e) {
-                                                        $t = $t + $e->total;
-                                                    }
-                                                    echo $t;
-                                                    ?>">
-                                                <?php
-                                                    $t = 0;
-                                                    $ent = Approvisionnements::where('facture_id', $data->id)->get();
-                                                    foreach ($ent as $e) {
-                                                        $t = $t + $e->total;
-                                                    }
-                                                    if ($data->devise == 0)
+                                            @php
+                                                $t = 0;
+                                                $ent = Approvisionnements::where('facture_id', $data->id)->get();
+                                                foreach ($ent as $e) 
+                                                {
+                                                    $t = $t + $e->total;
+                                                    
+                                                    // Taux de la facture (si disponible, sinon 1)
+                                                    $tauxFacture = $e->taux ?? 1;
+                                                    if ($data->devise == 0) 
                                                     {
-                                                        echo number_format($t, 2, ',', ' ') .  '(USD)';
-                                                    } else {
-                                                        echo number_format($t, 2, ',', ' ') . '(CDF)';
+                                                        $montant_usd = $t;
+                                                        $montant_cdf = $t * $tauxFacture;
+                                                    } else 
+                                                    {
+                                                        $montant_cdf = $t;
+                                                        $montant_usd = $t / $tauxFacture;
+                                                    }
+                                                }
+                                            @endphp
+                                            <tr id="row_{{ $data->id }}"
+                                                data-montant-usd="{{ $montant_usd }}"
+                                                data-montant-cdf="{{ $montant_cdf }}">
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell" data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
+                                                    {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
+                                                </td>
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="<?php echo $t; ?>">
+                                                    <?php
+                                                        if ($data->devise == 0)
+                                                        {
+                                                            echo number_format($t, 2, ',', ' ') .  '(USD)';
+                                                        } else {
+                                                            echo number_format($t, 2, ',', ' ') . '(CDF)';
+                                                        }
+                                                    ?>
+                                                </td>
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell" data-date="{{ date('Y-m-d', strtotime($data->date_creation)) }}">
+                                                    {{ date('d/m/Y', strtotime($data->date_creation)) }}
+                                                </td>
+                                                <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
+                                                    <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                                                    <?php
+                                                    $edit = 0;
+                                                    $delete = 0;
+                                                    $display = 0;
+                                                    if (
+                                                        Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])
+                                                            ->get()
+                                                            ->count() != 0
+                                                    ) {
+                                                        $edit = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->edit;
+                                                        $delete = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->delete;
+                                                        $display = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->display;
                                                     }
                                                     ?>
-                                            </td>
-                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell" data-date="{{ $data->date_creation }}">
-                                                {{ $data->date_creation }}
-                                            </td>
-                                            <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
-                                                <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
-                                                <?php
-                                                $edit = 0;
-                                                $delete = 0;
-                                                $display = 0;
-                                                if (
-                                                    Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])
-                                                        ->get()
-                                                        ->count() != 0
-                                                ) {
-                                                    $edit = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->edit;
-                                                    $delete = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->delete;
-                                                    $display = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->display;
-                                                }
-                                                ?>
-                                                <?php } ?>
-                                                <?php if ((($display == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display == 0) && (Auth::user()->role == 0))) { ?>
-                                                <a id="detail_<?= $i ?>" href="#"><i class="zmdi zmdi-eye text-info"></i></a> &nbsp;
-                                                <?php } else { ?>
-                                                <a id="detail_r<?= $i ?>" href="#"><i class="zmdi zmdi-eye text-info"></i></a> &nbsp;
-                                                <?php } ?>
-                                                <script>
-                                                    $("#detail_<?= $i ?>").click(function(e) {
-                                                        e.preventDefault();
-                                                        $.get("{{ url('/refresh_detailfactureas') }}", {
-                                                            invitation_id: <?= $data->id ?>,
-                                                        }, function(refresh_editinvitations) {
-                                                            $("#bloc_1").hide();
-                                                            $("#bloc_2").hide();
-                                                            $("#bloc_3").show();
-                                                            $("#bloc_3").html(refresh_editinvitations);
+                                                    <?php } ?>
+                                                    <?php if ((($display == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display == 0) && (Auth::user()->role == 0))) { ?>
+                                                    <a id="detail_<?= $i ?>" href="#"><i class="zmdi zmdi-eye text-info"></i></a> &nbsp;
+                                                    <?php } else { ?>
+                                                    <a id="detail_r<?= $i ?>" href="#"><i class="zmdi zmdi-eye text-info"></i></a> &nbsp;
+                                                    <?php } ?>
+                                                    <script>
+                                                        $("#detail_<?= $i ?>").click(function(e) {
+                                                            e.preventDefault();
+                                                            $.get("{{ url('/refresh_detailfactureas') }}", {
+                                                                invitation_id: <?= $data->id ?>,
+                                                            }, function(refresh_editinvitations) {
+                                                                $("#bloc_1").hide();
+                                                                $("#bloc_2").hide();
+                                                                $("#bloc_3").show();
+                                                                $("#bloc_3").html(refresh_editinvitations);
+                                                            });
                                                         });
-                                                    });
-                                                    $("#detail_r<?= $i ?>").click(function(e) {
-                                                        e.preventDefault();
-                                                        $("#btn_refus").trigger("click");
-                                                    });
-                                                </script>
-                                            </td>
-                                        </tr>
-                                        {{ !$i++ }}
+                                                        $("#detail_r<?= $i ?>").click(function(e) {
+                                                            e.preventDefault();
+                                                            $("#btn_refus").trigger("click");
+                                                        });
+                                                    </script>
+                                                </td>
+                                            </tr>
+                                            {{ !$i++ }}
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -1032,6 +1056,11 @@ select.form-control {
         </div>
     </div>
 @section('js-code')
+    {{-- Ajout des dépendances pour le Date Range Picker (identique aux factures) --}}
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
+
     <script src="{{ asset('assets/vendors/flot/jquery.flot.js') }} "></script>
     <script src="{{ asset('assets/vendors/flot/jquery.flot.pie.js') }}"></script>
     <script src="{{ asset('assets/vendors/flot/jquery.flot.resize.js') }}"></script>
@@ -1234,7 +1263,7 @@ select.form-control {
             $("#numero_facture").html(response);
         });
 
-        // ========== FONCTIONS DE FILTRAGE POUR LES APPROVISIONNEMENTS AVEC PERSISTANCE ==========
+        // ========== FONCTIONS DE FILTRAGE AVEC DATE RANGE PICKER (IDENTIQUES AUX FACTURES) ==========
 
         let approFilterTimeout;
 
@@ -1243,7 +1272,7 @@ select.form-control {
                 numero: $('#filterNumero').val(),
                 user: $('#filterUser').val(),
                 montant: $('#filterMontant').val(),
-                date: $('#filterDate').val()
+                dateRange: $('#filterDateRange').val()
             };
             localStorage.setItem('approFilters', JSON.stringify(filters));
         }
@@ -1255,7 +1284,19 @@ select.form-control {
                 $('#filterNumero').val(filters.numero || '');
                 $('#filterUser').val(filters.user || '');
                 $('#filterMontant').val(filters.montant || '');
-                $('#filterDate').val(filters.date || '');
+                $('#filterDateRange').val(filters.dateRange || '');
+                // Mettre à jour le daterangepicker si une valeur est présente
+                if (filters.dateRange) {
+                    const parts = filters.dateRange.split(' - ');
+                    if (parts.length === 2) {
+                        const start = moment(parts[0], 'DD/MM/YYYY');
+                        const end = moment(parts[1], 'DD/MM/YYYY');
+                        if (start.isValid() && end.isValid()) {
+                            $('#filterDateRange').data('daterangepicker').setStartDate(start);
+                            $('#filterDateRange').data('daterangepicker').setEndDate(end);
+                        }
+                    }
+                }
                 return true;
             }
             return false;
@@ -1265,9 +1306,33 @@ select.form-control {
             const filterNumero = $('#filterNumero').val().toLowerCase();
             const filterUser = $('#filterUser').val().toLowerCase();
             const filterMontant = parseFloat($('#filterMontant').val());
-            const filterDate = $('#filterDate').val();
+
+            // Récupération de la plage de dates
+            var dateRange = $('#filterDateRange').val() || '';
+            var dateDebut = null, dateFin = null;
+            if (dateRange) {
+                var parts = dateRange.split(' - ');
+                if (parts.length === 2) {
+                    function parseDMY(str) {
+                        if (!str) return null;
+                        var p = str.split('/');
+                        if (p.length === 3) {
+                            var day = p[0];
+                            var month = p[1];
+                            var year = p[2];
+                            if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
+                                return year + '-' + month + '-' + day;
+                            }
+                        }
+                        return null;
+                    }
+                    dateDebut = parseDMY(parts[0]);
+                    dateFin = parseDMY(parts[1]);
+                }
+            }
 
             let visibleCount = 0;
+            let totalUSD = 0, totalCDF = 0;
 
             $('#content_utilisateur tbody tr').each(function() {
                 const $row = $(this);
@@ -1276,32 +1341,39 @@ select.form-control {
                 const numeroValue = ($row.find('.numero-cell').data('numero') || '').toLowerCase();
                 const userValue = ($row.find('.user-cell').data('user') || '').toLowerCase();
                 const montantValue = parseFloat($row.find('.montant-cell').data('montant') || 0);
+                // Utiliser data-date qui est en YYYY-MM-DD
                 const dateValue = $row.find('.date-cell').data('date') || '';
-
-                let dateForCompare = '';
-                if (dateValue) {
-                    const dateParts = dateValue.split('/');
-                    if (dateParts.length === 3) {
-                        dateForCompare = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-                    }
-                }
 
                 if (filterNumero && !numeroValue.includes(filterNumero)) showRow = false;
                 if (showRow && filterUser && !userValue.includes(filterUser)) showRow = false;
-                if (showRow && !isNaN(filterMontant) && montantValue != filterMontant) showRow = false;
-                if (showRow && filterDate && dateForCompare !== filterDate) showRow = false;
+                if (showRow && !isNaN(filterMontant) && Math.abs(montantValue - filterMontant) > 0.009) showRow = false;
+
+                // Filtre par plage de dates
+                if (showRow && dateDebut && dateFin) {
+                    if (dateValue) {
+                        if (dateValue < dateDebut || dateValue > dateFin) {
+                            showRow = false;
+                        }
+                    } else {
+                        showRow = false;
+                    }
+                }
 
                 if (showRow) {
                     $row.show();
                     visibleCount++;
+                    totalUSD += parseFloat($row.data('montant-usd')) || 0;
+                    totalCDF += parseFloat($row.data('montant-cdf')) || 0;
                 } else {
                     $row.hide();
                 }
             });
 
             $('#approCount').text(visibleCount);
+            $('#totalUsd').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalCdf').text(totalCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 
-            if (visibleCount === 0 && (filterNumero || filterUser || !isNaN(filterMontant) || filterDate)) {
+            if (visibleCount === 0 && (filterNumero || filterUser || !isNaN(filterMontant) || dateRange)) {
                 $('#msg').html('<i class="zmdi zmdi-info"></i> Aucun approvisionnement ne correspond aux critères de recherche');
                 $('#msg').css('display', 'flex');
                 setTimeout(() => {
@@ -1312,13 +1384,23 @@ select.form-control {
         }
 
         function resetApproFilters() {
+            // Remettre la date par défaut (aujourd'hui) comme dans les factures
+            var today = moment();
+            var todayStr = today.format('DD/MM/YYYY');
+            $('#filterDateRange').val(todayStr + ' - ' + todayStr);
+            // Mettre à jour le picker
+            if ($('#filterDateRange').data('daterangepicker')) {
+                $('#filterDateRange').data('daterangepicker').setStartDate(today);
+                $('#filterDateRange').data('daterangepicker').setEndDate(today);
+            }
+
             $('#filterNumero').val('');
             $('#filterUser').val('');
             $('#filterMontant').val('');
-            $('#filterDate').val('');
 
             saveApproFiltersToStorage();
 
+            // Réafficher toutes les lignes
             $('#content_utilisateur tbody tr').show();
             const totalCount = $('#content_utilisateur tbody tr').length;
             $('#approCount').text(totalCount);
@@ -1339,30 +1421,85 @@ select.form-control {
             }, 300);
         }
 
-        // Initialisation des événements de filtrage
+        // Initialisation des événements de filtrage et du date range picker
         $(document).ready(function() {
+            // Initialisation du Date Range Picker avec la date du jour par défaut
+            var today = moment();
+            var todayStr = today.format('DD/MM/YYYY');
+            $('#filterDateRange').val(todayStr + ' - ' + todayStr);
+
+            $('#filterDateRange').daterangepicker({
+                autoUpdateInput: false,
+                startDate: today,
+                endDate: today,
+                locale: {
+                    format: 'DD/MM/YYYY',
+                    separator: ' - ',
+                    applyLabel: 'Appliquer',
+                    cancelLabel: 'Annuler',
+                    fromLabel: 'Du',
+                    toLabel: 'Au',
+                    customRangeLabel: 'Personnalisé',
+                    weekLabel: 'S',
+                    daysOfWeek: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
+                    monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+                },
+                opens: 'left',
+                ranges: {
+                    'Aujourd\'hui': [moment(), moment()],
+                    'Hier': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '7 derniers jours': [moment().subtract(6, 'days'), moment()],
+                    '30 derniers jours': [moment().subtract(29, 'days'), moment()],
+                    'Ce mois-ci': [moment().startOf('month'), moment().endOf('month')],
+                    'Mois dernier': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                    'Cette année': [moment().startOf('year'), moment().endOf('year')]
+                }
+            }, function(start, end, label) {
+                var startStr = start.format('DD/MM/YYYY');
+                var endStr = end.format('DD/MM/YYYY');
+                $('#filterDateRange').val(startStr + ' - ' + endStr);
+                filterApprovisionnements();
+                saveApproFiltersToStorage();
+            });
+
+            $('#filterDateRange').on('cancel.daterangepicker', function(ev, picker) {
+                $(this).val('');
+                filterApprovisionnements();
+                saveApproFiltersToStorage();
+            });
+
+            // Nombre total d'approvisionnements initial
             const totalAppro = $('#content_utilisateur tbody tr').length;
             $('#approCount').text(totalAppro);
+            // Initialiser les totaux
+            filterApprovisionnements(); // Cette fonction va calculer les totaux
 
-            const hasSavedFilters = loadApproFiltersFromStorage();
+            // Charger les filtres sauvegardés (s'ils existent, écrase la valeur par défaut)
+            const hasSaved = loadApproFiltersFromStorage();
+            if (!hasSaved) {
+                // déjà initialisée avec aujourd'hui
+            }
+            // Appliquer les filtres (pour afficher uniquement la plage aujourd'hui par défaut)
+            filterApprovisionnements();
 
-            $('#filterNumero, #filterUser, #filterMontant, #filterDate').on('input change', function() {
+            // Événements des autres filtres
+            $('#filterNumero, #filterUser, #filterMontant').on('input change', function() {
                 debouncedApproFilter();
             });
 
+            // Réinitialisation
             $('#resetFilters').click(function(e) {
                 e.preventDefault();
                 resetApproFilters();
             });
-
-            if (hasSavedFilters) {
-                setTimeout(function() {
-                    filterApprovisionnements();
-                }, 100);
-            }
         });
 
-        // Réappliquer les filtres après chaque chargement AJAX
+        // Sauvegarde automatique avant de quitter
+        window.addEventListener('beforeunload', function() {
+            saveApproFiltersToStorage();
+        });
+
+        // Réappliquer les filtres après chaque chargement AJAX (pour conserver l'état)
         $(document).ajaxComplete(function(event, xhr, settings) {
             if (settings.url && (settings.url.includes('refresh_') || settings.url.includes('add_app_article'))) {
                 setTimeout(() => {
@@ -1372,11 +1509,6 @@ select.form-control {
                     filterApprovisionnements();
                 }, 200);
             }
-        });
-
-        // Sauvegarder les filtres avant de quitter
-        window.addEventListener('beforeunload', function() {
-            saveApproFiltersToStorage();
         });
     </script>
 @endsection

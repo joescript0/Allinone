@@ -5,21 +5,32 @@
                 <tr>
                     <th style="padding-top: 5px;padding-bottom: 5px;">N°</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Nom</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">Taux facture (CDF)</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">TVA (%)</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Description</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="activitiesTableBody">
                 {{ !($i = 1) }}
                 @foreach ($activites as $data)
-                    <tr>
-                        <td style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;">
+                    <tr id="row_{{ $data->id }}">
+                        <td class="row-num" style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
+                        <td class="nom-cell" data-nom="{{ $data->nom }}"
+                            style="padding-top: 5px;padding-bottom: 5px;">
                             <a id="voir_profil_<?= $i ?>" href="#">
-                                <img src="{{ asset($data->logo) }}" alt="avatar" class="profile-thumb">
+                                <img src="{{ asset($data->logo) }}" alt="logo" class="profile-thumb">
                             </a> {{ $data->nom }}
                         </td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->description }}
+                        <td style="padding-top: 5px;padding-bottom: 5px;">
+                            {{ $data->taux ?? '' }}
+                        </td>
+                        <td style="padding-top: 5px;padding-bottom: 5px;">
+                            {{ $data->tva ?? '' }}
+                        </td>
+                        <td class="description-cell" data-description="{{ $data->description }}"
+                            style="padding-top: 5px;padding-bottom: 5px;">
+                            {{ $data->description }}
                         </td>
                         <td style="padding-top: 5px;padding-bottom: 5px;">
                             <a id="edit_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
@@ -54,10 +65,15 @@
                                 });
                             </script>
                         </td>
-
                     </tr>
                     {{ !$i++ }}
                 @endforeach
+                <!-- Ligne pour aucun résultat -->
+                <tr id="noResultRow" style="display: none;">
+                    <td colspan="6">
+                        <i class="zmdi zmdi-info-outline"></i> Aucune activité ne correspond à vos critères.
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
