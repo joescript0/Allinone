@@ -7983,10 +7983,10 @@ class AjaxController extends Controller
             $pdf->SetFont('Arial', 'B', 6);
             $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', 'Date'), 0, 0, 'L');
             $pdf->Cell(18, 4, iconv('UTF-8', 'Windows-1252', 'Montant'), 0, 0, 'R');
-            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (USD)'), 0, 0, 'R');
-            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (CDF)'), 0, 0, 'R');
             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (USD)'), 0, 0, 'R');
-            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (CDF)'), 0, 1, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (CDF)'), 0, 0, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (USD)'), 0, 0, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (CDF)'), 0, 1, 'R');
 
             $pdf->SetFont('Arial', '', 6);
 
