@@ -59,9 +59,12 @@ use Illuminate\Support\Facades\Auth;
                             }
                             ?>
                         </td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell"
-                            data-date="{{ date('Y-m-d', strtotime($data->date_creation)) }}">
-                            {{ date('d/m/Y', strtotime($data->date_creation)) }}
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell" data-date="{{ $data->created_at }}">
+                            <?php
+                                $date = $data->created_at;
+                                $date_1 = explode(' ', $date);
+                                echo explode('-', $date_1[0])[2] . '/' . explode('-', $date_1[0])[1] . '/' . explode('-', $date_1[0])[0] . ' à ' . $date_1[1];
+                            ?>
                         </td>
                         <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                             <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>

@@ -768,17 +768,17 @@ select.form-control {
                                             @php
                                                 $t = 0;
                                                 $ent = Approvisionnements::where('facture_id', $data->id)->get();
-                                                foreach ($ent as $e) 
+                                                foreach ($ent as $e)
                                                 {
                                                     $t = $t + $e->total;
-                                                    
+
                                                     // Taux de la facture (si disponible, sinon 1)
                                                     $tauxFacture = $e->taux ?? 1;
-                                                    if ($data->devise == 0) 
+                                                    if ($data->devise == 0)
                                                     {
                                                         $montant_usd = $t;
                                                         $montant_cdf = $t * $tauxFacture;
-                                                    } else 
+                                                    } else
                                                     {
                                                         $montant_cdf = $t;
                                                         $montant_usd = $t / $tauxFacture;
@@ -802,8 +802,12 @@ select.form-control {
                                                         }
                                                     ?>
                                                 </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell" data-date="{{ date('Y-m-d', strtotime($data->date_creation)) }}">
-                                                    {{ date('d/m/Y', strtotime($data->date_creation)) }}
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell" data-date="{{ $data->created_at }}">
+                                                    <?php
+                                                        $date = $data->created_at;
+                                                        $date_1 = explode(' ', $date);
+                                                        echo explode('-', $date_1[0])[2] . '/' . explode('-', $date_1[0])[1] . '/' . explode('-', $date_1[0])[0] . ' à ' . $date_1[1];
+                                                    ?>
                                                 </td>
                                                 <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                                                     <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
@@ -1513,3 +1517,4 @@ select.form-control {
     </script>
 @endsection
 @endsection
+

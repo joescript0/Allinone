@@ -7,17 +7,19 @@ use App\Models\Achats;
 use App\Models\Clients;
 use App\Models\Mesures;
 use App\Models\User;
-use App\Models\Detailpaiessachats; // Ajout pour les paiements
+use App\Models\detailpaiessachats; // Ajout pour les paiements
 
 // --- Calcul du total des achats (existant) ---
 $t = 0;
-foreach ($achats as $ee) {
+foreach ($achats as $ee) 
+{
     $t = $t + $ee->total;
 }
 
 // --- Récupération de la facture et calcul des paiements ---
-$factureId = $factures['facture_id'] ?? null;
+$factureId = $factures['id'] ?? null;
 $facture = Factureass::find($factureId);
+
 
 $montant_usd_1 = 0;
 $montant_cdf_1 = 0;
@@ -57,21 +59,20 @@ if ($facture) {
 }
 ?>
 <div class="col-12">
-    <h4 style="text-align: center;color: white;background-color: rgb(0, 0, 0);padding: 15px;">FACTURE N°
-        {{ strtoupper($numero) }}</h4>
+    <h4 style="text-align: center;color: white;background-color: rgb(0, 0, 0);padding: 15px;">FACTURE N° {{ strtoupper($numero) }}</h4>
 </div>
 
-<!-- BLOC NOM CLIENT (existant) -->
+<!-- BLOC CLIENT -->
 <div class="col-12 mb-3">
     <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px;">
         <div class="row">
             <div class="col-md-6 text-left text-dark">
                 <strong style="font-size: 16px;font-weight: bold">LIBELLE / CLIENT :</strong>
                 <span style="font-size: 16px; font-weight: bold;">
-                    @if ($factures['client_id'] == 0)
-                        {{ $factures['libelle'] }}
+                    @if ($factures["client_id"] == 0)
+                        {{ $factures["libelle"] }}
                     @else
-                        <?= Clients::where('id', $factures['client_id'])->first()['name'] ?? 'N/A' ?>
+                        <?= Clients::where('id', $factures["client_id"])->first()['name'] ?? 'N/A' ?>
                     @endif
                 </span>
             </div>
@@ -79,7 +80,7 @@ if ($facture) {
     </div>
 </div>
 
-<!-- NOUVEAU BLOC : MONTANT DÉJÀ PAYÉ ET RESTE À PAYER -->
+<!-- BLOC : MONTANT DÉJÀ PAYÉ (VERT) ET RESTE À PAYER (ROUGE) -->
 <div class="col-12 mb-3">
     <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px;">
         <div class="row">
@@ -102,22 +103,16 @@ if ($facture) {
 </div>
 
 <div class="col-12">
+    <!-- Bouton Payer seul, sans affichage du total -->
     <h6 style="text-align: right;font-weight: bold;">
         <span>
-            <span>
-                <i class="zmdi zmdi-check-circle text-success"></i>
-                @if ($devise == 0)
-                    Total : <span id="total_1"><?= number_format($t, 2, ',', ' ') ?></span>USD
-                @else
-                    Total : <span id="total_1"><?= number_format($t, 2, ',', ' ') ?></span>CDF
-                @endif
-            </span>
-            <button id="imprimerfacture_2" class="btn btn-primary btn-sm ml-3"
+            <button id="imprimerfacture_2" class="btn btn-primary btn-sm"
                 style="margin-left: 15px; padding: 5px 10px; border: none; border-radius: 3px; background-color: #007bff; color: white; cursor: pointer;">
                 <i class="zmdi zmdi-money"></i> Payer
             </button>
         </span>
     </h6>
+
     <div class="table-responsive">
         <table class="table table-bordered mb-0">
             <thead>
@@ -133,9 +128,7 @@ if ($facture) {
                 {{ !($i = 1) }}
                 @foreach ($achats as $data)
                     <tr>
-                        <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">
-                            {{ $i }}
-                        </td>
+                        <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
                         <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">
                             <?= Articles::where('id', $data->article_id)->first()['nom_article'] ?>
                             ({{ Mesures::where('id', Articles::where('id', $data->article_id)->first()['mesure_id'])->first()['nom'] }})
@@ -147,9 +140,7 @@ if ($facture) {
                             {{ number_format($data->prix_unitaire, 2, ',', ' ') }}CDF
                             <?php }?>
                         </td>
-                        <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">
-                            {{ $data->quantite }}
-                        </td>
+                        <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">{{ $data->quantite }}</td>
                         <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">
                             <?php if($data->devise == 0){ ?>
                             {{ number_format($data->total, 2, ',', ' ') }}USD

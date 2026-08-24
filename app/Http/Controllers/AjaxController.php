@@ -4567,7 +4567,8 @@ class AjaxController extends Controller
         // --- 3. Gestion de la facture (création si nécessaire) ---
         $facture_id = Session::get("facture_user_id");
 
-        if (!$facture_id) {
+        if (!$facture_id)
+        {
             // === C'est le "else" du if(Session::get("facture_user_id")) ===
             // Création d'une nouvelle facture
             $id = Factureass::get()->count() + 1;
@@ -4575,7 +4576,7 @@ class AjaxController extends Controller
 
             // Taux general et tva des facture
             $activite_id = Articles::where('id', $article_id)->first()["activite_id"];
-            $activites = Activites::where('id', $article_id)->first();
+            $activites = Activites::where('id', $activite_id)->first();
             $taux_general = $activites->taux;
             $tva_general = $activites->tva;
 
