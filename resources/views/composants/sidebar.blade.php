@@ -57,6 +57,7 @@
     $menu_37 = Desactiver();
     $menu_38 = Activer();
     $menu_39 = Activer();
+    $menu_40 = Activer();
 
   }
   elseif($menueapp == "Divine")
@@ -104,6 +105,7 @@
     $menu_37 = Desactiver();
     $menu_38 = Desactiver();
     $menu_39 = Desactiver();
+    $menu_40 = Activer();
   }
 ?>
 
@@ -490,6 +492,7 @@
       $data["ressource_id_22"] = 22;
       $data["ressource_id_23"] = 23;
       $data["ressource_id_24"] = 24;
+      $data["ressource_id_25"] = 25;
       $data["groupe_user_id"] = $groupe_user_id;
       ?>
       <ul class="navigation">
@@ -691,6 +694,20 @@
             <?php } ?>
         @endif
 
+        @if ($menu_40 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_25"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_25 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_25"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
+                    $display_25 = Writes::where(["ressource_id" => $data["ressource_id_25"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_25 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_25"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_25 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_46"><a href="{{ route('prospects') }}" id="text_46">🧑‍🤝‍🧑 Gestion de prospects</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+        
         @if ($menu_33 == 1)
             <?php if ((Writes::where(["ressource_id" => $data["ressource_id_19"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                 <?php

@@ -373,6 +373,7 @@ Route::get('/alerte_centrale', [App\Http\Controllers\HomeController::class, 'ale
 Route::get('/alerte_mobile', [App\Http\Controllers\HomeController::class, 'alerte_mobile'])->name('alerte_mobile');
 Route::get('/gestion_fichier', [App\Http\Controllers\HomeController::class, 'gestion_fichier'])->name('gestion_fichier');
 Route::get('/clients', [App\Http\Controllers\HomeController::class, 'clients'])->name('clients');
+Route::get('/prospects', [App\Http\Controllers\HomeController::class, 'prospects'])->name('prospects');
 Route::get('/profils', [App\Http\Controllers\HomeController::class, 'profils'])->name('profils');
 Route::get('/gestion_activiter', [App\Http\Controllers\HomeController::class, 'gestion_activiter'])->name('gestion_activiter');
 Route::get('/point_vente', [App\Http\Controllers\HomeController::class, 'point_vente'])->name('point_vente');
