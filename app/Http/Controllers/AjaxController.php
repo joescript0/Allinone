@@ -1866,6 +1866,11 @@ class AjaxController extends Controller
         $data["groupe_user_id"] = $groupe_user_id;
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         $data["factures"] = Factureass::get();
+        $data["factures"] = Factureass::where(["user_id" => Auth::user()->id, "etat" => 0])->get();
+        if(Auth::user()->role == 0)
+        {
+            $data["factures"] = Factureass::where(["etat" => 0])->get();
+        }
         return view('include.refresh_factureass', $data);
     }
 
@@ -4650,8 +4655,11 @@ class AjaxController extends Controller
         $data["ressource_id_1"] = 2;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
-        $data["factures"] = Factureass::get();
-
+        $data["factures"] = Factureass::where(["user_id" => Auth::user()->id, "etat" => 0])->get();
+        if(Auth::user()->role == 0)
+        {
+            $data["factures"] = Factureass::where(["etat" => 0])->get();
+        }
         return view('include.refresh_factureass', $data);
     }
 
@@ -12783,5 +12791,42 @@ class AjaxController extends Controller
         }
 
         return $html;
+    }
+    public function delete_facture(Request $request)
+    {
+        $id = $request->id;
+        if (!$id) {
+            return response()->json(['error' => 'ID manquant'], 400);
+        }
+
+        $facture = Factureass::where('id', $id)->where('etat', 0)->first();
+        if (!$facture) {
+            return response()->json(['error' => 'Facture introuvable ou déjà supprimée'], 404);
+        }
+
+        $achats = Achats::where('facture_id', $id)->get();
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($achats as $achat) {
+                $article = Articles::find($achat->article_id);
+                if ($article) {
+                    $article->stock += $achat->quantite;
+                    $article->save();
+                }
+            }
+
+            $facture->etat = 1;
+            $facture->save();
+
+            DB::commit();
+
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Erreur : ' . $e->getMessage()], 500);
+        }
     }
 }

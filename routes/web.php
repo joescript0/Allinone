@@ -299,6 +299,7 @@ Route::get('/get_all_depense', [AjaxController::class , 'get_all_depense'])->nam
 Route::get('/get_all_articles', [AjaxController::class , 'get_all_articles'])->name('get_all_articles');
 Route::get('/get_commune_by_district', [AjaxController::class , 'get_commune_by_district'])->name('get_commune_by_district');
 Route::post('/save_paie_facture', [AjaxController::class , 'save_paie_facture'])->name('save_paie_facture');
+Route::post('/delete_facture', [AjaxController::class , 'delete_facture'])->name('delete_facture');
 Route::post('/process_payment', [AjaxController::class , 'process_payment'])->name('process_payment');
 Route::post('/transfer_article', [AjaxController::class , 'transfer_article'])->name('transfer_article');
 Route::post('/submit-filters', [AjaxController::class, 'submitFilters'])->name('submitFilters');

@@ -1,4 +1,4 @@
-@php
+ @php
     use App\Models\appnames;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
@@ -1136,15 +1136,18 @@ select.form-control {
                                                 foreach ($ent as $e)
                                                 {
                                                     $total += $e->total;
-                                                    // Calcul du coût d'achat
+                                                    // 🔥 CORRECTION : coût d'achat TOTAL = prix unitaire × quantité
                                                     $prix_achat = $e->prix_achat ?? 0;
-                                                    $devise_achat = $e->devise_achat ?? $data->devise; // si non défini, on prend la devise de la facture
-                                                    if ($devise_achat == 0) { // USD
-                                                        $achat_total_usd += $prix_achat;
-                                                        $achat_total_cdf += $prix_achat * $taux;
+                                                    $quantite = $e->quantite ?? 1; // 👈 Adapter le nom de colonne si nécessaire (ex: qte, quantite_achetee)
+                                                    $prix_achat_total = $prix_achat * $quantite;
+                                                    $devise_achat = $e->devise_achat ?? $data->devise;
+                                                    if ($devise_achat == 0)
+                                                    { // USD
+                                                        $achat_total_usd += $prix_achat_total;
+                                                        $achat_total_cdf += $prix_achat_total * $taux;
                                                     } else { // CDF
-                                                        $achat_total_cdf += $prix_achat;
-                                                        $achat_total_usd += $prix_achat / $taux;
+                                                        $achat_total_cdf += $prix_achat_total;
+                                                        $achat_total_usd += $prix_achat_total / $taux;
                                                     }
                                                 }
                                                 if ($data->devise == 0)
@@ -1159,7 +1162,7 @@ select.form-control {
                                                     $montant_affichage = number_format($total, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
                                                 }
 
-                                                // Bénéfices (calculés mais non affichés dans le tableau)
+                                                // Bénéfices (maintenant justes)
                                                 $benefice_usd = $montant_usd - $achat_total_usd;
                                                 $benefice_cdf = $montant_cdf - $achat_total_cdf;
 
@@ -1168,7 +1171,8 @@ select.form-control {
                                                 $montant_usd_paye = 0;
                                                 $montant_cdf_paye = 0;
 
-                                                foreach ($paiements as $paiement) {
+                                                foreach ($paiements as $paiement)
+                                                {
                                                     if ($paiement->devise_recu == 0) {
                                                         $montant_usd_paye += $paiement->montant_recu;
                                                         $montant_cdf_paye += $paiement->montant_recu * $taux;
@@ -1183,6 +1187,8 @@ select.form-control {
 
                                                 $paye_affichage = number_format($montant_usd_paye, 2, ',', ' ') . ' USD (' . number_format($montant_cdf_paye, 2, ',', ' ') . ' CDF)';
                                                 $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
+                                                $statut_text = $reste_usd > 0 ? 'Impayé' : 'Payé';
+                                                $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
                                             @endphp
                                             <tr id="row_{{ $data->id }}"
                                                 data-montant-usd="{{ $montant_usd }}"
@@ -1197,7 +1203,7 @@ select.form-control {
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
                                                     {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
                                                 </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="client-cell" data-client="{{ $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A') }}">
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="client-cell" data-client="{{ $client_name }}">
                                                     @if ($data->client_id == 0)
                                                         {{ $data->libelle }}
                                                     @else
@@ -1281,6 +1287,19 @@ select.form-control {
                                                         @else
                                                             <a id="detail_r{{ $i }}" href="#"><i class="zmdi zmdi-eye text-success"></i></a> &nbsp;
                                                         @endif
+                                                    <?php } ?>
+                                                    {{-- Icône de suppression enrichie en données --}}
+                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
+                                                        <a href="#" class="delete-facture-btn"
+                                                           data-id="{{ $data->id }}"
+                                                           data-numero="{{ $data->numero }}"
+                                                           data-client="{{ $client_name }}"
+                                                           data-montant="{{ $montant_affichage }}"
+                                                           data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
+                                                           data-statut="{{ $statut_text }}"
+                                                           title="Supprimer cette facture">
+                                                            <i class="zmdi zmdi-delete text-danger"></i>
+                                                        </a>
                                                     <?php } ?>
                                                     <script>
                                                         $("#detail_{{ $i }}").click(function(e) {
@@ -1629,6 +1648,37 @@ select.form-control {
             </div>
         </div>
     </div>
+
+    {{-- MODALE DE SUPPRESSION AVEC DÉTAILS --}}
+    <div class="modal fade" id="deleteFactureModal" tabindex="-1" role="dialog" aria-labelledby="deleteFactureModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="font-weight: bold;font-size: 16px;">Confirmer la suppression</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Voulez-vous vraiment supprimer la facture ci-dessous ? Cette action est irréversible.</p>
+                    <div style="background: #f8f9fa; padding: 12px 15px; border-radius: 8px; margin-top: 10px;">
+                        <table style="width:100%; font-size:0.9rem; border-collapse:collapse;">
+                            <tr><td style="padding:5px 0; font-weight:600;">N° facture :</td><td style="padding:5px 0;" id="delete_facture_numero">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Client / Libellé :</td><td style="padding:5px 0;" id="delete_facture_client">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Montant :</td><td style="padding:5px 0;" id="delete_facture_montant">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Date :</td><td style="padding:5px 0;" id="delete_facture_date">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Statut :</td><td style="padding:5px 0;" id="delete_facture_statut">-</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div style="font-weight: bold;text-align: center; padding-bottom: 15px;">
+                    <button id="confirm_delete_facture" class="btn btn-info btn-sm" style="margin-right: 8px;">Oui, supprimer</button>
+                    <button class="btn btn-danger btn-sm" data-dismiss="modal">Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal/Fenêtre modale pour afficher le PDF -->
     <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 100%; width: 60%;">
@@ -1755,8 +1805,18 @@ select.form-control {
             $("#bloc_3").hide();
         });
 
+        // ========== BOUTON SAVE AVEC GESTION DU CHARGEMENT ==========
         $("#save").click(function(e) {
             e.preventDefault();
+            var btn = $(this);
+            // Désactiver et afficher le spinner
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...');
+
+            // Fonction pour réinitialiser le bouton en cas d'erreur ou de validation échouée
+            function resetButton() {
+                btn.prop('disabled', false).html('Enregister <i class="zmdi zmdi-save"></i>');
+            }
+
             var numero_facture = $("#numero_facture").val();
             var type_sortie = $("#type_sortie").val();
             var action = $("#action").val();
@@ -1768,93 +1828,119 @@ select.form-control {
             var type_vente_id = $("#type_vente_id").val();
             var data = $("#form_add").serialize();
 
-            if (numero_facture.trim().length == 0)
-            {
+            // Validations
+            if (numero_facture.trim().length == 0) {
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le numero d\'entré');
                 setTimeout(() => { $('#msg').html(""); }, 9000);
-            } else {
-                if (type_sortie.trim().length == 0) {
-                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom de l\'article');
-                    setTimeout(() => { $('#msg').html(""); }, 9000);
-                } else {
-                    if (action.trim().length == 0) {
-                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Selectionnez une action');
+                resetButton();
+                return;
+            }
+            if (type_sortie.trim().length == 0) {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom de l\'article');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+                resetButton();
+                return;
+            }
+            if (action.trim().length == 0) {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Selectionnez une action');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+                resetButton();
+                return;
+            }
+            if (type_vente_id.trim().length == 0) {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Selectionnez le type de vente detail ou gros');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+                resetButton();
+                return;
+            }
+            if (quantite.trim().length == 0) {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez la quantité');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+                resetButton();
+                return;
+            }
+            if (quantite.trim() <= 0) {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> La quantité doit être supérieur à 0');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+                resetButton();
+                return;
+            }
+
+            // Appels AJAX pour récupérer prix et vérifier seuil
+            $.get("{{ url('/get_prix_article') }}", {
+                article_id: $("#type_sortie").val(),
+                type_vente_id: $("#type_vente_id").val(),
+            }, function(get_prix_article) {
+                $.get("{{ url('/check_seuil_minimum') }}", {
+                    article_id: type_sortie,
+                    devise: devise,
+                    quantite: quantite,
+                    taille_lot: get_prix_article[0][1],
+                    prix_unitaire: get_prix_article[0][0],
+                    devise: $("#devise").val(),
+                    taux: taux,
+                }, function(repp) {
+                    var data_rep = repp.split("__________")
+                    if ((data_rep[0] == 0) && (data_rep[3] == 1)) {
+                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le seuil minimum de cette article est de : ' +
+                            data_rep[1] + ', sortie disponible : ' + data_rep[2]);
                         setTimeout(() => { $('#msg').html(""); }, 9000);
+                        resetButton();
+                        return;
+                    } else if ((data_rep[0] == -1) && (data_rep[3] == 1)) {
+                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le stock de cette article est vide');
+                        setTimeout(() => { $('#msg').html(""); }, 9000);
+                        resetButton();
+                        return;
                     } else {
-                        if(type_vente_id.trim().length == 0){
-                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Selectionnez le type de vente detail ou gros');
+                        if (client.trim().length == 0 && libelle.trim().length == 0) {
+                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le client ou le libellé');
                             setTimeout(() => { $('#msg').html(""); }, 9000);
+                            resetButton();
+                            return;
                         } else {
-                            if (quantite.trim().length == 0) {
-                                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez la quantité');
-                                setTimeout(() => { $('#msg').html(""); }, 9000);
-                            } else {
-                                if(quantite.trim() <= 0) {
-                                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> La quantité doit être supérieur à 0');
-                                    setTimeout(() => { $('#msg').html(""); }, 9000);
-                                } else {
-                                    $.get("{{ url('/get_prix_article') }}", {
-                                        article_id: $("#type_sortie").val(),
-                                        type_vente_id: $("#type_vente_id").val(),
-                                    }, function(get_prix_article) {
-                                        $.get("{{ url('/check_seuil_minimum') }}", {
-                                            article_id: type_sortie,
-                                            devise: devise,
-                                            quantite: quantite,
-                                            taille_lot: get_prix_article[0][1],
-                                            prix_unitaire: get_prix_article[0][0],
-                                            devise: $("#devise").val(),
-                                            taux: taux,
-                                        }, function(repp) {
-                                            var data_rep = repp.split("__________")
-                                            if ((data_rep[0] == 0) && (data_rep[3] == 1))
-                                            {
-                                                $('#msg').html(
-                                                    '<i class="zmdi zmdi-close-circle"></i> Le seuil minimum de cette article est de : ' +
-                                                    data_rep[1] + ', sortie disponible : ' + data_rep[2]);
-                                                setTimeout(() => { $('#msg').html(""); }, 9000);
-                                            } else if ((data_rep[0] == -1) && (data_rep[3] == 1)) {
-                                                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le stock de cette article est vide');
-                                                setTimeout(() => { $('#msg').html(""); }, 9000);
-                                            } else {
-                                                if(client.trim().length == 0 && libelle.trim().length == 0) {
-                                                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le client ou le libellé');
-                                                    setTimeout(() => { $('#msg').html(""); }, 9000);
-                                                    return;
-                                                } else {
-                                                    $("#save").attr("disabled", true);
-                                                    $.ajax({
-                                                        type: "POST",
-                                                        url: "/add_achat_article",
-                                                        data: data,
-                                                        success: function(response) {
-                                                            $("#save").attr("disabled", false);
-                                                            $("#quantite").val("");
-                                                            Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
-                                                            $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
-                                                            $("#content_utilisateur").html(response);
-                                                            $.get("{{ url('/get_achat') }}", {}, function(response) {
-                                                                $("#bloc_3").html(response);
-                                                            });
-                                                            setTimeout(() => { $('#msg').html(""); }, 9000);
-                                                            // Sauvegarder et réappliquer les filtres
-                                                            saveFiltersToStorage();
-                                                            setTimeout(function() {
-                                                                loadFiltersFromStorage();
-                                                                filterInvoices();
-                                                            }, 100);
-                                                        }
-                                                    });
-                                                }
-                                            }
-                                        });
+                            // Envoi de l'ajout
+                            $.ajax({
+                                type: "POST",
+                                url: "/add_achat_article",
+                                data: data,
+                                success: function(response) {
+                                    // Succès : réinitialiser le bouton
+                                    resetButton();
+                                    $("#quantite").val("");
+                                    Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
+                                    $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
+                                    $("#content_utilisateur").html(response);
+                                    $.get("{{ url('/get_achat') }}", {}, function(response) {
+                                        $("#bloc_3").html(response);
                                     });
+                                    setTimeout(() => { $('#msg').html(""); }, 9000);
+                                    // Sauvegarder et réappliquer les filtres
+                                    saveFiltersToStorage();
+                                    setTimeout(function() {
+                                        loadFiltersFromStorage();
+                                        filterInvoices();
+                                    }, 100);
+                                },
+                                error: function(xhr, status, error) {
+                                    resetButton();
+                                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de l\'enregistrement');
+                                    setTimeout(() => { $('#msg').html(""); }, 9000);
+                                    console.error(error);
                                 }
-                            }
+                            });
                         }
                     }
-                }
-            }
+                }).fail(function() {
+                    resetButton();
+                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de la vérification du seuil');
+                    setTimeout(() => { $('#msg').html(""); }, 9000);
+                });
+            }).fail(function() {
+                resetButton();
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de la récupération du prix');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+            });
         });
 
         $("#oui").click(function(e) {
@@ -2174,6 +2260,74 @@ select.form-control {
                 e.preventDefault();
                 resetAllFilters();
             });
+
+            // ========== GESTION DE LA SUPPRESSION DES FACTURES AVEC DÉTAILS ==========
+            $(document).on('click', '.delete-facture-btn', function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+                var numero = $(this).data('numero');
+                var client = $(this).data('client');
+                var montant = $(this).data('montant');
+                var date = $(this).data('date');
+                var statut = $(this).data('statut');
+
+                $('#delete_facture_numero').text(numero);
+                $('#delete_facture_client').text(client);
+                $('#delete_facture_montant').text(montant);
+                $('#delete_facture_date').text(date);
+                $('#delete_facture_statut').text(statut);
+
+                $('#deleteFactureModal').data('facture-id', id);
+                $('#deleteFactureModal').modal('show');
+            });
+
+            $(document).on('click', '#confirm_delete_facture', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                var factureId = $('#deleteFactureModal').data('facture-id');
+                if (!factureId) {
+                    alert('Identifiant de facture manquant.');
+                    return;
+                }
+
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Suppression...');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url("/delete_facture") }}',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        id: factureId
+                    },
+                    success: function(response) {
+                        $.get('{{ url("/get_all_facture") }}', function(html) {
+                            $('#content_utilisateur').html(html);
+                            saveFiltersToStorage();
+                            setTimeout(function() {
+                                loadFiltersFromStorage();
+                                filterInvoices();
+                            }, 100);
+                        }).fail(function() {
+                            alert('Erreur lors du rechargement du tableau.');
+                        });
+
+                        $('#deleteFactureModal').modal('hide');
+                        $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Facture supprimée avec succès');
+                        $('#msg').css('display', 'flex');
+                        setTimeout(() => {
+                            $('#msg').html('');
+                            $('#msg').css('display', 'none');
+                        }, 3000);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Erreur de suppression :', error);
+                        alert('Une erreur est survenue lors de la suppression. Veuillez réessayer.');
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false).html('Oui, supprimer');
+                    }
+                });
+            });
         });
 
         window.addEventListener('beforeunload', function() {
@@ -2349,3 +2503,4 @@ select.form-control {
     </script>
 @endsection
 @endsection
+

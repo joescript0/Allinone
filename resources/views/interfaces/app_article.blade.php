@@ -13,6 +13,7 @@ use App\Models\Factures;
 use App\Models\Approvisionnements;
 use App\Models\Societes;
 use App\Models\Entres;
+use App\Models\Mesures;
 use Illuminate\Support\Facades\Auth;
 ?>
 @extends('layouts.main')
@@ -881,9 +882,31 @@ select.form-control {
                                         data-placeholder="Selectionnez un article">
                                         <option selected value="">Selectionnez un article</option>
                                         @foreach ($articles as $data)
-                                            <option value="{{ $data->id }}">
-                                                <?= $data->nom_article . ' (' . Societes::where('id', $data->societe_id)->first()['nom'] . ')' ?>
-                                            </option>
+                                            @if (($data->activite_id != 0) && ($data->stock > $data->seuil_minimum))
+                                                <option value="{{ $data->id }}">
+                                                    🟢 {{ $data->nom_article }}
+                                                    {{ (Mesures::where('id', $data->mesure_id)->first()['nom'] ?? 'N/A') }}
+                                                            ({{ Societes::where('id', $data->societe_id)->first()['nom'] ?? 'N/A' }})
+                                                </option>
+                                            @else
+                                                @php
+                                                    $erreurs = [];
+                                                    if ($data->activite_id == 0)
+                                                    {
+                                                        $erreurs[] = 'Activité non définie';
+                                                    }
+                                                    if ($data->stock <= $data->seuil_minimum) {
+                                                        $erreurs[] = 'Stock insuffisant';
+                                                    }
+                                                    $message = implode(' et ', $erreurs);
+                                                @endphp
+                                                <option value="{{ $data->id }}">
+                                                    🔴 {{ $data->nom_article }}
+                                                    {{ (Mesures::where('id', $data->mesure_id)->first()['nom'] ?? 'N/A') }}
+                                                    ({{ Societes::where('id', $data->societe_id)->first()['nom'] ?? 'N/A' }})
+                                                    : {{ $message }}
+                                                </option>
+                                            @endif
                                         @endforeach
                                     </select>
                                 </div>

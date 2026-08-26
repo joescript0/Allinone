@@ -120,7 +120,7 @@ class HomeController extends Controller
             $data["alertes_par_mois"] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
             $data["affectations_par_mois"] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
             $data["decisions"] = Decisions::where(["etat" => 1])->get();
-            $data["articles"] = Articles::where(["user_id" => Auth::user()->id, "supprimer" => 0])->get();
+            $data["articles"] = Articles::where(["supprimer" => 0])->get();
             $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
             if(Auth::user()->role == 0)
             {
@@ -952,10 +952,10 @@ class HomeController extends Controller
                 $data["decisions"] = Decisions::where(["etat" => 1])->get();
                 $data["articles"] = Articles::where(["supprimer" => 0])->get();
                 $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
-                $data["factures"] = Factureass::where(["user_id" => Auth::user()->id])->get();
+                $data["factures"] = Factureass::where(["user_id" => Auth::user()->id, "etat" => 0])->get();
                 if(Auth::user()->role == 0)
                 {
-                    $data["factures"] = Factureass::get();
+                    $data["factures"] = Factureass::where(["etat" => 0])->get();
                 }
                 $data["type_frais"] = Type_frais::where(["etat" => 1])->get();
                 return view('interfaces.achat_article', $data);
