@@ -1110,23 +1110,77 @@ select.form-control {
                                         @foreach ($factures as $data)
                                             @php
                                                 $taux = $data->taux;
+
+                                                // 1. Récupération des achats
+                                                $ent = Achats::where('facture_id', $data->id)->get();
+
+                                                // 2. Calcul du total original (sans frais)
+                                                $total_original = 0;
+                                                foreach ($ent as $e) {
+                                                    $total_original += $e->total;
+                                                }
+
+                                                // 3. Récupération des paiements déjà effectués
+                                                $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
+                                                $montant_usd_paye = 0;
+                                                $montant_cdf_paye = 0;
+                                                foreach ($paiements as $paiement) {
+                                                    if ($paiement->devise_recu == 0) { // paiement en USD
+                                                        $montant_usd_paye += $paiement->montant_recu;
+                                                        $montant_cdf_paye += $paiement->montant_recu * $taux;
+                                                    } else { // paiement en CDF
+                                                        $montant_cdf_paye += $paiement->montant_recu;
+                                                        $montant_usd_paye += $paiement->montant_recu / $taux;
+                                                    }
+                                                }
+
+                                                // 4. Conversion du total original en USD / CDF selon devise de la facture
+                                                if ($data->devise == 0) {
+                                                    $total_original_usd = $total_original;
+                                                    $total_original_cdf = $total_original * $taux;
+                                                } else {
+                                                    $total_original_cdf = $total_original;
+                                                    $total_original_usd = $total_original / $taux;
+                                                }
+
+                                                // 5. Déterminer si la facture est impayée (sans tolérance)
+                                                $est_impayee = ($montant_usd_paye < $total_original_usd) || ($montant_cdf_paye < $total_original_cdf);
+
+                                                // 6. Vérifier le délai d'1 heure depuis la création de la facture
+                                                $date_creation_facture = strtotime($data->created_at);
+                                                $delai_1h = 3600; // 1 heure en secondes
+                                                $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
+
+                                                // 7. Application des frais de crédit (5%) sur chaque achat si conditions remplies
+                                                foreach ($ent as $e) {
+                                                    if (($e->frais_credit == 0 || $e->frais_credit === null) && $est_impayee && $delai_depasse) {
+                                                        $frais = $e->total * 0.05;
+                                                        $e->frais_credit = $frais;
+                                                        $e->save();
+                                                    }
+                                                }
+
+                                                // 8. Recalcul du total avec frais et des coûts d'achat
                                                 $total = 0;
                                                 $achat_total_usd = 0;
                                                 $achat_total_cdf = 0;
-                                                $ent = Achats::where('facture_id', $data->id)->get();
                                                 foreach ($ent as $e) {
-                                                    $total += $e->total;
-                                                    // Coût d'achat
+                                                    $total += $e->total + ($e->frais_credit ?? 0);
+                                                    // Coût d'achat (prix unitaire × quantité)
                                                     $prix_achat = $e->prix_achat ?? 0;
+                                                    $quantite = $e->quantite ?? 1;
+                                                    $prix_achat_total = $prix_achat * $quantite;
                                                     $devise_achat = $e->devise_achat ?? $data->devise;
                                                     if ($devise_achat == 0) { // USD
-                                                        $achat_total_usd += $prix_achat;
-                                                        $achat_total_cdf += $prix_achat * $taux;
+                                                        $achat_total_usd += $prix_achat_total;
+                                                        $achat_total_cdf += $prix_achat_total * $taux;
                                                     } else { // CDF
-                                                        $achat_total_cdf += $prix_achat;
-                                                        $achat_total_usd += $prix_achat / $taux;
+                                                        $achat_total_cdf += $prix_achat_total;
+                                                        $achat_total_usd += $prix_achat_total / $taux;
                                                     }
                                                 }
+
+                                                // 9. Conversion et affichage des montants
                                                 if ($data->devise == 0) {
                                                     $montant_usd = $total;
                                                     $montant_cdf = $total * $taux;
@@ -1137,30 +1191,19 @@ select.form-control {
                                                     $montant_affichage = number_format($total, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
                                                 }
 
-                                                // Bénéfices
+                                                // 10. Bénéfices (avec frais)
                                                 $benefice_usd = $montant_usd - $achat_total_usd;
                                                 $benefice_cdf = $montant_cdf - $achat_total_cdf;
 
-                                                // Calcul des paiements
-                                                $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
-                                                $montant_usd_paye = 0;
-                                                $montant_cdf_paye = 0;
-
-                                                foreach ($paiements as $paiement) {
-                                                    if ($paiement->devise_recu == 0) {
-                                                        $montant_usd_paye += $paiement->montant_recu;
-                                                        $montant_cdf_paye += $paiement->montant_recu * $taux;
-                                                    } else {
-                                                        $montant_cdf_paye += $paiement->montant_recu;
-                                                        $montant_usd_paye += $paiement->montant_recu / $taux;
-                                                    }
-                                                }
-
+                                                // 11. Crédit restant (avec frais)
                                                 $reste_usd = $montant_usd - $montant_usd_paye;
                                                 $reste_cdf = $montant_cdf - $montant_cdf_paye;
 
+                                                // 12. Formatage pour l'affichage
                                                 $paye_affichage = number_format($montant_usd_paye, 2, ',', ' ') . ' USD (' . number_format($montant_cdf_paye, 2, ',', ' ') . ' CDF)';
                                                 $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
+                                                $statut_text = $reste_usd > 0 ? 'Impayé' : 'Payé';
+                                                $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
                                             @endphp
                                             <tr id="row_{{ $data->id }}"
                                                 data-montant-usd="{{ $montant_usd }}"
@@ -1175,7 +1218,7 @@ select.form-control {
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
                                                     {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
                                                 </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="client-cell" data-client="{{ $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A') }}">
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="client-cell" data-client="{{ $client_name }}">
                                                     @if ($data->client_id == 0)
                                                         {{ $data->libelle }}
                                                     @else

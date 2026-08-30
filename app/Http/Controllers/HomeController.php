@@ -47,6 +47,7 @@ use App\Models\Listesfactures;
 use App\Models\Prestations;
 use App\Models\Mesures;
 use App\Models\Pointdeventes;
+use App\Models\prospects;
 use App\Models\Stocks;
 use App\Models\Tables;
 use App\Models\Typeventes;
@@ -599,7 +600,16 @@ class HomeController extends Controller
                 {
                     $clients = Clients::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
                 }
+                if(Auth::user()->role == 0)
+                {
+                    $prospects = prospects::where(["etat" => 1])->get();
+                }
+                elseif(Auth::user()->role != 0)
+                {
+                    $prospects = prospects::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
+                }
                 $data["clients"] = $clients;
+                $data["prospects"] = $prospects;
                 $data["activites"] = Activites::where(["etat" => 1])->get();
                 $data["groupes"] = Groupes::where(["etat" => 1])->get();
                 return view('interfaces.prospects', $data);
@@ -1001,6 +1011,98 @@ class HomeController extends Controller
                 }
                 $data["type_frais"] = Type_frais::where(["etat" => 1])->get();
                 return view('interfaces.achat_article', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+
+    public function suivi_credit()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 26;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(((($display ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display ==  0) && (Auth::user()->role == 0)))
+            {
+                $data["utilisateurs"] = User::where(["etat" => 1])->get();
+                $data["clients"] = Clients::where(["etat" => 1])->get();
+                $data["verbalisateurs"] = Verbalisateurs::where(["etat" => 1])->get();
+                $data["contrevenants"] = Contrevenants::where(["etat" => 1])->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["invitations"] = Invitations::where(["etat" => 1])->get();
+                $data["decisions"] = Decisions::where(["etat" => 1])->get();
+                $data["articles"] = Articles::where(["supprimer" => 0])->get();
+                $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
+                $data["factures"] = Factureass::where(["etat" => 0])->get();
+                if(Auth::user()->role == 0)
+                {
+                    $data["factures"] = Factureass::where(["etat" => 0])->get();
+                }
+                $data["type_frais"] = Type_frais::where(["etat" => 1])->get();
+                return view('interfaces.suivi_credit', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+
+    public function facture_point_vente()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 27;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(((($display ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display ==  0) && (Auth::user()->role == 0)))
+            {
+                $data["utilisateurs"] = User::where(["etat" => 1])->get();
+                $data["clients"] = Clients::where(["etat" => 1])->get();
+                $data["verbalisateurs"] = Verbalisateurs::where(["etat" => 1])->get();
+                $data["contrevenants"] = Contrevenants::where(["etat" => 1])->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["invitations"] = Invitations::where(["etat" => 1])->get();
+                $data["decisions"] = Decisions::where(["etat" => 1])->get();
+                $data["articles"] = Articles::where(["supprimer" => 0])->get();
+                $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
+                $data["tables"] = Tables::where(["etat" => 1, "supprimer" => 0])->get();
+                $data["factures"] = Factureass::where(["user_id" => Auth::user()->id, "etat" => 0])->get();
+                $data["point_ventes"] = Pointdeventes::where(["etat" => 1, "supprimer" => 0])->get();
+                if(Auth::user()->role == 0)
+                {
+                    $data["factures"] = Factureass::where(["etat" => 0])->get();
+                }
+                $data["type_frais"] = Type_frais::where(["etat" => 1])->get();
+                return view('interfaces.facture_point_vente', $data);
             }
             else
             {

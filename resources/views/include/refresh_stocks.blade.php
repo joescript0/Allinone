@@ -1,6 +1,6 @@
 @php
     use App\Models\appnames;
-    use App\Models\pointdeventes;
+    use App\Models\Pointdeventes;
     use App\Models\Articles;
     use App\Models\articlestocks;
 @endphp

@@ -68,7 +68,7 @@ use App\Models\Stocks;
                             <td style="padding-top: 5px;padding-bottom: 5px;"><?= $data->nom ?></td>
                             <td style="text-align: left;padding-top: 5px;padding-bottom: 5px;">
                                 @if ($data->stock_id != -1)
-                                @if ($data->stock_id == $stock_id)
+                                    @if ($data->stock_id == $stock_id)
                                         <a id="affectation__<?= $i ?>" href="#"><i class="zmdi zmdi-check-square text-info"></i></a>
                                     @else
                                         <a id="affectation__<?= $i ?>" href="#"><i class="zmdi zmdi-check-square text-danger"></i></a>

@@ -10,6 +10,8 @@ use App\Models\Prestations;
 use App\Models\Lieux;
 use Illuminate\Support\Str;
 use App\Models\Clients;
+use App\Models\prospects;
+use \Osms\Osms;
 use App\Models\Droit_fichiers;
 use App\Models\Rendezvous;
 use App\Models\Annees;
@@ -70,6 +72,8 @@ use App\Models\Paiementsfactures;
 use App\Models\Paiesfactures;
 use App\Models\Pointdeventes;
 use App\Models\Stocks;
+use App\Models\detailsaffectationspointventes;
+use App\Models\affectationspointventes;
 use App\Models\Tables;
 use App\Models\transfertstocks;
 use App\Models\Typeventes;
@@ -1874,6 +1878,21 @@ class AjaxController extends Controller
         return view('include.refresh_factureass', $data);
     }
 
+    public function get_all_facture_suivi(Request $request)
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 2;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        $data["factures"] = Factureass::get();
+        $data["factures"] = Factureass::where(["etat" => 0])->get();
+        if(Auth::user()->role == 0)
+        {
+            $data["factures"] = Factureass::where(["etat" => 0])->get();
+        }
+        return view('include.refresh_factureass_suivie', $data);
+    }
+
     public function get_all_detail_achat_paie(Request $request)
     {
         // Recherche de la facture
@@ -1883,27 +1902,15 @@ class AjaxController extends Controller
             return response()->json(['error' => 'Facture non trouvée'], 404);
         }
 
-        // --- 1. Calcul du montant total dû ---
+        // --- 1. Calcul du montant total dû (sans frais pour l'instant) ---
         $achats = Achats::where('facture_id', $facture->id)->get();
         $total_ht = $achats->sum('total');
         $taux = $facture->taux;
 
-        $montant_usd_1 = 0;
-        $montant_cdf_1 = 0;
-        if ($facture->devise == 0) { // facture en USD
-            $montant_usd_1 = $total_ht;
-            $montant_cdf_1 = $total_ht * $taux;
-        } else { // facture en CDF
-            $montant_cdf_1 = $total_ht;
-            $montant_usd_1 = $total_ht / $taux;
-        }
-
-        // --- 2. Calcul du total déjà payé ---
+        // --- 2. Calcul des paiements déjà effectués ---
         $paiements = detailpaiessachats::where('facture_id', $request->facture_id)->get();
-
         $montant_usd_2 = 0;
         $montant_cdf_2 = 0;
-
         foreach ($paiements as $paiement) {
             if ($paiement->devise_recu == 0) { // paiement en USD
                 $montant_usd_2 += $paiement->montant_recu;
@@ -1914,11 +1921,50 @@ class AjaxController extends Controller
             }
         }
 
-        // --- 3. Calcul des soldes restants ---
+        // --- 3. Détermination de l'état impayé (sans tolérance) ---
+        if ($facture->devise == 0) {
+            $total_original_usd = $total_ht;
+            $total_original_cdf = $total_ht * $taux;
+        } else {
+            $total_original_cdf = $total_ht;
+            $total_original_usd = $total_ht / $taux;
+        }
+        $est_impayee = ($montant_usd_2 < $total_original_usd) || ($montant_cdf_2 < $total_original_cdf);
+
+        // --- 4. Vérification du délai d'1 heure ---
+        $date_creation_facture = strtotime($facture->created_at);
+        $delai_1h = 3600;
+        $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
+
+        // --- 5. Application des frais de crédit (5%) si conditions remplies ---
+        foreach ($achats as $achat) {
+            if (($achat->frais_credit == 0 || $achat->frais_credit === null) && $est_impayee && $delai_depasse) {
+                $frais = $achat->total * 0.05;
+                $achat->frais_credit = $frais;
+                $achat->save();
+            }
+        }
+
+        // --- 6. Recalcul du total avec les frais ---
+        $total_avec_frais = 0;
+        foreach ($achats as $achat) {
+            $total_avec_frais += $achat->total + ($achat->frais_credit ?? 0);
+        }
+
+        // --- 7. Montants totaux en USD et CDF (avec frais) ---
+        if ($facture->devise == 0) {
+            $montant_usd_1 = $total_avec_frais;
+            $montant_cdf_1 = $total_avec_frais * $taux;
+        } else {
+            $montant_cdf_1 = $total_avec_frais;
+            $montant_usd_1 = $total_avec_frais / $taux;
+        }
+
+        // --- 8. Soldes restants ---
         $usd_montant_total_a_payer = $montant_usd_1 - $montant_usd_2;
         $cdf_montant_total_a_payer = $montant_cdf_1 - $montant_cdf_2;
 
-        // --- 4. Retour des données ---
+        // --- 9. Retour des données (inchangé) ---
         return response()->json([
             'montant_usd_1'          => round($montant_usd_1, 2),
             'montant_cdf_1'          => round($montant_cdf_1, 2),
@@ -1939,16 +1985,65 @@ class AjaxController extends Controller
             }
 
             $taux = $facture->taux;
+            $achats = Achats::where('facture_id', $facture->id)->get();
 
             // ------------------------------------------------------------
-            // 1. Calcul du total dû (depuis les achats) en USD et CDF
+            // 0. Application des frais de crédit si conditions remplies
             // ------------------------------------------------------------
-            $total_du = Achats::where('facture_id', $facture->id)->sum('total');
-            // total_du est dans la devise de la facture (0=USD, 1=CDF)
-            if ($facture->devise == 0) { // facture en USD
+            // Calcul du total original (sans frais) pour déterminer l'état impayé
+            $total_original = 0;
+            foreach ($achats as $a) {
+                $total_original += $a->total;
+            }
+            if ($facture->devise == 0) {
+                $total_original_usd = $total_original;
+                $total_original_cdf = $total_original * $taux;
+            } else {
+                $total_original_cdf = $total_original;
+                $total_original_usd = $total_original / $taux;
+            }
+
+            // Récupération des paiements déjà effectués
+            $paiements = detailpaiessachats::where('facture_id', $facture->id)->get();
+            $paye_usd = 0;
+            $paye_cdf = 0;
+            foreach ($paiements as $p) {
+                if ($p->devise_recu == 0) {
+                    $paye_usd += $p->montant_recu;
+                    $paye_cdf += $p->montant_recu * $taux;
+                } else {
+                    $paye_cdf += $p->montant_recu;
+                    $paye_usd += $p->montant_recu / $taux;
+                }
+            }
+            $est_impayee = ($paye_usd < $total_original_usd) || ($paye_cdf < $total_original_cdf);
+
+            // Vérification du délai d'1 heure
+            $date_creation = strtotime($facture->created_at);
+            $delai_1h = 3600;
+            $delai_depasse = (time() - $date_creation) > $delai_1h;
+
+            // Application des frais de crédit (5%) sur chaque achat si conditions remplies
+            foreach ($achats as $achat) {
+                if (($achat->frais_credit == 0 || $achat->frais_credit === null) && $est_impayee && $delai_depasse) {
+                    $frais = $achat->total * 0.05;
+                    $achat->frais_credit = $frais;
+                    $achat->save();
+                }
+            }
+
+            // ------------------------------------------------------------
+            // 1. Calcul du total dû (incluant les frais de crédit)
+            // ------------------------------------------------------------
+            $total_du = 0;
+            foreach ($achats as $a) {
+                $total_du += $a->total + ($a->frais_credit ?? 0);
+            }
+
+            if ($facture->devise == 0) {
                 $total_du_usd = $total_du;
                 $total_du_cdf = $total_du * $taux;
-            } else { // facture en CDF
+            } else {
                 $total_du_cdf = $total_du;
                 $total_du_usd = $total_du / $taux;
             }
@@ -1956,35 +2051,33 @@ class AjaxController extends Controller
             // ------------------------------------------------------------
             // 2. Calcul du total déjà payé (depuis les détails) en USD et CDF
             // ------------------------------------------------------------
-            $paiements = detailpaiessachats::where('facture_id', $facture->id)->get();
             $total_paye_usd = 0;
             $total_paye_cdf = 0;
             foreach ($paiements as $p) {
-                if ($p->devise_recu == 0) { // paiement en USD
+                if ($p->devise_recu == 0) {
                     $total_paye_usd += $p->montant_recu;
-                } else { // paiement en CDF
+                    $total_paye_cdf += $p->montant_recu * $taux;
+                } else {
                     $total_paye_cdf += $p->montant_recu;
+                    $total_paye_usd += $p->montant_recu / $taux;
                 }
             }
 
             // ------------------------------------------------------------
             // 3. Restant dû dans la devise du paiement reçu (pour plafonner)
             // ------------------------------------------------------------
-            $devise_paiement = $request->devise_recu; // 0=USD, 1=CDF
-            // On calcule le restant dû en USD et CDF
+            $devise_paiement = $request->devise_recu;
             $reste_du_usd = max($total_du_usd - $total_paye_usd, 0);
             $reste_du_cdf = max($total_du_cdf - $total_paye_cdf, 0);
 
             if ($reste_du_usd <= 0 && $reste_du_cdf <= 0) {
-                // déjà entièrement payé
                 DB::rollBack();
-                return response()->json([0]); // ou message "facture soldée"
+                return response()->json([0]);
             }
 
-            // Restant dû dans la devise du paiement
-            if ($devise_paiement == 0) { // paiement en USD
+            if ($devise_paiement == 0) {
                 $reste_en_devise_paiement = $reste_du_usd;
-            } else { // paiement en CDF
+            } else {
                 $reste_en_devise_paiement = $reste_du_cdf;
             }
 
@@ -2002,20 +2095,15 @@ class AjaxController extends Controller
             // ------------------------------------------------------------
             // 5. Mise à jour de la facture (champs montant_recu et reste)
             // ------------------------------------------------------------
-            // On ajoute le montant effectif dans la devise du paiement
-            // Mais on doit stocker montant_recu dans la devise de la facture ?
-            // Dans votre code original, vous ajoutiez directement $request->montant_recu
-            // sans conversion, donc je suppose que montant_recu est dans la devise de la facture.
-            // Pour conserver la cohérence, on convertit le montant effectif dans la devise de la facture.
-            if ($facture->devise == 0) { // facture en USD
+            if ($facture->devise == 0) {
                 $montant_a_ajouter = ($devise_paiement == 0) ? $montant_effectif : $montant_effectif / $taux;
-            } else { // facture en CDF
+            } else {
                 $montant_a_ajouter = ($devise_paiement == 1) ? $montant_effectif : $montant_effectif * $taux;
             }
             $facture->montant_recu += $montant_a_ajouter;
             $facture->devise_recu = $devise_paiement;
             $facture->mode_de_paiement = 1;
-            $facture->reste = $monnaie_a_rendre; // monnaie à rendre
+            $facture->reste = $monnaie_a_rendre;
 
             // ------------------------------------------------------------
             // 6. Insertion du détail de paiement avec le montant effectif
@@ -2024,12 +2112,12 @@ class AjaxController extends Controller
             $detail = new detailpaiessachats();
             $detail->id = $id;
             $detail->facture_id = $request->facture_id;
-            $detail->montant_effectif = $montant_effectif; // on enregistre le montant effectif (plafonné)
+            $detail->montant_effectif = $montant_effectif;
             $detail->devise_recu = $devise_paiement;
             $detail->date_creation = date("d/m/Y à H:i:s");
             $detail->montant_recu = $montant_a_ajouter;
             $detail->mode_de_paiement = 1;
-            $detail->reste = $monnaie_a_rendre; // monnaie à rendre
+            $detail->reste = $monnaie_a_rendre;
             $detail->save();
 
             DB::commit();
@@ -3296,6 +3384,81 @@ class AjaxController extends Controller
         return view('include.refresh_client', $data);
     }
 
+    public function add_prospect(Request $request)
+    {
+        $id = prospects::get()->count() + 1;
+        $prospects = new prospects();
+        $prospects->id = $id;
+        $prospects->name = $request->nom;
+        if(strlen(trim($request->email)) == 0)
+        {
+            $prospects->email = "";
+        }
+        else
+        {
+            $prospects->email = $request->email;
+        }
+
+        if(strlen(trim($request->adresse)) == 0)
+        {
+            $prospects->adresse = "";
+        }
+        else
+        {
+            $prospects->adresse = $request->adresse;
+        }
+        if(strlen(trim($request->description)) == 0)
+        {
+            $prospects->description = "";
+        }
+        else
+        {
+            $prospects->description = $request->description;
+        }
+        if(strlen(trim($request->latitude)) != 0){
+             $prospects->latitude = $request->latitude;
+        }else{
+            $prospects->latitude = 0;
+        }
+        if(strlen(trim($request->longitude)) != 0){
+             $prospects->longitude = $request->longitude;
+        }else{
+            $prospects->longitude = 0;
+        }
+        $prospects->activite_id = $request->activite_id;
+        $prospects->type = $request->type_client;
+        $prospects->paiement = $request->paiement;
+        $prospects->devise = $request->devise;
+        $prospects->factures = $request->facture;
+        $prospects->password = Hash::make("12345");
+        $prospects->mdp = "12345";
+        $prospects->phone = $request->phone;
+        $prospects->user_id =  Auth::user()->id;
+        $prospects->etat = 1;
+        $prospects->recherche = "";
+        $prospects->image = 'storage/images/user/profil_defaut.png';
+        $prospects->save();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 14;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        if(Auth::user()->role == 0)
+        {
+            $data["clients"] = Clients::where(["etat" => 1])->get();
+            $data["prospects"] = prospects::where(["etat" => 1])->get();
+        }
+        elseif(Auth::user()->role != 0)
+        {
+            $data["clients"] = Clients::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
+            $data["prospects"] = prospects::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
+        }
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        return view('include.refresh_prospect', $data);
+    }
+
     public function add_groupe(Request $request)
     {
         $id = Groupes::get()->count() + 1;
@@ -3668,6 +3831,12 @@ class AjaxController extends Controller
     {
         $data["stocks"] = Stocks::where(["etat" => 1])->get();
         return view('include.refresh_stocks', $data);
+    }
+
+    public function get_all_pointdeventes(Request $request)
+    {
+        $data["point_ventes"] = Pointdeventes::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
+        return view('include.refresh_point_ventes', $data);
     }
 
     public function get_all_table(Request $request)
@@ -4513,24 +4682,216 @@ class AjaxController extends Controller
         return view('include.refresh_factureas', $data);
     }
 
+    // public function add_achat_article(Request $request)
+    // {
+    //     date_default_timezone_set('Africa/Lubumbashi');
+    //     // --- 1. Récupération de l'article selon le stock lié à la table ---
+    //     $article_id = $request->type_sortie;
+    //     $table_id = $request->table_id;
+    //     $stock_id = 0;
+
+    //     if (!empty($table_id))
+    //     {
+    //         $table = Tables::where('id', $table_id)->first();
+    //         if ($table)
+    //         {
+    //             $pointdeventes = pointdeventes::where('id', $table->pointdeventes_id)->first();
+    //             $stock_id = $pointdeventes ? $pointdeventes->stock_id : 0;
+    //         }
+    //     }
+
+    //     if ($stock_id == 0)
+    //     {
+    //         $article = Articles::where('id', $article_id)->first();
+    //     } else {
+    //         $article = articlestocks::where([
+    //             'stock_id'   => $stock_id,
+    //             'article_id' => $article_id,
+    //         ])->first();
+    //     }
+
+    //     if (!$article) {
+    //         return back()->withErrors(['article' => 'Article introuvable pour ce stock.']);
+    //     }
+
+    //     // --- 2. Calcul des données communes ---
+    //     $dernierApprovisionnement = Approvisionnements::where('article_id', $article_id)->latest('id')->first();
+
+    //     $stock = $article->stock;
+    //     $devise_article = $article->devise;
+    //     $avoir_stock = $article->avoir_stock;
+
+    //     // Prix d'achat
+    //     if ($avoir_stock == 1) {
+    //         $prix_achat = $dernierApprovisionnement->prix_unitaire;
+    //         $devise_achat = $dernierApprovisionnement->devise;
+    //     } else {
+    //         $prix_achat = ($request->type_vente_id == 1) ? $article->prix_detail : $article->prix_gros;
+    //         $devise_achat = $article->devise;
+    //     }
+
+    //     // Prix de vente et taille lot
+    //     if ($request->type_vente_id == 1)
+    //     {
+    //         $taille_lot = $article->taille_piece;
+    //         $prix_unitaire = $article->prix_detail;
+    //     } else { // type_vente_id == 2
+    //         $taille_lot = $article->taille_lot;
+    //         $prix_unitaire = $article->prix_gros;
+    //     }
+
+    //     // --- 3. Gestion de la facture (création si nécessaire) ---
+    //     $facture_id = Session::get("facture_user_id");
+
+    //     if (!$facture_id)
+    //     {
+    //         // === C'est le "else" du if(Session::get("facture_user_id")) ===
+    //         // Création d'une nouvelle facture
+    //         $id = Factureass::get()->count() + 1;
+    //         $nb_annonce = str_pad($id, 4, '0', STR_PAD_LEFT);
+
+    //         // Taux general et tva des facture
+    //         $activite_id = Articles::where('id', $article_id)->first()["activite_id"];
+    //         $activites = Activites::where('id', $activite_id)->first();
+    //         $taux_general = $activites->taux;
+    //         $tva_general = $activites->tva;
+
+    //         $facture = new Factureass();
+    //         $facture->id = $id;
+    //         $facture->numero = $nb_annonce;
+    //         $facture->date_creation = date("d/m/Y");
+    //         $facture->devise = $devise_article;
+    //         $facture->taux = $taux_general;
+    //         $facture->libelle = $request->libelle;
+    //         $facture->tva = $tva_general;
+    //         $facture->user_id = Auth::user()->id;
+    //         $facture->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
+    //         $facture->table_id = (strlen(trim($request->table_id))) ? $request->table_id : 0;
+    //         $facture->save();
+
+
+    //         $data_client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
+    //         if ($data_client_id != 0) {
+    //             $client = Clients::find($data_client_id);
+    //             if ($client) {
+    //                 // Normaliser le téléphone : extraire uniquement les chiffres
+    //                 $phone = $client->phone;
+    //                 $digits = preg_replace('/\D/', '', $phone);
+                    
+    //                 // Vérifier que le nombre de chiffres est supérieur à 9
+    //                 if (strlen($digits) > 9) {
+    //                     $last9 = substr($digits, -9);
+    //                     $client->phone = '+243' . $last9;
+
+    //                     // Vérifier et envoyer SMS
+    //                     if ($client->sms_initial < 5) {
+    //                         // Appeler avec le préfixe 'tel:'
+    //                         $this->orange_api(1, 'tel:' . $client->phone);
+    //                         $client->sms_initial = $client->sms_initial + 1;
+    //                     }
+    //                     $client->save();
+    //                 }
+    //                 // Si le nombre de chiffres est <= 9, on peut décider de ne rien faire 
+    //                 // ou de logger une erreur, selon votre besoin.
+    //             }
+    //         }
+
+    //         // Marquage de la table comme occupée (si elle existe)
+    //         if (!empty($table_id))
+    //         {
+    //             $table = Tables::find($table_id);
+    //             if ($table)
+    //             {
+    //                 $table->occupee = 1;
+    //                 $table->propre = 1;
+    //                 $table->save();
+    //             }
+    //         }
+
+    //         Session::put("facture_user_id", $id);
+    //         $facture_id = $id;
+    //     }
+
+    //     // --- 4. Création de l'achat ---
+    //     $achat = new Achats();
+    //     $achat->id = Achats::get()->count() + 1;
+    //     $achat->user_id = Auth::user()->id;
+    //     $achat->facture_id = $facture_id;
+    //     $achat->article_id = $article_id;
+    //     $achat->type = $request->action;
+    //     $achat->prix_unitaire = $prix_unitaire;
+    //     $achat->quantite = $request->quantite;
+    //     $achat->type_vente_id = $request->type_vente_id;
+    //     $achat->taille_lot = $taille_lot;
+    //     $achat->total = round($prix_unitaire * $request->quantite, 2);
+    //     $achat->devise = $devise_article;
+    //     $achat->taux = $request->taux;
+    //     $achat->libelle = $request->libelle;
+    //     $achat->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
+    //     $achat->date_creation = date("d/m/Y");
+    //     $achat->prix_achat = $prix_achat;
+    //     $achat->devise_achat = $devise_achat;
+
+    //     // Gestion de la preuve (fichier)
+    //     $preuve = "";
+    //     $nb_file = Fichierss::where(["numero_sortie" => Auth::user()->id])->count();
+    //     if ($nb_file != 0) {
+    //         $preuve = Fichierss::where('id', Auth::user()->id)->first()["lien"];
+    //     }
+    //     $achat->preuve_de_sortie = $preuve;
+    //     $achat->save();
+
+    //     // --- 5. Mise à jour du stock ---
+    //     $stock = $stock - $request->quantite;
+    //     $article->stock = round($stock);
+    //     $article->save();
+
+    //     // Nettoyage des fichiers temporaires
+    //     Fichierss::where('id', Auth::user()->id)->delete();
+
+    //     // --- 6. Retour de la vue ---
+    //     $groupe_user_id = Auth::user()->role;
+    //     $data["ressource_id_1"] = 2;
+    //     $data["groupe_user_id"] = $groupe_user_id;
+    //     $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+    //     $data["factures"] = Factureass::where(["user_id" => Auth::user()->id, "etat" => 0])->get();
+    //     if(Auth::user()->role == 0)
+    //     {
+    //         $data["factures"] = Factureass::where(["etat" => 0])->get();
+    //     }
+    //     return view('include.refresh_factureass', $data);
+    // }
+
     public function add_achat_article(Request $request)
     {
-        // --- 1. Récupération de l'article selon le stock lié à la table ---
-        $article_id = $request->type_sortie;
-        $table_id = $request->table_id;
-        $stock_id = 0;
+        date_default_timezone_set('Africa/Lubumbashi');
 
-        if (!empty($table_id))
-        {
-            $table = Tables::where('id', $table_id)->first();
+        // --- 1. Récupération du point de vente et du stock (adaptation) ---
+        $pointdeventes_id = $request->pointdeventes_id; // nouveau paramètre
+        $table_id = $request->table_id;                 // existant
+        $stock_id = 0;
+        $pointdeventes = null;
+
+        if ($pointdeventes_id) {
+            $pointdeventes = pointdeventes::find($pointdeventes_id);
+        } elseif ($table_id) {
+            $table = Tables::find($table_id);
             if ($table) {
-                $pointdeventes = pointdeventes::where('id', $table->pointdeventes_id)->first();
-                $stock_id = $pointdeventes ? $pointdeventes->stock_id : 0;
+                $pointdeventes = pointdeventes::find($table->pointdeventes_id);
+                if ($pointdeventes) {
+                    $pointdeventes_id = $pointdeventes->id;
+                }
             }
         }
 
-        if ($stock_id == 0)
-        {
+        if ($pointdeventes) {
+            $stock_id = $pointdeventes->stock_id;
+        }
+
+        // --- 2. Récupération de l'article selon le stock (inchangé) ---
+        $article_id = $request->type_sortie;
+
+        if ($stock_id == 0) {
             $article = Articles::where('id', $article_id)->first();
         } else {
             $article = articlestocks::where([
@@ -4543,14 +4904,13 @@ class AjaxController extends Controller
             return back()->withErrors(['article' => 'Article introuvable pour ce stock.']);
         }
 
-        // --- 2. Calcul des données communes ---
+        // --- 3. Calcul des données communes (inchangé) ---
         $dernierApprovisionnement = Approvisionnements::where('article_id', $article_id)->latest('id')->first();
 
         $stock = $article->stock;
         $devise_article = $article->devise;
         $avoir_stock = $article->avoir_stock;
 
-        // Prix d'achat
         if ($avoir_stock == 1) {
             $prix_achat = $dernierApprovisionnement->prix_unitaire;
             $devise_achat = $dernierApprovisionnement->devise;
@@ -4559,27 +4919,21 @@ class AjaxController extends Controller
             $devise_achat = $article->devise;
         }
 
-        // Prix de vente et taille lot
-        if ($request->type_vente_id == 1)
-        {
+        if ($request->type_vente_id == 1) {
             $taille_lot = $article->taille_piece;
             $prix_unitaire = $article->prix_detail;
-        } else { // type_vente_id == 2
+        } else {
             $taille_lot = $article->taille_lot;
             $prix_unitaire = $article->prix_gros;
         }
 
-        // --- 3. Gestion de la facture (création si nécessaire) ---
+        // --- 4. Gestion de la facture (création si nécessaire) ---
         $facture_id = Session::get("facture_user_id");
 
-        if (!$facture_id)
-        {
-            // === C'est le "else" du if(Session::get("facture_user_id")) ===
-            // Création d'une nouvelle facture
+        if (!$facture_id) {
             $id = Factureass::get()->count() + 1;
             $nb_annonce = str_pad($id, 4, '0', STR_PAD_LEFT);
 
-            // Taux general et tva des facture
             $activite_id = Articles::where('id', $article_id)->first()["activite_id"];
             $activites = Activites::where('id', $activite_id)->first();
             $taux_general = $activites->taux;
@@ -4596,11 +4950,31 @@ class AjaxController extends Controller
             $facture->user_id = Auth::user()->id;
             $facture->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
             $facture->table_id = (strlen(trim($request->table_id))) ? $request->table_id : 0;
+            // === NOUVEAU : enregistrement du point de vente ===
+            $facture->pointdeventes_id = $pointdeventes_id ?? 0;
             $facture->save();
 
-            // Marquage de la table comme occupée (si elle existe)
-            if (!empty($table_id))
-            {
+            // Gestion du client (inchangé)
+            $data_client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
+            if ($data_client_id != 0) {
+                $client = Clients::find($data_client_id);
+                if ($client) {
+                    $phone = $client->phone;
+                    $digits = preg_replace('/\D/', '', $phone);
+                    if (strlen($digits) > 9) {
+                        $last9 = substr($digits, -9);
+                        $client->phone = '+243' . $last9;
+                        if ($client->sms_initial < 5) {
+                            $this->orange_api(1, 'tel:' . $client->phone);
+                            $client->sms_initial = $client->sms_initial + 1;
+                        }
+                        $client->save();
+                    }
+                }
+            }
+
+            // Marquage de la table (inchangé)
+            if (!empty($table_id)) {
                 $table = Tables::find($table_id);
                 if ($table) {
                     $table->occupee = 1;
@@ -4613,7 +4987,7 @@ class AjaxController extends Controller
             $facture_id = $id;
         }
 
-        // --- 4. Création de l'achat ---
+        // --- 5. Création de l'achat (inchangé) ---
         $achat = new Achats();
         $achat->id = Achats::get()->count() + 1;
         $achat->user_id = Auth::user()->id;
@@ -4633,7 +5007,7 @@ class AjaxController extends Controller
         $achat->prix_achat = $prix_achat;
         $achat->devise_achat = $devise_achat;
 
-        // Gestion de la preuve (fichier)
+        // Preuve (inchangé)
         $preuve = "";
         $nb_file = Fichierss::where(["numero_sortie" => Auth::user()->id])->count();
         if ($nb_file != 0) {
@@ -4642,25 +5016,59 @@ class AjaxController extends Controller
         $achat->preuve_de_sortie = $preuve;
         $achat->save();
 
-        // --- 5. Mise à jour du stock ---
+        // --- 6. Mise à jour du stock (inchangé) ---
         $stock = $stock - $request->quantite;
         $article->stock = round($stock);
         $article->save();
 
-        // Nettoyage des fichiers temporaires
         Fichierss::where('id', Auth::user()->id)->delete();
 
-        // --- 6. Retour de la vue ---
+        // --- 7. Retour de la vue (inchangé) ---
         $groupe_user_id = Auth::user()->role;
         $data["ressource_id_1"] = 2;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         $data["factures"] = Factureass::where(["user_id" => Auth::user()->id, "etat" => 0])->get();
-        if(Auth::user()->role == 0)
-        {
+        if(Auth::user()->role == 0) {
             $data["factures"] = Factureass::where(["etat" => 0])->get();
         }
         return view('include.refresh_factureass', $data);
+    }
+
+    public function orange_api($m, $receiverAddress)
+    {
+        $config = array(
+            'clientId'     => 'oqlLT3dmjxVkxKPwj8vtAmKGaxDDaIji',
+            'clientSecret' => 'wpTonBIb7HytohJvPG0cxKUHUruv3u4oEpyUo0BKv94e'
+        );
+
+        $osms = new Osms($config);
+
+        // Sélection du message en fonction de $m
+        $texte = '';
+        if ($m == 1) {
+            $texte = 'Bonjour cher client, les 300 hommes vous disent merci pour votre confiance et votre fidélité.';
+        } elseif ($m == 2) {
+            $texte = 'Bonjour cher client, dernier rappel : votre dette auprès des 300 hommes doit être réglée aujourd\'hui. Merci de votre compréhension.';
+        } else {
+            // Message par défaut si $m n'est ni 1 ni 2
+            $texte = 'Bonjour cher client, ceci est un message automatique des 300 hommes.';
+        }
+
+        // Récupération automatique du token
+        $response = $osms->getTokenFromConsumerKey();
+
+        if (!empty($response['access_token'])) {
+            $senderAddress   = 'tel:+243891470750';   // Votre numéro d'expéditeur (fixe)
+            // $receiverAddress est passé en paramètre
+            $message         = $texte;
+            $senderName      = 'LES300HG';            // Nom de l'expéditeur
+
+            $osms->sendSMS($senderAddress, $receiverAddress, $message, $senderName);
+            echo "SMS envoyé avec succès !";
+        } else {
+            echo "Erreur : impossible d'obtenir le token.";
+        }
     }
 
     public function add_article(Request $request)
@@ -4814,7 +5222,8 @@ class AjaxController extends Controller
                     $articlestockSource = articlestocks::where('article_id', $request->transfer_article_id)
                                                         ->where('stock_id', $sourceStockId)
                                                         ->first();
-                    if (!$articlestockSource) {
+                    if (!$articlestockSource)
+                        {
                         return response()->json([
                             'success' => false,
                             'message' => 'Cet article n\'existe pas dans le stock source sélectionné.'
@@ -4829,7 +5238,8 @@ class AjaxController extends Controller
                     $articlestockSource->stock -= $totalQuantite;
                     $articlestockSource->save();
 
-                } else {
+                } else
+                {
                     // Mode global : source = stock principal (0)
                     if ($article->stock < $totalQuantite) {
                         return response()->json([
@@ -4940,8 +5350,6 @@ class AjaxController extends Controller
             ], 500);
         }
     }
-
-
 
     public function edit_article(Request $request)
     {
@@ -5598,6 +6006,69 @@ class AjaxController extends Controller
         return view('include.refresh_client', $data);
     }
 
+    public function edit_prospect(Request $request)
+    {
+        $prospects = prospects::where('id', $request->id)->first();
+        $prospects->name = $request->edit_nom;
+        $prospects->email = $request->edit_email;
+        $prospects->phone = $request->edit_phone;
+        $prospects->paiement = $request->edit_paiement;
+        $prospects->devise = $request->edit_devise;
+        $prospects->description = $request->edit_description;
+        $prospects->factures = $request->edit_facture;
+        if(strlen(trim($request->edit_email)) == 0)
+        {
+            $prospects->email = "";
+        }
+        else
+        {
+            $prospects->email = $request->edit_email;
+        }
+
+        if(strlen(trim($request->edit_adresse)) == 0)
+        {
+            $prospects->adresse = "";
+        }
+        else
+        {
+            $prospects->adresse = $request->edit_adresse;
+        }
+
+        if(strlen(trim($request->edit_description)) == 0)
+        {
+            $prospects->description = "";
+        }
+        else
+        {
+            $prospects->description = $request->edit_description;
+        }
+
+        if(strlen(trim($request->edit_latitude)) != 0){
+             $prospects->latitude = $request->edit_latitude;
+        }else{
+            $prospects->latitude = 0;
+        }
+        if(strlen(trim($request->edit_longitude)) != 0){
+             $prospects->longitude = $request->edit_longitude;
+        }else
+        {
+            $prospects->longitude = 0;
+        }
+        $prospects->activite_id = $request->edit_activite_id;
+        $prospects->type = $request->edit_type_client;
+        $prospects->save();
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 14;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        $data["clients"] = Clients::where(["etat" => 1])->get();
+        $data["prospects"] = prospects::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        return view('include.refresh_prospect', $data);
+    }
+
     public function cloturer_proces(Request $request)
     {
         $contentieux = Contentieurs::where('id', $request->id)->first();
@@ -5831,6 +6302,14 @@ class AjaxController extends Controller
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $data["activites"] = Activites::where(["etat" => 1])->get();
         return view('include.refresh_editclient', $data);
+    }
+
+    public function refresh_editprospect(Request $request)
+    {
+        $data["prospects"] = prospects::where('id', $request->prospect_id)->first();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        return view('include.refresh_editprospect', $data);
     }
 
 
@@ -7734,6 +8213,1014 @@ class AjaxController extends Controller
     //     return response()->json([[$nom_fichier, number_format($cdf_montant_payer, 2, ',', ' '), number_format($usd_montant_payer, 2, ',', ' '), $tva, $taux, $payer]]);
     // }
 
+    // public function print_facture(Request $request)
+    // {
+    //     // ---------- 1. Récupération centralisée ----------
+    //     $facture = Factureass::find($request->facture_id);
+    //     if (!$facture) return response()->json(['error' => 'Facture introuvable'], 404);
+
+    //     $achats = Achats::where('facture_id', $facture->id)->get();
+    //     if ($achats->isEmpty()) return response()->json(['error' => 'Aucun achat'], 404);
+
+    //     $articlesIds = $achats->pluck('article_id')->unique();
+    //     $clientsIds = $achats->pluck('client_id')->filter(fn($id) => $id > 0)->unique();
+    //     $articles = Articles::whereIn('id', $articlesIds)->get()->keyBy('id');
+    //     $activiteId = $articles->first()?->activite_id;
+    //     $activite = Activites::find($activiteId);
+    //     $clients = Clients::whereIn('id', $clientsIds)->get()->keyBy('id');
+
+    //     $taux = $facture->taux;
+    //     $tva = $facture->tva;
+    //     $payer = $facture->payer;
+    //     $date_creation = explode(" ", $facture->created_at);
+    //     $mode_de_paiement = $facture->mode_de_paiement;
+
+    //     // ---------- Récupération des paiements ----------
+    //     $paiements = detailpaiessachats::where('facture_id', $facture->id)
+    //                                 ->orderBy('created_at', 'asc')
+    //                                 ->get();
+
+    //     // ---------- Construction des lignes d'achats ----------
+    //     $lignes = [];
+    //     $total_general = 0;
+    //     $nom_client_final = '';
+    //     $devise_generale = '';
+
+    //     foreach ($achats as $achat) {
+    //         $article = $articles[$achat->article_id] ?? null;
+    //         if (!$article) continue;
+
+    //         $total_general += $achat->total;
+
+    //         if ($devise_generale === '') {
+    //             $devise_generale = ($achat->devise == 0) ? 'USD' : 'CDF';
+    //         }
+
+    //         if ($achat->client_id == 0) {
+    //             $nom_client_final = $achat->libelle;
+    //         } else {
+    //             $nom_client_final = $clients[$achat->client_id]->name ?? $nom_client_final;
+    //         }
+
+    //         $lignes[] = [
+    //             'nom_article'   => $article->nom_article,
+    //             'quantite'      => $achat->quantite,
+    //             'prix_unitaire' => $achat->prix_unitaire,
+    //             'total_ligne'   => $achat->total,
+    //         ];
+    //     }
+
+    //     // ---------- Calcul du TTC et des totaux dans les deux devises ----------
+    //     $ttc = $total_general + ($total_general * $tva / 100);
+    //     if ($devise_generale == 'USD') {
+    //         $total_ttc_usd = $ttc;
+    //         $total_ttc_cdf = $ttc * $taux;
+    //     } else {
+    //         $total_ttc_cdf = $ttc;
+    //         $total_ttc_usd = $ttc / $taux;
+    //     }
+
+    //     // ---------- Parcours des paiements pour cumul et détail ----------
+    //     $cumul_usd = 0;
+    //     $cumul_cdf = 0;
+    //     $paiements_detail = [];
+
+    //     foreach ($paiements as $p) {
+    //         if ($p->devise_recu == 0) { // paiement en USD
+    //             $montant_usd = $p->montant_recu;
+    //             $montant_cdf = $p->montant_recu * $taux;
+    //         } else { // paiement en CDF
+    //             $montant_cdf = $p->montant_recu;
+    //             $montant_usd = $p->montant_recu / $taux;
+    //         }
+
+    //         $cumul_usd += $montant_usd;
+    //         $cumul_cdf += $montant_cdf;
+
+    //         // Reste à payer
+    //         $reste_usd = max(0, $total_ttc_usd - $cumul_usd);
+    //         $reste_cdf = max(0, $total_ttc_cdf - $cumul_cdf);
+
+    //         // Crédit (payé en trop)
+    //         $credit_usd = max(0, $cumul_usd - $total_ttc_usd);
+    //         $credit_cdf = max(0, $cumul_cdf - $total_ttc_cdf);
+
+    //         $paiements_detail[] = [
+    //             'date'         => $p->created_at,
+    //             'montant'      => $p->montant_recu,
+    //             'devise_recu'  => $p->devise_recu,
+    //             'reste_usd'    => $reste_usd,
+    //             'reste_cdf'    => $reste_cdf,
+    //             'credit_usd'   => $credit_usd,
+    //             'credit_cdf'   => $credit_cdf,
+    //         ];
+    //     }
+
+    //     // Totaux finaux
+    //     $total_paye_usd = $cumul_usd;
+    //     $total_paye_cdf = $cumul_cdf;
+    //     $diff_usd = max(0, $total_ttc_usd - $total_paye_usd);
+    //     $diff_cdf = max(0, $total_ttc_cdf - $total_paye_cdf);
+    //     $credit_final_usd = max(0, $total_paye_usd - $total_ttc_usd);
+    //     $credit_final_cdf = max(0, $total_paye_cdf - $total_ttc_cdf);
+
+    //     // Formatage
+    //     $diff_usd_formate = number_format($diff_usd, 2, ',', ' ') . ' USD';
+    //     $diff_cdf_formate = number_format($diff_cdf, 2, ',', ' ') . ' CDF';
+    //     $paiement_libelle = '';
+    //     if ($mode_de_paiement == 1) $paiement_libelle = 'CASH';
+    //     elseif ($mode_de_paiement == 2) $paiement_libelle = 'Mobile money';
+    //     elseif ($mode_de_paiement == 3) $paiement_libelle = 'Bank';
+    //     else $paiement_libelle = 'CASH';
+
+    //     // ---------- QR code ----------
+    //     if ($devise_generale == 'USD') {
+    //         $usd_montant_payer = $total_general;
+    //         $cdf_montant_payer = $total_general * $taux;
+    //     } else {
+    //         $cdf_montant_payer = $total_general;
+    //         $usd_montant_payer = $total_general / $taux;
+    //     }
+
+    //     $key_1 = base64_encode('facture_id');
+    //     $value_1 = base64_encode($request->facture_id);
+    //     $key_2 = base64_encode('cdf_montant');
+    //     $value_2 = base64_encode($cdf_montant_payer);
+    //     $key_3 = base64_encode('usd_montant');
+    //     $value_3 = base64_encode($usd_montant_payer);
+    //     $url = route('paiement') . '?' . http_build_query([$key_1 => $value_1, $key_2 => $value_2, $key_3 => $value_3]);
+
+    //     $builder = new Builder(
+    //         writer: new PngWriter(),
+    //         data: $url,
+    //         encoding: new Encoding('UTF-8'),
+    //         errorCorrectionLevel: ErrorCorrectionLevel::High,
+    //         size: 1000,
+    //         margin: 15
+    //     );
+    //     $result = $builder->build();
+    //     $fileName = "./storage/images/fichiers/" . 'qrcode_' . time() . '.png';
+    //     $result->saveToFile($fileName);
+
+    //     // ---------- 2. PDF ----------
+    //     $pdf = new \FPDF('P', 'mm', [72, 380]);
+    //     $pdf->AddPage();
+    //     $pdf->SetLeftMargin(3);
+    //     $pdf->SetRightMargin(3);
+    //     $largeur_utile = 66;
+    //     $marge_gauche = 3;
+
+    //     // Logo + QR
+    //     $y_depart = 3;
+    //     $logo_largeur = 15;
+    //     $logo_hauteur = 15;
+    //     $qr_largeur = 12;
+    //     $qr_hauteur = 12;
+    //     $pdf->Image($activite->logo, $marge_gauche, $y_depart, $logo_largeur, $logo_hauteur);
+    //     $pdf->Image($fileName, $marge_gauche + $largeur_utile - $qr_largeur, $y_depart, $qr_largeur, $qr_hauteur);
+
+    //     $y_apres_logo = $y_depart + max($logo_hauteur, $qr_hauteur) + 2;
+
+    //     // En-tête
+    //     $pdf->SetY($y_apres_logo);
+    //     $pdf->SetFont('Arial', 'B', 10);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $nom_activite = $activite ? $activite->nom : '';
+    //     $nom_description = $activite ? $activite->description : '';
+    //     $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', strtoupper($nom_activite)), 0, 1, 'C');
+
+    //     $pdf->SetFont('Arial', '', 7);
+    //     $largeur_point = $pdf->GetStringWidth('.');
+    //     $nb_points = (int)($largeur_utile / $largeur_point);
+    //     $ligne_points = str_repeat('.', $nb_points);
+    //     $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', $ligne_points), 0, 1, 'C');
+
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->Cell($largeur_utile, 5, iconv('UTF-8', 'Windows-1252', $nom_description), 0, 1, 'C');
+
+    //     $pdf->SetFont('Arial', '', 7);
+    //     $date_fr = explode("-", $date_creation[0])[2] . '/' . explode("-", $date_creation[0])[1] . '/' . explode("-", $date_creation[0])[0];
+    //     $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', 'Date : ' . $date_fr . ' à ' . $date_creation[1]), 0, 1, 'L');
+    //     $pdf->Ln(1);
+
+    //     // Facture / Client
+    //     $pdf->SetFont('Arial', 'B', 7);
+    //     $pdf->Cell(33, 4, iconv('UTF-8', 'Windows-1252', 'Facture : ' . strtoupper($facture->numero)), 0, 0, 'L');
+    //     $pdf->Cell(33, 4, iconv('UTF-8', 'Windows-1252', 'Client : ' . $nom_client_final), 0, 1, 'R');
+
+    //     $pdf->SetFont('Arial', 'B', 7);
+    //     $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', 'Caissier(ère) : ' . User::where('id', $facture->user_id)->first()['name']), 0, 1, 'R');
+
+    //     $pdf->SetFont('Arial', 'B', 12);
+    //     $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Original'), 0, 1, 'C');
+    //     $pdf->Ln(3);
+
+    //     // --- Tableau des articles ---
+    //     $col_article = 28;
+    //     $col_qte = 10;
+    //     $col_pu = 14;
+    //     $col_total = 14;
+
+    //     $pdf->SetLineWidth(0.6);
+    //     $y1 = $pdf->GetY();
+    //     $pdf->Line($marge_gauche, $y1, $marge_gauche + $largeur_utile, $y1);
+    //     $pdf->SetLineWidth(0.2);
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', 'B', 7);
+    //     $pdf->Cell($col_article, 5, iconv('UTF-8', 'Windows-1252', 'ITEM'), 0, 0, 'L');
+    //     $pdf->Cell($col_qte, 5, iconv('UTF-8', 'Windows-1252', 'QTE'), 0, 0, 'C');
+    //     $pdf->Cell($col_pu, 5, iconv('UTF-8', 'Windows-1252', 'PRIX'), 0, 0, 'C');
+    //     $pdf->Cell($col_total, 5, iconv('UTF-8', 'Windows-1252', 'MONTANT'), 0, 1, 'C');
+
+    //     $pdf->SetLineWidth(0.6);
+    //     $y2 = $pdf->GetY();
+    //     $pdf->Line($marge_gauche, $y2, $marge_gauche + $largeur_utile, $y2);
+    //     $pdf->SetLineWidth(0.2);
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 7);
+    //     foreach ($lignes as $ligne) {
+    //         $nom = $ligne['nom_article'];
+    //         if (mb_strlen($nom) > 18) $nom = mb_substr($nom, 0, 16) . '..';
+    //         $quantite_str = $ligne['quantite'];
+    //         $prix_str = number_format($ligne['prix_unitaire'], 2, ',', ' ');
+    //         $total_str = number_format($ligne['total_ligne'], 2, ',', ' ');
+
+    //         $pdf->Cell($col_article, 5, iconv('UTF-8', 'Windows-1252', $nom), 0, 0, 'L');
+    //         $pdf->SetFont('Arial', 'B', 7);
+    //         $pdf->Cell($col_qte, 5, iconv('UTF-8', 'Windows-1252', $quantite_str), 0, 0, 'C');
+    //         $pdf->SetFont('Arial', '', 7);
+    //         $pdf->Cell($col_pu, 5, iconv('UTF-8', 'Windows-1252', $prix_str), 0, 0, 'C');
+    //         $pdf->Cell($col_total, 5, iconv('UTF-8', 'Windows-1252', $total_str), 0, 1, 'R');
+    //     }
+
+    //     $pdf->SetLineWidth(0.6);
+    //     $y3 = $pdf->GetY();
+    //     $pdf->Line($marge_gauche, $y3, $marge_gauche + $largeur_utile, $y3);
+    //     $pdf->SetLineWidth(0.2);
+    //     $pdf->Ln(2);
+
+    //     // ---------- Détail des paiements (6 colonnes, largeur totale 66 mm) ----------
+    //     if ($paiements->count() > 0) {
+    //         $pdf->SetFont('Arial', 'B', 6);
+    //         $pdf->Cell($largeur_utile, 5, iconv('UTF-8', 'Windows-1252', '--- Paiements & soldes ---'), 0, 1, 'L');
+    //         $pdf->Ln(1);
+
+    //         // En-têtes : Date (8), Montant (18), R (USD) (10), R (CDF) (10), C (USD) (10), C (CDF) (10) → total 66
+    //         $pdf->SetFont('Arial', 'B', 6);
+    //         $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', 'Date'), 0, 0, 'L');
+    //         $pdf->Cell(18, 4, iconv('UTF-8', 'Windows-1252', 'Montant'), 0, 0, 'R');
+    //         $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (USD)'), 0, 0, 'R');
+    //         $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (CDF)'), 0, 0, 'R');
+    //         $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (USD)'), 0, 0, 'R');
+    //         $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (CDF)'), 0, 1, 'R');
+
+    //         $pdf->SetFont('Arial', '', 6);
+
+    //         foreach ($paiements_detail as $p) {
+    //             // Date : jj/mm (sans année, sans heure)
+    //             $date_p = explode(" ", $p['date']);
+    //             $parts = explode('-', $date_p[0]);
+    //             $date_courte = $parts[2] . '/' . $parts[1];
+    //             $date_aff = $date_courte;
+
+    //             // Montant + devise
+    //             $devise = ($p['devise_recu'] == 0) ? 'USD' : 'CDF';
+    //             $montant_str = number_format($p['montant'], 2, ',', ' ') . ' ' . $devise;
+
+    //             // Restes
+    //             $reste_usd_str = number_format($p['reste_usd'], 2, ',', ' ');
+    //             $reste_cdf_str = number_format($p['reste_cdf'], 2, ',', ' ');
+
+    //             // Crédits (uniquement si > 0)
+    //             $credit_usd_str = ($p['credit_usd'] > 0) ? number_format($p['credit_usd'], 2, ',', ' ') : '';
+    //             $credit_cdf_str = ($p['credit_cdf'] > 0) ? number_format($p['credit_cdf'], 2, ',', ' ') : '';
+
+    //             $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', $date_aff), 0, 0, 'L');
+    //             $pdf->Cell(18, 4, iconv('UTF-8', 'Windows-1252', $montant_str), 0, 0, 'R');
+    //             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $reste_usd_str), 0, 0, 'R');
+    //             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $reste_cdf_str), 0, 0, 'R');
+    //             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $credit_usd_str), 0, 0, 'R');
+    //             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $credit_cdf_str), 0, 1, 'R');
+    //         }
+
+    //         $pdf->Ln(1);
+
+    //         // Total payé récapitulatif
+    //         $pdf->SetFont('Arial', 'B', 6);
+    //         $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', 'Total payé'), 0, 0, 'L');
+    //         $pdf->Cell(18, 4, '', 0, 0, 'R');
+    //         $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', number_format($total_paye_usd, 2, ',', ' ')), 0, 0, 'R');
+    //         $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', number_format($total_paye_cdf, 2, ',', ' ')), 0, 0, 'R');
+    //         $pdf->Cell(10, 4, '', 0, 0, 'R');
+    //         $pdf->Cell(10, 4, '', 0, 1, 'R');
+    //         $pdf->Ln(1);
+    //     } else {
+    //         $pdf->SetFont('Arial', 'I', 6);
+    //         $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', 'Aucun paiement enregistré'), 0, 1, 'C');
+    //         $pdf->Ln(1);
+    //     }
+
+    //     // ---------- Montant HT ----------
+    //     $pdf->SetFont('Arial', 'B', 7);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $total_formate = number_format($total_general, 2, ',', ' ');
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant HT (' . $devise_generale . ')'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $total_formate), 0, 1, 'R');
+
+    //     // Première ligne de conversion
+    //     $pdf->SetFont('Arial', '', 6);
+    //     $pdf->SetTextColor(128, 128, 128);
+    //     $taux_formate = number_format($taux, 0, ',', ' ');
+    //     if ($devise_generale == 'USD') {
+    //         $equivalent_cdf = $total_general * $taux;
+    //         $equivalent_formate = number_format($equivalent_cdf, 2, ',', ' ');
+    //         $texte_equivalent = $equivalent_formate . " CDF = " . number_format($total_general, 2, ',', ' ') . " USD (taux 1 USD = " . $taux_formate . " CDF)";
+    //     } else {
+    //         $equivalent_usd = $total_general / $taux;
+    //         $equivalent_formate = number_format($equivalent_usd, 2, ',', ' ');
+    //         $texte_equivalent = $equivalent_formate . " USD = " . number_format($total_general, 2, ',', ' ') . " CDF (taux 1 USD = " . $taux_formate . " CDF)";
+    //     }
+    //     $pdf->MultiCell($largeur_utile, 3, iconv('UTF-8', 'Windows-1252', $texte_equivalent), 2, 'L');
+    //     $pdf->Ln(1);
+
+    //     // Si aucun paiement, on sort sans les détails supplémentaires
+    //     if ($total_paye_usd == 0 && $total_paye_cdf == 0) {
+    //         $nom_activite_clean = preg_replace('/[^a-zA-Z0-9_-]/', '_', $activite->nom ?? 'activite');
+    //         $nom_fichier = 'Facture_' . $nom_activite_clean . '_' . $facture->numero . '.pdf';
+    //         $pdf->Output('F', $nom_fichier);
+    //         return response()->json([[$nom_fichier, number_format($cdf_montant_payer, 2, ',', ' '), number_format($usd_montant_payer, 2, ',', ' '), $tva, $taux], $payer]);
+    //     }
+
+    //     // ---------- Suite : facture avec paiements ----------
+    //     // TVA
+    //     $montant_tva = $total_general * ($tva / 100);
+    //     $montant_tva_formate = number_format($montant_tva, 2, ',', ' ') . ' ' . $devise_generale;
+    //     $libelle_tva = 'TVA (' . $devise_generale . ') ' . $tva . '%';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', $libelle_tva), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_tva_formate), 0, 1, 'R');
+
+    //     // TVA autre devise
+    //     $autre_devise = ($devise_generale == 'USD') ? 'CDF' : 'USD';
+    //     if ($devise_generale == 'USD') {
+    //         $montant_tva_autre = $montant_tva * $taux;
+    //         $montant_tva_autre_formate = number_format($montant_tva_autre, 2, ',', ' ') . ' ' . $autre_devise;
+    //     } else {
+    //         $montant_tva_autre = $montant_tva / $taux;
+    //         $montant_tva_autre_formate = number_format($montant_tva_autre, 2, ',', ' ') . ' ' . $autre_devise;
+    //     }
+    //     $libelle_tva_autre = 'TVA (' . $autre_devise . ') ' . $tva . '%';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', $libelle_tva_autre), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_tva_autre_formate), 0, 1, 'R');
+
+    //     // Montant reçu
+    //     $montant_recu_usd = number_format($total_paye_usd, 2, ',', ' ') . ' USD';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant reçu (USD)'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_recu_usd), 0, 1, 'R');
+
+    //     $montant_recu_cdf = number_format($total_paye_cdf, 2, ',', ' ') . ' CDF';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant reçu (CDF)'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_recu_cdf), 0, 1, 'R');
+
+    //     // Reste
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Reste (USD)'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $diff_usd_formate), 0, 1, 'R');
+
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Reste (CDF)'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $diff_cdf_formate), 0, 1, 'R');
+
+    //     // Crédit éventuel
+    //     if ($credit_final_usd > 0 || $credit_final_cdf > 0) {
+    //         $credit_aff = '';
+    //         if ($credit_final_usd > 0) $credit_aff .= number_format($credit_final_usd, 2, ',', ' ') . ' USD';
+    //         if ($credit_final_cdf > 0) $credit_aff .= (empty($credit_aff) ? '' : ' / ') . number_format($credit_final_cdf, 2, ',', ' ') . ' CDF';
+    //         $pdf->SetFont('Arial', 'B', 8);
+    //         $pdf->SetTextColor(255, 0, 0);
+    //         $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Crédit client :'), 0, 0, 'L');
+    //         $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $credit_aff), 0, 1, 'R');
+    //     }
+
+    //     // --- Lignes pointillées et TTC ---
+    //     $pdf->SetFont('Arial', '', 8);
+    //     $largeur_point = $pdf->GetStringWidth('.');
+    //     $nb_points = (int)($largeur_utile / $largeur_point);
+    //     $ligne_points_fin = str_repeat('.', $nb_points);
+    //     $hauteur_point = 5;
+
+    //     $pdf->Cell($largeur_utile, $hauteur_point, iconv('UTF-8', 'Windows-1252', $ligne_points_fin), 0, 1, 'C');
+    //     $pdf->Ln(1);
+
+    //     $ttc_formate = number_format($ttc, 2, ',', ' ');
+    //     $pdf->SetFont('Arial', 'B', 10);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Montant TTC (' . $devise_generale . ') : ' . $ttc_formate), 0, 1, 'R');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 8);
+    //     $pdf->Cell($largeur_utile, $hauteur_point, iconv('UTF-8', 'Windows-1252', $ligne_points_fin), 0, 1, 'C');
+    //     $pdf->Ln(1);
+
+    //     $autre_devise_ttc = ($devise_generale == 'USD') ? 'CDF' : 'USD';
+    //     if ($devise_generale == 'USD') {
+    //         $ttc_autre = $ttc * $taux;
+    //         $ttc_autre_formate = number_format($ttc_autre, 2, ',', ' ');
+    //     } else {
+    //         $ttc_autre = $ttc / $taux;
+    //         $ttc_autre_formate = number_format($ttc_autre, 2, ',', ' ');
+    //     }
+    //     $pdf->SetFont('Arial', 'B', 10);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Montant TTC (' . $autre_devise_ttc . ') : ' . $ttc_autre_formate), 0, 1, 'R');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 8);
+    //     $pdf->Cell($largeur_utile, $hauteur_point, iconv('UTF-8', 'Windows-1252', $ligne_points_fin), 0, 1, 'C');
+    //     $pdf->Ln(1);
+
+    //     // Deuxième ligne de conversion
+    //     $pdf->SetFont('Arial', '', 6);
+    //     $pdf->SetTextColor(128, 128, 128);
+    //     if ($devise_generale == 'USD') {
+    //         $equivalent_cdf = $total_general * $taux;
+    //         $equivalent_formate = number_format($equivalent_cdf, 2, ',', ' ');
+    //         $texte_equivalent = $equivalent_formate . " CDF = " . number_format($total_general, 2, ',', ' ') . " USD (taux 1 USD = " . $taux_formate . " CDF)";
+    //     } else {
+    //         $equivalent_usd = $total_general / $taux;
+    //         $equivalent_formate = number_format($equivalent_usd, 2, ',', ' ');
+    //         $texte_equivalent = $equivalent_formate . " USD = " . number_format($total_general, 2, ',', ' ') . " CDF (taux 1 USD = " . $taux_formate . " CDF)";
+    //     }
+    //     $pdf->MultiCell($largeur_utile, 3, iconv('UTF-8', 'Windows-1252', $texte_equivalent), 0, 'L');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 5, iconv('UTF-8', 'Windows-1252', 'Taux plancher'), 0, 0, 'L');
+    //     $pdf->Cell(26, 5, iconv('UTF-8', 'Windows-1252', number_format($taux, 2, ',', ' ') . ' CDF'), 0, 1, 'R');
+
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 5, iconv('UTF-8', 'Windows-1252', 'Montant TTC dû (' . $devise_generale . ')'), 0, 0, 'L');
+    //     $pdf->Cell(26, 5, iconv('UTF-8', 'Windows-1252', number_format($ttc, 2, ',', ' ') . ' ' . $devise_generale), 0, 1, 'R');
+
+    //     $pdf->SetFont('Arial', '', 6);
+    //     $pdf->SetTextColor(128, 128, 128);
+    //     $pdf->MultiCell($largeur_utile, 3, iconv('UTF-8', 'Windows-1252', 'Payé par : ' . $paiement_libelle), 0, 'L');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell($largeur_utile, 5, iconv('UTF-8', 'Windows-1252', 'Merci pour votre visite'), 0, 1, 'C');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 7);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->MultiCell($largeur_utile, 3.5, iconv('UTF-8', 'Windows-1252', 'Les marchandises vendues ne sont pas reprises ni échangées'), 0, 'C');
+
+    //     $nom_activite_clean = preg_replace('/[^a-zA-Z0-9_-]/', '_', $activite->nom ?? 'activite');
+    //     $nom_fichier = 'Facture_' . $nom_activite_clean . '_' . $facture->numero . '.pdf';
+    //     $pdf->Output('F', $nom_fichier);
+    //     return response()->json([[$nom_fichier, number_format($cdf_montant_payer, 2, ',', ' '), number_format($usd_montant_payer, 2, ',', ' '), $tva, $taux, $payer]]);
+    // }
+    
+    // public function print_facture(Request $request)
+    // {
+    //     // ---------- 1. Récupération centralisée ----------
+    //     $facture = Factureass::find($request->facture_id);
+    //     if (!$facture) return response()->json(['error' => 'Facture introuvable'], 404);
+
+    //     $achats = Achats::where('facture_id', $facture->id)->get();
+    //     if ($achats->isEmpty()) return response()->json(['error' => 'Aucun achat'], 404);
+
+    //     // ------------------------------------------------------------
+    //     // 0. Calcul des frais de crédit si conditions remplies
+    //     // ------------------------------------------------------------
+    //     $paiements = detailpaiessachats::where('facture_id', $facture->id)->get();
+    //     $taux = $facture->taux;
+
+    //     // Total original (sans frais) pour déterminer l'état impayé
+    //     $total_original = 0;
+    //     foreach ($achats as $a) {
+    //         $total_original += $a->total;
+    //     }
+    //     if ($facture->devise == 0) {
+    //         $total_original_usd = $total_original;
+    //         $total_original_cdf = $total_original * $taux;
+    //     } else {
+    //         $total_original_cdf = $total_original;
+    //         $total_original_usd = $total_original / $taux;
+    //     }
+
+    //     // Paiements déjà effectués
+    //     $paye_usd = 0;
+    //     $paye_cdf = 0;
+    //     foreach ($paiements as $p) {
+    //         if ($p->devise_recu == 0) {
+    //             $paye_usd += $p->montant_recu;
+    //             $paye_cdf += $p->montant_recu * $taux;
+    //         } else {
+    //             $paye_cdf += $p->montant_recu;
+    //             $paye_usd += $p->montant_recu / $taux;
+    //         }
+    //     }
+    //     $est_impayee = ($paye_usd < $total_original_usd) || ($paye_cdf < $total_original_cdf);
+
+    //     // Délai d'1 heure
+    //     $date_creation_facture = strtotime($facture->created_at);
+    //     $delai_1h = 3600;
+    //     $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
+
+    //     // Application des frais de crédit (5%) sur chaque achat si conditions remplies
+    //     foreach ($achats as $achat) {
+    //         if (($achat->frais_credit == 0 || $achat->frais_credit === null) && $est_impayee && $delai_depasse) {
+    //             $frais = $achat->total * 0.05;
+    //             $achat->frais_credit = $frais;
+    //             $achat->save();
+    //         }
+    //     }
+    //     // Recharger les achats pour avoir les frais mis à jour
+    //     $achats = Achats::where('facture_id', $facture->id)->get();
+
+    //     // ---------- Articles, clients, etc. ----------
+    //     $articlesIds = $achats->pluck('article_id')->unique();
+    //     $clientsIds = $achats->pluck('client_id')->filter(fn($id) => $id > 0)->unique();
+    //     $articles = Articles::whereIn('id', $articlesIds)->get()->keyBy('id');
+    //     $activiteId = $articles->first()?->activite_id;
+    //     $activite = Activites::find($activiteId);
+    //     $clients = Clients::whereIn('id', $clientsIds)->get()->keyBy('id');
+
+    //     $tva = $facture->tva;
+    //     $payer = $facture->payer;
+    //     $date_creation = explode(" ", $facture->created_at);
+    //     $mode_de_paiement = $facture->mode_de_paiement;
+
+    //     // ---------- Construction des lignes d'achats ----------
+    //     $lignes = [];
+    //     $total_general = 0; // <- CE TOTAL INCLUT DÉSORMAIS LES FRAIS DE CRÉDIT
+    //     $nom_client_final = '';
+    //     $devise_generale = '';
+
+    //     foreach ($achats as $achat) {
+    //         $article = $articles[$achat->article_id] ?? null;
+    //         if (!$article) continue;
+
+    //         // 🔥 Ajout des frais de crédit au total général
+    //         $frais = $achat->frais_credit ?? 0;
+    //         $total_general += $achat->total + $frais;
+
+    //         if ($devise_generale === '') {
+    //             $devise_generale = ($achat->devise == 0) ? 'USD' : 'CDF';
+    //         }
+
+    //         if ($achat->client_id == 0) {
+    //             $nom_client_final = $achat->libelle;
+    //         } else {
+    //             $nom_client_final = $clients[$achat->client_id]->name ?? $nom_client_final;
+    //         }
+
+    //         // Le tableau affiche le montant sans frais et les frais séparément
+    //         $lignes[] = [
+    //             'nom_article'   => $article->nom_article,
+    //             'quantite'      => $achat->quantite,
+    //             'prix_unitaire' => $achat->prix_unitaire,
+    //             'total_ligne'   => $achat->total,               // ← sans frais
+    //             'frais_credit'  => $frais,                     // ← frais affichés
+    //         ];
+    //     }
+
+    //     // ---------- Calcul du TTC et des totaux (maintenant basés sur total_general qui inclut les frais) ----------
+    //     $ttc = $total_general + ($total_general * $tva / 100);
+    //     if ($devise_generale == 'USD') {
+    //         $total_ttc_usd = $ttc;
+    //         $total_ttc_cdf = $ttc * $taux;
+    //     } else {
+    //         $total_ttc_cdf = $ttc;
+    //         $total_ttc_usd = $ttc / $taux;
+    //     }
+
+    //     // ---------- Parcours des paiements (inchangé) ----------
+    //     $cumul_usd = 0;
+    //     $cumul_cdf = 0;
+    //     $paiements_detail = [];
+
+    //     foreach ($paiements as $p) 
+    //     {
+    //         if ($p->devise_recu == 0) 
+    //         {
+    //             $montant_usd = $p->montant_recu;
+    //             $montant_cdf = $p->montant_recu * $taux;
+    //         } else {
+    //             $montant_cdf = $p->montant_recu;
+    //             $montant_usd = $p->montant_recu / $taux;
+    //         }
+
+    //         $cumul_usd += $montant_usd;
+    //         $cumul_cdf += $montant_cdf;
+
+    //         $reste_usd = max(0, $total_ttc_usd - $cumul_usd);
+    //         $reste_cdf = max(0, $total_ttc_cdf - $cumul_cdf);
+    //         $credit_usd = max(0, $cumul_usd - $total_ttc_usd);
+    //         $credit_cdf = max(0, $cumul_cdf - $total_ttc_cdf);
+
+    //         $paiements_detail[] = [
+    //             'date'         => $p->created_at,
+    //             'montant'      => $p->montant_recu,
+    //             'devise_recu'  => $p->devise_recu,
+    //             'reste_usd'    => $reste_usd,
+    //             'reste_cdf'    => $reste_cdf,
+    //             'credit_usd'   => $credit_usd,
+    //             'credit_cdf'   => $credit_cdf,
+    //         ];
+    //     }
+
+    //     // Totaux finaux
+    //     $total_paye_usd = $cumul_usd;
+    //     $total_paye_cdf = $cumul_cdf;
+    //     $diff_usd = max(0, $total_ttc_usd - $total_paye_usd);
+    //     $diff_cdf = max(0, $total_ttc_cdf - $total_paye_cdf);
+    //     $credit_final_usd = max(0, $total_paye_usd - $total_ttc_usd);
+    //     $credit_final_cdf = max(0, $total_paye_cdf - $total_ttc_cdf);
+
+    //     // Formatage
+    //     $diff_usd_formate = number_format($diff_usd, 2, ',', ' ') . ' USD';
+    //     $diff_cdf_formate = number_format($diff_cdf, 2, ',', ' ') . ' CDF';
+    //     $paiement_libelle = '';
+    //     if ($mode_de_paiement == 1) $paiement_libelle = 'CASH';
+    //     elseif ($mode_de_paiement == 2) $paiement_libelle = 'Mobile money';
+    //     elseif ($mode_de_paiement == 3) $paiement_libelle = 'Bank';
+    //     else $paiement_libelle = 'CASH';
+
+    //     // ---------- QR code (maintenant basé sur total_general qui inclut les frais) ----------
+    //     if ($devise_generale == 'USD') {
+    //         $usd_montant_payer = $total_general;
+    //         $cdf_montant_payer = $total_general * $taux;
+    //     } else {
+    //         $cdf_montant_payer = $total_general;
+    //         $usd_montant_payer = $total_general / $taux;
+    //     }
+
+    //     $key_1 = base64_encode('facture_id');
+    //     $value_1 = base64_encode($request->facture_id);
+    //     $key_2 = base64_encode('cdf_montant');
+    //     $value_2 = base64_encode($cdf_montant_payer);
+    //     $key_3 = base64_encode('usd_montant');
+    //     $value_3 = base64_encode($usd_montant_payer);
+    //     $url = route('paiement') . '?' . http_build_query([$key_1 => $value_1, $key_2 => $value_2, $key_3 => $value_3]);
+
+    //     $builder = new Builder(
+    //         writer: new PngWriter(),
+    //         data: $url,
+    //         encoding: new Encoding('UTF-8'),
+    //         errorCorrectionLevel: ErrorCorrectionLevel::High,
+    //         size: 1000,
+    //         margin: 15
+    //     );
+    //     $result = $builder->build();
+    //     $fileName = "./storage/images/fichiers/" . 'qrcode_' . time() . '.png';
+    //     $result->saveToFile($fileName);
+
+    //     // ---------- 2. PDF ----------
+    //     $pdf = new \FPDF('P', 'mm', [72, 380]);
+    //     $pdf->AddPage();
+    //     $pdf->SetLeftMargin(3);
+    //     $pdf->SetRightMargin(3);
+    //     $largeur_utile = 66;
+    //     $marge_gauche = 3;
+
+    //     // Logo + QR
+    //     $y_depart = 3;
+    //     $logo_largeur = 15;
+    //     $logo_hauteur = 15;
+    //     $qr_largeur = 12;
+    //     $qr_hauteur = 12;
+    //     $pdf->Image($activite->logo, $marge_gauche, $y_depart, $logo_largeur, $logo_hauteur);
+    //     $pdf->Image($fileName, $marge_gauche + $largeur_utile - $qr_largeur, $y_depart, $qr_largeur, $qr_hauteur);
+
+    //     $y_apres_logo = $y_depart + max($logo_hauteur, $qr_hauteur) + 2;
+
+    //     // En-tête
+    //     $pdf->SetY($y_apres_logo);
+    //     $pdf->SetFont('Arial', 'B', 10);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $nom_activite = $activite ? $activite->nom : '';
+    //     $nom_description = $activite ? $activite->description : '';
+    //     $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', strtoupper($nom_activite)), 0, 1, 'C');
+
+    //     $pdf->SetFont('Arial', '', 7);
+    //     $largeur_point = $pdf->GetStringWidth('.');
+    //     $nb_points = (int)($largeur_utile / $largeur_point);
+    //     $ligne_points = str_repeat('.', $nb_points);
+    //     $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', $ligne_points), 0, 1, 'C');
+
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->Cell($largeur_utile, 5, iconv('UTF-8', 'Windows-1252', $nom_description), 0, 1, 'C');
+
+    //     $pdf->SetFont('Arial', '', 7);
+    //     $date_fr = explode("-", $date_creation[0])[2] . '/' . explode("-", $date_creation[0])[1] . '/' . explode("-", $date_creation[0])[0];
+    //     $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', 'Date : ' . $date_fr . ' à ' . $date_creation[1]), 0, 1, 'L');
+    //     $pdf->Ln(1);
+
+    //     // Facture / Client
+    //     $pdf->SetFont('Arial', 'B', 7);
+    //     $pdf->Cell(33, 4, iconv('UTF-8', 'Windows-1252', 'Facture : ' . strtoupper($facture->numero)), 0, 0, 'L');
+    //     $pdf->Cell(33, 4, iconv('UTF-8', 'Windows-1252', 'Client : ' . $nom_client_final), 0, 1, 'R');
+
+    //     $pdf->SetFont('Arial', 'B', 7);
+    //     $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', 'Caissier(ère) : ' . User::where('id', $facture->user_id)->first()['name']), 0, 1, 'R');
+
+    //     $pdf->SetFont('Arial', 'B', 12);
+    //     $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Original'), 0, 1, 'C');
+    //     $pdf->Ln(3);
+
+    //     // --- Tableau des articles (5 colonnes : ITEM, QTE, PRIX, MONTANT, FRAIS) ---
+    //     $col_article = 20;
+    //     $col_qte = 8;
+    //     $col_pu = 12;
+    //     $col_montant = 13;
+    //     $col_frais = 13;
+
+    //     $pdf->SetLineWidth(0.6);
+    //     $y1 = $pdf->GetY();
+    //     $pdf->Line($marge_gauche, $y1, $marge_gauche + $largeur_utile, $y1);
+    //     $pdf->SetLineWidth(0.2);
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', 'B', 6);
+    //     $pdf->Cell($col_article, 4, iconv('UTF-8', 'Windows-1252', 'ITEM'), 0, 0, 'L');
+    //     $pdf->Cell($col_qte, 4, iconv('UTF-8', 'Windows-1252', 'QTE'), 0, 0, 'C');
+    //     $pdf->Cell($col_pu, 4, iconv('UTF-8', 'Windows-1252', 'PRIX'), 0, 0, 'C');
+    //     $pdf->Cell($col_montant, 4, iconv('UTF-8', 'Windows-1252', 'MONTANT'), 0, 0, 'C');
+    //     $pdf->Cell($col_frais, 4, iconv('UTF-8', 'Windows-1252', 'FRAIS(5%)'), 0, 1, 'C');
+
+    //     $pdf->SetLineWidth(0.6);
+    //     $y2 = $pdf->GetY();
+    //     $pdf->Line($marge_gauche, $y2, $marge_gauche + $largeur_utile, $y2);
+    //     $pdf->SetLineWidth(0.2);
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 6);
+    //     foreach ($lignes as $ligne) {
+    //         $nom = $ligne['nom_article'];
+    //         if (mb_strlen($nom) > 14) $nom = mb_substr($nom, 0, 12) . '..';
+    //         $qte = $ligne['quantite'];
+    //         $prix = number_format($ligne['prix_unitaire'], 2, ',', ' ');
+    //         $montant = number_format($ligne['total_ligne'], 2, ',', ' '); // sans frais
+    //         $frais = number_format($ligne['frais_credit'], 2, ',', ' ');
+
+    //         $pdf->Cell($col_article, 4, iconv('UTF-8', 'Windows-1252', $nom), 0, 0, 'L');
+    //         $pdf->SetFont('Arial', 'B', 6);
+    //         $pdf->Cell($col_qte, 4, iconv('UTF-8', 'Windows-1252', $qte), 0, 0, 'C');
+    //         $pdf->SetFont('Arial', '', 6);
+    //         $pdf->Cell($col_pu, 4, iconv('UTF-8', 'Windows-1252', $prix), 0, 0, 'C');
+    //         $pdf->Cell($col_montant, 4, iconv('UTF-8', 'Windows-1252', $montant), 0, 0, 'R');
+    //         $pdf->Cell($col_frais, 4, iconv('UTF-8', 'Windows-1252', $frais), 0, 1, 'R');
+    //     }
+
+    //     $pdf->SetLineWidth(0.6);
+    //     $y3 = $pdf->GetY();
+    //     $pdf->Line($marge_gauche, $y3, $marge_gauche + $largeur_utile, $y3);
+    //     $pdf->SetLineWidth(0.2);
+    //     $pdf->Ln(2);
+
+    //     // ---------- Détail des paiements (inchangé) ----------
+    //     if ($paiements->count() > 0) {
+    //         $pdf->SetFont('Arial', 'B', 6);
+    //         $pdf->Cell($largeur_utile, 5, iconv('UTF-8', 'Windows-1252', '--- Paiements & soldes ---'), 0, 1, 'L');
+    //         $pdf->Ln(1);
+
+    //         $pdf->SetFont('Arial', 'B', 6);
+    //         $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', 'Date'), 0, 0, 'L');
+    //         $pdf->Cell(18, 4, iconv('UTF-8', 'Windows-1252', 'Montant'), 0, 0, 'R');
+    //         $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (USD)'), 0, 0, 'R');
+    //         $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (CDF)'), 0, 0, 'R');
+    //         $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (USD)'), 0, 0, 'R');
+    //         $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (CDF)'), 0, 1, 'R');
+
+    //         $pdf->SetFont('Arial', '', 6);
+
+    //         foreach ($paiements_detail as $p) {
+    //             $date_p = explode(" ", $p['date']);
+    //             $parts = explode('-', $date_p[0]);
+    //             $date_courte = $parts[2] . '/' . $parts[1];
+    //             $date_aff = $date_courte;
+
+    //             $devise = ($p['devise_recu'] == 0) ? 'USD' : 'CDF';
+    //             $montant_str = number_format($p['montant'], 2, ',', ' ') . ' ' . $devise;
+
+    //             $reste_usd_str = number_format($p['reste_usd'], 2, ',', ' ');
+    //             $reste_cdf_str = number_format($p['reste_cdf'], 2, ',', ' ');
+    //             $credit_usd_str = ($p['credit_usd'] > 0) ? number_format($p['credit_usd'], 2, ',', ' ') : '';
+    //             $credit_cdf_str = ($p['credit_cdf'] > 0) ? number_format($p['credit_cdf'], 2, ',', ' ') : '';
+
+    //             $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', $date_aff), 0, 0, 'L');
+    //             $pdf->Cell(18, 4, iconv('UTF-8', 'Windows-1252', $montant_str), 0, 0, 'R');
+    //             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $reste_usd_str), 0, 0, 'R');
+    //             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $reste_cdf_str), 0, 0, 'R');
+    //             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $credit_usd_str), 0, 0, 'R');
+    //             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $credit_cdf_str), 0, 1, 'R');
+    //         }
+
+    //         $pdf->Ln(1);
+
+    //         $pdf->SetFont('Arial', 'B', 6);
+    //         $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', 'Total payé'), 0, 0, 'L');
+    //         $pdf->Cell(18, 4, '', 0, 0, 'R');
+    //         $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', number_format($total_paye_usd, 2, ',', ' ')), 0, 0, 'R');
+    //         $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', number_format($total_paye_cdf, 2, ',', ' ')), 0, 0, 'R');
+    //         $pdf->Cell(10, 4, '', 0, 0, 'R');
+    //         $pdf->Cell(10, 4, '', 0, 1, 'R');
+    //         $pdf->Ln(1);
+    //     } else {
+    //         $pdf->SetFont('Arial', 'I', 6);
+    //         $pdf->Cell($largeur_utile, 4, iconv('UTF-8', 'Windows-1252', 'Aucun paiement enregistré'), 0, 1, 'C');
+    //         $pdf->Ln(1);
+    //     }
+
+    //     // ---------- Montant HT (maintenant inclut les frais) ----------
+    //     $pdf->SetFont('Arial', 'B', 7);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $total_formate = number_format($total_general, 2, ',', ' ');
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant HT (' . $devise_generale . ')'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $total_formate), 0, 1, 'R');
+
+    //     // Première ligne de conversion (basée sur total_general avec frais)
+    //     $pdf->SetFont('Arial', '', 6);
+    //     $pdf->SetTextColor(128, 128, 128);
+    //     $taux_formate = number_format($taux, 0, ',', ' ');
+    //     if ($devise_generale == 'USD') {
+    //         $equivalent_cdf = $total_general * $taux;
+    //         $equivalent_formate = number_format($equivalent_cdf, 2, ',', ' ');
+    //         $texte_equivalent = $equivalent_formate . " CDF = " . number_format($total_general, 2, ',', ' ') . " USD (taux 1 USD = " . $taux_formate . " CDF)";
+    //     } else {
+    //         $equivalent_usd = $total_general / $taux;
+    //         $equivalent_formate = number_format($equivalent_usd, 2, ',', ' ');
+    //         $texte_equivalent = $equivalent_formate . " USD = " . number_format($total_general, 2, ',', ' ') . " CDF (taux 1 USD = " . $taux_formate . " CDF)";
+    //     }
+    //     $pdf->MultiCell($largeur_utile, 3, iconv('UTF-8', 'Windows-1252', $texte_equivalent), 2, 'L');
+    //     $pdf->Ln(1);
+
+    //     // Si aucun paiement, on sort sans les détails supplémentaires
+    //     if ($total_paye_usd == 0 && $total_paye_cdf == 0) {
+    //         $nom_activite_clean = preg_replace('/[^a-zA-Z0-9_-]/', '_', $activite->nom ?? 'activite');
+    //         $nom_fichier = 'Facture_' . $nom_activite_clean . '_' . $facture->numero . '.pdf';
+    //         $pdf->Output('F', $nom_fichier);
+    //         return response()->json([[$nom_fichier, number_format($cdf_montant_payer, 2, ',', ' '), number_format($usd_montant_payer, 2, ',', ' '), $tva, $taux], $payer]);
+    //     }
+
+    //     // ---------- Suite : facture avec paiements (les montants de TVA, TTC, restes sont basés sur total_general avec frais) ----------
+    //     // TVA
+    //     $montant_tva = $total_general * ($tva / 100);
+    //     $montant_tva_formate = number_format($montant_tva, 2, ',', ' ') . ' ' . $devise_generale;
+    //     $libelle_tva = 'TVA (' . $devise_generale . ') ' . $tva . '%';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', $libelle_tva), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_tva_formate), 0, 1, 'R');
+
+    //     // TVA autre devise
+    //     $autre_devise = ($devise_generale == 'USD') ? 'CDF' : 'USD';
+    //     if ($devise_generale == 'USD') {
+    //         $montant_tva_autre = $montant_tva * $taux;
+    //         $montant_tva_autre_formate = number_format($montant_tva_autre, 2, ',', ' ') . ' ' . $autre_devise;
+    //     } else {
+    //         $montant_tva_autre = $montant_tva / $taux;
+    //         $montant_tva_autre_formate = number_format($montant_tva_autre, 2, ',', ' ') . ' ' . $autre_devise;
+    //     }
+    //     $libelle_tva_autre = 'TVA (' . $autre_devise . ') ' . $tva . '%';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', $libelle_tva_autre), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_tva_autre_formate), 0, 1, 'R');
+
+    //     // Montant reçu (inchangé)
+    //     $montant_recu_usd = number_format($total_paye_usd, 2, ',', ' ') . ' USD';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant reçu (USD)'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_recu_usd), 0, 1, 'R');
+
+    //     $montant_recu_cdf = number_format($total_paye_cdf, 2, ',', ' ') . ' CDF';
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant reçu (CDF)'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_recu_cdf), 0, 1, 'R');
+
+    //     // Reste
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Reste (USD)'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $diff_usd_formate), 0, 1, 'R');
+
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Reste (CDF)'), 0, 0, 'L');
+    //     $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $diff_cdf_formate), 0, 1, 'R');
+
+    //     // Crédit éventuel
+    //     if ($credit_final_usd > 0 || $credit_final_cdf > 0) {
+    //         $credit_aff = '';
+    //         if ($credit_final_usd > 0) $credit_aff .= number_format($credit_final_usd, 2, ',', ' ') . ' USD';
+    //         if ($credit_final_cdf > 0) $credit_aff .= (empty($credit_aff) ? '' : ' / ') . number_format($credit_final_cdf, 2, ',', ' ') . ' CDF';
+    //         $pdf->SetFont('Arial', 'B', 8);
+    //         $pdf->SetTextColor(255, 0, 0);
+    //         $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Crédit client :'), 0, 0, 'L');
+    //         $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $credit_aff), 0, 1, 'R');
+    //     }
+
+    //     // --- Lignes pointillées et TTC (basé sur total_general avec frais) ---
+    //     $pdf->SetFont('Arial', '', 8);
+    //     $largeur_point = $pdf->GetStringWidth('.');
+    //     $nb_points = (int)($largeur_utile / $largeur_point);
+    //     $ligne_points_fin = str_repeat('.', $nb_points);
+    //     $hauteur_point = 5;
+
+    //     $pdf->Cell($largeur_utile, $hauteur_point, iconv('UTF-8', 'Windows-1252', $ligne_points_fin), 0, 1, 'C');
+    //     $pdf->Ln(1);
+
+    //     $ttc_formate = number_format($ttc, 2, ',', ' ');
+    //     $pdf->SetFont('Arial', 'B', 10);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Montant TTC (' . $devise_generale . ') : ' . $ttc_formate), 0, 1, 'R');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 8);
+    //     $pdf->Cell($largeur_utile, $hauteur_point, iconv('UTF-8', 'Windows-1252', $ligne_points_fin), 0, 1, 'C');
+    //     $pdf->Ln(1);
+
+    //     $autre_devise_ttc = ($devise_generale == 'USD') ? 'CDF' : 'USD';
+    //     if ($devise_generale == 'USD') {
+    //         $ttc_autre = $ttc * $taux;
+    //         $ttc_autre_formate = number_format($ttc_autre, 2, ',', ' ');
+    //     } else {
+    //         $ttc_autre = $ttc / $taux;
+    //         $ttc_autre_formate = number_format($ttc_autre, 2, ',', ' ');
+    //     }
+    //     $pdf->SetFont('Arial', 'B', 10);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Montant TTC (' . $autre_devise_ttc . ') : ' . $ttc_autre_formate), 0, 1, 'R');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 8);
+    //     $pdf->Cell($largeur_utile, $hauteur_point, iconv('UTF-8', 'Windows-1252', $ligne_points_fin), 0, 1, 'C');
+    //     $pdf->Ln(1);
+
+    //     // Deuxième ligne de conversion (basée sur total_general avec frais)
+    //     $pdf->SetFont('Arial', '', 6);
+    //     $pdf->SetTextColor(128, 128, 128);
+    //     if ($devise_generale == 'USD') {
+    //         $equivalent_cdf = $total_general * $taux;
+    //         $equivalent_formate = number_format($equivalent_cdf, 2, ',', ' ');
+    //         $texte_equivalent = $equivalent_formate . " CDF = " . number_format($total_general, 2, ',', ' ') . " USD (taux 1 USD = " . $taux_formate . " CDF)";
+    //     } else {
+    //         $equivalent_usd = $total_general / $taux;
+    //         $equivalent_formate = number_format($equivalent_usd, 2, ',', ' ');
+    //         $texte_equivalent = $equivalent_formate . " USD = " . number_format($total_general, 2, ',', ' ') . " CDF (taux 1 USD = " . $taux_formate . " CDF)";
+    //     }
+    //     $pdf->MultiCell($largeur_utile, 3, iconv('UTF-8', 'Windows-1252', $texte_equivalent), 0, 'L');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 5, iconv('UTF-8', 'Windows-1252', 'Taux plancher'), 0, 0, 'L');
+    //     $pdf->Cell(26, 5, iconv('UTF-8', 'Windows-1252', number_format($taux, 2, ',', ' ') . ' CDF'), 0, 1, 'R');
+
+    //     $pdf->SetFont('Arial', 'B', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell(40, 5, iconv('UTF-8', 'Windows-1252', 'Montant TTC dû (' . $devise_generale . ')'), 0, 0, 'L');
+    //     $pdf->Cell(26, 5, iconv('UTF-8', 'Windows-1252', number_format($ttc, 2, ',', ' ') . ' ' . $devise_generale), 0, 1, 'R');
+
+    //     $pdf->SetFont('Arial', '', 6);
+    //     $pdf->SetTextColor(128, 128, 128);
+    //     $pdf->MultiCell($largeur_utile, 3, iconv('UTF-8', 'Windows-1252', 'Payé par : ' . $paiement_libelle), 0, 'L');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 8);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->Cell($largeur_utile, 5, iconv('UTF-8', 'Windows-1252', 'Merci pour votre visite'), 0, 1, 'C');
+    //     $pdf->Ln(1);
+
+    //     $pdf->SetFont('Arial', '', 7);
+    //     $pdf->SetTextColor(0, 0, 0);
+    //     $pdf->MultiCell($largeur_utile, 3.5, iconv('UTF-8', 'Windows-1252', 'Les marchandises vendues ne sont pas reprises ni échangées'), 0, 'C');
+
+    //     $nom_activite_clean = preg_replace('/[^a-zA-Z0-9_-]/', '_', $activite->nom ?? 'activite');
+    //     $nom_fichier = 'Facture_' . $nom_activite_clean . '_' . $facture->numero . '.pdf';
+    //     $pdf->Output('F', $nom_fichier);
+    //     return response()->json([[$nom_fichier, number_format($cdf_montant_payer, 2, ',', ' '), number_format($usd_montant_payer, 2, ',', ' '), $tva, $taux, $payer]]);
+    // }
+
     public function print_facture(Request $request)
     {
         // ---------- 1. Récupération centralisée ----------
@@ -7743,6 +9230,56 @@ class AjaxController extends Controller
         $achats = Achats::where('facture_id', $facture->id)->get();
         if ($achats->isEmpty()) return response()->json(['error' => 'Aucun achat'], 404);
 
+        // ------------------------------------------------------------
+        // 0. Calcul des frais de crédit si conditions remplies
+        // ------------------------------------------------------------
+        $paiements = detailpaiessachats::where('facture_id', $facture->id)->get();
+        $taux = $facture->taux;
+
+        // Total original (sans frais) pour déterminer l'état impayé
+        $total_original = 0;
+        foreach ($achats as $a) {
+            $total_original += $a->total;
+        }
+        if ($facture->devise == 0) {
+            $total_original_usd = $total_original;
+            $total_original_cdf = $total_original * $taux;
+        } else {
+            $total_original_cdf = $total_original;
+            $total_original_usd = $total_original / $taux;
+        }
+
+        // Paiements déjà effectués
+        $paye_usd = 0;
+        $paye_cdf = 0;
+        foreach ($paiements as $p) {
+            if ($p->devise_recu == 0) {
+                $paye_usd += $p->montant_recu;
+                $paye_cdf += $p->montant_recu * $taux;
+            } else {
+                $paye_cdf += $p->montant_recu;
+                $paye_usd += $p->montant_recu / $taux;
+            }
+        }
+        $est_impayee = ($paye_usd < $total_original_usd) || ($paye_cdf < $total_original_cdf);
+
+        // Délai d'1 heure
+        $date_creation_facture = strtotime($facture->created_at);
+        $delai_1h = 3600;
+        $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
+
+        // Application des frais de crédit (5%) sur chaque achat si conditions remplies
+        foreach ($achats as $achat) {
+            if (($achat->frais_credit == 0 || $achat->frais_credit === null) && $est_impayee && $delai_depasse) {
+                $frais = $achat->total * 0.05;
+                $achat->frais_credit = $frais;
+                $achat->save();
+            }
+        }
+        // Recharger les achats pour avoir les frais mis à jour
+        $achats = Achats::where('facture_id', $facture->id)->get();
+
+        // ---------- Articles, clients, etc. ----------
         $articlesIds = $achats->pluck('article_id')->unique();
         $clientsIds = $achats->pluck('client_id')->filter(fn($id) => $id > 0)->unique();
         $articles = Articles::whereIn('id', $articlesIds)->get()->keyBy('id');
@@ -7750,20 +9287,14 @@ class AjaxController extends Controller
         $activite = Activites::find($activiteId);
         $clients = Clients::whereIn('id', $clientsIds)->get()->keyBy('id');
 
-        $taux = $facture->taux;
         $tva = $facture->tva;
         $payer = $facture->payer;
         $date_creation = explode(" ", $facture->created_at);
         $mode_de_paiement = $facture->mode_de_paiement;
 
-        // ---------- Récupération des paiements ----------
-        $paiements = detailpaiessachats::where('facture_id', $facture->id)
-                                    ->orderBy('created_at', 'asc')
-                                    ->get();
-
         // ---------- Construction des lignes d'achats ----------
         $lignes = [];
-        $total_general = 0;
+        $total_general = 0; // inclut les frais
         $nom_client_final = '';
         $devise_generale = '';
 
@@ -7771,7 +9302,8 @@ class AjaxController extends Controller
             $article = $articles[$achat->article_id] ?? null;
             if (!$article) continue;
 
-            $total_general += $achat->total;
+            $frais = $achat->frais_credit ?? 0;
+            $total_general += $achat->total + $frais;
 
             if ($devise_generale === '') {
                 $devise_generale = ($achat->devise == 0) ? 'USD' : 'CDF';
@@ -7787,11 +9319,12 @@ class AjaxController extends Controller
                 'nom_article'   => $article->nom_article,
                 'quantite'      => $achat->quantite,
                 'prix_unitaire' => $achat->prix_unitaire,
-                'total_ligne'   => $achat->total,
+                'total_ligne'   => $achat->total,          // sans frais
+                'frais_credit'  => $frais,
             ];
         }
 
-        // ---------- Calcul du TTC et des totaux dans les deux devises ----------
+        // ---------- Calcul du TTC et des totaux (basés sur total_general avec frais) ----------
         $ttc = $total_general + ($total_general * $tva / 100);
         if ($devise_generale == 'USD') {
             $total_ttc_usd = $ttc;
@@ -7807,33 +9340,40 @@ class AjaxController extends Controller
         $paiements_detail = [];
 
         foreach ($paiements as $p) {
-            if ($p->devise_recu == 0) { // paiement en USD
+            if ($p->devise_recu == 0) {
                 $montant_usd = $p->montant_recu;
                 $montant_cdf = $p->montant_recu * $taux;
-            } else { // paiement en CDF
+            } else {
                 $montant_cdf = $p->montant_recu;
                 $montant_usd = $p->montant_recu / $taux;
             }
 
+            // Mise à jour du cumul avec ce paiement
             $cumul_usd += $montant_usd;
             $cumul_cdf += $montant_cdf;
 
-            // Reste à payer
-            $reste_usd = max(0, $total_ttc_usd - $cumul_usd);
-            $reste_cdf = max(0, $total_ttc_cdf - $cumul_cdf);
+            // Reste après paiement (ce que le client doit encore payer) → colonne C
+            $reste_apres_usd = max(0, $total_ttc_usd - $cumul_usd);
+            $reste_apres_cdf = max(0, $total_ttc_cdf - $cumul_cdf);
 
-            // Crédit (payé en trop)
-            $credit_usd = max(0, $cumul_usd - $total_ttc_usd);
-            $credit_cdf = max(0, $cumul_cdf - $total_ttc_cdf);
+            // Monnaie à rendre / Crédit (si le client a payé en trop) → colonne R
+            $credit_brut = $p->reste ?? 0;
+            if ($p->devise_recu == 0) {
+                $credit_usd = $credit_brut;
+                $credit_cdf = $credit_brut * $taux;
+            } else {
+                $credit_cdf = $credit_brut;
+                $credit_usd = $credit_brut / $taux;
+            }
 
             $paiements_detail[] = [
-                'date'         => $p->created_at,
-                'montant'      => $p->montant_recu,
-                'devise_recu'  => $p->devise_recu,
-                'reste_usd'    => $reste_usd,
-                'reste_cdf'    => $reste_cdf,
-                'credit_usd'   => $credit_usd,
-                'credit_cdf'   => $credit_cdf,
+                'date'             => $p->created_at,
+                'montant'          => $p->montant_recu,
+                'devise_recu'      => $p->devise_recu,
+                'reste_apres_usd'  => $reste_apres_usd,   // colonne C (USD)
+                'reste_apres_cdf'  => $reste_apres_cdf,   // colonne C (CDF)
+                'credit_usd'       => $credit_usd,        // colonne R (USD)
+                'credit_cdf'       => $credit_cdf,        // colonne R (CDF)
             ];
         }
 
@@ -7936,11 +9476,12 @@ class AjaxController extends Controller
         $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Original'), 0, 1, 'C');
         $pdf->Ln(3);
 
-        // --- Tableau des articles ---
-        $col_article = 28;
-        $col_qte = 10;
-        $col_pu = 14;
-        $col_total = 14;
+        // --- Tableau des articles (5 colonnes) ---
+        $col_article = 20;
+        $col_qte = 8;
+        $col_pu = 12;
+        $col_montant = 13;
+        $col_frais = 13;
 
         $pdf->SetLineWidth(0.6);
         $y1 = $pdf->GetY();
@@ -7948,11 +9489,12 @@ class AjaxController extends Controller
         $pdf->SetLineWidth(0.2);
         $pdf->Ln(1);
 
-        $pdf->SetFont('Arial', 'B', 7);
-        $pdf->Cell($col_article, 5, iconv('UTF-8', 'Windows-1252', 'ITEM'), 0, 0, 'L');
-        $pdf->Cell($col_qte, 5, iconv('UTF-8', 'Windows-1252', 'QTE'), 0, 0, 'C');
-        $pdf->Cell($col_pu, 5, iconv('UTF-8', 'Windows-1252', 'PRIX'), 0, 0, 'C');
-        $pdf->Cell($col_total, 5, iconv('UTF-8', 'Windows-1252', 'MONTANT'), 0, 1, 'C');
+        $pdf->SetFont('Arial', 'B', 6);
+        $pdf->Cell($col_article, 4, iconv('UTF-8', 'Windows-1252', 'ITEM'), 0, 0, 'L');
+        $pdf->Cell($col_qte, 4, iconv('UTF-8', 'Windows-1252', 'QTE'), 0, 0, 'C');
+        $pdf->Cell($col_pu, 4, iconv('UTF-8', 'Windows-1252', 'PRIX'), 0, 0, 'C');
+        $pdf->Cell($col_montant, 4, iconv('UTF-8', 'Windows-1252', 'MONTANT'), 0, 0, 'C');
+        $pdf->Cell($col_frais, 4, iconv('UTF-8', 'Windows-1252', 'FRAIS(5%)'), 0, 1, 'C');
 
         $pdf->SetLineWidth(0.6);
         $y2 = $pdf->GetY();
@@ -7960,20 +9502,22 @@ class AjaxController extends Controller
         $pdf->SetLineWidth(0.2);
         $pdf->Ln(1);
 
-        $pdf->SetFont('Arial', '', 7);
+        $pdf->SetFont('Arial', '', 6);
         foreach ($lignes as $ligne) {
             $nom = $ligne['nom_article'];
-            if (mb_strlen($nom) > 18) $nom = mb_substr($nom, 0, 16) . '..';
-            $quantite_str = $ligne['quantite'];
-            $prix_str = number_format($ligne['prix_unitaire'], 2, ',', ' ');
-            $total_str = number_format($ligne['total_ligne'], 2, ',', ' ');
+            if (mb_strlen($nom) > 14) $nom = mb_substr($nom, 0, 12) . '..';
+            $qte = $ligne['quantite'];
+            $prix = number_format($ligne['prix_unitaire'], 2, ',', ' ');
+            $montant = number_format($ligne['total_ligne'], 2, ',', ' ');
+            $frais = number_format($ligne['frais_credit'], 2, ',', ' ');
 
-            $pdf->Cell($col_article, 5, iconv('UTF-8', 'Windows-1252', $nom), 0, 0, 'L');
-            $pdf->SetFont('Arial', 'B', 7);
-            $pdf->Cell($col_qte, 5, iconv('UTF-8', 'Windows-1252', $quantite_str), 0, 0, 'C');
-            $pdf->SetFont('Arial', '', 7);
-            $pdf->Cell($col_pu, 5, iconv('UTF-8', 'Windows-1252', $prix_str), 0, 0, 'C');
-            $pdf->Cell($col_total, 5, iconv('UTF-8', 'Windows-1252', $total_str), 0, 1, 'R');
+            $pdf->Cell($col_article, 4, iconv('UTF-8', 'Windows-1252', $nom), 0, 0, 'L');
+            $pdf->SetFont('Arial', 'B', 6);
+            $pdf->Cell($col_qte, 4, iconv('UTF-8', 'Windows-1252', $qte), 0, 0, 'C');
+            $pdf->SetFont('Arial', '', 6);
+            $pdf->Cell($col_pu, 4, iconv('UTF-8', 'Windows-1252', $prix), 0, 0, 'C');
+            $pdf->Cell($col_montant, 4, iconv('UTF-8', 'Windows-1252', $montant), 0, 0, 'R');
+            $pdf->Cell($col_frais, 4, iconv('UTF-8', 'Windows-1252', $frais), 0, 1, 'R');
         }
 
         $pdf->SetLineWidth(0.6);
@@ -7982,60 +9526,61 @@ class AjaxController extends Controller
         $pdf->SetLineWidth(0.2);
         $pdf->Ln(2);
 
-        // ---------- Détail des paiements (6 colonnes, largeur totale 66 mm) ----------
+        // ---------- Détail des paiements (ordre : C (USD), C (CDF), R (USD), R (CDF)) ----------
         if ($paiements->count() > 0) {
             $pdf->SetFont('Arial', 'B', 6);
             $pdf->Cell($largeur_utile, 5, iconv('UTF-8', 'Windows-1252', '--- Paiements & soldes ---'), 0, 1, 'L');
             $pdf->Ln(1);
 
-            // En-têtes : Date (8), Montant (18), R (USD) (10), R (CDF) (10), C (USD) (10), C (CDF) (10) → total 66
             $pdf->SetFont('Arial', 'B', 6);
             $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', 'Date'), 0, 0, 'L');
             $pdf->Cell(18, 4, iconv('UTF-8', 'Windows-1252', 'Montant'), 0, 0, 'R');
-            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (USD)'), 0, 0, 'R');
-            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (CDF)'), 0, 0, 'R');
-            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (USD)'), 0, 0, 'R');
-            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (CDF)'), 0, 1, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (USD)'), 0, 0, 'R'); // reste à payer
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (CDF)'), 0, 0, 'R'); // reste à payer
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (USD)'), 0, 0, 'R'); // monnaie à rendre
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (CDF)'), 0, 1, 'R'); // monnaie à rendre
 
             $pdf->SetFont('Arial', '', 6);
 
             foreach ($paiements_detail as $p) {
-                // Date : jj/mm (sans année, sans heure)
                 $date_p = explode(" ", $p['date']);
                 $parts = explode('-', $date_p[0]);
                 $date_courte = $parts[2] . '/' . $parts[1];
                 $date_aff = $date_courte;
 
-                // Montant + devise
                 $devise = ($p['devise_recu'] == 0) ? 'USD' : 'CDF';
                 $montant_str = number_format($p['montant'], 2, ',', ' ') . ' ' . $devise;
 
-                // Restes
-                $reste_usd_str = number_format($p['reste_usd'], 2, ',', ' ');
-                $reste_cdf_str = number_format($p['reste_cdf'], 2, ',', ' ');
-
-                // Crédits (uniquement si > 0)
-                $credit_usd_str = ($p['credit_usd'] > 0) ? number_format($p['credit_usd'], 2, ',', ' ') : '';
-                $credit_cdf_str = ($p['credit_cdf'] > 0) ? number_format($p['credit_cdf'], 2, ',', ' ') : '';
+                $reste_apres_usd_str = number_format($p['reste_apres_usd'], 2, ',', ' '); // C (USD)
+                $reste_apres_cdf_str = number_format($p['reste_apres_cdf'], 2, ',', ' '); // C (CDF)
+                $credit_usd_str = number_format($p['credit_usd'], 2, ',', ' ');           // R (USD)
+                $credit_cdf_str = number_format($p['credit_cdf'], 2, ',', ' ');           // R (CDF)
 
                 $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', $date_aff), 0, 0, 'L');
                 $pdf->Cell(18, 4, iconv('UTF-8', 'Windows-1252', $montant_str), 0, 0, 'R');
-                $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $reste_usd_str), 0, 0, 'R');
-                $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $reste_cdf_str), 0, 0, 'R');
+                $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $reste_apres_usd_str), 0, 0, 'R');
+                $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $reste_apres_cdf_str), 0, 0, 'R');
                 $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $credit_usd_str), 0, 0, 'R');
                 $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', $credit_cdf_str), 0, 1, 'R');
             }
 
+            // --- Ligne de séparation avant "Total payé" ---
+            $pdf->Ln(1);
+            $y_sep = $pdf->GetY();
+            $pdf->SetLineWidth(0.3);
+            $pdf->Line($marge_gauche, $y_sep, $marge_gauche + $largeur_utile, $y_sep);
+            $pdf->SetLineWidth(0.2);
             $pdf->Ln(1);
 
-            // Total payé récapitulatif
+            // "Total payé" sur la même ligne que les montants
             $pdf->SetFont('Arial', 'B', 6);
-            $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', 'Total payé'), 0, 0, 'L');
-            $pdf->Cell(18, 4, '', 0, 0, 'R');
+            // Libellé "Total payé" sur 26 mm (date + montant)
+            $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', 'Total payé'), 0, 0, 'L');
+            // Montants dans les colonnes C (USD) et C (CDF)
             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', number_format($total_paye_usd, 2, ',', ' ')), 0, 0, 'R');
             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', number_format($total_paye_cdf, 2, ',', ' ')), 0, 0, 'R');
-            $pdf->Cell(10, 4, '', 0, 0, 'R');
-            $pdf->Cell(10, 4, '', 0, 1, 'R');
+            // Colonnes R vides
+            $pdf->Cell(20, 4, '', 0, 1, 'R');
             $pdf->Ln(1);
         } else {
             $pdf->SetFont('Arial', 'I', 6);
@@ -8043,7 +9588,7 @@ class AjaxController extends Controller
             $pdf->Ln(1);
         }
 
-        // ---------- Montant HT ----------
+        // ---------- Montant HT (inclut les frais) ----------
         $pdf->SetFont('Arial', 'B', 7);
         $pdf->SetTextColor(0, 0, 0);
         $total_formate = number_format($total_general, 2, ',', ' ');
@@ -8066,7 +9611,6 @@ class AjaxController extends Controller
         $pdf->MultiCell($largeur_utile, 3, iconv('UTF-8', 'Windows-1252', $texte_equivalent), 2, 'L');
         $pdf->Ln(1);
 
-        // Si aucun paiement, on sort sans les détails supplémentaires
         if ($total_paye_usd == 0 && $total_paye_cdf == 0) {
             $nom_activite_clean = preg_replace('/[^a-zA-Z0-9_-]/', '_', $activite->nom ?? 'activite');
             $nom_fichier = 'Facture_' . $nom_activite_clean . '_' . $facture->numero . '.pdf';
@@ -8074,8 +9618,7 @@ class AjaxController extends Controller
             return response()->json([[$nom_fichier, number_format($cdf_montant_payer, 2, ',', ' '), number_format($usd_montant_payer, 2, ',', ' '), $tva, $taux], $payer]);
         }
 
-        // ---------- Suite : facture avec paiements ----------
-        // TVA
+        // ---------- TVA, reçu, reste, crédit ----------
         $montant_tva = $total_general * ($tva / 100);
         $montant_tva_formate = number_format($montant_tva, 2, ',', ' ') . ' ' . $devise_generale;
         $libelle_tva = 'TVA (' . $devise_generale . ') ' . $tva . '%';
@@ -8084,7 +9627,6 @@ class AjaxController extends Controller
         $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', $libelle_tva), 0, 0, 'L');
         $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_tva_formate), 0, 1, 'R');
 
-        // TVA autre devise
         $autre_devise = ($devise_generale == 'USD') ? 'CDF' : 'USD';
         if ($devise_generale == 'USD') {
             $montant_tva_autre = $montant_tva * $taux;
@@ -8099,7 +9641,6 @@ class AjaxController extends Controller
         $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', $libelle_tva_autre), 0, 0, 'L');
         $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_tva_autre_formate), 0, 1, 'R');
 
-        // Montant reçu
         $montant_recu_usd = number_format($total_paye_usd, 2, ',', ' ') . ' USD';
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetTextColor(0, 0, 0);
@@ -8112,7 +9653,6 @@ class AjaxController extends Controller
         $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Montant reçu (CDF)'), 0, 0, 'L');
         $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $montant_recu_cdf), 0, 1, 'R');
 
-        // Reste
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetTextColor(0, 0, 0);
         $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Reste (USD)'), 0, 0, 'L');
@@ -8123,7 +9663,6 @@ class AjaxController extends Controller
         $pdf->Cell(40, 4, iconv('UTF-8', 'Windows-1252', 'Reste (CDF)'), 0, 0, 'L');
         $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', $diff_cdf_formate), 0, 1, 'R');
 
-        // Crédit éventuel
         if ($credit_final_usd > 0 || $credit_final_cdf > 0) {
             $credit_aff = '';
             if ($credit_final_usd > 0) $credit_aff .= number_format($credit_final_usd, 2, ',', ' ') . ' USD';
@@ -10190,6 +11729,20 @@ class AjaxController extends Controller
         return view('include.refresh_affectation_table_utilisateur', $data);
     }
 
+    public function refresh_affectation_point_vente_utilisateur(Request $request)
+    {
+        $pointventes = Pointdeventes::where(["etat" => 1, "supprimer" => 0, "id" => $request->pointdeventes_id])->first();
+        $data["nom"] = $pointventes->nom;
+        $data["nom_point_vente"] = Pointdeventes::where(["etat" => 1, "id" => $request->pointdeventes_id , "supprimer" => 0])->first()["nom"];
+        $data["tables"] = Tables::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
+        $data["stocks"] = Stocks::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
+        $data["pointdeventes"] = Pointdeventes::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        $data["pointdeventes_id"] = $request->pointdeventes_id;
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        return view('include.refresh_affectation_point_vente_utilisateur', $data);
+    }
+
     public function refresh_article_stock(Request $request)
     {
         if($request->stock_id != 0)
@@ -10305,6 +11858,51 @@ class AjaxController extends Controller
 
             return response()->json([1]);
         }
+    }
+
+    public function etat_affectation_point_vente_utilisateur(Request $request)
+    {
+        $pointVenteId = $request->pointdeventes_id;
+        $userId = $request->user_id;
+
+        // 1. Vérifier s'il existe une affectation pour ce point de vente (n'importe quel utilisateur)
+        $affectationPointVente = affectationspointventes::where('pointdeventes_id', $pointVenteId)->first();
+
+        // 2. Vérifier s'il existe une affectation pour cet utilisateur (n'importe quel point de vente)
+        $affectationUtilisateur = affectationspointventes::where('user_id', $userId)->first();
+
+        // Si l'une ou l'autre existe, on supprime TOUTES les affectations concernées et on ne crée rien
+        if ($affectationPointVente || $affectationUtilisateur) {
+            // Supprimer les affectations pour ce point de vente (si existantes)
+            if ($affectationPointVente) {
+                affectationspointventes::where('pointdeventes_id', $pointVenteId)->delete();
+                detailsaffectationspointventes::where('pointdeventes_id', $pointVenteId)->delete();
+            }
+
+            // Supprimer les affectations pour cet utilisateur (si existantes)
+            if ($affectationUtilisateur) {
+                affectationspointventes::where('user_id', $userId)->delete();
+                detailsaffectationspointventes::where('user_id', $userId)->delete();
+            }
+
+            return response()->json([0]); // On indique qu'on a supprimé sans créer
+        }
+
+        // Aucune affectation existante pour ce point de vente ou cet utilisateur → on crée
+        $newAffectation = new affectationspointventes();
+        // Utilisez l'auto-incrémentation de la base de données au lieu de max('id')+1 (non fiable)
+        // Si vous devez vraiment forcer un ID, préférez un UUID ou laissez la base le gérer.
+        $newAffectation->pointdeventes_id = $pointVenteId;
+        $newAffectation->user_id = $userId;
+        // Ajoutez d'autres champs si nécessaire (date_affectation, etc.)
+        $newAffectation->save();
+
+        $newDetail = new detailsaffectationspointventes();
+        $newDetail->pointdeventes_id = $pointVenteId;
+        $newDetail->user_id = $userId;
+        $newDetail->save();
+
+        return response()->json([1]);
     }
 
     public function permission_fichier(Request $request)
@@ -12730,12 +14328,37 @@ class AjaxController extends Controller
     }
     public function get_articles_select(Request $request)
     {
+        // 1. Récupération des deux paramètres possibles
+        $pointdeventes_id = $request->input('pointdeventes_id');
         $table_id = $request->input('table_id');
-        $table = Tables::where('id', $table_id)->first();
-        $pointdeventes_id = $table->pointdeventes_id;
-        $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+
+        // 2. Détermination du point de vente et de son stock_id
+        if ($pointdeventes_id) {
+            // Cas de la page de facture : on a directement l'ID du point de vente
+            $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+        } elseif ($table_id) {
+            // Cas existant (autre page) : on passe par la table
+            $table = Tables::where('id', $table_id)->first();
+            if ($table) {
+                $pointdeventes_id = $table->pointdeventes_id;
+                $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+            } else {
+                $pointdeventes = null;
+            }
+        } else {
+            $pointdeventes = null;
+        }
+
+        // Si aucun point de vente n'est trouvé, on retourne un select vide
+        if (!$pointdeventes) {
+            return '<option selected value="">Sélectionnez un article</option>';
+        }
+
         $stock_id = $pointdeventes->stock_id;
 
+        // ------------------------------------------------------------------
+        // 3. Le reste du code est strictement inchangé (même logique)
+        // ------------------------------------------------------------------
         $html = '<option selected value="">Sélectionnez un article</option>';
 
         if ($stock_id == 0) {

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 ?>
 @extends('layouts.main')
 @section('title', $nom_app)
-@section('name', 'PROSPECTS')
+@section('name', 'GESTION DE PROSPECTS')
 @section('body')
 @include('composants.preload')
 @include('composants.header')
@@ -859,7 +859,7 @@ select.form-control {
     <div style="margin-top: 30px;padding-bottom: 100px;" class="container">
         <div class="row">
             <div class="col-lg-12">
-                <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Clients</h6>
+                <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Prospects</h6>
             </div>
             <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
                 <h4 style="color:rgba(0, 0, 0, 0.6);">
@@ -935,7 +935,7 @@ select.form-control {
                                 </thead>
                                 <tbody>
                                     {{! $i = 1; }}
-                                    @foreach ($clients as $data)
+                                    @foreach ($prospects as $data)
                                     <tr>
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">{{ $i }}</td>
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="nom-cell" data-nom="{{ $data->name }}">{{ $data->name }}</td>
@@ -995,8 +995,8 @@ select.form-control {
                                             <script>
                                                 $("#edit_<?= $i ?>").click(function(e) {
                                                     e.preventDefault();
-                                                    $.get("{{ url('/refresh_editclient') }}", {
-                                                        client_id: <?= $data->id ?>,
+                                                    $.get("{{ url('/refresh_editprospect') }}", {
+                                                        prospect_id: <?= $data->id ?>,
                                                     }, function(refresh_editutilisateur) {
                                                         $("#bloc_1").hide();
                                                         $("#bloc_2").hide();
@@ -1374,7 +1374,7 @@ select.form-control {
         }
     }
 
-    $("#link_30").addClass("active");
+    $("#link_46").addClass("active");
 
     // ========== FILTRES AVEC PERSISTANCE ==========
     let clientFilterTimeout;
@@ -1651,12 +1651,12 @@ select.form-control {
         e.preventDefault();
         var nom = $("#nom").val();
         if (nom.trim().length == 0) {
-            showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Veuillez compléter le nom du client', 9000);
+            showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Veuillez compléter le nom du prospect', 9000);
         } else {
             $("#save").attr("disabled", true);
             $.ajax({
                 type: "POST",
-                url: "/add_client",
+                url: "/add_prospect",
                 data: $("#form_add").serialize(),
                 success: function(response) {
                     $("#save").attr("disabled", false);
@@ -1665,7 +1665,7 @@ select.form-control {
                     $("#phone").val("");
                     $("#adresse").val("");
                     $("#description").val("");
-                    showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Client ajouté avec succès', 9000);
+                    showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Prospect ajouté avec succès', 9000);
                     $("#content_utilisateur").html(response);
                     saveClientFiltersToStorage();
                     setTimeout(function() {

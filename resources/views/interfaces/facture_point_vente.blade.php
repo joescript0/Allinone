@@ -1,9 +1,9 @@
 @php
-    use App\Models\appnames;
+    use App\Models\Appnames;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
 <?php
-
+use App\Models\affectationstables;
 use App\Models\Contrevenants;
 use App\Models\Groupes;
 use App\Models\Tables;
@@ -16,13 +16,14 @@ use App\Models\Achats;
 use App\Models\Societes;
 use App\Models\Clients;
 use App\Models\Mesures;
+use App\Models\Pointdeventes;
 use App\Models\Entres;
 use App\Models\detailpaiessachats;
 use Illuminate\Support\Facades\Auth;
 ?>
 @extends('layouts.main')
 @section('title', $nom_app)
-@section('name', 'FACTURES')
+@section('name', 'FACTURE POINT VENTE')
 @section('body')
     @include('composants.preload')
     @include('composants.header')
@@ -94,10 +95,6 @@ h4 {
     margin-bottom: 16px;
     margin-top: 0;
     color: var(--bleu-nuit);
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
 }
 
 h4 i.zmdi {
@@ -105,36 +102,6 @@ h4 i.zmdi {
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent !important;
-}
-
-/* ===== BADGE DANS LE TITRE – MAINTENANT EN ROUGE ===== */
-h4 .badge-invoice {
-    background: linear-gradient(135deg, #e31b23, #b91c1c);
-    color: white;
-    border-radius: 50px;
-    padding: 4px 12px;
-    font-size: 0.75rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    margin-left: 6px;
-    vertical-align: middle;
-}
-
-@media (max-width: 480px) {
-    h4 .badge-invoice {
-        font-size: 0.65rem;
-        padding: 2px 10px;
-        margin-left: 0;
-        white-space: normal;
-        word-break: break-word;
-    }
-    h4 {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-    }
 }
 
 /* ========== TABLEAU : LIGNES AÉRÉES ET VISIBLES ========== */
@@ -355,56 +322,59 @@ h4 .badge-invoice {
     height: 36px;
 }
 
-/* Badges (compteur et totaux) – désormais sur une ligne */
+/* ========== BADGE DANS LE TITRE ========== */
+.badge-invoice {
+    background: linear-gradient(135deg, #e31b23, #b91c1c);
+    color: white;
+    border-radius: 50px;
+    padding: 4px 16px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-left: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(227, 27, 35, 0.3);
+}
+
+/* ========== BADGES PAR CATÉGORIE (couleurs selon votre demande) ========== */
 .invoice-badges-container {
     display: flex;
     flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
     justify-content: flex-end;
-    gap: 8px 12px;
-    margin-bottom: 15px;
 }
 
 .invoice-count-badge {
     border-radius: 50px;
-    padding: 4px 12px;
+    padding: 4px 14px;
     font-size: 0.75rem;
     font-weight: bold;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    white-space: nowrap;
     color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-/* ===== BADGE POUR TOTAL USD ET CDF – #3B82F6 ===== */
-.invoice-count-badge.usd-badge {
-    background: linear-gradient(135deg, #3B82F6, #2563eb);
-}
-.invoice-count-badge.cdf-badge {
+/* Total : bleu #3B82F6 (comme le bouton primaire) */
+.badge-total {
     background: linear-gradient(135deg, #3B82F6, #2563eb);
 }
 
-/* ===== BADGE PAYÉ USD / CDF – BLEU DE NUIT ===== */
-.invoice-count-badge.paye-usd {
-    background: linear-gradient(135deg, #0a192f, #1e3a5f);
-}
-.invoice-count-badge.paye-cdf {
+/* Payé : bleu de nuit */
+.badge-paye {
     background: linear-gradient(135deg, #0a192f, #1e3a5f);
 }
 
-/* ===== BADGE CRÉDIT USD / CDF – ROUGE ===== */
-.invoice-count-badge.credit-usd {
-    background: linear-gradient(135deg, #dc3545, #b02a37);
-}
-.invoice-count-badge.credit-cdf {
+/* Crédit : rouge */
+.badge-credit {
     background: linear-gradient(135deg, #dc3545, #b02a37);
 }
 
-/* ===== BADGE BÉNÉFICE USD / CDF – VERT SUCCÈS ===== */
-.invoice-count-badge.benefice-usd {
-    background: linear-gradient(135deg, #198754, #146c43);
-}
-.invoice-count-badge.benefice-cdf {
+/* Bénéfice : vert succès */
+.badge-benefice {
     background: linear-gradient(135deg, #198754, #146c43);
 }
 
@@ -853,10 +823,6 @@ select.form-control {
     .filter-group .form-control {
         height: 34px !important;
     }
-    .invoice-badges-container {
-        justify-content: flex-start;
-        gap: 6px 8px;
-    }
     .invoice-count-badge {
         font-size: 0.65rem;
         padding: 3px 10px;
@@ -917,10 +883,6 @@ select.form-control {
         justify-content: center;
         gap: 8px;
     }
-}
-
-.badge-invoice i.zmdi {
-    color: white !important;
 }
 
 @media (max-width: 480px) {
@@ -1025,9 +987,12 @@ select.form-control {
             <div class="row">
                 <div class="col-lg-12">
                     <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i
-                            class="zmdi zmdi-chevron-right"></i> &nbsp; Gestion de facture</h6>
+                            class="zmdi zmdi-chevron-right"></i> &nbsp; Facture point de vente</h6>
                 </div>
 
+                <!-- ============================================================ -->
+                <!-- BLOC_1 AVEC BADGE, TOTAUX ÉTENDUS, COLONNES PAYÉ/CRÉDIT -->
+                <!-- ============================================================ -->
                 <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
                     <!-- TITRE AVEC BADGE INTÉGRÉ -->
                     <h4 style="color:rgba(0, 0, 0, 0.6);">
@@ -1060,8 +1025,8 @@ select.form-control {
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label><i class="zmdi zmdi-table text-danger"></i> Table</label>
-                            <input type="text" id="filterTable" class="form-control" placeholder="Rechercher par table...">
+                            <label><i class="zmdi zmdi-store text-danger"></i> Point de vente</label>
+                            <input type="text" id="filterPointVente" class="form-control" placeholder="Rechercher par point de vente...">
                         </div>
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-calendar text-danger"></i> Période (DD/MM/YYYY)</label>
@@ -1078,30 +1043,30 @@ select.form-control {
                         </div>
                     </div>
 
-                    <!-- Badges de totaux (sans le compteur de factures) -->
+                    <!-- BADGES DE TOTAUX AVEC COULEURS DEMANDÉES -->
                     <div class="invoice-badges-container">
-                        <span class="invoice-count-badge usd-badge">
+                        <span class="invoice-count-badge badge-total">
                             <i class="zmdi zmdi-money"></i> Total USD : <span id="totalUsd">0,00</span> $
                         </span>
-                        <span class="invoice-count-badge cdf-badge">
+                        <span class="invoice-count-badge badge-total">
                             <i class="zmdi zmdi-money-box"></i> Total CDF : <span id="totalCdf">0,00</span> Fc
                         </span>
-                        <span class="invoice-count-badge paye-usd">
+                        <span class="invoice-count-badge badge-paye">
                             <i class="zmdi zmdi-money"></i> Payé USD : <span id="totalPaidUsd">0,00</span> $
                         </span>
-                        <span class="invoice-count-badge paye-cdf">
+                        <span class="invoice-count-badge badge-paye">
                             <i class="zmdi zmdi-money-box"></i> Payé CDF : <span id="totalPaidCdf">0,00</span> Fc
                         </span>
-                        <span class="invoice-count-badge credit-usd">
+                        <span class="invoice-count-badge badge-credit">
                             <i class="zmdi zmdi-time"></i> Crédit USD : <span id="totalCreditUsd">0,00</span> $
                         </span>
-                        <span class="invoice-count-badge credit-cdf">
+                        <span class="invoice-count-badge badge-credit">
                             <i class="zmdi zmdi-time"></i> Crédit CDF : <span id="totalCreditCdf">0,00</span> Fc
                         </span>
-                        <span class="invoice-count-badge benefice-usd">
+                        <span class="invoice-count-badge badge-benefice">
                             <i class="zmdi zmdi-trending-up"></i> Bénéfice USD : <span id="totalBeneficeUsd">0,00</span> $
                         </span>
-                        <span class="invoice-count-badge benefice-cdf">
+                        <span class="invoice-count-badge badge-benefice">
                             <i class="zmdi zmdi-trending-up"></i> Bénéfice CDF : <span id="totalBeneficeCdf">0,00</span> Fc
                         </span>
                     </div>
@@ -1115,7 +1080,7 @@ select.form-control {
                                             <th style="padding-top: 5px;padding-bottom: 5px;">N° Facture</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Utilisateur</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Libelle / Client</th>
-                                            <th style="padding-top: 5px;padding-bottom: 5px;">Table</th>
+                                            <th style="padding-top: 5px;padding-bottom: 5px;">Point de vente</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Montant</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Payé</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Crédit</th>
@@ -1130,94 +1095,77 @@ select.form-control {
                                             @php
                                                 $taux = $data->taux;
 
-                                                // Récupération des achats
+                                                // 1. Récupération des achats
                                                 $ent = Achats::where('facture_id', $data->id)->get();
 
-                                                // Calcul du total original (sans frais)
+                                                // 2. Calcul du total original (sans frais)
                                                 $total_original = 0;
-                                                foreach ($ent as $e)
-                                                {
+                                                foreach ($ent as $e) {
                                                     $total_original += $e->total;
                                                 }
 
-                                                // Récupération des paiements
+                                                // 3. Récupération des paiements déjà effectués
                                                 $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
                                                 $montant_usd_paye = 0;
                                                 $montant_cdf_paye = 0;
-                                                foreach ($paiements as $paiement)
-                                                {
-                                                    if ($paiement->devise_recu == 0) {
+                                                foreach ($paiements as $paiement) {
+                                                    if ($paiement->devise_recu == 0) { // paiement en USD
                                                         $montant_usd_paye += $paiement->montant_recu;
                                                         $montant_cdf_paye += $paiement->montant_recu * $taux;
-                                                    } else {
+                                                    } else { // paiement en CDF
                                                         $montant_cdf_paye += $paiement->montant_recu;
                                                         $montant_usd_paye += $paiement->montant_recu / $taux;
                                                     }
                                                 }
 
-                                                // Conversion du total original en USD / CDF selon devise de la facture
-                                                if ($data->devise == 0)
-                                                {
+                                                // 4. Conversion du total original en USD / CDF selon devise de la facture
+                                                if ($data->devise == 0) {
                                                     $total_original_usd = $total_original;
                                                     $total_original_cdf = $total_original * $taux;
-                                                }
-                                                else
-                                                {
+                                                } else {
                                                     $total_original_cdf = $total_original;
                                                     $total_original_usd = $total_original / $taux;
                                                 }
 
-                                                // Déterminer si la facture est impayée (sans tolérance)
+                                                // 5. Déterminer si la facture est impayée (sans tolérance)
                                                 $est_impayee = ($montant_usd_paye < $total_original_usd) || ($montant_cdf_paye < $total_original_cdf);
 
-                                                // 🔥 DÉLAI D'1 HEURE (3600 secondes) basé sur la date/heure actuelle
+                                                // 6. Vérifier le délai d'1 heure depuis la création de la facture
                                                 $date_creation_facture = strtotime($data->created_at);
                                                 $delai_1h = 3600; // 1 heure en secondes
                                                 $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
 
-                                                // Parcours final des achats pour construire le total (incluant les frais)
+                                                // 7. Application des frais de crédit (5%) sur chaque achat si conditions remplies
+                                                foreach ($ent as $e) {
+                                                    if (($e->frais_credit == 0 || $e->frais_credit === null) && $est_impayee && $delai_depasse) {
+                                                        $frais = $e->total * 0.05;
+                                                        $e->frais_credit = $frais;
+                                                        $e->save();
+                                                    }
+                                                }
+
+                                                // 8. Recalcul du total avec frais et des coûts d'achat
                                                 $total = 0;
                                                 $achat_total_usd = 0;
                                                 $achat_total_cdf = 0;
-
-                                                foreach ($ent as $e)
-                                                {
-                                                    // Montant de base
-                                                    $total += $e->total;
-
-                                                    // Gestion des frais de crédit (5%)
-                                                    if ($e->frais_credit != 0 && $e->frais_credit !== null) {
-                                                        // Déjà enregistré, on l'ajoute
-                                                        $total += $e->frais_credit;
-                                                    } else
-                                                    {
-                                                        // Non enregistré : on vérifie les conditions
-                                                        if ($est_impayee && $delai_depasse) {
-                                                            $frais = $e->total * 0.05;
-                                                            $total += $frais;
-                                                            $e->frais_credit = $frais;
-                                                            $e->save();
-                                                        }
-                                                    }
-
-                                                    // Calcul du coût d'achat pour le bénéfice
+                                                foreach ($ent as $e) {
+                                                    $total += $e->total + ($e->frais_credit ?? 0);
+                                                    // Coût d'achat (prix unitaire × quantité)
                                                     $prix_achat = $e->prix_achat ?? 0;
                                                     $quantite = $e->quantite ?? 1;
                                                     $prix_achat_total = $prix_achat * $quantite;
                                                     $devise_achat = $e->devise_achat ?? $data->devise;
-
-                                                    if ($devise_achat == 0) {
+                                                    if ($devise_achat == 0) { // USD
                                                         $achat_total_usd += $prix_achat_total;
                                                         $achat_total_cdf += $prix_achat_total * $taux;
-                                                    } else {
+                                                    } else { // CDF
                                                         $achat_total_cdf += $prix_achat_total;
                                                         $achat_total_usd += $prix_achat_total / $taux;
                                                     }
                                                 }
 
-                                                // Conversion et affichage
-                                                if ($data->devise == 0)
-                                                {
+                                                // 9. Conversion et affichage des montants
+                                                if ($data->devise == 0) {
                                                     $montant_usd = $total;
                                                     $montant_cdf = $total * $taux;
                                                     $montant_affichage = number_format($total, 2, ',', ' ') . ' USD (' . number_format($montant_cdf, 2, ',', ' ') . ' CDF)';
@@ -1227,18 +1175,21 @@ select.form-control {
                                                     $montant_affichage = number_format($total, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
                                                 }
 
-                                                // Bénéfices
+                                                // 10. Bénéfices (avec frais)
                                                 $benefice_usd = $montant_usd - $achat_total_usd;
                                                 $benefice_cdf = $montant_cdf - $achat_total_cdf;
 
-                                                // Crédit restant
+                                                // 11. Crédit restant (avec frais)
                                                 $reste_usd = $montant_usd - $montant_usd_paye;
                                                 $reste_cdf = $montant_cdf - $montant_cdf_paye;
 
+                                                // 12. Formatage pour l'affichage
                                                 $paye_affichage = number_format($montant_usd_paye, 2, ',', ' ') . ' USD (' . number_format($montant_cdf_paye, 2, ',', ' ') . ' CDF)';
                                                 $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
                                                 $statut_text = $reste_usd > 0 ? 'Impayé' : 'Payé';
                                                 $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
+                                                // Récupération du point de vente
+                                                $pointVenteNom = $data->pointdeventes_id ? (Pointdeventes::find($data->pointdeventes_id)->nom ?? 'N/A') : 'Non défini';
                                             @endphp
                                             <tr id="row_{{ $data->id }}"
                                                 data-montant-usd="{{ $montant_usd }}"
@@ -1257,21 +1208,11 @@ select.form-control {
                                                     @if ($data->client_id == 0)
                                                         {{ $data->libelle }}
                                                     @else
-                                                        <?= Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' ?>
+                                                        {{ Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' }}
                                                     @endif
                                                 </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="table-cell" data-table="{{ $data->table_id == 0 ? 'Aucune' : (Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A') }}">
-                                                    @if ($data->table_id == 0)
-                                                        Aucune
-                                                    @else
-                                                        <?php  $table = Tables::where('id', $data->table_id)->first() ?? 'N/A' ?>
-                                                        @if ($table->occupee == 1)
-                                                            <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger"> {{ $table->nom }}</span>
-                                                        @endif
-                                                        @if ($table->occupee == 0)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success"> {{ $table->nom }}</span>
-                                                        @endif
-                                                    @endif
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="pointvente-cell" data-pointvente="{{ $pointVenteNom }}">
+                                                    {{ $pointVenteNom }}
                                                 </td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="{{ $total }}">
                                                     {{ $montant_affichage }}
@@ -1283,11 +1224,11 @@ select.form-control {
                                                     {{ $reste_affichage }}
                                                 </td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell" data-date="{{ $data->created_at }}">
-                                                    <?php
+                                                    @php
                                                         $date = $data->created_at;
                                                         $date_1 = explode(' ', $date);
                                                         echo explode('-', $date_1[0])[2] . '/' . explode('-', $date_1[0])[1] . '/' . explode('-', $date_1[0])[0] . ' à ' . $date_1[1];
-                                                    ?>
+                                                    @endphp
                                                 </td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="statut-cell" data-statut="{{ $reste_usd > 0 ? 'unpaid' : 'paid' }}">
                                                     @if ($reste_usd > 0)
@@ -1299,12 +1240,12 @@ select.form-control {
                                                     @else
                                                         @if ($data->mode_de_paiement == 1)
                                                             <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">CASH</span>
-                                                        @endif
-                                                        @if ($data->mode_de_paiement == 2)
+                                                        @elseif ($data->mode_de_paiement == 2)
                                                             <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Mobile money</span>
-                                                        @endif
-                                                        @if ($data->mode_de_paiement == 3)
+                                                        @elseif ($data->mode_de_paiement == 3)
                                                             <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Bank</span>
+                                                        @else
+                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Payé</span>
                                                         @endif
                                                     @endif
                                                 </td>
@@ -1337,19 +1278,6 @@ select.form-control {
                                                         @else
                                                             <a id="detail_r{{ $i }}" href="#"><i class="zmdi zmdi-eye text-success"></i></a> &nbsp;
                                                         @endif
-                                                    <?php } ?>
-                                                    {{-- Icône de suppression enrichie en données --}}
-                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
-                                                        <a href="#" class="delete-facture-btn"
-                                                           data-id="{{ $data->id }}"
-                                                           data-numero="{{ $data->numero }}"
-                                                           data-client="{{ $client_name }}"
-                                                           data-montant="{{ $montant_affichage }}"
-                                                           data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
-                                                           data-statut="{{ $statut_text }}"
-                                                           title="Supprimer cette facture">
-                                                            <i class="zmdi zmdi-delete text-danger"></i>
-                                                        </a>
                                                     <?php } ?>
                                                     <script>
                                                         $("#detail_{{ $i }}").click(function(e) {
@@ -1418,6 +1346,7 @@ select.form-control {
                         </div>
                     </div>
                 </div>
+                <!-- FIN BLOC_1 -->
 
                 <!-- LIGNE POUR BLOC_2 ET BLOC_3 CÔTE À CÔTE -->
                 <div id="bloc_t" class="row" style="width: 100%; margin: 0;">
@@ -1439,39 +1368,42 @@ select.form-control {
                                 </div>
                                 <div class="col-12">
                                     <div class="form-group">
+                                        <label class="text-info" style="font-weight: bold;margin-top: 16px;">
+                                            <i class="zmdi zmdi-store"></i> Point de vente
+                                        </label>
+                                        <select id="pointdeventes_id" name="pointdeventes_id" class="select2" data-placeholder="Sélectionnez un point de vente">
+                                            <option selected value="">Sélectionnez un point de vente</option>
+                                            @php
+                                                $pointsdeventes = App\Models\Pointdeventes::all();
+                                            @endphp
+                                            @if ((Auth::user()->role == 0))
+                                                @foreach ($pointsdeventes as $pdv)
+                                                    <option value="{{ $pdv->id }}">{{ $pdv->nom }}</option>
+                                                @endforeach
+                                            @else
+                                                @if (affectationspointventes::where(["user_id" => $data->id])->count() != 0)
+                                                    @foreach (affectationspointventes::where(["user_id" => $data->id])->get() as $affectation)
+                                                        @php
+                                                            $pointVente = App\Models\Pointdeventes::find($affectation->pointdeventes_id);
+                                                        @endphp
+                                                        @if ($pointVente)
+                                                            <option selected value="{{ $pointVente->id }}">{{ $pointVente->nom }}</option>
+                                                        @endif
+                                                    @endforeach
+                                                @endif
+                                            @endif
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 10px;" class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
                                                 class="zmdi zmdi-info"></i> Il s'agit de quel article ?</span></label>
                                         <select id="type_sortie" name="type_sortie" class="select2"
                                             data-placeholder="Selectionnez un article">
                                             <option selected value="">Selectionnez un article</option>
-                                            @foreach ($articles as $data)
-                                                @if (($data->activite_id != 0) && ($data->stock > $data->seuil_minimum))
-                                                    {{-- Cas OK : activité définie et stock suffisant --}}
-                                                    <option value="{{ $data->id }}">
-                                                        🟢 {{ $data->nom_article }}
-                                                        {{ (Mesures::where('id', $data->mesure_id)->first()['nom'] ?? 'N/A') }}
-                                                        ({{ Societes::where('id', $data->societe_id)->first()['nom'] ?? 'N/A' }})
-                                                    </option>
-                                                @else
-                                                    @php
-                                                        $erreurs = [];
-                                                        if ($data->activite_id == 0)
-                                                        {
-                                                            $erreurs[] = 'Activité non définie';
-                                                        }
-                                                        if ($data->stock <= $data->seuil_minimum) {
-                                                            $erreurs[] = 'Stock insuffisant';
-                                                        }
-                                                        $message = implode(' et ', $erreurs);
-                                                    @endphp
-                                                    <option disabled value="{{ $data->id }}">
-                                                        🔴 {{ $data->nom_article }}
-                                                        {{ (Mesures::where('id', $data->mesure_id)->first()['nom'] ?? 'N/A') }}
-                                                        ({{ Societes::where('id', $data->societe_id)->first()['nom'] ?? 'N/A' }})
-                                                        : {{ $message }}
-                                                    </option>
-                                                @endif
-                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
@@ -1699,36 +1631,6 @@ select.form-control {
         </div>
     </div>
 
-    {{-- MODALE DE SUPPRESSION AVEC DÉTAILS --}}
-    <div class="modal fade" id="deleteFactureModal" tabindex="-1" role="dialog" aria-labelledby="deleteFactureModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="font-weight: bold;font-size: 16px;">Confirmer la suppression</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Voulez-vous vraiment supprimer la facture ci-dessous ? Cette action est irréversible.</p>
-                    <div style="background: #f8f9fa; padding: 12px 15px; border-radius: 8px; margin-top: 10px;">
-                        <table style="width:100%; font-size:0.9rem; border-collapse:collapse;">
-                            <tr><td style="padding:5px 0; font-weight:600;">N° facture :</td><td style="padding:5px 0;" id="delete_facture_numero">-</td></tr>
-                            <tr><td style="padding:5px 0; font-weight:600;">Client / Libellé :</td><td style="padding:5px 0;" id="delete_facture_client">-</td></tr>
-                            <tr><td style="padding:5px 0; font-weight:600;">Montant :</td><td style="padding:5px 0;" id="delete_facture_montant">-</td></tr>
-                            <tr><td style="padding:5px 0; font-weight:600;">Date :</td><td style="padding:5px 0;" id="delete_facture_date">-</td></tr>
-                            <tr><td style="padding:5px 0; font-weight:600;">Statut :</td><td style="padding:5px 0;" id="delete_facture_statut">-</td></tr>
-                        </table>
-                    </div>
-                </div>
-                <div style="font-weight: bold;text-align: center; padding-bottom: 15px;">
-                    <button id="confirm_delete_facture" class="btn btn-info btn-sm" style="margin-right: 8px;">Oui, supprimer</button>
-                    <button class="btn btn-danger btn-sm" data-dismiss="modal">Annuler</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal/Fenêtre modale pour afficher le PDF -->
     <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 100%; width: 60%;">
@@ -1786,6 +1688,7 @@ select.form-control {
             </div>
         </div>
     </div>
+
 @section('js-code')
     {{-- Ajout des dépendances pour le Date Range Picker (comme dans rapport) --}}
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" />
@@ -1804,7 +1707,7 @@ select.form-control {
     <script src="{{ asset('assets/demo/js/flot-charts/pie.js') }}"></script>
     <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
     <script>
-        $("#link_24").addClass("active");
+        $("#link_48").addClass("active");
 
         $("#upload").click(function(e) {
             e.preventDefault();
@@ -1830,6 +1733,12 @@ select.form-control {
             $.get("{{ url('/delete_facture_user_id') }}", {}, function(response) {
                 // bien
             });
+            // Chargement initial des points de vente déjà présents dans le select (static)
+            // On force le chargement des articles si un point de vente est présélectionné
+            var initialPdv = $("#pointdeventes_id").val();
+            if (initialPdv && initialPdv.trim() !== '') {
+                loadArticlesForPointVente(initialPdv);
+            }
             e.preventDefault();
             $("#bloc_1").hide();
             $("#bloc_2").show();
@@ -1855,19 +1764,37 @@ select.form-control {
             $("#bloc_3").hide();
         });
 
-        // ========== BOUTON SAVE AVEC GESTION DU CHARGEMENT ==========
+        // Fonction pour charger les articles en fonction du point de vente
+        function loadArticlesForPointVente(pdvId) {
+            if (!pdvId || pdvId.trim() === '') {
+                $("#type_sortie").html('<option value="">Selectionnez un article</option>');
+                return;
+            }
+            $.get("{{ url('/get_articles_select') }}", { pointdeventes_id : pdvId })
+                .done(function(response) {
+                    $("#type_sortie").html(response);
+                    var currentArticle = $("#type_sortie").val();
+                    if (currentArticle && currentArticle.trim() !== '') {
+                        $("#type_sortie").trigger('change');
+                    }
+                })
+                .fail(function() {
+                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors du chargement des articles pour ce point de vente');
+                    setTimeout(function() { $('#msg').html(''); }, 9000);
+                });
+        }
+
+        // Écouteur sur le changement de point de vente
+        $("#pointdeventes_id").on('change', function() {
+            var pdvId = $(this).val();
+            loadArticlesForPointVente(pdvId);
+        });
+
+        // ========== SAUVEGARDE AVEC VÉRIFICATION DU POINT DE VENTE ==========
         $("#save").click(function(e) {
             e.preventDefault();
-            var btn = $(this);
-            // Désactiver et afficher le spinner
-            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...');
-
-            // Fonction pour réinitialiser le bouton en cas d'erreur ou de validation échouée
-            function resetButton() {
-                btn.prop('disabled', false).html('Enregister <i class="zmdi zmdi-save"></i>');
-            }
-
             var numero_facture = $("#numero_facture").val();
+            var pointdeventes_id = $("#pointdeventes_id").val();
             var type_sortie = $("#type_sortie").val();
             var action = $("#action").val();
             var quantite = $("#quantite").val();
@@ -1878,119 +1805,99 @@ select.form-control {
             var type_vente_id = $("#type_vente_id").val();
             var data = $("#form_add").serialize();
 
-            // Validations
-            if (numero_facture.trim().length == 0) {
-                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le numero d\'entré');
+            // 1️⃣ Vérification du point de vente
+            if (pointdeventes_id.trim().length === 0) {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Veuillez sélectionner un point de vente');
                 setTimeout(() => { $('#msg').html(""); }, 9000);
-                resetButton();
-                return;
-            }
-            if (type_sortie.trim().length == 0) {
-                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom de l\'article');
-                setTimeout(() => { $('#msg').html(""); }, 9000);
-                resetButton();
-                return;
-            }
-            if (action.trim().length == 0) {
-                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Selectionnez une action');
-                setTimeout(() => { $('#msg').html(""); }, 9000);
-                resetButton();
-                return;
-            }
-            if (type_vente_id.trim().length == 0) {
-                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Selectionnez le type de vente detail ou gros');
-                setTimeout(() => { $('#msg').html(""); }, 9000);
-                resetButton();
-                return;
-            }
-            if (quantite.trim().length == 0) {
-                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez la quantité');
-                setTimeout(() => { $('#msg').html(""); }, 9000);
-                resetButton();
-                return;
-            }
-            if (quantite.trim() <= 0) {
-                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> La quantité doit être supérieur à 0');
-                setTimeout(() => { $('#msg').html(""); }, 9000);
-                resetButton();
                 return;
             }
 
-            // Appels AJAX pour récupérer prix et vérifier seuil
-            $.get("{{ url('/get_prix_article') }}", {
-                article_id: $("#type_sortie").val(),
-                type_vente_id: $("#type_vente_id").val(),
-            }, function(get_prix_article) {
-                $.get("{{ url('/check_seuil_minimum') }}", {
-                    article_id: type_sortie,
-                    devise: devise,
-                    quantite: quantite,
-                    taille_lot: get_prix_article[0][1],
-                    prix_unitaire: get_prix_article[0][0],
-                    devise: $("#devise").val(),
-                    taux: taux,
-                }, function(repp) {
-                    var data_rep = repp.split("__________")
-                    if ((data_rep[0] == 0) && (data_rep[3] == 1)) {
-                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le seuil minimum de cette article est de : ' +
-                            data_rep[1] + ', sortie disponible : ' + data_rep[2]);
+            if (numero_facture.trim().length == 0) {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le numero d\'entré');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+            } else {
+                if (type_sortie.trim().length == 0) {
+                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom de l\'article');
+                    setTimeout(() => { $('#msg').html(""); }, 9000);
+                } else {
+                    if (action.trim().length == 0) {
+                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Selectionnez une action');
                         setTimeout(() => { $('#msg').html(""); }, 9000);
-                        resetButton();
-                        return;
-                    } else if ((data_rep[0] == -1) && (data_rep[3] == 1)) {
-                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le stock de cette article est vide');
-                        setTimeout(() => { $('#msg').html(""); }, 9000);
-                        resetButton();
-                        return;
                     } else {
-                        if (client.trim().length == 0 && libelle.trim().length == 0) {
-                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le client ou le libellé');
+                        if(type_vente_id.trim().length == 0){
+                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Selectionnez le type de vente detail ou gros');
                             setTimeout(() => { $('#msg').html(""); }, 9000);
-                            resetButton();
-                            return;
                         } else {
-                            // Envoi de l'ajout
-                            $.ajax({
-                                type: "POST",
-                                url: "/add_achat_article",
-                                data: data,
-                                success: function(response) {
-                                    // Succès : réinitialiser le bouton
-                                    resetButton();
-                                    $("#quantite").val("");
-                                    Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
-                                    $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
-                                    $("#content_utilisateur").html(response);
-                                    $.get("{{ url('/get_achat') }}", {}, function(response) {
-                                        $("#bloc_3").html(response);
+                            if (quantite.trim().length == 0) {
+                                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez la quantité');
+                                setTimeout(() => { $('#msg').html(""); }, 9000);
+                            } else {
+                                if(quantite.trim() <= 0) {
+                                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> La quantité doit être supérieur à 0');
+                                    setTimeout(() => { $('#msg').html(""); }, 9000);
+                                } else {
+                                    $.get("{{ url('/get_prix_article') }}", {
+                                        article_id: $("#type_sortie").val(),
+                                        type_vente_id: $("#type_vente_id").val(),
+                                        pointdeventes_id: pointdeventes_id // on envoie le point de vente
+                                    }, function(get_prix_article) {
+                                        $.get("{{ url('/check_seuil_minimum') }}", {
+                                            article_id: type_sortie,
+                                            devise: devise,
+                                            quantite: quantite,
+                                            taille_lot: get_prix_article[0][1],
+                                            prix_unitaire: get_prix_article[0][0],
+                                            devise: $("#devise").val(),
+                                            taux: taux,
+                                            pointdeventes_id: pointdeventes_id // on envoie le point de vente
+                                        }, function(repp) {
+                                            var data_rep = repp.split("__________")
+                                            if ((data_rep[0] == -1) && (data_rep[3] == 1))
+                                            {
+                                                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le stock de cette article est vide pour ce point de vente');
+                                                setTimeout(() => { $('#msg').html(""); }, 9000);
+                                            } else {
+                                                if(client.trim().length == 0 && libelle.trim().length == 0)
+                                                {
+                                                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le client ou le libellé');
+                                                    setTimeout(() => { $('#msg').html(""); }, 9000);
+                                                    return;
+                                                } else {
+                                                    $("#save").attr("disabled", true);
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: "/add_achat_article",
+                                                        data: data,
+                                                        success: function(response) {
+                                                            $("#save").attr("disabled", false);
+                                                            $("#quantite").val("");
+                                                            Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
+                                                            $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
+                                                            $("#content_utilisateur").html(response);
+                                                            $.get("{{ url('/get_achat') }}", {}, function(response) {
+                                                                $("#bloc_3").html(response);
+                                                            });
+                                                            // Rafraîchir la liste des points de vente (si nécessaire)
+                                                            // Pas besoin de rafraîchir le select ici car statique
+                                                            setTimeout(() => { $('#msg').html(""); }, 9000);
+                                                            // Sauvegarder et réappliquer les filtres
+                                                            saveFiltersToStorage();
+                                                            setTimeout(function() {
+                                                                loadFiltersFromStorage();
+                                                                filterInvoices();
+                                                            }, 100);
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        });
                                     });
-                                    setTimeout(() => { $('#msg').html(""); }, 9000);
-                                    // Sauvegarder et réappliquer les filtres
-                                    saveFiltersToStorage();
-                                    setTimeout(function() {
-                                        loadFiltersFromStorage();
-                                        filterInvoices();
-                                    }, 100);
-                                },
-                                error: function(xhr, status, error) {
-                                    resetButton();
-                                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de l\'enregistrement');
-                                    setTimeout(() => { $('#msg').html(""); }, 9000);
-                                    console.error(error);
                                 }
-                            });
+                            }
                         }
                     }
-                }).fail(function() {
-                    resetButton();
-                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de la vérification du seuil');
-                    setTimeout(() => { $('#msg').html(""); }, 9000);
-                });
-            }).fail(function() {
-                resetButton();
-                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de la récupération du prix');
-                setTimeout(() => { $('#msg').html(""); }, 9000);
-            });
+                }
+            }
         });
 
         $("#oui").click(function(e) {
@@ -2063,7 +1970,7 @@ select.form-control {
             });
         });
 
-        // ========== FONCTIONS DE FILTRAGE AVEC DATE RANGE PICKER ==========
+        // ========== FONCTIONS DE FILTRAGE AVEC DATE RANGE PICKER (MISE À JOUR) ==========
         let filterTimeout;
 
         function saveFiltersToStorage() {
@@ -2074,7 +1981,7 @@ select.form-control {
                 statut: $('#filterStatut').val(),
                 dateRange: $('#filterDateRange').val(),
                 montant: $('#filterMontant').val(),
-                table: $('#filterTable').val()
+                pointvente: $('#filterPointVente').val() // nouveau filtre
             };
             localStorage.setItem('invoiceFilters', JSON.stringify(filters));
         }
@@ -2089,7 +1996,7 @@ select.form-control {
                 $('#filterStatut').val(filters.statut || 'all');
                 $('#filterDateRange').val(filters.dateRange || '');
                 $('#filterMontant').val(filters.montant || '');
-                $('#filterTable').val(filters.table || '');
+                $('#filterPointVente').val(filters.pointvente || '');
                 return true;
             }
             return false;
@@ -2101,8 +2008,9 @@ select.form-control {
             const filterUser = $('#filterUser').val().toLowerCase();
             const filterStatut = $('#filterStatut').val();
             const filterMontant = parseFloat($('#filterMontant').val());
-            const filterTable = $('#filterTable').val().toLowerCase();
+            const filterPointVente = $('#filterPointVente').val().toLowerCase();
 
+            // Récupération de la plage de dates
             var dateRange = $('#filterDateRange').val() || '';
             var dateDebut = null, dateFin = null;
             if (dateRange) {
@@ -2140,15 +2048,15 @@ select.form-control {
                 const clientValue = $row.find('.client-cell').data('client')?.toLowerCase() || '';
                 const userValue = $row.find('.user-cell').data('user')?.toLowerCase() || '';
                 const statutValue = $row.find('.statut-cell').data('statut') || '';
-                const tableValue = $row.find('.table-cell').data('table')?.toLowerCase() || '';
                 const montantRaw = parseFloat($row.find('.montant-cell').data('montant')) || 0;
+                const pointVenteValue = $row.find('.pointvente-cell').data('pointvente')?.toLowerCase() || '';
 
                 if (filterNumero && !numeroValue.includes(filterNumero)) showRow = false;
                 if (showRow && filterClient && !clientValue.includes(filterClient)) showRow = false;
                 if (showRow && filterUser && !userValue.includes(filterUser)) showRow = false;
                 if (showRow && filterStatut !== 'all' && statutValue !== filterStatut) showRow = false;
                 if (showRow && !isNaN(filterMontant) && Math.abs(montantRaw - filterMontant) > 0.009) showRow = false;
-                if (showRow && filterTable && !tableValue.includes(filterTable)) showRow = false;
+                if (showRow && filterPointVente && !pointVenteValue.includes(filterPointVente)) showRow = false;
 
                 if (showRow && dateDebut && dateFin) {
                     var dateText = $row.find('.date-cell').text().trim();
@@ -2192,6 +2100,7 @@ select.form-control {
                 }
             });
 
+            // Mise à jour des badges
             $('#invoiceCount').text(visibleCount);
             $('#totalUsd').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalCdf').text(totalCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
@@ -2202,7 +2111,7 @@ select.form-control {
             $('#totalBeneficeUsd').text(totalBeneficeUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalBeneficeCdf').text(totalBeneficeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 
-            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || filterStatut !== 'all' || dateRange || !isNaN(filterMontant) || filterTable)) {
+            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || filterStatut !== 'all' || dateRange || !isNaN(filterMontant) || filterPointVente)) {
                 $('#msg').html('<i class="zmdi zmdi-info"></i> Aucune facture ne correspond aux critères de recherche');
                 $('#msg').css('display', 'flex');
                 setTimeout(() => {
@@ -2226,7 +2135,7 @@ select.form-control {
             $('#filterUser').val('');
             $('#filterStatut').val('all');
             $('#filterMontant').val('');
-            $('#filterTable').val('');
+            $('#filterPointVente').val('');
 
             saveFiltersToStorage();
             filterInvoices();
@@ -2249,6 +2158,7 @@ select.form-control {
 
         // ========== INITIALISATION ==========
         $(document).ready(function() {
+            // Initialisation du Date Range Picker avec la date du jour par défaut
             var today = moment();
             var todayStr = today.format('DD/MM/YYYY');
             $('#filterDateRange').val(todayStr + ' - ' + todayStr);
@@ -2293,93 +2203,30 @@ select.form-control {
                 saveFiltersToStorage();
             });
 
+            // Nombre total de factures initial
             const totalInvoices = $('#content_utilisateur tbody tr').length;
             $('#invoiceCount').text(totalInvoices);
 
+            // Charger les filtres sauvegardés (s'ils existent, écrase la valeur par défaut)
             const hasSaved = loadFiltersFromStorage();
             if (!hasSaved) {
                 // déjà initialisée
             }
             filterInvoices();
 
-            $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant, #filterTable').on('input change', function() {
+            // Événements des autres filtres
+            $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant, #filterPointVente').on('input change', function() {
                 debouncedFilter();
             });
 
+            // Réinitialisation
             $('#resetFilters').click(function(e) {
                 e.preventDefault();
                 resetAllFilters();
             });
-
-            // ========== GESTION DE LA SUPPRESSION DES FACTURES AVEC DÉTAILS ==========
-            $(document).on('click', '.delete-facture-btn', function(e) {
-                e.preventDefault();
-                var id = $(this).data('id');
-                var numero = $(this).data('numero');
-                var client = $(this).data('client');
-                var montant = $(this).data('montant');
-                var date = $(this).data('date');
-                var statut = $(this).data('statut');
-
-                $('#delete_facture_numero').text(numero);
-                $('#delete_facture_client').text(client);
-                $('#delete_facture_montant').text(montant);
-                $('#delete_facture_date').text(date);
-                $('#delete_facture_statut').text(statut);
-
-                $('#deleteFactureModal').data('facture-id', id);
-                $('#deleteFactureModal').modal('show');
-            });
-
-            $(document).on('click', '#confirm_delete_facture', function(e) {
-                e.preventDefault();
-                var btn = $(this);
-                var factureId = $('#deleteFactureModal').data('facture-id');
-                if (!factureId) {
-                    alert('Identifiant de facture manquant.');
-                    return;
-                }
-
-                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Suppression...');
-
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ url("/delete_facture") }}',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        id: factureId
-                    },
-                    success: function(response) {
-                        $.get('{{ url("/get_all_facture") }}', function(html) {
-                            $('#content_utilisateur').html(html);
-                            saveFiltersToStorage();
-                            setTimeout(function() {
-                                loadFiltersFromStorage();
-                                filterInvoices();
-                            }, 100);
-                        }).fail(function() {
-                            alert('Erreur lors du rechargement du tableau.');
-                        });
-
-                        $('#deleteFactureModal').modal('hide');
-                        $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Facture supprimée avec succès');
-                        $('#msg').css('display', 'flex');
-                        setTimeout(() => {
-                            $('#msg').html('');
-                            $('#msg').css('display', 'none');
-                        }, 3000);
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Erreur de suppression :', error);
-                        alert('Une erreur est survenue lors de la suppression. Veuillez réessayer.');
-                    },
-                    complete: function() {
-                        btn.prop('disabled', false).html('Oui, supprimer');
-                    }
-                });
-            });
         });
 
+        // Sauvegarde automatique avant de quitter
         window.addEventListener('beforeunload', function() {
             saveFiltersToStorage();
         });
@@ -2416,6 +2263,7 @@ select.form-control {
                     return;
                 }
 
+                // 1. Vérifier si déjà payée
                 const checkPaie = await $.get("{{ url('/check_paie_facture') }}", { facture_id: factureId });
                 if (checkPaie == 1) {
                     msgFacture.innerHTML = '⚠️ Facture déjà payée';
@@ -2424,6 +2272,7 @@ select.form-control {
                     return;
                 }
 
+                // 2. Récupérer les montants restants
                 const detailData = await $.get("{{ url('/get_all_detail_achat_paie') }}", { facture_id: factureId });
                 const {
                     montant_usd_1,
@@ -2481,6 +2330,7 @@ select.form-control {
                     monnaie = 0;
                 }
 
+                // 3. Sauvegarder le paiement
                 const saveResponse = await $.post("{{ url('/save_paie_facture') }}", {
                     _token: "{{ csrf_token() }}",
                     facture_id: factureId,
@@ -2501,6 +2351,7 @@ select.form-control {
                     msgFacture.style.color = '#28a745';
                     document.getElementById('montant_recu').value = '';
 
+                    // Rafraîchir le PDF si nécessaire
                     const pdfUrl = "{{ isset($data->lien) ? $data->lien : '' }}";
                     if (pdfUrl && pdfUrl !== '') {
                         currentPdfUrl = pdfUrl;
@@ -2518,10 +2369,12 @@ select.form-control {
                         }
                     }
 
+                    // Mettre à jour le tableau des factures
                     await $.get("{{ url('/get_all_facture') }}", {}, function(response) {
                         $("#content_utilisateur").html(response);
                     });
 
+                    // Réappliquer les filtres
                     saveFiltersToStorage();
                     setTimeout(function() {
                         loadFiltersFromStorage();
@@ -2549,6 +2402,14 @@ select.form-control {
 
         $("#pdfModal").on("hidden.bs.modal", function() {
             $("#pdfIframe").attr("src", "");
+        });
+
+        // Initialisation du chargement des articles si un point de vente est sélectionné par défaut
+        $(document).ready(function() {
+            var initialPdv = $("#pointdeventes_id").val();
+            if (initialPdv && initialPdv.trim() !== '') {
+                loadArticlesForPointVente(initialPdv);
+            }
         });
     </script>
 @endsection

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Factureas;
 use App\Models\Factureass;
 use App\Models\Articles;
 use App\Models\Type_frais;
@@ -7,20 +8,13 @@ use App\Models\Achats;
 use App\Models\Clients;
 use App\Models\Mesures;
 use App\Models\User;
-use App\Models\detailpaiessachats; // Ajout pour les paiements
+use App\Models\detailpaiessachats;
 
-// --- Calcul du total des achats (existant) ---
-$t = 0;
-foreach ($achats as $ee) 
-{
-    $t = $t + $ee->total;
-}
-
-// --- Récupération de la facture et calcul des paiements ---
+// --- Récupération de l'ID de la facture ---
 $factureId = $factures['id'] ?? null;
 $facture = Factureass::find($factureId);
 
-
+// --- Initialisation des variables ---
 $montant_usd_1 = 0;
 $montant_cdf_1 = 0;
 $montant_usd_2 = 0;
@@ -32,31 +26,78 @@ if ($facture) {
     $taux = $facture->taux ?? 1;
     $deviseFacture = $facture->devise; // 0 = USD, 1 = CDF
 
-    // Montant total en USD et CDF
-    if ($deviseFacture == 0) {
-        $montant_usd_1 = $t;
-        $montant_cdf_1 = $t * $taux;
-    } else {
-        $montant_cdf_1 = $t;
-        $montant_usd_1 = $t / $taux;
+    // --- 1. Calcul du total original (sans frais) ---
+    $total_original = 0;
+    foreach ($achats as $a) {
+        $total_original += $a->total;
     }
 
-    // Montant déjà payé
+    // --- 2. Calcul des paiements déjà effectués ---
     $paiements = Detailpaiessachats::where('facture_id', $factureId)->get();
+    $montant_usd_paye = 0;
+    $montant_cdf_paye = 0;
     foreach ($paiements as $paiement) {
-        if ($paiement->devise_recu == 0) { // USD
-            $montant_usd_2 += $paiement->montant_recu;
-            $montant_cdf_2 += $paiement->montant_recu * $taux;
-        } else { // CDF
-            $montant_cdf_2 += $paiement->montant_recu;
-            $montant_usd_2 += $paiement->montant_recu / $taux;
+        if ($paiement->devise_recu == 0) { // paiement en USD
+            $montant_usd_paye += $paiement->montant_recu;
+            $montant_cdf_paye += $paiement->montant_recu * $taux;
+        } else { // paiement en CDF
+            $montant_cdf_paye += $paiement->montant_recu;
+            $montant_usd_paye += $paiement->montant_recu / $taux;
         }
     }
 
-    // Soldes restants
+    // --- 3. Conversion du total original en USD et CDF selon devise de la facture ---
+    if ($deviseFacture == 0) {
+        $total_original_usd = $total_original;
+        $total_original_cdf = $total_original * $taux;
+    } else {
+        $total_original_cdf = $total_original;
+        $total_original_usd = $total_original / $taux;
+    }
+
+    // --- 4. Déterminer si la facture est impayée (sans tolérance) ---
+    $est_impayee = ($montant_usd_paye < $total_original_usd) || ($montant_cdf_paye < $total_original_cdf);
+
+    // --- 5. Vérifier le délai d'1 heure depuis la création de la facture ---
+    $date_creation_facture = strtotime($facture->created_at);
+    $delai_1h = 3600; // 1 heure en secondes
+    $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
+
+    // --- 6. Appliquer les frais de crédit sur chaque achat si conditions remplies ---
+    foreach ($achats as $achat) {
+        if (($achat->frais_credit == 0 || $achat->frais_credit === null) && $est_impayee && $delai_depasse) {
+            $frais = $achat->total * 0.05; // 5 %
+            $achat->frais_credit = $frais;
+            $achat->save();
+        }
+    }
+
+    // --- 7. Recalculer le total incluant les frais de crédit ---
+    $total_avec_frais = 0;
+    foreach ($achats as $achat) {
+        $total_avec_frais += $achat->total + ($achat->frais_credit ?? 0);
+    }
+
+    // --- 8. Montant total de la facture en USD et CDF (incluant les frais) ---
+    if ($deviseFacture == 0) {
+        $montant_usd_1 = $total_avec_frais;
+        $montant_cdf_1 = $total_avec_frais * $taux;
+    } else {
+        $montant_cdf_1 = $total_avec_frais;
+        $montant_usd_1 = $total_avec_frais / $taux;
+    }
+
+    // --- 9. Montants déjà payés (inchangés) ---
+    $montant_usd_2 = $montant_usd_paye;
+    $montant_cdf_2 = $montant_cdf_paye;
+
+    // --- 10. Solde restant ---
     $usd_montant_total_a_payer = $montant_usd_1 - $montant_usd_2;
     $cdf_montant_total_a_payer = $montant_cdf_1 - $montant_cdf_2;
 }
+
+// Récupération du nom du client
+$nomClient = isset($data['client_nom']) ? $data['client_nom'] : "";
 ?>
 <div class="col-12">
     <h4 style="text-align: center;color: white;background-color: rgb(0, 0, 0);padding: 15px;">FACTURE N° {{ strtoupper($numero) }}</h4>
@@ -87,14 +128,14 @@ if ($facture) {
             <div class="col-md-6 text-left">
                 <strong style="font-size: 15px; color: #333;">Montant déjà payé :</strong>
                 <span style="font-size: 15px; font-weight: bold; color: #28a745;">
-                    <?= number_format($montant_usd_2, 2, ',', ' ') ?> USD / 
+                    <?= number_format($montant_usd_2, 2, ',', ' ') ?> USD /
                     <?= number_format($montant_cdf_2, 2, ',', ' ') ?> CDF
                 </span>
             </div>
             <div class="col-md-6 text-right">
                 <strong style="font-size: 15px; color: #333;">Reste à payer :</strong>
                 <span style="font-size: 15px; font-weight: bold; color: #dc3545;">
-                    <?= number_format($usd_montant_total_a_payer, 2, ',', ' ') ?> USD / 
+                    <?= number_format($usd_montant_total_a_payer, 2, ',', ' ') ?> USD /
                     <?= number_format($cdf_montant_total_a_payer, 2, ',', ' ') ?> CDF
                 </span>
             </div>
@@ -103,7 +144,7 @@ if ($facture) {
 </div>
 
 <div class="col-12">
-    <!-- Bouton Payer seul, sans affichage du total -->
+    <!-- Bouton Payer -->
     <h6 style="text-align: right;font-weight: bold;">
         <span>
             <button id="imprimerfacture_2" class="btn btn-primary btn-sm"
@@ -122,11 +163,18 @@ if ($facture) {
                     <th style="padding-top: 5px;padding-bottom: 5px;">PRIX</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">QTE</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">MONTANT</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">FRAIS CRÉDIT</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">TOTAL AVEC FRAIS</th>
                 </tr>
             </thead>
             <tbody>
                 {{ !($i = 1) }}
                 @foreach ($achats as $data)
+                    @php
+                        $frais = $data->frais_credit ?? 0;
+                        $total_avec_frais_ligne = $data->total + $frais;
+                        $deviseSymbole = $data->devise == 0 ? 'USD' : 'CDF';
+                    @endphp
                     <tr>
                         <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
                         <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">
@@ -134,19 +182,17 @@ if ($facture) {
                             ({{ Mesures::where('id', Articles::where('id', $data->article_id)->first()['mesure_id'])->first()['nom'] }})
                         </td>
                         <td style="padding-top: 5px;padding-bottom: 5px;">
-                            <?php if($data->devise == 0){ ?>
-                            {{ number_format($data->prix_unitaire, 2, ',', ' ') }}USD
-                            <?php }else{ ?>
-                            {{ number_format($data->prix_unitaire, 2, ',', ' ') }}CDF
-                            <?php }?>
+                            {{ number_format($data->prix_unitaire, 2, ',', ' ') }} {{ $deviseSymbole }}
                         </td>
                         <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">{{ $data->quantite }}</td>
                         <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">
-                            <?php if($data->devise == 0){ ?>
-                            {{ number_format($data->total, 2, ',', ' ') }}USD
-                            <?php }else{ ?>
-                            {{ number_format($data->total, 2, ',', ' ') }}CDF
-                            <?php }?>
+                            {{ number_format($data->total, 2, ',', ' ') }} {{ $deviseSymbole }}
+                        </td>
+                        <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">
+                            {{ number_format($frais, 2, ',', ' ') }} {{ $deviseSymbole }}
+                        </td>
+                        <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">
+                            {{ number_format($total_avec_frais_ligne, 2, ',', ' ') }} {{ $deviseSymbole }}
                         </td>
                     </tr>
                     {{ !$i++ }}
@@ -162,50 +208,40 @@ if ($facture) {
 <input type="hidden" id="payer" value="<?= number_format($usd_montant_total_a_payer, 2, '.', '') ?>">
 
 <script>
-    // Variable pour stocker l'URL du PDF
-    var currentPdfUrl = "";
+    // Variables locales pour les montants
     var cdf_montant_payer = parseFloat($("#cdf_montant_payer").val()) || 0;
     var usd_montant_payer = parseFloat($("#usd_montant_payer").val()) || 0;
     var payer = parseFloat($("#payer").val()) || 0;
 
-    $("#imprimerfacture_2").click(function(e) {
-        e.preventDefault(); // Empêcher tout comportement par défaut
+    var currentPdfUrl = "";
 
-        // Mise à jour des champs du formulaire de paiement (s'ils existent)
-        $("#n_fac").html("{{ $factures['numero'] ?? '' }}");
-        $("#id_fac").val("{{ $factures['id'] ?? '' }}");
-        // On réaffecte les montants depuis les variables JS pour être sûr
+    $("#imprimerfacture_2").click(function(e) {
+        e.preventDefault();
+        $("#n_fac").html("{{ strtoupper($numero) }}");
+        $("#id_fac").val("{{ $data['facture_id'] ?? '' }}");
+
+        // Mettre à jour les champs du formulaire de paiement avec les soldes réels
         $("#cdf_montant_payer").val(cdf_montant_payer);
         $("#usd_montant_payer").val(usd_montant_payer);
         $("#payer").val(payer);
 
-        var pdfUrl = "{{ isset($factures['lien']) ? $factures['lien'] : '' }}";
-
+        // Récupération du PDF
+        var pdfUrl = "{{ isset($data['lien']) ? $data['lien'] : '' }}";
         if (pdfUrl && pdfUrl !== '') {
             currentPdfUrl = pdfUrl;
             $("#pdfIframe").attr("src", pdfUrl);
             $("#pdfModal").modal("show");
         } else {
-            // Requête AJAX pour récupérer le PDF
             $.get("{{ url('/print_facture') }}", {
-                "facture_id": "{{ $factures['id'] ?? '' }}"
+                "facture_id": "{{ $data['facture_id'] ?? '' }}"
             }, function(response) {
-                if (response && response[0] && response[0][0]) {
+                if (response && response[0][0]) {
                     currentPdfUrl = response[0][0];
                     $("#pdfIframe").attr("src", response[0][0]);
-                    // Mise à jour éventuelle des montants (si la réponse les fournit)
-                    if (response[0][1] !== undefined) {
-                        $("#cdf_montant_payer").val(response[0][1]);
-                        cdf_montant_payer = parseFloat(response[0][1]) || 0;
-                    }
-                    if (response[0][2] !== undefined) {
-                        $("#usd_montant_payer").val(response[0][2]);
-                        usd_montant_payer = parseFloat(response[0][2]) || 0;
-                    }
-                    if (response[0][5] !== undefined) {
-                        $("#payer").val(response[0][5]);
-                        payer = parseFloat(response[0][5]) || 0;
-                    }
+                    $("#pdfModal").modal("show");
+                } else if (response && typeof response[0][0] === 'string') {
+                    currentPdfUrl = response[0][0];
+                    $("#pdfIframe").attr("src", response[0][0]);
                     $("#pdfModal").modal("show");
                 } else {
                     alert("Aucun PDF disponible pour cette facture.");
@@ -216,7 +252,6 @@ if ($facture) {
         }
     });
 
-    // Nettoyer l'iframe quand la modale est fermée
     $("#pdfModal").on("hidden.bs.modal", function() {
         $("#pdfIframe").attr("src", "");
     });

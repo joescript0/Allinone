@@ -25,7 +25,7 @@ use App\Models\Activites;
             </thead>
             <tbody>
                 {{! $i = 1; }}
-                @foreach ($clients as $data)
+                @foreach ($prospects as $data)
                 <tr>
                     <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">{{ $i }}</td>
                     <td style="padding-top: 5px;padding-bottom: 5px;" class="nom-cell" data-nom="{{ $data->name }}">{{ $data->name }}</td>
@@ -85,8 +85,8 @@ use App\Models\Activites;
                         <script>
                             $("#edit_<?= $i ?>").click(function(e) {
                                 e.preventDefault();
-                                $.get("{{ url('/refresh_editclient') }}", {
-                                    client_id: <?= $data->id ?>,
+                                $.get("{{ url('/refresh_editprospect') }}", {
+                                    prospect_id: <?= $data->id ?>,
                                 }, function(refresh_editutilisateur) {
                                     $("#bloc_1").hide();
                                     $("#bloc_2").hide();

@@ -165,10 +165,12 @@ Route::post('/edit_poste', [AjaxController::class , 'edit_poste'])->name('edit_p
 Route::post('/edit_ecole', [AjaxController::class , 'edit_ecole'])->name('edit_ecole');
 Route::post('/edit_eleve', [AjaxController::class , 'edit_eleve'])->name('edit_eleve');
 Route::post('/add_client', [AjaxController::class , 'add_client'])->name('add_client');
+Route::post('/add_prospect', [AjaxController::class , 'add_prospect'])->name('add_prospect');
 Route::post('/add_credit', [AjaxController::class , 'add_credit'])->name('add_credit');
 Route::post('/edit_utilisateur', [AjaxController::class , 'edit_utilisateur'])->name('edit_utilisateur');
 Route::post('/edit_utilisateur_profil', [AjaxController::class , 'edit_utilisateur_profil'])->name('edit_utilisateur_profil');
 Route::post('/edit_client', [AjaxController::class , 'edit_client'])->name('edit_client');
+Route::post('/edit_prospect', [AjaxController::class , 'edit_prospect'])->name('edit_prospect');
 Route::post('/edit_invitations', [AjaxController::class , 'edit_invitations'])->name('edit_invitations');
 Route::post('/edit_decisions', [AjaxController::class , 'edit_decisions'])->name('edit_decisions');
 Route::get('/refresh_editutilisateur', [AjaxController::class , 'refresh_editutilisateur'])->name('refresh_editutilisateur');
@@ -177,6 +179,7 @@ Route::get('/refresh_editposte', [AjaxController::class , 'refresh_editposte'])-
 Route::get('/refresh_editecole', [AjaxController::class , 'refresh_editecole'])->name('refresh_editecole');
 Route::get('/refresh_editeleve', [AjaxController::class , 'refresh_editeleve'])->name('refresh_editeleve');
 Route::get('/refresh_editclient', [AjaxController::class , 'refresh_editclient'])->name('refresh_editclient');
+Route::get('/refresh_editprospect', [AjaxController::class , 'refresh_editprospect'])->name('refresh_editprospect');
 Route::get('/refresh_editarticle', [AjaxController::class , 'refresh_editarticle'])->name('refresh_editarticle');
 Route::get('/refresh_appro', [AjaxController::class , 'refresh_appro'])->name('refresh_appro');
 Route::get('/get_liste_credit', [AjaxController::class , 'get_liste_credit'])->name('get_liste_credit');
@@ -250,10 +253,12 @@ Route::get('/refresh_edit_type_infractions', [AjaxController::class , 'refresh_e
 Route::get('/refresh_write', [AjaxController::class , 'refresh_write'])->name('refresh_write');
 Route::get('/refresh_affectation_stock_vente', [AjaxController::class , 'refresh_affectation_stock_vente'])->name('refresh_affectation_stock_vente');
 Route::get('/refresh_affectation_table_utilisateur', [AjaxController::class , 'refresh_affectation_table_utilisateur'])->name('refresh_affectation_table_utilisateur');
+Route::get('/refresh_affectation_point_vente_utilisateur', [AjaxController::class , 'refresh_affectation_point_vente_utilisateur'])->name('refresh_affectation_point_vente_utilisateur');
 Route::get('/refresh_article_stock', [AjaxController::class , 'refresh_article_stock'])->name('refresh_article_stock');
 Route::get('/etat_display', [AjaxController::class , 'etat_display'])->name('etat_display');
 Route::get('/etat_affectation_pointdeventes', [AjaxController::class , 'etat_affectation_pointdeventes'])->name('etat_affectation_pointdeventes');
 Route::get('/etat_affectation_table_utilisateur', [AjaxController::class , 'etat_affectation_table_utilisateur'])->name('etat_affectation_table_utilisateur');
+Route::get('/etat_affectation_point_vente_utilisateur', [AjaxController::class , 'etat_affectation_point_vente_utilisateur'])->name('etat_affectation_point_vente_utilisateur');
 Route::get('/etat_add', [AjaxController::class , 'etat_add'])->name('etat_add');
 Route::get('/etat_edit', [AjaxController::class , 'etat_edit'])->name('etat_edit');
 Route::get('/etat_delete', [AjaxController::class , 'etat_delete'])->name('etat_delete');
@@ -291,9 +296,11 @@ Route::get('/refresh_partager_fichier', [AjaxController::class , 'refresh_partag
 Route::get('/permission_fichier', [AjaxController::class , 'permission_fichier'])->name('permission_fichier');
 Route::get('/check_paie_facture', [AjaxController::class , 'check_paie_facture'])->name('check_paie_facture');
 Route::get('/get_all_facture', [AjaxController::class , 'get_all_facture'])->name('get_all_facture');
+Route::get('/get_all_facture_suivi', [AjaxController::class , 'get_all_facture_suivi'])->name('get_all_facture_suivi');
 Route::get('/delete_facture_user_id', [AjaxController::class , 'delete_facture_user_id'])->name('delete_facture_user_id');
 Route::get('/get_all_categorie', [AjaxController::class , 'get_all_categorie'])->name('get_all_categorie');
 Route::get('/get_all_stock', [AjaxController::class , 'get_all_stock'])->name('get_all_stock');
+Route::get('/get_all_pointdeventes', [AjaxController::class , 'get_all_pointdeventes'])->name('get_all_pointdeventes');
 Route::get('/get_all_table', [AjaxController::class , 'get_all_table'])->name('get_all_table');
 Route::get('/get_all_depense', [AjaxController::class , 'get_all_depense'])->name('get_all_depense');
 Route::get('/get_all_articles', [AjaxController::class , 'get_all_articles'])->name('get_all_articles');
@@ -374,6 +381,8 @@ Route::get('/alerte_mobile', [App\Http\Controllers\HomeController::class, 'alert
 Route::get('/gestion_fichier', [App\Http\Controllers\HomeController::class, 'gestion_fichier'])->name('gestion_fichier');
 Route::get('/clients', [App\Http\Controllers\HomeController::class, 'clients'])->name('clients');
 Route::get('/prospects', [App\Http\Controllers\HomeController::class, 'prospects'])->name('prospects');
+Route::get('/suivi_credit', [App\Http\Controllers\HomeController::class, 'suivi_credit'])->name('suivi_credit');
+Route::get('/facture_point_vente', [App\Http\Controllers\HomeController::class, 'facture_point_vente'])->name('facture_point_vente');
 Route::get('/profils', [App\Http\Controllers\HomeController::class, 'profils'])->name('profils');
 Route::get('/gestion_activiter', [App\Http\Controllers\HomeController::class, 'gestion_activiter'])->name('gestion_activiter');
 Route::get('/point_vente', [App\Http\Controllers\HomeController::class, 'point_vente'])->name('point_vente');

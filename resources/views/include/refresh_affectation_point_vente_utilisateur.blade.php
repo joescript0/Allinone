@@ -2,7 +2,7 @@
 
 use App\Models\Ressources;
 use App\Models\Pointdeventes;
-use App\Models\affectationstables;
+use App\Models\affectationspointventes; // ou App\Models\AffectationPointVente si existant
 use App\Models\Groupes;
 ?>
 
@@ -13,11 +13,10 @@ use App\Models\Groupes;
     <div class="header-left">
         <i class="zmdi zmdi-settings text-info header-icon"></i>
         <div>
-            <h1 class="header-title">Affectation des utilisateurs</h1>
+            <h1 class="header-title">Affectation des utilisateurs au point de vente</h1>
             <div class="header-infos">
                 <span class="badge badge-stock">{{ $nom }}</span>
-                <span class="header-separator">/</span>
-                <span class="badge badge-point">{{ $nom_point_vente }}</span>
+                <!-- Suppression du badge redondant "badge-point" -->
             </div>
         </div>
     </div>
@@ -26,15 +25,15 @@ use App\Models\Groupes;
             <div class="stock-search-input-group">
                 <i class="zmdi zmdi-search search-icon"></i>
                 <input type="text" class="form-control header-select" id="stock_search"
-                       placeholder="Rechercher une table d'un point de vente..."
+                       placeholder="Rechercher un point de vente..."
                        value="{{ strtolower($nom) }}" autocomplete="off">
-                <input type="hidden" id="table_id" value="{{ $table_id }}">
-                <!-- Liste personnalisée des tables -->
+                <input type="hidden" id="pointdeventes_id" value="{{ $pointdeventes_id }}">
+                <!-- Liste personnalisée des points de vente -->
                 <ul id="stock-list-custom" class="stock-list-custom">
-                    @foreach ($tables as $data)
+                    @foreach ($pointdeventes as $data)
                         <li data-id="{{ $data->id }}" data-name="{{ strtolower($data->nom) }}">
                             <span class="table-name">{{ $data->nom }}</span>
-                            <span class="table-pdv">{{ pointdeventes::where('id', $data->pointdeventes_id )->first()["nom"] ?? 'N/A'; }}</span>
+                            <!-- Pas de sous-badge car il s'agit d'un point de vente -->
                         </li>
                     @endforeach
                 </ul>
@@ -100,8 +99,9 @@ use App\Models\Groupes;
                         @if ($data->role == 0) @continue @endif
                         <?php $i++; ?>
                         @php
-                            $fonction = \App\Models\Groupes::where('id', $data->role)->first()["nom"] ?? 'N/A';
-                            $affecte = affectationstables::where(["user_id" => $data->id, "table_id" => $table_id])->count() != 0 ? 1 : 0;
+                            $fonction = Groupes::where('id', $data->role)->first()["nom"] ?? 'N/A';
+                            // On utilise le modèle affectationstables avec le champ pointdeventes_id
+                            $affecte = affectationspointventes::where(["user_id" => $data->id, "pointdeventes_id" => $pointdeventes_id])->count() != 0 ? 1 : 0;
                         @endphp
                         <tr data-nom="{{ strtolower($data->name) }}"
                             data-fonction="{{ $fonction }}"
@@ -110,30 +110,44 @@ use App\Models\Groupes;
                             <td style="padding-top: 5px;padding-bottom: 5px;"><?= $data->name ?></td>
                             <td style="padding-top: 5px;padding-bottom: 5px;"><?= $fonction ?></td>
                             <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
-                                <a href="#" id="affectation__<?= $i ?>" style="font-size: 1.4rem; color: #0a192f;">
-                                    @if ($affecte == 1)
-                                        <i class="zmdi zmdi-check-square text-info"></i>
+                                @if ($affecte == 1)
+                                    <a id="affectation__<?= $i ?>" href="#"><i class="zmdi zmdi-check-square text-info"></i></a>
+                                @else
+                                    @if (affectationspointventes::where(["user_id" => $data->id])->count() != 0)
+                                        <?php
+                                            $pointdevente = affectationspointventes::where(["user_id" => $data->id])->first()["pointdeventes_id"];
+                                            $nom_p_v = pointdeventes::where("id", $pointdevente)->first()["nom"] ?? 'N/A';
+                                        ?>
+                                        <a id="affectation__<?= $i ?>" href="#"><i class="zmdi zmdi-check-square text-danger"></i></a> <?= $nom_p_v ?>
                                     @else
-                                        <i class="zmdi zmdi-square-o text-info"></i>
+                                        <a id="affectation__<?= $i ?>" href="#"><i class="zmdi zmdi-square-o"></i></a>
                                     @endif
-                                </a>
+                                @endif
                             </td>
                         </tr>
                         <script>
                             $("#affectation__<?= $i ?>").click(function(e) {
                                 e.preventDefault();
-                                $.get("{{ url('/etat_affectation_table_utilisateur') }}", {
+                                $.get("{{ url('/etat_affectation_point_vente_utilisateur') }}", {
                                     user_id: <?= $data->id ?>,
-                                    table_id: $("#table_id").val(),
+                                    pointdeventes_id: $("#pointdeventes_id").val(),
                                 }, function(etat) {
-                                    if (etat == 1) {
+                                    if (etat == 1)
+                                    {
                                         $("#affectation__<?= $i ?>").html('<i class="zmdi zmdi-check-square text-info"></i>');
                                     } else {
                                         $("#affectation__<?= $i ?>").html('<i class="zmdi zmdi-square-o text-info"></i>');
                                     }
-                                    $.get("{{ url('/get_all_table') }}", {}, function(refresh_editutilisateur) {
-                                        $("#content_groupe").html(refresh_editutilisateur);
-                                        filterAffectation();
+
+                                    $.get("{{ url('/refresh_affectation_stock_vente') }}", {
+                                        user_id: <?= $data->id ?>,
+                                        pointdeventes_id: $("#pointdeventes_id").val(),
+                                    }, function(liste_r) {
+                                        $.get("{{ url('/get_all_pointdeventes') }}", {}, function(
+                                        refresh_editutilisateur) {
+                                            $("#content_groupe").html(refresh_editutilisateur);
+                                            filterAffectation();
+                                        });
                                     });
                                 });
                             });
@@ -146,7 +160,7 @@ use App\Models\Groupes;
 </div>
 
 <!-- ==================================================== -->
-<!-- STYLES CSS                                           -->
+<!-- STYLES CSS (inchangés)                               -->
 <!-- ==================================================== -->
 <style>
     /* ----- HEADER PRINCIPAL ----- */
@@ -429,16 +443,16 @@ use App\Models\Groupes;
 <!-- SCRIPTS JAVASCRIPT                                   -->
 <!-- ==================================================== -->
 <script>
-    // ========== GESTION DE LA LISTE PERSONNALISÉE ==========
+    // ========== GESTION DE LA LISTE PERSONNALISÉE (Points de vente) ==========
     $(document).ready(function() {
         var stockMap = {};
-        @foreach ($tables as $data)
+        @foreach ($pointdeventes as $data)
             stockMap["{{ strtolower($data->nom) }}"] = {{ $data->id }};
         @endforeach
 
         var $searchInput = $('#stock_search');
         var $list = $('#stock-list-custom');
-        var $hiddenId = $('#table_id');
+        var $hiddenId = $('#pointdeventes_id');
 
         $searchInput.on('focus', function() {
             filterList();
@@ -502,17 +516,17 @@ use App\Models\Groupes;
         }
 
         function triggerStockChange() {
-            var stockId = $hiddenId.val();
-            if (!stockId) return;
-            $.get("{{ url('/refresh_affectation_table_utilisateur') }}", {
-                table_id: stockId,
+            var pointVenteId = $hiddenId.val();
+            if (!pointVenteId) return;
+            $.get("{{ url('/refresh_affectation_point_vente_utilisateur') }}", {
+                pointdeventes_id: pointVenteId,
             }, function(liste_r) {
                 $("#bloc_1").hide();
                 $("#bloc_2").hide();
                 $("#bloc_3").show();
                 $("#bloc_3").html(liste_r);
                 resetFiltersAffectation();
-                var newName = Object.keys(stockMap).find(key => stockMap[key] == stockId);
+                var newName = Object.keys(stockMap).find(key => stockMap[key] == pointVenteId);
                 if (newName) {
                     $searchInput.val(newName);
                     selectItemByValue(newName);
@@ -531,7 +545,7 @@ use App\Models\Groupes;
 
     // ========== GESTION DES FILTRES ==========
     (function() {
-        var stockId = {{ $table_id }};
+        var pointVenteId = {{ $pointdeventes_id }};
 
         window.filterAffectation = function() {
             var filterNom = $('#filterNomUtilisateur').val().toLowerCase().trim();
@@ -581,11 +595,11 @@ use App\Models\Groupes;
                 fonction: $('#filterFonction').val(),
                 statut: $('#filterStatutAffectation').val()
             };
-            localStorage.setItem('affectationStockFilters_' + stockId, JSON.stringify(filters));
+            localStorage.setItem('affectationPointVenteFilters_' + pointVenteId, JSON.stringify(filters));
         }
 
         function loadFiltersAffectation() {
-            var key = 'affectationStockFilters_' + stockId;
+            var key = 'affectationPointVenteFilters_' + pointVenteId;
             var saved = localStorage.getItem(key);
             if (saved) {
                 var filters = JSON.parse(saved);
@@ -639,3 +653,8 @@ use App\Models\Groupes;
         });
     })();
 </script>
+
+
+
+
+

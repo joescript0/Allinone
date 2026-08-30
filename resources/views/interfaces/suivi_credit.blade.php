@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Auth;
 ?>
 @extends('layouts.main')
 @section('title', $nom_app)
-@section('name', 'FACTURES')
+@section('name', 'SUIVI DE CREDT')
 @section('body')
     @include('composants.preload')
     @include('composants.header')
@@ -979,6 +979,9 @@ select.form-control {
         font-size: 0.7rem;
         padding: 6px 12px;
     }
+    #add{
+        display: none !important;
+    }
 }
     </style>
     <section class="content">
@@ -1005,13 +1008,13 @@ select.form-control {
                                     }
                                     ?>
                                     <?php if ((($add == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($add == 0) && (Auth::user()->role == 0))) { ?>
-                                    <a class="btn-primary btn-sm" id="add" href="">
-                                        <i class="zmdi zmdi-email"></i> Ajouter
-                                    </a>
+                                        {{-- <a style="display: none;" class="btn-primary btn-sm" id="add" href="">
+                                            <i class="zmdi zmdi-email"></i> Ajouter
+                                        </a> --}}
                                     <?php } else { ?>
-                                    <a class="btn-primary btn-sm" id="add_r" href="">
-                                        <i class="zmdi zmdi-accounts-add"></i> Ajouter
-                                    </a>
+                                        {{-- <a style="display: none;" class="btn-primary btn-sm" id="add_r" href="">
+                                            <i class="zmdi zmdi-accounts-add"></i> Ajouter
+                                        </a> --}}
                                     <?php } ?>
                                     <?php } ?>
                                 </div>
@@ -1031,13 +1034,13 @@ select.form-control {
                 <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
                     <!-- TITRE AVEC BADGE INTÉGRÉ -->
                     <h4 style="color:rgba(0, 0, 0, 0.6);">
-                        <i style="font-size: 40px;" class="zmdi zmdi-email-open text-info"></i> Liste
+                        <i style="font-size: 40px;" class="zmdi zmdi-email-open text-info"></i> Liste des factures impayées
                         <span class="badge-invoice">
                             <i class="zmdi zmdi-view-list" style="color: white;"></i> Factures : <span id="invoiceCount">0</span>
                         </span>
                     </h4>
 
-                    <!-- SECTION FILTRES AVEC DATE RANGE PICKER -->
+                    <!-- SECTION FILTRES (sans le filtre Table) -->
                     <div class="filters-container">
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-label text-danger"></i> N° Facture</label>
@@ -1050,18 +1053,6 @@ select.form-control {
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-account text-danger"></i> Utilisateur</label>
                             <input type="text" id="filterUser" class="form-control" placeholder="Rechercher par utilisateur...">
-                        </div>
-                        <div class="filter-group">
-                            <label><i class="zmdi zmdi-money text-danger"></i> Statut</label>
-                            <select id="filterStatut" class="form-control">
-                                <option value="all">Tous</option>
-                                <option value="paid">Payées</option>
-                                <option value="unpaid">Impayées</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label><i class="zmdi zmdi-table text-danger"></i> Table</label>
-                            <input type="text" id="filterTable" class="form-control" placeholder="Rechercher par table...">
                         </div>
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-calendar text-danger"></i> Période (DD/MM/YYYY)</label>
@@ -1078,7 +1069,7 @@ select.form-control {
                         </div>
                     </div>
 
-                    <!-- Badges de totaux (sans le compteur de factures) -->
+                    <!-- Badges de totaux -->
                     <div class="invoice-badges-container">
                         <span class="invoice-count-badge usd-badge">
                             <i class="zmdi zmdi-money"></i> Total USD : <span id="totalUsd">0,00</span> $
@@ -1240,6 +1231,7 @@ select.form-control {
                                                 $statut_text = $reste_usd > 0 ? 'Impayé' : 'Payé';
                                                 $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
                                             @endphp
+                                            @if ($reste_usd > 0)
                                             <tr id="row_{{ $data->id }}"
                                                 data-montant-usd="{{ $montant_usd }}"
                                                 data-montant-cdf="{{ $montant_cdf }}"
@@ -1410,6 +1402,7 @@ select.form-control {
                                                     </script>
                                                 </td>
                                             </tr>
+                                            @endif
                                             {{ !$i++ }}
                                         @endforeach
                                     </tbody>
@@ -1804,7 +1797,7 @@ select.form-control {
     <script src="{{ asset('assets/demo/js/flot-charts/pie.js') }}"></script>
     <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
     <script>
-        $("#link_24").addClass("active");
+        $("#link_47").addClass("active");
 
         $("#upload").click(function(e) {
             e.preventDefault();
@@ -2071,10 +2064,8 @@ select.form-control {
                 numero: $('#filterNumero').val(),
                 client: $('#filterClient').val(),
                 user: $('#filterUser').val(),
-                statut: $('#filterStatut').val(),
                 dateRange: $('#filterDateRange').val(),
-                montant: $('#filterMontant').val(),
-                table: $('#filterTable').val()
+                montant: $('#filterMontant').val()
             };
             localStorage.setItem('invoiceFilters', JSON.stringify(filters));
         }
@@ -2086,10 +2077,8 @@ select.form-control {
                 $('#filterNumero').val(filters.numero || '');
                 $('#filterClient').val(filters.client || '');
                 $('#filterUser').val(filters.user || '');
-                $('#filterStatut').val(filters.statut || 'all');
                 $('#filterDateRange').val(filters.dateRange || '');
                 $('#filterMontant').val(filters.montant || '');
-                $('#filterTable').val(filters.table || '');
                 return true;
             }
             return false;
@@ -2099,9 +2088,7 @@ select.form-control {
             const filterNumero = $('#filterNumero').val().toLowerCase();
             const filterClient = $('#filterClient').val().toLowerCase();
             const filterUser = $('#filterUser').val().toLowerCase();
-            const filterStatut = $('#filterStatut').val();
             const filterMontant = parseFloat($('#filterMontant').val());
-            const filterTable = $('#filterTable').val().toLowerCase();
 
             var dateRange = $('#filterDateRange').val() || '';
             var dateDebut = null, dateFin = null;
@@ -2139,16 +2126,12 @@ select.form-control {
                 const numeroValue = $row.find('.numero-cell').data('numero')?.toLowerCase() || '';
                 const clientValue = $row.find('.client-cell').data('client')?.toLowerCase() || '';
                 const userValue = $row.find('.user-cell').data('user')?.toLowerCase() || '';
-                const statutValue = $row.find('.statut-cell').data('statut') || '';
-                const tableValue = $row.find('.table-cell').data('table')?.toLowerCase() || '';
                 const montantRaw = parseFloat($row.find('.montant-cell').data('montant')) || 0;
 
                 if (filterNumero && !numeroValue.includes(filterNumero)) showRow = false;
                 if (showRow && filterClient && !clientValue.includes(filterClient)) showRow = false;
                 if (showRow && filterUser && !userValue.includes(filterUser)) showRow = false;
-                if (showRow && filterStatut !== 'all' && statutValue !== filterStatut) showRow = false;
                 if (showRow && !isNaN(filterMontant) && Math.abs(montantRaw - filterMontant) > 0.009) showRow = false;
-                if (showRow && filterTable && !tableValue.includes(filterTable)) showRow = false;
 
                 if (showRow && dateDebut && dateFin) {
                     var dateText = $row.find('.date-cell').text().trim();
@@ -2202,7 +2185,7 @@ select.form-control {
             $('#totalBeneficeUsd').text(totalBeneficeUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalBeneficeCdf').text(totalBeneficeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 
-            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || filterStatut !== 'all' || dateRange || !isNaN(filterMontant) || filterTable)) {
+            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || dateRange || !isNaN(filterMontant))) {
                 $('#msg').html('<i class="zmdi zmdi-info"></i> Aucune facture ne correspond aux critères de recherche');
                 $('#msg').css('display', 'flex');
                 setTimeout(() => {
@@ -2224,9 +2207,7 @@ select.form-control {
             $('#filterNumero').val('');
             $('#filterClient').val('');
             $('#filterUser').val('');
-            $('#filterStatut').val('all');
             $('#filterMontant').val('');
-            $('#filterTable').val('');
 
             saveFiltersToStorage();
             filterInvoices();
@@ -2302,7 +2283,7 @@ select.form-control {
             }
             filterInvoices();
 
-            $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant, #filterTable').on('input change', function() {
+            $('#filterNumero, #filterClient, #filterUser, #filterMontant').on('input change', function() {
                 debouncedFilter();
             });
 
@@ -2350,7 +2331,7 @@ select.form-control {
                         id: factureId
                     },
                     success: function(response) {
-                        $.get('{{ url("/get_all_facture") }}', function(html) {
+                        $.get('{{ url("/get_all_facture_suivi") }}', function(html) {
                             $('#content_utilisateur').html(html);
                             saveFiltersToStorage();
                             setTimeout(function() {
@@ -2518,7 +2499,7 @@ select.form-control {
                         }
                     }
 
-                    await $.get("{{ url('/get_all_facture') }}", {}, function(response) {
+                    await $.get("{{ url('/get_all_facture_suivi') }}", {}, function(response) {
                         $("#content_utilisateur").html(response);
                     });
 
