@@ -48,18 +48,19 @@
     $menu_28 = Activer();
     $menu_29 = Desactiver();
     $menu_30 = Activer();
-    $menu_31 = Activer();
+    $menu_31 = Desactiver();
     $menu_32 = Activer();
     $menu_33 = Activer();
     $menu_34 = Desactiver();
     $menu_35 = Desactiver();
     $menu_36 = Desactiver();
     $menu_37 = Desactiver();
-    $menu_38 = Activer();
-    $menu_39 = Activer();
+    $menu_38 = Desactiver();
+    $menu_39 = Desactiver();
     $menu_40 = Activer();
     $menu_41 = Activer();
     $menu_42 = Activer();
+    $menu_43 = Activer();
 
   }
   elseif($menueapp == "Divine")
@@ -110,6 +111,7 @@
     $menu_40 = Activer();
     $menu_41 = Activer();
     $menu_42 = Activer();
+    $menu_43 = Activer();
   }
 ?>
 
@@ -499,6 +501,7 @@
       $data["ressource_id_25"] = 25;
       $data["ressource_id_26"] = 26;
       $data["ressource_id_27"] = 27;
+      $data["ressource_id_28"] = 28;
       $data["groupe_user_id"] = $groupe_user_id;
       ?>
       <ul class="navigation">
@@ -739,6 +742,20 @@
                 ?>
                 <?php if (((($display_27 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_27"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_27 ==  0) && (Auth::user()->role == 0))) { ?>
                     <li id="link_48"><a href="{{ route('facture_point_vente') }}" id="text_48">🧾 Facture point vente</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+        
+        @if ($menu_43 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_28"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_28 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_28"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
+                    $display_28 = Writes::where(["ressource_id" => $data["ressource_id_28"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_28 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_28"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_28 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_49"><a href="{{ route('listesdesinvites') }}" id="text_49">🧑‍🤝‍🧑  Liste des invités</a></li>
                 <?php } ?>
             <?php } ?>
         @endif

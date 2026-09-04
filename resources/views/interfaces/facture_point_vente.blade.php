@@ -4,6 +4,7 @@
 @endphp
 <?php
 use App\Models\affectationstables;
+use App\Models\affectationspointventes;
 use App\Models\Contrevenants;
 use App\Models\Groupes;
 use App\Models\Tables;
@@ -1025,8 +1026,8 @@ select.form-control {
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label><i class="zmdi zmdi-store text-danger"></i> Point de vente</label>
-                            <input type="text" id="filterPointVente" class="form-control" placeholder="Rechercher par point de vente...">
+                            <label><i class="zmdi zmdi-table text-danger"></i> Table</label>
+                            <input type="text" id="filterTable" class="form-control" placeholder="Rechercher par table...">
                         </div>
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-calendar text-danger"></i> Période (DD/MM/YYYY)</label>
@@ -1080,7 +1081,7 @@ select.form-control {
                                             <th style="padding-top: 5px;padding-bottom: 5px;">N° Facture</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Utilisateur</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Libelle / Client</th>
-                                            <th style="padding-top: 5px;padding-bottom: 5px;">Point de vente</th>
+                                            <th style="padding-top: 5px;padding-bottom: 5px;">Table</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Montant</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Payé</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Crédit</th>
@@ -1188,8 +1189,6 @@ select.form-control {
                                                 $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
                                                 $statut_text = $reste_usd > 0 ? 'Impayé' : 'Payé';
                                                 $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
-                                                // Récupération du point de vente
-                                                $pointVenteNom = $data->pointdeventes_id ? (Pointdeventes::find($data->pointdeventes_id)->nom ?? 'N/A') : 'Non défini';
                                             @endphp
                                             <tr id="row_{{ $data->id }}"
                                                 data-montant-usd="{{ $montant_usd }}"
@@ -1211,9 +1210,21 @@ select.form-control {
                                                         {{ Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' }}
                                                     @endif
                                                 </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="pointvente-cell" data-pointvente="{{ $pointVenteNom }}">
-                                                    {{ $pointVenteNom }}
+                                                <!-- ========== CELLULE "TABLE" MODIFIÉE ========== -->
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="table-cell" data-table="{{ $data->table_id == 0 ? 'Aucune' : (Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A') }}">
+                                                    @if ($data->table_id == 0)
+                                                        Aucune
+                                                    @else
+                                                        <?php  $table = Tables::where('id', $data->table_id)->first() ?? 'N/A' ?>
+                                                        @if ($table->occupee == 1)
+                                                            <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger"> {{ $table->nom }}</span>
+                                                        @endif
+                                                        @if ($table->occupee == 0)
+                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success"> {{ $table->nom }}</span>
+                                                        @endif
+                                                    @endif
                                                 </td>
+                                                <!-- ========== FIN MODIFICATION ========== -->
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="{{ $total }}">
                                                     {{ $montant_affichage }}
                                                 </td>
@@ -1278,6 +1289,19 @@ select.form-control {
                                                         @else
                                                             <a id="detail_r{{ $i }}" href="#"><i class="zmdi zmdi-eye text-success"></i></a> &nbsp;
                                                         @endif
+                                                    <?php } ?>
+                                                    <!-- AJOUT : ICÔNE DE SUPPRESSION AVEC MODALE DE CONFIRMATION -->
+                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
+                                                        <a href="#" class="delete-facture-btn"
+                                                           data-id="{{ $data->id }}"
+                                                           data-numero="{{ $data->numero }}"
+                                                           data-client="{{ $client_name }}"
+                                                           data-montant="{{ $montant_affichage }}"
+                                                           data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
+                                                           data-statut="{{ $statut_text }}"
+                                                           title="Supprimer cette facture">
+                                                            <i class="zmdi zmdi-delete text-danger"></i>
+                                                        </a>
                                                     <?php } ?>
                                                     <script>
                                                         $("#detail_{{ $i }}").click(function(e) {
@@ -1381,16 +1405,11 @@ select.form-control {
                                                     <option value="{{ $pdv->id }}">{{ $pdv->nom }}</option>
                                                 @endforeach
                                             @else
-                                                @if (affectationspointventes::where(["user_id" => $data->id])->count() != 0)
-                                                    @foreach (affectationspointventes::where(["user_id" => $data->id])->get() as $affectation)
-                                                        @php
-                                                            $pointVente = App\Models\Pointdeventes::find($affectation->pointdeventes_id);
-                                                        @endphp
-                                                        @if ($pointVente)
-                                                            <option selected value="{{ $pointVente->id }}">{{ $pointVente->nom }}</option>
-                                                        @endif
-                                                    @endforeach
-                                                @endif
+                                                @foreach ($pointsdeventes as $pdv)
+                                                    @if(affectationspointventes::where(["user_id" => Auth::user()->id, "pointdeventes_id" => $pdv->id])->get()->count() != 0)
+                                                        <option selected value="{{ $pdv->id }}">{{ $pdv->nom }}</option>
+                                                    @endif
+                                                @endforeach
                                             @endif
                                         </select>
                                     </div>
@@ -1631,6 +1650,36 @@ select.form-control {
         </div>
     </div>
 
+    <!-- AJOUT : MODALE DE SUPPRESSION DE FACTURE AVEC DÉTAILS -->
+    <div class="modal fade" id="deleteFactureModal" tabindex="-1" role="dialog" aria-labelledby="deleteFactureModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="font-weight: bold;font-size: 16px;">Confirmer la suppression</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Voulez-vous vraiment supprimer la facture ci-dessous ? Cette action est irréversible.</p>
+                    <div style="background: #f8f9fa; padding: 12px 15px; border-radius: 8px; margin-top: 10px;">
+                        <table style="width:100%; font-size:0.9rem; border-collapse:collapse;">
+                            <tr><td style="padding:5px 0; font-weight:600;">N° facture :</td><td style="padding:5px 0;" id="delete_facture_numero">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Client / Libellé :</td><td style="padding:5px 0;" id="delete_facture_client">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Montant :</td><td style="padding:5px 0;" id="delete_facture_montant">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Date :</td><td style="padding:5px 0;" id="delete_facture_date">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Statut :</td><td style="padding:5px 0;" id="delete_facture_statut">-</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div style="font-weight: bold;text-align: center; padding-bottom: 15px;">
+                    <button id="confirm_delete_facture" class="btn btn-info btn-sm" style="margin-right: 8px;">Oui, supprimer</button>
+                    <button class="btn btn-danger btn-sm" data-dismiss="modal">Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal/Fenêtre modale pour afficher le PDF -->
     <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 100%; width: 60%;">
@@ -1790,9 +1839,18 @@ select.form-control {
             loadArticlesForPointVente(pdvId);
         });
 
-        // ========== SAUVEGARDE AVEC VÉRIFICATION DU POINT DE VENTE ==========
+        // ========== SAUVEGARDE AVEC VÉRIFICATION DU POINT DE VENTE ET INDICATEUR DE CHARGEMENT ==========
         $("#save").click(function(e) {
             e.preventDefault();
+            var btn = $(this);
+            // --- AJOUT : désactiver et afficher le spinner ---
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...');
+
+            // Fonction pour réinitialiser le bouton en cas d'erreur ou de validation échouée
+            function resetButton() {
+                btn.prop('disabled', false).html('Enregister <i class="zmdi zmdi-save"></i>');
+            }
+
             var numero_facture = $("#numero_facture").val();
             var pointdeventes_id = $("#pointdeventes_id").val();
             var type_sortie = $("#type_sortie").val();
@@ -1809,32 +1867,45 @@ select.form-control {
             if (pointdeventes_id.trim().length === 0) {
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Veuillez sélectionner un point de vente');
                 setTimeout(() => { $('#msg').html(""); }, 9000);
+                resetButton();
                 return;
             }
 
             if (numero_facture.trim().length == 0) {
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le numero d\'entré');
                 setTimeout(() => { $('#msg').html(""); }, 9000);
+                resetButton();
+                return;
             } else {
                 if (type_sortie.trim().length == 0) {
                     $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom de l\'article');
                     setTimeout(() => { $('#msg').html(""); }, 9000);
+                    resetButton();
+                    return;
                 } else {
                     if (action.trim().length == 0) {
                         $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Selectionnez une action');
                         setTimeout(() => { $('#msg').html(""); }, 9000);
+                        resetButton();
+                        return;
                     } else {
                         if(type_vente_id.trim().length == 0){
                             $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Selectionnez le type de vente detail ou gros');
                             setTimeout(() => { $('#msg').html(""); }, 9000);
+                            resetButton();
+                            return;
                         } else {
                             if (quantite.trim().length == 0) {
                                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez la quantité');
                                 setTimeout(() => { $('#msg').html(""); }, 9000);
+                                resetButton();
+                                return;
                             } else {
                                 if(quantite.trim() <= 0) {
                                     $('#msg').html('<i class="zmdi zmdi-close-circle"></i> La quantité doit être supérieur à 0');
                                     setTimeout(() => { $('#msg').html(""); }, 9000);
+                                    resetButton();
+                                    return;
                                 } else {
                                     $.get("{{ url('/get_prix_article') }}", {
                                         article_id: $("#type_sortie").val(),
@@ -1856,20 +1927,24 @@ select.form-control {
                                             {
                                                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le stock de cette article est vide pour ce point de vente');
                                                 setTimeout(() => { $('#msg').html(""); }, 9000);
+                                                resetButton();
+                                                return;
                                             } else {
                                                 if(client.trim().length == 0 && libelle.trim().length == 0)
                                                 {
                                                     $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le client ou le libellé');
                                                     setTimeout(() => { $('#msg').html(""); }, 9000);
+                                                    resetButton();
                                                     return;
                                                 } else {
-                                                    $("#save").attr("disabled", true);
+                                                    // Envoi de l'ajout
                                                     $.ajax({
                                                         type: "POST",
                                                         url: "/add_achat_article",
                                                         data: data,
                                                         success: function(response) {
-                                                            $("#save").attr("disabled", false);
+                                                            // Succès : réinitialiser le bouton
+                                                            resetButton();
                                                             $("#quantite").val("");
                                                             Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
                                                             $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
@@ -1886,11 +1961,25 @@ select.form-control {
                                                                 loadFiltersFromStorage();
                                                                 filterInvoices();
                                                             }, 100);
+                                                        },
+                                                        error: function(xhr, status, error) {
+                                                            resetButton();
+                                                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de l\'enregistrement');
+                                                            setTimeout(() => { $('#msg').html(""); }, 9000);
+                                                            console.error(error);
                                                         }
                                                     });
                                                 }
                                             }
+                                        }).fail(function() {
+                                            resetButton();
+                                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de la vérification du seuil');
+                                            setTimeout(() => { $('#msg').html(""); }, 9000);
                                         });
+                                    }).fail(function() {
+                                        resetButton();
+                                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de la récupération du prix');
+                                        setTimeout(() => { $('#msg').html(""); }, 9000);
                                     });
                                 }
                             }
@@ -1981,7 +2070,7 @@ select.form-control {
                 statut: $('#filterStatut').val(),
                 dateRange: $('#filterDateRange').val(),
                 montant: $('#filterMontant').val(),
-                pointvente: $('#filterPointVente').val() // nouveau filtre
+                table: $('#filterTable').val() // on utilise 'table' pour le point de vente
             };
             localStorage.setItem('invoiceFilters', JSON.stringify(filters));
         }
@@ -1996,7 +2085,7 @@ select.form-control {
                 $('#filterStatut').val(filters.statut || 'all');
                 $('#filterDateRange').val(filters.dateRange || '');
                 $('#filterMontant').val(filters.montant || '');
-                $('#filterPointVente').val(filters.pointvente || '');
+                $('#filterTable').val(filters.table || '');
                 return true;
             }
             return false;
@@ -2008,7 +2097,7 @@ select.form-control {
             const filterUser = $('#filterUser').val().toLowerCase();
             const filterStatut = $('#filterStatut').val();
             const filterMontant = parseFloat($('#filterMontant').val());
-            const filterPointVente = $('#filterPointVente').val().toLowerCase();
+            const filterTable = $('#filterTable').val().toLowerCase();
 
             // Récupération de la plage de dates
             var dateRange = $('#filterDateRange').val() || '';
@@ -2049,14 +2138,14 @@ select.form-control {
                 const userValue = $row.find('.user-cell').data('user')?.toLowerCase() || '';
                 const statutValue = $row.find('.statut-cell').data('statut') || '';
                 const montantRaw = parseFloat($row.find('.montant-cell').data('montant')) || 0;
-                const pointVenteValue = $row.find('.pointvente-cell').data('pointvente')?.toLowerCase() || '';
+                const tableValue = $row.find('.table-cell').data('table')?.toLowerCase() || '';
 
                 if (filterNumero && !numeroValue.includes(filterNumero)) showRow = false;
                 if (showRow && filterClient && !clientValue.includes(filterClient)) showRow = false;
                 if (showRow && filterUser && !userValue.includes(filterUser)) showRow = false;
                 if (showRow && filterStatut !== 'all' && statutValue !== filterStatut) showRow = false;
                 if (showRow && !isNaN(filterMontant) && Math.abs(montantRaw - filterMontant) > 0.009) showRow = false;
-                if (showRow && filterPointVente && !pointVenteValue.includes(filterPointVente)) showRow = false;
+                if (showRow && filterTable && !tableValue.includes(filterTable)) showRow = false;
 
                 if (showRow && dateDebut && dateFin) {
                     var dateText = $row.find('.date-cell').text().trim();
@@ -2111,7 +2200,7 @@ select.form-control {
             $('#totalBeneficeUsd').text(totalBeneficeUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalBeneficeCdf').text(totalBeneficeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 
-            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || filterStatut !== 'all' || dateRange || !isNaN(filterMontant) || filterPointVente)) {
+            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || filterStatut !== 'all' || dateRange || !isNaN(filterMontant) || filterTable)) {
                 $('#msg').html('<i class="zmdi zmdi-info"></i> Aucune facture ne correspond aux critères de recherche');
                 $('#msg').css('display', 'flex');
                 setTimeout(() => {
@@ -2135,7 +2224,7 @@ select.form-control {
             $('#filterUser').val('');
             $('#filterStatut').val('all');
             $('#filterMontant').val('');
-            $('#filterPointVente').val('');
+            $('#filterTable').val('');
 
             saveFiltersToStorage();
             filterInvoices();
@@ -2215,7 +2304,7 @@ select.form-control {
             filterInvoices();
 
             // Événements des autres filtres
-            $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant, #filterPointVente').on('input change', function() {
+            $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant, #filterTable').on('input change', function() {
                 debouncedFilter();
             });
 
@@ -2223,6 +2312,74 @@ select.form-control {
             $('#resetFilters').click(function(e) {
                 e.preventDefault();
                 resetAllFilters();
+            });
+
+            // ========== AJOUT : GESTION DE LA SUPPRESSION DES FACTURES AVEC DÉTAILS ==========
+            $(document).on('click', '.delete-facture-btn', function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+                var numero = $(this).data('numero');
+                var client = $(this).data('client');
+                var montant = $(this).data('montant');
+                var date = $(this).data('date');
+                var statut = $(this).data('statut');
+
+                $('#delete_facture_numero').text(numero);
+                $('#delete_facture_client').text(client);
+                $('#delete_facture_montant').text(montant);
+                $('#delete_facture_date').text(date);
+                $('#delete_facture_statut').text(statut);
+
+                $('#deleteFactureModal').data('facture-id', id);
+                $('#deleteFactureModal').modal('show');
+            });
+
+            $(document).on('click', '#confirm_delete_facture', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                var factureId = $('#deleteFactureModal').data('facture-id');
+                if (!factureId) {
+                    alert('Identifiant de facture manquant.');
+                    return;
+                }
+
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Suppression...');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url("/delete_facture") }}',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        id: factureId
+                    },
+                    success: function(response) {
+                        $.get('{{ url("/get_all_facture") }}', function(html) {
+                            $('#content_utilisateur').html(html);
+                            saveFiltersToStorage();
+                            setTimeout(function() {
+                                loadFiltersFromStorage();
+                                filterInvoices();
+                            }, 100);
+                        }).fail(function() {
+                            alert('Erreur lors du rechargement du tableau.');
+                        });
+
+                        $('#deleteFactureModal').modal('hide');
+                        $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Facture supprimée avec succès');
+                        $('#msg').css('display', 'flex');
+                        setTimeout(() => {
+                            $('#msg').html('');
+                            $('#msg').css('display', 'none');
+                        }, 3000);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Erreur de suppression :', error);
+                        alert('Une erreur est survenue lors de la suppression. Veuillez réessayer.');
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false).html('Oui, supprimer');
+                    }
+                });
             });
         });
 

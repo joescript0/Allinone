@@ -1304,6 +1304,19 @@ select.form-control {
                                                             <a id="detail_r{{ $i }}" href="#"><i class="zmdi zmdi-eye text-success"></i></a> &nbsp;
                                                         @endif
                                                     <?php } ?>
+                                                    <!-- AJOUT : ICÔNE DE SUPPRESSION AVEC MODALE DE CONFIRMATION -->
+                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
+                                                        <a href="#" class="delete-facture-btn"
+                                                           data-id="{{ $data->id }}"
+                                                           data-numero="{{ $data->numero }}"
+                                                           data-client="{{ $client_name }}"
+                                                           data-montant="{{ $montant_affichage }}"
+                                                           data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
+                                                           data-statut="{{ $statut_text }}"
+                                                           title="Supprimer cette facture">
+                                                            <i class="zmdi zmdi-delete text-danger"></i>
+                                                        </a>
+                                                    <?php } ?>
                                                     <script>
                                                         $("#detail_{{ $i }}").click(function(e) {
                                                             e.preventDefault();
@@ -1669,6 +1682,36 @@ select.form-control {
         </div>
     </div>
 
+    <!-- AJOUT : MODALE DE SUPPRESSION DE FACTURE AVEC DÉTAILS -->
+    <div class="modal fade" id="deleteFactureModal" tabindex="-1" role="dialog" aria-labelledby="deleteFactureModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="font-weight: bold;font-size: 16px;">Confirmer la suppression</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Voulez-vous vraiment supprimer la facture ci-dessous ? Cette action est irréversible.</p>
+                    <div style="background: #f8f9fa; padding: 12px 15px; border-radius: 8px; margin-top: 10px;">
+                        <table style="width:100%; font-size:0.9rem; border-collapse:collapse;">
+                            <tr><td style="padding:5px 0; font-weight:600;">N° facture :</td><td style="padding:5px 0;" id="delete_facture_numero">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Client / Libellé :</td><td style="padding:5px 0;" id="delete_facture_client">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Montant :</td><td style="padding:5px 0;" id="delete_facture_montant">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Date :</td><td style="padding:5px 0;" id="delete_facture_date">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Statut :</td><td style="padding:5px 0;" id="delete_facture_statut">-</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div style="font-weight: bold;text-align: center; padding-bottom: 15px;">
+                    <button id="confirm_delete_facture" class="btn btn-info btn-sm" style="margin-right: 8px;">Oui, supprimer</button>
+                    <button class="btn btn-danger btn-sm" data-dismiss="modal">Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ====== MODAL POUR LIBÉRER LA TABLE (CONFIRMATION) ====== -->
     <div class="modal fade" id="libererTableModal" tabindex="-1" role="dialog" aria-labelledby="libererTableModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
@@ -1932,9 +1975,18 @@ select.form-control {
                 });
         });
 
-        // ========== SAUVEGARDE AVEC VÉRIFICATION DE LA TABLE ==========
+        // ========== SAUVEGARDE AVEC VÉRIFICATION DE LA TABLE ET INDICATEUR DE CHARGEMENT ==========
         $("#save").click(function(e) {
             e.preventDefault();
+            var btn = $(this);
+            // --- AJOUT : désactiver et afficher le spinner ---
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...');
+
+            // Fonction pour réinitialiser le bouton en cas d'erreur ou de validation échouée
+            function resetButton() {
+                btn.prop('disabled', false).html('Enregister <i class="zmdi zmdi-save"></i>');
+            }
+
             var numero_facture = $("#numero_facture").val();
             var table_id = $("#table_id").val();
             var type_sortie = $("#type_sortie").val();
@@ -1952,6 +2004,7 @@ select.form-control {
             {
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Veuillez sélectionner une table');
                 setTimeout(() => { $('#msg').html(""); }, 9000);
+                resetButton();
                 return;
             }
 
@@ -1959,26 +2012,38 @@ select.form-control {
             {
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le numero d\'entré');
                 setTimeout(() => { $('#msg').html(""); }, 9000);
+                resetButton();
+                return;
             } else {
                 if (type_sortie.trim().length == 0) {
                     $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom de l\'article');
                     setTimeout(() => { $('#msg').html(""); }, 9000);
+                    resetButton();
+                    return;
                 } else {
                     if (action.trim().length == 0) {
                         $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Selectionnez une action');
                         setTimeout(() => { $('#msg').html(""); }, 9000);
+                        resetButton();
+                        return;
                     } else {
                         if(type_vente_id.trim().length == 0){
                             $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Selectionnez le type de vente detail ou gros');
                             setTimeout(() => { $('#msg').html(""); }, 9000);
+                            resetButton();
+                            return;
                         } else {
                             if (quantite.trim().length == 0) {
                                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez la quantité');
                                 setTimeout(() => { $('#msg').html(""); }, 9000);
+                                resetButton();
+                                return;
                             } else {
                                 if(quantite.trim() <= 0) {
                                     $('#msg').html('<i class="zmdi zmdi-close-circle"></i> La quantité doit être supérieur à 0');
                                     setTimeout(() => { $('#msg').html(""); }, 9000);
+                                    resetButton();
+                                    return;
                                 } else {
                                     $.get("{{ url('/get_prix_article') }}", {
                                         article_id: $("#type_sortie").val(),
@@ -2000,20 +2065,24 @@ select.form-control {
                                             {
                                                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le stock de cette article est vide');
                                                 setTimeout(() => { $('#msg').html(""); }, 9000);
+                                                resetButton();
+                                                return;
                                             } else {
                                                 if(client.trim().length == 0 && libelle.trim().length == 0)
                                                 {
                                                     $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le client ou le libellé');
                                                     setTimeout(() => { $('#msg').html(""); }, 9000);
+                                                    resetButton();
                                                     return;
                                                 } else {
-                                                    $("#save").attr("disabled", true);
+                                                    // Envoi de l'ajout
                                                     $.ajax({
                                                         type: "POST",
                                                         url: "/add_achat_article",
                                                         data: data,
                                                         success: function(response) {
-                                                            $("#save").attr("disabled", false);
+                                                            // Succès : réinitialiser le bouton
+                                                            resetButton();
                                                             $("#quantite").val("");
                                                             Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
                                                             $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
@@ -2034,12 +2103,25 @@ select.form-control {
                                                                 loadFiltersFromStorage();
                                                                 filterInvoices();
                                                             }, 100);
-                                                            // Cacher le bouton libérer après succès (déjà fait)
+                                                        },
+                                                        error: function(xhr, status, error) {
+                                                            resetButton();
+                                                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de l\'enregistrement');
+                                                            setTimeout(() => { $('#msg').html(""); }, 9000);
+                                                            console.error(error);
                                                         }
                                                     });
                                                 }
                                             }
+                                        }).fail(function() {
+                                            resetButton();
+                                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de la vérification du seuil');
+                                            setTimeout(() => { $('#msg').html(""); }, 9000);
                                         });
+                                    }).fail(function() {
+                                        resetButton();
+                                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de la récupération du prix');
+                                        setTimeout(() => { $('#msg').html(""); }, 9000);
                                     });
                                 }
                             }
@@ -2372,6 +2454,74 @@ select.form-control {
             $('#resetFilters').click(function(e) {
                 e.preventDefault();
                 resetAllFilters();
+            });
+
+            // ========== AJOUT : GESTION DE LA SUPPRESSION DES FACTURES AVEC DÉTAILS ==========
+            $(document).on('click', '.delete-facture-btn', function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+                var numero = $(this).data('numero');
+                var client = $(this).data('client');
+                var montant = $(this).data('montant');
+                var date = $(this).data('date');
+                var statut = $(this).data('statut');
+
+                $('#delete_facture_numero').text(numero);
+                $('#delete_facture_client').text(client);
+                $('#delete_facture_montant').text(montant);
+                $('#delete_facture_date').text(date);
+                $('#delete_facture_statut').text(statut);
+
+                $('#deleteFactureModal').data('facture-id', id);
+                $('#deleteFactureModal').modal('show');
+            });
+
+            $(document).on('click', '#confirm_delete_facture', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                var factureId = $('#deleteFactureModal').data('facture-id');
+                if (!factureId) {
+                    alert('Identifiant de facture manquant.');
+                    return;
+                }
+
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Suppression...');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url("/delete_facture") }}',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        id: factureId
+                    },
+                    success: function(response) {
+                        $.get('{{ url("/get_all_facture") }}', function(html) {
+                            $('#content_utilisateur').html(html);
+                            saveFiltersToStorage();
+                            setTimeout(function() {
+                                loadFiltersFromStorage();
+                                filterInvoices();
+                            }, 100);
+                        }).fail(function() {
+                            alert('Erreur lors du rechargement du tableau.');
+                        });
+
+                        $('#deleteFactureModal').modal('hide');
+                        $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Facture supprimée avec succès');
+                        $('#msg').css('display', 'flex');
+                        setTimeout(() => {
+                            $('#msg').html('');
+                            $('#msg').css('display', 'none');
+                        }, 3000);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Erreur de suppression :', error);
+                        alert('Une erreur est survenue lors de la suppression. Veuillez réessayer.');
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false).html('Oui, supprimer');
+                    }
+                });
             });
         });
 

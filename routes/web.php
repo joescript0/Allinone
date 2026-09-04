@@ -166,10 +166,12 @@ Route::post('/edit_ecole', [AjaxController::class , 'edit_ecole'])->name('edit_e
 Route::post('/edit_eleve', [AjaxController::class , 'edit_eleve'])->name('edit_eleve');
 Route::post('/add_client', [AjaxController::class , 'add_client'])->name('add_client');
 Route::post('/add_prospect', [AjaxController::class , 'add_prospect'])->name('add_prospect');
+Route::post('/add_invites', [AjaxController::class , 'add_invites'])->name('add_invites');
 Route::post('/add_credit', [AjaxController::class , 'add_credit'])->name('add_credit');
 Route::post('/edit_utilisateur', [AjaxController::class , 'edit_utilisateur'])->name('edit_utilisateur');
 Route::post('/edit_utilisateur_profil', [AjaxController::class , 'edit_utilisateur_profil'])->name('edit_utilisateur_profil');
 Route::post('/edit_client', [AjaxController::class , 'edit_client'])->name('edit_client');
+Route::post('/edit_invite', [AjaxController::class , 'edit_invite'])->name('edit_invite');
 Route::post('/edit_prospect', [AjaxController::class , 'edit_prospect'])->name('edit_prospect');
 Route::post('/edit_invitations', [AjaxController::class , 'edit_invitations'])->name('edit_invitations');
 Route::post('/edit_decisions', [AjaxController::class , 'edit_decisions'])->name('edit_decisions');
@@ -187,6 +189,7 @@ Route::get('/get_liste_employe', [AjaxController::class , 'get_liste_employe'])-
 Route::get('/get_liste_qr_code', [AjaxController::class , 'get_liste_qr_code'])->name('get_liste_qr_code');
 Route::get('/get_one_qr_code', [AjaxController::class , 'get_one_qr_code'])->name('get_one_qr_code');
 Route::get('/get_liste_client', [AjaxController::class , 'get_liste_client'])->name('get_liste_client');
+Route::get('/get_liste_invite', [AjaxController::class , 'get_liste_invite'])->name('get_liste_invite');
 Route::get('/get_print_paie', [AjaxController::class , 'get_print_paie'])->name('get_print_paie');
 Route::get('/get_print_listes_factures', [AjaxController::class , 'get_print_listes_factures'])->name('get_print_listes_factures');
 Route::get('/send_factures_e', [AjaxController::class , 'send_factures_e'])->name('send_factures_e');
@@ -327,7 +330,11 @@ Route::get('/get_articles_select', [AjaxController::class, 'get_articles_select'
 Route::get('/nettoyer_table', [AjaxController::class, 'nettoyer_table'])->name('nettoyer_table');
 Route::get('/get_all_table_d', [AjaxController::class, 'get_all_table_d'])->name('get_all_table_d');
 Route::get('/get_all_detail_achat_paie', [AjaxController::class, 'get_all_detail_achat_paie'])->name('get_all_detail_achat_paie');
-
+Route::get('/refresh_liste_invites', [AjaxController::class, 'refresh_liste_invites'])->name('refresh_liste_invites');
+Route::post('/confirm_invite', [AjaxController::class, 'confirm_invite'])->name('confirm_invite');
+Route::post('/confirm_entree', [AjaxController::class, 'confirm_entree'])->name('confirm_entree');
+Route::get('/refresh_deleteinvite', [AjaxController::class, 'refresh_deleteinvite'])->name('refresh_deleteinvite');
+Route::get('/refresh_editinvite', [AjaxController::class, 'refresh_editinvite'])->name('refresh_editinvite');
 
 // Route::get('/', function () {
 //     $user = new User();
@@ -395,3 +402,9 @@ Route::get('/client_partager', [App\Http\Controllers\ClientController::class, 'c
 Route::get('/menu', [App\Http\Controllers\SiteController::class, 'menu'])->name('menu');
 Route::get('/serveur_se', [App\Http\Controllers\HomeController::class, 'serveur_se'])->name('serveur_se');
 Route::get('/debarrasseur_se', [App\Http\Controllers\HomeController::class, 'debarrasseur_se'])->name('debarrasseur_se');
+Route::get('/listesdesinvites', [App\Http\Controllers\HomeController::class, 'listesdesinvites'])->name('listesdesinvites');
+Route::get('/invitation_numerique', [App\Http\Controllers\InvitationnumController::class, 'invitation_numerique'])->name('invitation_numerique');
+Route::get('/invitation_formulaire', [App\Http\Controllers\InvitationnumController::class, 'invitation_formulaire'])->name('invitation_formulaire');
+Route::get('/invitation_programme', [App\Http\Controllers\InvitationnumController::class, 'invitation_programme'])->name('invitation_programme');
+Route::get('/check_qr_code', [App\Http\Controllers\InvitationnumController::class, 'check_qr_code'])->name('check_qr_code');
+Route::get('/bulletin', [App\Http\Controllers\BulletinController::class, 'bulletin'])->name('bulletin');

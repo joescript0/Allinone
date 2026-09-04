@@ -65,7 +65,6 @@ class LoginController extends Controller
         }
         $this->middleware('guest')->except('logout');
         // $this->send_sms_clients();
-        // $this->orange_api(3, 'tel:+243859161908');
     }
 
     public function showLoginForm(Request $request)
@@ -139,8 +138,8 @@ class LoginController extends Controller
                 $last9 = substr($digits, -9);
                 $client->phone = '+243' . $last9;
 
-                // Vérifier et envoyer SMS si le compteur est < 5
-                if ($client->sms_initial < 5) 
+                // Vérifier et envoyer SMS si le compteur est < 1
+                if ($client->sms_initial < 1) 
                 {
                     // Appeler l'API avec le préfixe 'tel:'
                     $this->orange_api(3, 'tel:' . $client->phone);

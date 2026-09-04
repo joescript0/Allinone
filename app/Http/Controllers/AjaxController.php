@@ -74,6 +74,7 @@ use App\Models\Pointdeventes;
 use App\Models\Stocks;
 use App\Models\detailsaffectationspointventes;
 use App\Models\affectationspointventes;
+use App\Models\listesdesinvites;
 use App\Models\Tables;
 use App\Models\transfertstocks;
 use App\Models\Typeventes;
@@ -771,6 +772,70 @@ class AjaxController extends Controller
         $prestations_details_save->save();
         return response()->json([[$valeur_de_retour]]);
 
+    }
+    
+    public function confirm_entree(Request $request)
+    {
+        // 1. Valider la requête
+        $request->validate([
+            'id' => 'required|integer|exists:listesdesinvites,id'
+        ]);
+    
+        try {
+            // 2. Récupérer l'invité
+            $invite = listesdesinvites::find($request->id);
+    
+            if (!$invite) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invité introuvable.'
+                ], 404);
+            }
+    
+            // 3. Vérifier si l'invité est déjà entré
+            if ($invite->dans_la_salle == 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cet invité est déjà dans la salle.'
+                ], 400);
+            }
+    
+            // 4. Vérifier que l'invitation est confirmée et la présence "oui"
+            if ($invite->reponse != 2) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Le statut de l\'invitation n\'est pas "Confirmé".'
+                ], 403);
+            }
+    
+            if ($invite->presence != 'oui') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La présence de l\'invité n\'est pas confirmée.'
+                ], 403);
+            }
+    
+            // 5. Mettre à jour le champ "dans_la_salle"
+            $invite->dans_la_salle = 1;
+            $invite->save();
+    
+            // 6. Journaliser l'action (optionnel)
+            \Log::info('Entrée confirmée pour l\'invité ID ' . $invite->id . ' - ' . $invite->name);
+    
+            // 7. Retourner une réponse de succès
+            return response()->json([
+                'success' => true,
+                'message' => 'Entrée confirmée avec succès pour ' . $invite->name . ' !'
+            ]);
+    
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la confirmation d\'entrée : ' . $e->getMessage());
+    
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur technique. Veuillez réessayer.'
+            ], 500);
+        }
     }
 
     public function check_horaire_poste(Request $request)
@@ -3458,6 +3523,81 @@ class AjaxController extends Controller
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         return view('include.refresh_prospect', $data);
     }
+    
+    public function add_invites(Request $request)
+    {
+        $id = listesdesinvites::get()->count() + 1;
+        $listesdesinvites = new listesdesinvites();
+        $listesdesinvites->id = $id;
+        $listesdesinvites->name = $request->nom;
+        if(strlen(trim($request->email)) == 0)
+        {
+            $listesdesinvites->email = "";
+        }
+        else
+        {
+            $listesdesinvites->email = $request->email;
+        }
+    
+        if(strlen(trim($request->adresse)) == 0)
+        {
+            $listesdesinvites->adresse = "";
+        }
+        else
+        {
+            $listesdesinvites->adresse = $request->adresse;
+        }
+        if(strlen(trim($request->description)) == 0)
+        {
+            $listesdesinvites->description = "";
+        }
+        else
+        {
+            $listesdesinvites->description = $request->description;
+        }
+        if(strlen(trim($request->latitude)) != 0){
+             $listesdesinvites->latitude = $request->latitude;
+        }else{
+            $listesdesinvites->latitude = 0;
+        }
+        if(strlen(trim($request->longitude)) != 0){
+             $listesdesinvites->longitude = $request->longitude;
+        }else{
+            $listesdesinvites->longitude = 0;
+        }
+        $listesdesinvites->activite_id = 1;
+        $listesdesinvites->type = 1;
+        $listesdesinvites->paiement = 0;
+        $listesdesinvites->devise = 1;
+        $listesdesinvites->factures = 0;
+        $listesdesinvites->password = Hash::make("12345");
+        $listesdesinvites->mdp = "12345";
+        $listesdesinvites->phone = $request->telephone;
+        $listesdesinvites->user_id =  1;
+        $listesdesinvites->etat = 1;
+        $listesdesinvites->recherche = "";
+        $listesdesinvites->image = 'storage/images/user/profil_defaut.png';
+        $listesdesinvites->presence = $request->presence;
+        $listesdesinvites->relation = $request->relation;
+        $listesdesinvites->relation_autre = $request->relation_autre;
+        $listesdesinvites->code_unique = $request->code_unique;
+        $listesdesinvites->save();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $groupe_user_id = 0;
+        $data["ressource_id_1"] = 28;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        
+        
+        $data["clients"] = Clients::where(["etat" => 1])->get();
+        $data["prospects"] = prospects::where(["etat" => 1])->get();
+        $data["listesdesinvites"] = listesdesinvites::where(["etat" => 1])->get();
+        
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        return view('include.refresh_invites', $data);
+    }
 
     public function add_groupe(Request $request)
     {
@@ -6005,6 +6145,39 @@ class AjaxController extends Controller
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         return view('include.refresh_client', $data);
     }
+    
+    public function edit_invite(Request $request)
+    {
+        $listesdesinvites = listesdesinvites::where('id', $request->id)->first();
+        $listesdesinvites->name = $request->edit_nom;
+        $listesdesinvites->email = $request->edit_email;
+        $listesdesinvites->phone = $request->edit_phone;
+        $listesdesinvites->table_id = $request->edit_table_id;
+        if(strlen(trim($request->edit_email)) == 0)
+        {
+            $listesdesinvites->email = 'invite' . $request->id . '@gmail.com' ;
+        }
+        else
+        {
+            $listesdesinvites->email = $request->edit_email;
+        }
+        $listesdesinvites->save();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $groupe_user_id = 0;
+        $data["ressource_id_1"] = 28;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        
+        
+        $data["clients"] = Clients::where(["etat" => 1])->get();
+        $data["prospects"] = prospects::where(["etat" => 1])->get();
+        $data["listesdesinvites"] = listesdesinvites::where(["etat" => 1])->get();
+        
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        return view('include.refresh_invites', $data);
+    }
 
     public function edit_prospect(Request $request)
     {
@@ -6202,8 +6375,81 @@ class AjaxController extends Controller
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         return view('include.refresh_client', $data);
     }
-
-
+    
+    public function refresh_deleteinvite(Request $request)
+    {
+        $listesdesinvite = listesdesinvites::where('id', $request->id)->first();
+        $listesdesinvite->etat = 0;
+        $listesdesinvite->save();
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        $data["listesdesinvites"] = listesdesinvites::where(["etat" => 1])->get();
+        $data["clients"] = Clients::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 28;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        return view('include.refresh_invites', $data);
+    }
+    
+    public function refresh_liste_invites(Request $request)
+    {
+        $listesdesinvite = listesdesinvites::where('id', $request->id)->first();
+        $listesdesinvite->etat = 0;
+        $listesdesinvite->save();
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        $data["listesdesinvites"] = listesdesinvites::where(["etat" => 1])->get();
+        $data["clients"] = Clients::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 28;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        return view('include.refresh_invites', $data);
+    }
+    
+    public function confirm_invite(Request $request)
+    {
+        $id = $request->id;
+        $action = $request->action;
+        $message = 'Action invalide.';
+        $type = 'error';
+    
+        if ($id && in_array($action, ['confirmer', 'refuser'])) {
+            $invite = listesdesinvites::find($id);
+            if (!$invite) {
+                $message = 'Invité introuvable.';
+            } elseif (in_array($invite->reponse, [2, 3])) {
+                $message = 'Déjà traitée.';
+                $type = 'info';
+            } else {
+                $invite->reponse = $action === 'confirmer' ? 2 : 3;
+                $invite->save();
+                $message = $action === 'confirmer' ? 'Confirmée.' : 'Refusée.';
+                $type = 'success';
+            }
+        }
+    
+        $data = [
+            'utilisateurs'      => User::where('etat', 1)->get(),
+            'listesdesinvites'  => listesdesinvites::where('etat', 1)->get(),
+            'clients'           => Clients::where('etat', 1)->get(),
+            'activites'         => Activites::where('etat', 1)->get(),
+            'groupes'           => Groupes::where('etat', 1)->get(),
+            'ressource_id_1'    => 28,
+            'groupe_user_id'    => Auth::user()->role,
+            'message'           => $message,
+            'message_type'      => $type,
+        ];
+        $data['acces'] = Writes::where([
+            'ressource_id' => $data['ressource_id_1'],
+            'groupe_id'    => $data['groupe_user_id']
+        ])->get();
+    
+        return view('include.refresh_invites', $data);
+    }
 
     public function refresh_deleteinvitation(Request $request)
     {
@@ -6310,6 +6556,15 @@ class AjaxController extends Controller
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $data["activites"] = Activites::where(["etat" => 1])->get();
         return view('include.refresh_editprospect', $data);
+    }
+    
+    public function refresh_editinvite(Request $request)
+    {
+        $data["listesdesinvites"] = listesdesinvites::where('id', $request->listesdesinvites_id)->first();
+        $data["tables"] = Tables::where(["etat" => 1])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        return view('include.refresh_editinvite', $data);
     }
 
 
@@ -7689,6 +7944,204 @@ class AjaxController extends Controller
             $pdf->Cell(50, 5, iconv('UTF-8', 'Windows-1252', Activites::where('id', $data->activite_id)->first()["nom"]), 1, 0, 'L');
         }
         $nom_fichier =  "Liste_des_clients" . ".pdf";
+        $pdf->Output("F", $nom_fichier);
+        echo $nom_fichier;
+    }
+    
+    public function get_liste_invite(Request $request)
+    {
+        // Récupération des filtres
+        $nom = $request->input('nom');
+        $email = $request->input('email');
+        $phone = $request->input('phone');
+        $presence = $request->input('presence');
+        $table = $request->input('table');
+        $relation = $request->input('relation');
+        $statut = $request->input('statut');
+    
+        // Requête de base
+        $invites = Listesdesinvites::where('etat', 1);
+    
+        // Application des filtres
+        if (!empty($nom)) {
+            $invites->where('name', 'like', '%' . $nom . '%');
+        }
+        if (!empty($email)) {
+            $invites->where('email', 'like', '%' . $email . '%');
+        }
+        if (!empty($phone)) {
+            $invites->where('phone', 'like', '%' . $phone . '%');
+        }
+        if (!empty($presence) && $presence != 'all') {
+            $invites->where('presence', $presence);
+        }
+        if (!empty($table)) {
+            $invites->join('tables', 'listesdesinvites.table_id', '=', 'tables.id')
+                    ->where('tables.nom', 'like', '%' . $table . '%')
+                    ->select('listesdesinvites.*');
+        }
+        if (!empty($relation)) {
+            $invites->where(function($q) use ($relation) {
+                $q->where('relation', 'like', '%' . $relation . '%')
+                  ->orWhere('relation_autre', 'like', '%' . $relation . '%');
+            });
+        }
+        if (!empty($statut) && $statut != 'all') {
+            $invites->where('reponse', $statut);
+        }
+    
+        $invites = $invites->get();
+        $total = $invites->count();
+    
+        // ========================================
+        // GÉNÉRATION DU PDF - DESIGN BLEU
+        // ========================================
+        $pdf = new FPDF();
+        $pdf->AddPage();
+    
+        // En-tête
+        $pdf->SetFont('Arial', 'B', 14);
+        $pdf->SetTextColor(0, 80, 160);
+        $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'LISTE DES INVITÉS'), 0, 1, 'C');
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->SetTextColor(80, 80, 80);
+        $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Mariage de Stone & Divayna'), 0, 1, 'C');
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->SetTextColor(0, 80, 160);
+        $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Total : ' . $total . ' invités'), 0, 1, 'C');
+        $pdf->Ln(4);
+    
+        // Ligne décorative
+        $pdf->SetDrawColor(0, 120, 220);
+        $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
+        $pdf->Ln(6);
+    
+        // En-têtes des colonnes
+        $pdf->SetFont('Arial', 'B', 8);
+        $pdf->SetFillColor(0, 80, 160);
+        $pdf->SetTextColor(255, 255, 255);
+        $pdf->Cell(10, 7, iconv('UTF-8', 'Windows-1252', 'N°'), 1, 0, 'C', true);
+        $pdf->Cell(55, 7, iconv('UTF-8', 'Windows-1252', 'NOM'), 1, 0, 'L', true);
+        $pdf->Cell(30, 7, iconv('UTF-8', 'Windows-1252', 'STATUT'), 1, 0, 'C', true);
+        $pdf->Cell(22, 7, iconv('UTF-8', 'Windows-1252', 'PRÉSENCE'), 1, 0, 'C', true);
+        $pdf->Cell(30, 7, iconv('UTF-8', 'Windows-1252', 'TABLE'), 1, 0, 'C', true);
+        $pdf->Cell(43, 7, iconv('UTF-8', 'Windows-1252', 'RELATION'), 1, 0, 'L', true);
+        $pdf->Ln();
+    
+        // Données
+        $pdf->SetFont('Arial', '', 7.5);
+        $num = 1;
+        $fill = false;
+        $lineHeight = 5.5;
+    
+        $statutLabels = [
+            1 => 'En attente',
+            2 => 'Confirmé',
+            3 => 'Refusé'
+        ];
+    
+        foreach ($invites as $data) {
+            // Alternance de fond
+            if ($fill) {
+                $pdf->SetFillColor(235, 245, 255);
+            } else {
+                $pdf->SetFillColor(255, 255, 255);
+            }
+            $fill = !$fill;
+    
+            // === Numéro (toujours noir) ===
+            $pdf->SetTextColor(30, 30, 30);
+            $pdf->Cell(10, $lineHeight, $num, 1, 0, 'C', true);
+    
+            // === Nom (toujours noir) ===
+            $nom_cell = iconv('UTF-8', 'Windows-1252//TRANSLIT', substr($data->name, 0, 30));
+            $pdf->Cell(55, $lineHeight, $nom_cell, 1, 0, 'L', true);
+    
+            // === Statut (rouge si Refusé) ===
+            $statutLabel = $statutLabels[$data->reponse] ?? 'En attente';
+            if ($data->reponse == 3) {
+                $pdf->SetTextColor(220, 0, 0); // rouge
+            } else {
+                $pdf->SetTextColor(30, 30, 30); // noir
+            }
+            $pdf->Cell(30, $lineHeight, iconv('UTF-8', 'Windows-1252', $statutLabel), 1, 0, 'C', true);
+    
+            // === Présence (rouge si 'non') ===
+            $presenceText = $data->presence ?? '-';
+            if ($presenceText == 'non') {
+                $pdf->SetTextColor(220, 0, 0); // rouge
+            } else {
+                $pdf->SetTextColor(30, 30, 30); // noir
+            }
+            $pdf->Cell(22, $lineHeight, iconv('UTF-8', 'Windows-1252', $presenceText), 1, 0, 'C', true);
+    
+            // === Table (toujours noir) ===
+            $pdf->SetTextColor(30, 30, 30);
+            $nomTable = 'Aucune';
+            if ($data->table_id != 0) {
+                $tableObj = Tables::find($data->table_id);
+                $nomTable = $tableObj->nom ?? 'Aucune';
+            }
+            $pdf->Cell(30, $lineHeight, iconv('UTF-8', 'Windows-1252', $nomTable), 1, 0, 'C', true);
+    
+            // === Relation (toujours noir) ===
+            $relationAff = $data->relation ?: $data->relation_autre;
+            $relation_cell = iconv('UTF-8', 'Windows-1252//TRANSLIT', substr($relationAff, 0, 25));
+            $pdf->Cell(43, $lineHeight, $relation_cell, 1, 0, 'L', true);
+    
+            $pdf->Ln();
+            $num++;
+    
+            // Saut de page avec répétition de l'en-tête
+            if ($pdf->GetY() > 260) {
+                $pdf->AddPage();
+                $pdf->SetFont('Arial', 'B', 14);
+                $pdf->SetTextColor(0, 80, 160);
+                $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'LISTE DES INVITÉS (suite)'), 0, 1, 'C');
+                $pdf->SetFont('Arial', '', 9);
+                $pdf->SetTextColor(80, 80, 80);
+                $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Mariage de Stone & Divayna'), 0, 1, 'C');
+                $pdf->SetFont('Arial', 'B', 9);
+                $pdf->SetTextColor(0, 80, 160);
+                $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Suite...'), 0, 1, 'C');
+                $pdf->Ln(4);
+                $pdf->SetDrawColor(0, 120, 220);
+                $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
+                $pdf->Ln(6);
+    
+                $pdf->SetFont('Arial', 'B', 8);
+                $pdf->SetFillColor(0, 80, 160);
+                $pdf->SetTextColor(255, 255, 255);
+                $pdf->Cell(10, 7, iconv('UTF-8', 'Windows-1252', 'N°'), 1, 0, 'C', true);
+                $pdf->Cell(55, 7, iconv('UTF-8', 'Windows-1252', 'NOM'), 1, 0, 'L', true);
+                $pdf->Cell(30, 7, iconv('UTF-8', 'Windows-1252', 'STATUT'), 1, 0, 'C', true);
+                $pdf->Cell(22, 7, iconv('UTF-8', 'Windows-1252', 'PRÉSENCE'), 1, 0, 'C', true);
+                $pdf->Cell(30, 7, iconv('UTF-8', 'Windows-1252', 'TABLE'), 1, 0, 'C', true);
+                $pdf->Cell(43, 7, iconv('UTF-8', 'Windows-1252', 'RELATION'), 1, 0, 'L', true);
+                $pdf->Ln();
+                $fill = true; // pour recommencer avec fond blanc sur la nouvelle page
+            }
+        }
+    
+        if ($total == 0) {
+            $pdf->SetFont('Arial', 'I', 10);
+            $pdf->SetTextColor(150, 150, 150);
+            $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'Aucun invité ne correspond aux critères.'), 0, 1, 'C');
+        }
+    
+        // Pied de page
+        $pdf->SetY(-18);
+        $pdf->SetDrawColor(0, 120, 220);
+        $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
+        $pdf->SetY(-15);
+        $pdf->SetFont('Arial', 'I', 7);
+        $pdf->SetTextColor(0, 80, 160);
+        $pdf->Cell(95, 5, iconv('UTF-8', 'Windows-1252', 'Généré le ' . date('d/m/Y à H:i')), 0, 0, 'L');
+        $pdf->Cell(95, 5, iconv('UTF-8', 'Windows-1252', 'Page {PAGE} / {NB}'), 0, 0, 'R');
+    
+        $pdf->AliasNbPages();
+    
+        $nom_fichier = "Liste_des_invites.pdf";
         $pdf->Output("F", $nom_fichier);
         echo $nom_fichier;
     }
@@ -14328,10 +14781,10 @@ class AjaxController extends Controller
     }
     public function get_articles_select(Request $request)
     {
-        // 1. Récupération des deux paramètres possibles
-        $pointdeventes_id = $request->input('pointdeventes_id');
-        $table_id = $request->input('table_id');
-
+        // 1. Récupération des deux paramètres possibles via la propriété dynamique
+        $pointdeventes_id = $request->pointdeventes_id;
+        $table_id = $request->table_id;
+    
         // 2. Détermination du point de vente et de son stock_id
         if ($pointdeventes_id) {
             // Cas de la page de facture : on a directement l'ID du point de vente
@@ -14348,19 +14801,19 @@ class AjaxController extends Controller
         } else {
             $pointdeventes = null;
         }
-
+    
         // Si aucun point de vente n'est trouvé, on retourne un select vide
         if (!$pointdeventes) {
             return '<option selected value="">Sélectionnez un article</option>';
         }
-
+    
         $stock_id = $pointdeventes->stock_id;
-
+    
         // ------------------------------------------------------------------
         // 3. Le reste du code est strictement inchangé (même logique)
         // ------------------------------------------------------------------
         $html = '<option selected value="">Sélectionnez un article</option>';
-
+    
         if ($stock_id == 0) {
             // Cas sans stock : on ne vérifie que l'activité
             $articles = Articles::where('supprimer', 0)->get();
@@ -14386,11 +14839,11 @@ class AjaxController extends Controller
                 $nomMesure = Mesures::where('id', $article->mesure_id)->first()['nom'] ?? 'N/A';
                 $nomSociete = Societes::where('id', $article->societe_id)->first()['nom'] ?? 'N/A';
                 $label = $article->nom_article . ' ' . $nomMesure . ' (' . $nomSociete . ')';
-
+    
                 // Vérifications
                 $activiteOk = ($article->activite_id != 0);
                 $stockOk = ($articlestock->stock > $articlestock->seuil_minimum); // supposé existant
-
+    
                 $disabled = false;
                 $messages = [];
                 if (!$activiteOk) {
@@ -14405,14 +14858,16 @@ class AjaxController extends Controller
                 } else {
                     $message = '';
                 }
-
+    
                 $icon = ($activiteOk && $stockOk) ? '🟢' : '🔴';
-                $html .= '<option value="' . $articlestock->id . '" ' . ($disabled ? 'disabled' : '') . '>'
+    
+                // ✅ Modification : on utilise l'ID de l'article (via la clé étrangère article_id)
+                $html .= '<option value="' . $articlestock->article_id . '" ' . ($disabled ? 'disabled' : '') . '>'
                     . $icon . ' ' . e($label) . $message
                     . '</option>';
             }
         }
-
+    
         return $html;
     }
     public function delete_facture(Request $request)
@@ -14422,24 +14877,62 @@ class AjaxController extends Controller
             return response()->json(['error' => 'ID manquant'], 400);
         }
 
+        // Récupération de la facture (uniquement non supprimée)
         $facture = Factureass::where('id', $id)->where('etat', 0)->first();
         if (!$facture) {
             return response()->json(['error' => 'Facture introuvable ou déjà supprimée'], 404);
         }
 
+        // --- Détermination du point de vente selon la même logique que add_achat_article ---
+        $pointdeventes = null;
+        $stock_id = 0;
+
+        if ($facture->pointdeventes_id) {
+            // Priorité au point de vente directement enregistré dans la facture
+            $pointdeventes = pointdeventes::find($facture->pointdeventes_id);
+        } elseif ($facture->table_id) {
+            // Si la facture a une table, on récupère le point de vente via la table
+            $table = Tables::find($facture->table_id);
+            if ($table) {
+                $pointdeventes = pointdeventes::find($table->pointdeventes_id);
+            }
+        }
+
+        if ($pointdeventes) {
+            $stock_id = $pointdeventes->stock_id;
+        }
+
+        // Récupération des achats de la facture
         $achats = Achats::where('facture_id', $id)->get();
 
         DB::beginTransaction();
 
         try {
             foreach ($achats as $achat) {
-                $article = Articles::find($achat->article_id);
-                if ($article) {
-                    $article->stock += $achat->quantite;
-                    $article->save();
+                $article_id = $achat->article_id;
+
+                // Sélection de la table de stock en fonction du stock_id
+                if ($stock_id == 0) {
+                    // Stock global
+                    $article = Articles::find($article_id);
+                } else {
+                    // Stock spécifique au point de vente
+                    $article = articlestocks::where([
+                        'stock_id'   => $stock_id,
+                        'article_id' => $article_id,
+                    ])->first();
                 }
+
+                if (!$article) {
+                    throw new \Exception("Article introuvable pour le stock correspondant (ID: $article_id)");
+                }
+
+                // Restauration du stock : on ajoute la quantité achetée
+                $article->stock += $achat->quantite;
+                $article->save();
             }
 
+            // Marquer la facture comme supprimée
             $facture->etat = 1;
             $facture->save();
 
