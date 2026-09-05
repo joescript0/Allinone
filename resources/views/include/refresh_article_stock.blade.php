@@ -10,6 +10,7 @@ use App\Models\Societes;
 use App\Models\Mesures;
 use App\Models\Activites;
 use App\Models\Articles;
+use App\Models\articlestocks;
 use App\Models\Typeventes;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Ressources;
@@ -50,13 +51,13 @@ use App\Models\Ressources;
     <span class="text-info">({{ $nom }})</span>
     <select class="form-control" style="border-color: transparent;padding-top: 0px;padding-bottom: 0px;font-size: 17px;color:rgba(0, 0, 0, 0.6);margin-top:10px;" name="stock_select" id="stock_select">
         @if ($stock_id == 0)
-            <option selected value="0"> Stock principal {{ $articles->count() }}</option>
-            @foreach ($stocks as $data) <option value="{{ $data->id }}">{{ strtolower($data->nom) }}</option> @endforeach
+            <option selected value="0"> Stock principal ({{ Articles::where(["supprimer" => 0])->get()->count(); }})</option>
+            @foreach ($stocks as $data) <option value="{{ $data->id }}">{{ strtolower($data->nom) }} ({{ articlestocks::where(["supprimer" => 0, "stock_id" => $data->id])->get()->count(); }})</option> @endforeach
         @else
-            <option selected value="0"> Stock principal {{ $articles->count() }}</option>
+            <option selected value="0"> Stock principal ({{ Articles::where(["supprimer" => 0])->get()->count(); }})</option>
             @foreach ($stocks as $data)
-                @if ($data->id == $stock_id) <option selected value="{{ $data->id }}">{{ strtolower($data->nom) }}</option>
-                @else <option value="{{ $data->id }}">{{ strtolower($data->nom) }}</option> @endif
+                @if ($data->id == $stock_id) <option selected value="{{ $data->id }}">{{ strtolower($data->nom) }} ({{ articlestocks::where(["supprimer" => 0, "stock_id" => $data->id])->get()->count(); }})</option>
+                @else <option value="{{ $data->id }}">{{ strtolower($data->nom) }} ({{ articlestocks::where(["supprimer" => 0, "stock_id" => $data->id])->get()->count(); }})</option> @endif
             @endforeach
         @endif
     </select>
@@ -220,9 +221,9 @@ use App\Models\Ressources;
                                     }
                                     ?>
                                     <?php if (($edit == 1) || (Auth::user()->role == 0)) { ?>
-                                    <a id="edit_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a>&nbsp;
+                                    <a id="edit__<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a>&nbsp;
                                     <?php } else { ?>
-                                    <a id="edit_r<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a>&nbsp;
+                                    <a id="edit_r_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a>&nbsp;
                                     <?php } ?>
 
                                     <?php if (($edit == 1) || (Auth::user()->role == 0)) { ?>
@@ -251,20 +252,20 @@ use App\Models\Ressources;
                                     <?php } ?>
 
                                     <?php if (($delete == 1) || (Auth::user()->role == 0)) { ?>
-                                    <a id="delete_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>&nbsp;
+                                    <a id="delete__<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>&nbsp;
                                     <?php } else { ?>
-                                    <a id="delete_r<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>&nbsp;
+                                    <a id="delete_r_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>&nbsp;
                                     <?php } ?>
                                     <script>
-                                        $("#edit_<?= $i ?>").click(function(e) {
+                                        $("#edit__<?= $i ?>").click(function(e) {
                                             e.preventDefault();
-                                            $.get("{{ url('/refresh_editarticle') }}", { user_id: <?= $data->id ?> }, function(refresh_editarticle) {
+                                            $.get("{{ url('/refresh_editarticle_stock') }}", { user_id: <?= $data->id ?>, stock_id: <?= $stock_id ?> }, function(refresh_editarticle) {
                                                 $("#bloc_1").hide(); $("#bloc_2").hide(); $("#bloc_3").show(); $("#bloc_3").html(refresh_editarticle);
                                             });
                                         });
-                                        $("#edit_r<?= $i ?>").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
-                                        $("#delete_r<?= $i ?>").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
-                                        $("#delete_<?= $i ?>").click(function(e) {
+                                        $("#edit_r_<?= $i ?>").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
+                                        $("#delete_r_<?= $i ?>").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
+                                        $("#delete__<?= $i ?>").click(function(e) {
                                             e.preventDefault();
                                             $("#element").html("<?= $data->nom_article . '(' . Societes::where('id', $data->societe_id)->first()['nom'] . ')' ?>");
                                             $("#data_id").html("<?= $data->id ?>");
@@ -350,9 +351,9 @@ use App\Models\Ressources;
                                     }
                                     ?>
                                     <?php if (($edit == 1) || (Auth::user()->role == 0)) { ?>
-                                    <a id="edit_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a>&nbsp;
+                                    <a id="edit__<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a>&nbsp;
                                     <?php } else { ?>
-                                    <a id="edit_r<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a>&nbsp;
+                                    <a id="edit_r_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a>&nbsp;
                                     <?php } ?>
 
                                     <?php if (($edit == 1) || (Auth::user()->role == 0)) { ?>
@@ -381,20 +382,20 @@ use App\Models\Ressources;
                                     <?php } ?>
 
                                     <?php if (($delete == 1) || (Auth::user()->role == 0)) { ?>
-                                    <a id="delete_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>&nbsp;
+                                    <a id="delete__<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>&nbsp;
                                     <?php } else { ?>
-                                    <a id="delete_r<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>&nbsp;
+                                    <a id="delete_r_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>&nbsp;
                                     <?php } ?>
                                     <script>
-                                        $("#edit_<?= $i ?>").click(function(e) {
+                                        $("#edit__<?= $i ?>").click(function(e) {
                                             e.preventDefault();
-                                            $.get("{{ url('/refresh_editarticle') }}", { user_id: <?= $data->id ?> }, function(refresh_editarticle) {
+                                            $.get("{{ url('/refresh_editarticle_stock') }}", { user_id: <?= $data->id ?>, stock_id: <?= $stock_id ?> }, function(refresh_editarticle) {
                                                 $("#bloc_1").hide(); $("#bloc_2").hide(); $("#bloc_3").show(); $("#bloc_3").html(refresh_editarticle);
                                             });
                                         });
-                                        $("#edit_r<?= $i ?>").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
-                                        $("#delete_r<?= $i ?>").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
-                                        $("#delete_<?= $i ?>").click(function(e) {
+                                        $("#edit_r_<?= $i ?>").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
+                                        $("#delete_r_<?= $i ?>").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
+                                        $("#delete__<?= $i ?>").click(function(e) {
                                             e.preventDefault();
                                             $("#element").html("<?= $data->nom_article . '(' . Societes::where('id', $data->societe_id)->first()['nom'] . ')' ?>");
                                             $("#data_id").html("<?= $data->id ?>");
@@ -912,7 +913,8 @@ use App\Models\Ressources;
 
         // Contrôle du stock
         if (avoirStockGlobal == 1) {
-            if (qte < 1) {
+            if (qte < 1) 
+            {
                 $('#transfer_msg').html('<i class="zmdi zmdi-close-circle"></i> La quantité doit être un nombre entier positif (car le stock est limité).');
                 setTimeout(() => { $('#transfer_msg').html(''); }, 9000);
                 $(this).prop('disabled', false);

@@ -773,25 +773,25 @@ class AjaxController extends Controller
         return response()->json([[$valeur_de_retour]]);
 
     }
-    
+
     public function confirm_entree(Request $request)
     {
         // 1. Valider la requête
         $request->validate([
             'id' => 'required|integer|exists:listesdesinvites,id'
         ]);
-    
+
         try {
             // 2. Récupérer l'invité
             $invite = listesdesinvites::find($request->id);
-    
+
             if (!$invite) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Invité introuvable.'
                 ], 404);
             }
-    
+
             // 3. Vérifier si l'invité est déjà entré
             if ($invite->dans_la_salle == 1) {
                 return response()->json([
@@ -799,7 +799,7 @@ class AjaxController extends Controller
                     'message' => 'Cet invité est déjà dans la salle.'
                 ], 400);
             }
-    
+
             // 4. Vérifier que l'invitation est confirmée et la présence "oui"
             if ($invite->reponse != 2) {
                 return response()->json([
@@ -807,30 +807,30 @@ class AjaxController extends Controller
                     'message' => 'Le statut de l\'invitation n\'est pas "Confirmé".'
                 ], 403);
             }
-    
+
             if ($invite->presence != 'oui') {
                 return response()->json([
                     'success' => false,
                     'message' => 'La présence de l\'invité n\'est pas confirmée.'
                 ], 403);
             }
-    
+
             // 5. Mettre à jour le champ "dans_la_salle"
             $invite->dans_la_salle = 1;
             $invite->save();
-    
+
             // 6. Journaliser l'action (optionnel)
             \Log::info('Entrée confirmée pour l\'invité ID ' . $invite->id . ' - ' . $invite->name);
-    
+
             // 7. Retourner une réponse de succès
             return response()->json([
                 'success' => true,
                 'message' => 'Entrée confirmée avec succès pour ' . $invite->name . ' !'
             ]);
-    
+
         } catch (\Exception $e) {
             \Log::error('Erreur lors de la confirmation d\'entrée : ' . $e->getMessage());
-    
+
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur technique. Veuillez réessayer.'
@@ -3523,7 +3523,7 @@ class AjaxController extends Controller
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         return view('include.refresh_prospect', $data);
     }
-    
+
     public function add_invites(Request $request)
     {
         $id = listesdesinvites::get()->count() + 1;
@@ -3538,7 +3538,7 @@ class AjaxController extends Controller
         {
             $listesdesinvites->email = $request->email;
         }
-    
+
         if(strlen(trim($request->adresse)) == 0)
         {
             $listesdesinvites->adresse = "";
@@ -3587,12 +3587,12 @@ class AjaxController extends Controller
         $data["ressource_id_1"] = 28;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["utilisateurs"] = User::where(["etat" => 1])->get();
-        
-        
+
+
         $data["clients"] = Clients::where(["etat" => 1])->get();
         $data["prospects"] = prospects::where(["etat" => 1])->get();
         $data["listesdesinvites"] = listesdesinvites::where(["etat" => 1])->get();
-        
+
         $data["activites"] = Activites::where(["etat" => 1])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
@@ -4917,7 +4917,7 @@ class AjaxController extends Controller
     //                 // Normaliser le téléphone : extraire uniquement les chiffres
     //                 $phone = $client->phone;
     //                 $digits = preg_replace('/\D/', '', $phone);
-                    
+
     //                 // Vérifier que le nombre de chiffres est supérieur à 9
     //                 if (strlen($digits) > 9) {
     //                     $last9 = substr($digits, -9);
@@ -4931,7 +4931,7 @@ class AjaxController extends Controller
     //                     }
     //                     $client->save();
     //                 }
-    //                 // Si le nombre de chiffres est <= 9, on peut décider de ne rien faire 
+    //                 // Si le nombre de chiffres est <= 9, on peut décider de ne rien faire
     //                 // ou de logger une erreur, selon votre besoin.
     //             }
     //         }
@@ -5493,27 +5493,42 @@ class AjaxController extends Controller
 
     public function edit_article(Request $request)
     {
-        // Article
-        $articles = Articles::where('id', $request->id)->first();
-        $articles->user_id = Auth::user()->id;
-        $articles->societe_id = $request->edit_categorie_id;
-        $articles->nom_article = $request->edit_nom_article;
-        $articles->prix = $request->edit_prix;
-        $articles->devise  = $request->edit_devise;
-        $articles->seuil_minimum  = $request->edit_seuil_minimum;
-        $articles->seuil_maximum  = $request->edit_seuil_maximum;
-        $articles->prix_detail  = $request->edit_prix_detail;
-        $articles->prix_gros  = $request->edit_prix_gros;
-        $articles->taille_lot  = $request->edit_taille_lot;
-        $articles->date_expiration  = $request->edit_date_expiration;
-        $articles->date_creation  = date("d/m/Y");
-        $articles->description  = $request->edit_libelle;
-        $articles->activite_id  = $request->edit_activite_id;
-        $articles->mesure_id  = $request->edit_mesure_id;
-        $articles->avoir_stock  = $request->edit_avoir_stock;
+        $stock_id = $request->stock_id;
 
+        if (empty($stock_id) || $stock_id == 0) {
+            // Mise à jour de l'article principal (tous les champs)
+            $article = Articles::where('id', $request->id)->firstOrFail();
 
-        $articles->save();
+            $article->user_id = Auth::user()->id;
+            $article->societe_id = $request->edit_categorie_id;
+            $article->nom_article = $request->edit_nom_article;
+            $article->prix = $request->edit_prix;
+            $article->devise = $request->edit_devise;
+            $article->seuil_minimum = $request->edit_seuil_minimum;
+            $article->seuil_maximum = $request->edit_seuil_maximum;
+            $article->prix_detail = $request->edit_prix_detail;
+            $article->prix_gros = $request->edit_prix_gros;
+            $article->taille_lot = $request->edit_taille_lot;
+            $article->date_expiration = $request->edit_date_expiration;
+            $article->description = $request->edit_libelle;
+            $article->activite_id = $request->edit_activite_id;
+            $article->mesure_id = $request->edit_mesure_id;
+            $article->avoir_stock = $request->edit_avoir_stock;
+            $article->save();
+        } else {
+            // Mise à jour uniquement de certains champs dans articlestocks
+            $articleStock = articlestocks::where('article_id', $request->id)->firstOrFail();
+
+            // Seuls ces cinq champs sont modifiés
+            $articleStock->prix_detail = $request->edit_prix_detail;
+            $articleStock->prix_gros = $request->edit_prix_gros;
+            $articleStock->taille_lot = $request->edit_taille_lot;
+            $articleStock->devise = $request->edit_devise;
+            $articleStock->avoir_stock = $request->edit_avoir_stock;
+            $articleStock->save();
+        }
+
+        // Le reste du code (récupération des données pour la vue) inchangé
         $groupe_user_id = Auth::user()->role;
         $data["ressource_id_1"] = 2;
         $data["groupe_user_id"] = $groupe_user_id;
@@ -5521,10 +5536,64 @@ class AjaxController extends Controller
         $data["factures"] = Factures::get();
         $data["articles"] = Articles::where(["user_id" => Auth::user()->id, "supprimer" => 0])->get();
         $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
-        if(Auth::user()->role == 0)
+        if(Auth::user()->role == 0) {
+            $data["articles"] = Articles::where(["supprimer" => 0])->get();
+        }
+
+        return view('include.refresh_articles', $data);
+    }
+
+    public function edit_article_stock(Request $request)
+    {
+        $stock_id = $request->stock_id;
+
+        if (empty($stock_id) || $stock_id == 0) {
+            // Mise à jour de l'article principal (tous les champs)
+            $article = Articles::where('id', $request->id)->firstOrFail();
+
+            $article->user_id = Auth::user()->id;
+            $article->societe_id = $request->edit_categorie_id;
+            $article->nom_article = $request->edit_nom_article;
+            $article->prix = $request->edit_prix;
+            $article->devise = $request->edit_devise;
+            $article->seuil_minimum = $request->edit_seuil_minimum;
+            $article->seuil_maximum = $request->edit_seuil_maximum;
+            $article->prix_detail = $request->edit_prix_detail;
+            $article->prix_gros = $request->edit_prix_gros;
+            $article->taille_lot = $request->edit_taille_lot;
+            $article->date_expiration = $request->edit_date_expiration;
+            $article->description = $request->edit_libelle;
+            $article->activite_id = $request->edit_activite_id;
+            $article->mesure_id = $request->edit_mesure_id;
+            $article->avoir_stock = $request->edit_avoir_stock;
+            $article->save();
+        } else {
+            // Mise à jour uniquement de certains champs dans articlestocks
+            $articleStock = articlestocks::where('article_id', $request->id)->firstOrFail();
+
+            // Seuls ces cinq champs sont modifiés
+            $articleStock->prix_detail = $request->edit_prix_detail;
+            $articleStock->prix_gros = $request->edit_prix_gros;
+            $articleStock->taille_lot = $request->edit_taille_lot;
+            $articleStock->devise = $request->edit_devise;
+            $articleStock->avoir_stock = $request->edit_avoir_stock;
+            $articleStock->save();
+        }
+
+        // Le reste du code (récupération des données pour la vue) inchangé
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 2;
+        $data["stock_id"] = $stock_id;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        $data["factures"] = Factures::get();
+        $data["articles"] = Articles::where(["user_id" => Auth::user()->id, "supprimer" => 0])->get();
+        $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
+        if(Auth::user()->role == 0) 
         {
             $data["articles"] = Articles::where(["supprimer" => 0])->get();
         }
+
         return view('include.refresh_articles', $data);
     }
 
@@ -6145,7 +6214,7 @@ class AjaxController extends Controller
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         return view('include.refresh_client', $data);
     }
-    
+
     public function edit_invite(Request $request)
     {
         $listesdesinvites = listesdesinvites::where('id', $request->id)->first();
@@ -6167,12 +6236,12 @@ class AjaxController extends Controller
         $data["ressource_id_1"] = 28;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["utilisateurs"] = User::where(["etat" => 1])->get();
-        
-        
+
+
         $data["clients"] = Clients::where(["etat" => 1])->get();
         $data["prospects"] = prospects::where(["etat" => 1])->get();
         $data["listesdesinvites"] = listesdesinvites::where(["etat" => 1])->get();
-        
+
         $data["activites"] = Activites::where(["etat" => 1])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
@@ -6375,7 +6444,7 @@ class AjaxController extends Controller
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         return view('include.refresh_client', $data);
     }
-    
+
     public function refresh_deleteinvite(Request $request)
     {
         $listesdesinvite = listesdesinvites::where('id', $request->id)->first();
@@ -6392,7 +6461,7 @@ class AjaxController extends Controller
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         return view('include.refresh_invites', $data);
     }
-    
+
     public function refresh_liste_invites(Request $request)
     {
         $listesdesinvite = listesdesinvites::where('id', $request->id)->first();
@@ -6409,14 +6478,14 @@ class AjaxController extends Controller
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         return view('include.refresh_invites', $data);
     }
-    
+
     public function confirm_invite(Request $request)
     {
         $id = $request->id;
         $action = $request->action;
         $message = 'Action invalide.';
         $type = 'error';
-    
+
         if ($id && in_array($action, ['confirmer', 'refuser'])) {
             $invite = listesdesinvites::find($id);
             if (!$invite) {
@@ -6431,7 +6500,7 @@ class AjaxController extends Controller
                 $type = 'success';
             }
         }
-    
+
         $data = [
             'utilisateurs'      => User::where('etat', 1)->get(),
             'listesdesinvites'  => listesdesinvites::where('etat', 1)->get(),
@@ -6447,7 +6516,7 @@ class AjaxController extends Controller
             'ressource_id' => $data['ressource_id_1'],
             'groupe_id'    => $data['groupe_user_id']
         ])->get();
-    
+
         return view('include.refresh_invites', $data);
     }
 
@@ -6557,7 +6626,7 @@ class AjaxController extends Controller
         $data["activites"] = Activites::where(["etat" => 1])->get();
         return view('include.refresh_editprospect', $data);
     }
-    
+
     public function refresh_editinvite(Request $request)
     {
         $data["listesdesinvites"] = listesdesinvites::where('id', $request->listesdesinvites_id)->first();
@@ -6614,12 +6683,25 @@ class AjaxController extends Controller
     public function refresh_editarticle(Request $request)
     {
         $data["articles"] = Articles::where('id', $request->user_id)->first();
+        $data["stock_id"] = $request->stock_id;
         $data["societes"] = Societes::where(["etat" => 1])->get();
         $data["mesures"] = Mesures::where(["supprimer" => 0])->get();
         $data["activites"] = Activites::where(["supprimer" => 0])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
         return view('include.refresh_editarticle', $data);
+    }
+
+    public function refresh_editarticle_stock(Request $request)
+    {
+        $data["articles"] = Articles::where('id', $request->user_id)->first();
+        $data["stock_id"] = $request->stock_id;
+        $data["societes"] = Societes::where(["etat" => 1])->get();
+        $data["mesures"] = Mesures::where(["supprimer" => 0])->get();
+        $data["activites"] = Activites::where(["supprimer" => 0])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
+        return view('include.refresh_editarticlestock', $data);
     }
 
     public function refresh_appro(Request $request)
@@ -7947,7 +8029,7 @@ class AjaxController extends Controller
         $pdf->Output("F", $nom_fichier);
         echo $nom_fichier;
     }
-    
+
     public function get_liste_invite(Request $request)
     {
         // Récupération des filtres
@@ -7958,10 +8040,10 @@ class AjaxController extends Controller
         $table = $request->input('table');
         $relation = $request->input('relation');
         $statut = $request->input('statut');
-    
+
         // Requête de base
         $invites = Listesdesinvites::where('etat', 1);
-    
+
         // Application des filtres
         if (!empty($nom)) {
             $invites->where('name', 'like', '%' . $nom . '%');
@@ -7989,16 +8071,16 @@ class AjaxController extends Controller
         if (!empty($statut) && $statut != 'all') {
             $invites->where('reponse', $statut);
         }
-    
+
         $invites = $invites->get();
         $total = $invites->count();
-    
+
         // ========================================
         // GÉNÉRATION DU PDF - DESIGN BLEU
         // ========================================
         $pdf = new FPDF();
         $pdf->AddPage();
-    
+
         // En-tête
         $pdf->SetFont('Arial', 'B', 14);
         $pdf->SetTextColor(0, 80, 160);
@@ -8010,12 +8092,12 @@ class AjaxController extends Controller
         $pdf->SetTextColor(0, 80, 160);
         $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Total : ' . $total . ' invités'), 0, 1, 'C');
         $pdf->Ln(4);
-    
+
         // Ligne décorative
         $pdf->SetDrawColor(0, 120, 220);
         $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
         $pdf->Ln(6);
-    
+
         // En-têtes des colonnes
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetFillColor(0, 80, 160);
@@ -8027,19 +8109,19 @@ class AjaxController extends Controller
         $pdf->Cell(30, 7, iconv('UTF-8', 'Windows-1252', 'TABLE'), 1, 0, 'C', true);
         $pdf->Cell(43, 7, iconv('UTF-8', 'Windows-1252', 'RELATION'), 1, 0, 'L', true);
         $pdf->Ln();
-    
+
         // Données
         $pdf->SetFont('Arial', '', 7.5);
         $num = 1;
         $fill = false;
         $lineHeight = 5.5;
-    
+
         $statutLabels = [
             1 => 'En attente',
             2 => 'Confirmé',
             3 => 'Refusé'
         ];
-    
+
         foreach ($invites as $data) {
             // Alternance de fond
             if ($fill) {
@@ -8048,15 +8130,15 @@ class AjaxController extends Controller
                 $pdf->SetFillColor(255, 255, 255);
             }
             $fill = !$fill;
-    
+
             // === Numéro (toujours noir) ===
             $pdf->SetTextColor(30, 30, 30);
             $pdf->Cell(10, $lineHeight, $num, 1, 0, 'C', true);
-    
+
             // === Nom (toujours noir) ===
             $nom_cell = iconv('UTF-8', 'Windows-1252//TRANSLIT', substr($data->name, 0, 30));
             $pdf->Cell(55, $lineHeight, $nom_cell, 1, 0, 'L', true);
-    
+
             // === Statut (rouge si Refusé) ===
             $statutLabel = $statutLabels[$data->reponse] ?? 'En attente';
             if ($data->reponse == 3) {
@@ -8065,7 +8147,7 @@ class AjaxController extends Controller
                 $pdf->SetTextColor(30, 30, 30); // noir
             }
             $pdf->Cell(30, $lineHeight, iconv('UTF-8', 'Windows-1252', $statutLabel), 1, 0, 'C', true);
-    
+
             // === Présence (rouge si 'non') ===
             $presenceText = $data->presence ?? '-';
             if ($presenceText == 'non') {
@@ -8074,7 +8156,7 @@ class AjaxController extends Controller
                 $pdf->SetTextColor(30, 30, 30); // noir
             }
             $pdf->Cell(22, $lineHeight, iconv('UTF-8', 'Windows-1252', $presenceText), 1, 0, 'C', true);
-    
+
             // === Table (toujours noir) ===
             $pdf->SetTextColor(30, 30, 30);
             $nomTable = 'Aucune';
@@ -8083,15 +8165,15 @@ class AjaxController extends Controller
                 $nomTable = $tableObj->nom ?? 'Aucune';
             }
             $pdf->Cell(30, $lineHeight, iconv('UTF-8', 'Windows-1252', $nomTable), 1, 0, 'C', true);
-    
+
             // === Relation (toujours noir) ===
             $relationAff = $data->relation ?: $data->relation_autre;
             $relation_cell = iconv('UTF-8', 'Windows-1252//TRANSLIT', substr($relationAff, 0, 25));
             $pdf->Cell(43, $lineHeight, $relation_cell, 1, 0, 'L', true);
-    
+
             $pdf->Ln();
             $num++;
-    
+
             // Saut de page avec répétition de l'en-tête
             if ($pdf->GetY() > 260) {
                 $pdf->AddPage();
@@ -8108,7 +8190,7 @@ class AjaxController extends Controller
                 $pdf->SetDrawColor(0, 120, 220);
                 $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
                 $pdf->Ln(6);
-    
+
                 $pdf->SetFont('Arial', 'B', 8);
                 $pdf->SetFillColor(0, 80, 160);
                 $pdf->SetTextColor(255, 255, 255);
@@ -8122,13 +8204,13 @@ class AjaxController extends Controller
                 $fill = true; // pour recommencer avec fond blanc sur la nouvelle page
             }
         }
-    
+
         if ($total == 0) {
             $pdf->SetFont('Arial', 'I', 10);
             $pdf->SetTextColor(150, 150, 150);
             $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'Aucun invité ne correspond aux critères.'), 0, 1, 'C');
         }
-    
+
         // Pied de page
         $pdf->SetY(-18);
         $pdf->SetDrawColor(0, 120, 220);
@@ -8138,9 +8220,9 @@ class AjaxController extends Controller
         $pdf->SetTextColor(0, 80, 160);
         $pdf->Cell(95, 5, iconv('UTF-8', 'Windows-1252', 'Généré le ' . date('d/m/Y à H:i')), 0, 0, 'L');
         $pdf->Cell(95, 5, iconv('UTF-8', 'Windows-1252', 'Page {PAGE} / {NB}'), 0, 0, 'R');
-    
+
         $pdf->AliasNbPages();
-    
+
         $nom_fichier = "Liste_des_invites.pdf";
         $pdf->Output("F", $nom_fichier);
         echo $nom_fichier;
@@ -9147,7 +9229,7 @@ class AjaxController extends Controller
     //     $pdf->Output('F', $nom_fichier);
     //     return response()->json([[$nom_fichier, number_format($cdf_montant_payer, 2, ',', ' '), number_format($usd_montant_payer, 2, ',', ' '), $tva, $taux, $payer]]);
     // }
-    
+
     // public function print_facture(Request $request)
     // {
     //     // ---------- 1. Récupération centralisée ----------
@@ -9268,9 +9350,9 @@ class AjaxController extends Controller
     //     $cumul_cdf = 0;
     //     $paiements_detail = [];
 
-    //     foreach ($paiements as $p) 
+    //     foreach ($paiements as $p)
     //     {
-    //         if ($p->devise_recu == 0) 
+    //         if ($p->devise_recu == 0)
     //         {
     //             $montant_usd = $p->montant_recu;
     //             $montant_cdf = $p->montant_recu * $taux;
@@ -14784,7 +14866,7 @@ class AjaxController extends Controller
         // 1. Récupération des deux paramètres possibles via la propriété dynamique
         $pointdeventes_id = $request->pointdeventes_id;
         $table_id = $request->table_id;
-    
+
         // 2. Détermination du point de vente et de son stock_id
         if ($pointdeventes_id) {
             // Cas de la page de facture : on a directement l'ID du point de vente
@@ -14801,19 +14883,19 @@ class AjaxController extends Controller
         } else {
             $pointdeventes = null;
         }
-    
+
         // Si aucun point de vente n'est trouvé, on retourne un select vide
         if (!$pointdeventes) {
             return '<option selected value="">Sélectionnez un article</option>';
         }
-    
+
         $stock_id = $pointdeventes->stock_id;
-    
+
         // ------------------------------------------------------------------
         // 3. Le reste du code est strictement inchangé (même logique)
         // ------------------------------------------------------------------
         $html = '<option selected value="">Sélectionnez un article</option>';
-    
+
         if ($stock_id == 0) {
             // Cas sans stock : on ne vérifie que l'activité
             $articles = Articles::where('supprimer', 0)->get();
@@ -14839,11 +14921,11 @@ class AjaxController extends Controller
                 $nomMesure = Mesures::where('id', $article->mesure_id)->first()['nom'] ?? 'N/A';
                 $nomSociete = Societes::where('id', $article->societe_id)->first()['nom'] ?? 'N/A';
                 $label = $article->nom_article . ' ' . $nomMesure . ' (' . $nomSociete . ')';
-    
+
                 // Vérifications
                 $activiteOk = ($article->activite_id != 0);
                 $stockOk = ($articlestock->stock > $articlestock->seuil_minimum); // supposé existant
-    
+
                 $disabled = false;
                 $messages = [];
                 if (!$activiteOk) {
@@ -14858,16 +14940,16 @@ class AjaxController extends Controller
                 } else {
                     $message = '';
                 }
-    
+
                 $icon = ($activiteOk && $stockOk) ? '🟢' : '🔴';
-    
+
                 // ✅ Modification : on utilise l'ID de l'article (via la clé étrangère article_id)
                 $html .= '<option value="' . $articlestock->article_id . '" ' . ($disabled ? 'disabled' : '') . '>'
                     . $icon . ' ' . e($label) . $message
                     . '</option>';
             }
         }
-    
+
         return $html;
     }
     public function delete_facture(Request $request)

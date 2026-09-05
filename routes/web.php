@@ -111,6 +111,7 @@ Route::get('/get_refresh_programme', [AjaxController::class , 'get_refresh_progr
 Route::get('/check_user_in_listespaies', [AjaxController::class , 'check_user_in_listespaies'])->name('check_user_in_listespaies');
 Route::post('/edit_groupe', [AjaxController::class , 'edit_groupe'])->name('edit_groupe');
 Route::post('/edit_article', [AjaxController::class , 'edit_article'])->name('edit_article');
+Route::post('/edit_article_stock', [AjaxController::class , 'edit_article_stock'])->name('edit_article_stock');
 Route::post('/edit_contrevenant', [AjaxController::class , 'edit_contrevenant'])->name('edit_contrevenant');
 Route::post('/edit_verbalisateur', [AjaxController::class , 'edit_verbalisateur'])->name('edit_verbalisateur');
 Route::post('/edit_type_frais', [AjaxController::class , 'edit_type_frais'])->name('edit_type_frais');
@@ -183,6 +184,7 @@ Route::get('/refresh_editeleve', [AjaxController::class , 'refresh_editeleve'])-
 Route::get('/refresh_editclient', [AjaxController::class , 'refresh_editclient'])->name('refresh_editclient');
 Route::get('/refresh_editprospect', [AjaxController::class , 'refresh_editprospect'])->name('refresh_editprospect');
 Route::get('/refresh_editarticle', [AjaxController::class , 'refresh_editarticle'])->name('refresh_editarticle');
+Route::get('/refresh_editarticle_stock', [AjaxController::class , 'refresh_editarticle_stock'])->name('refresh_editarticle_stock');
 Route::get('/refresh_appro', [AjaxController::class , 'refresh_appro'])->name('refresh_appro');
 Route::get('/get_liste_credit', [AjaxController::class , 'get_liste_credit'])->name('get_liste_credit');
 Route::get('/get_liste_employe', [AjaxController::class , 'get_liste_employe'])->name('get_liste_employe');

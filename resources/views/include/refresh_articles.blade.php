@@ -101,7 +101,7 @@ use Illuminate\Support\Facades\Auth;
                         $__d2 = explode('/', $data->date_expiration)[0];
                         $__m2 = explode('/', $data->date_expiration)[1];
                         $__y2 = explode('/', $data->date_expiration)[2];
-
+                        
                         $date_1 = date('' . $__m1 . '/' . $__d1 . '/' . $__y1 . '');
                         $date_2 = date('' . $__m2 . '/' . $__d2 . '/' . $__y2 . '');
                         while (strtotime($date_1) <= strtotime($date_2)) {
@@ -182,6 +182,7 @@ use Illuminate\Support\Facades\Auth;
                                 e.preventDefault();
                                 $.get("{{ url('/refresh_editarticle') }}", {
                                     user_id: <?= $data->id ?>,
+                                    stock_id: <?= '0' ?>,
                                 }, function(refresh_editarticle) {
                                     $("#bloc_1").hide();
                                     $("#bloc_2").hide();

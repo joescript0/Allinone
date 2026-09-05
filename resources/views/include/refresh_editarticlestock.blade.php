@@ -431,16 +431,18 @@ if ($stock_id != 0) {
             $("#edit_save").attr("disabled", true);
             $.ajax({
                 type: "POST",
-                url: "/edit_article",
+                url: "/edit_article_stock",
                 data: data,
                 success: function(response) {
                     $("#edit_save").attr("disabled", false);
                     $('#edit_msg').html('<i class="zmdi zmdi-check-circle"></i> Article modifié avec succès');
                     // On recharge le tableau
-                    $("#content_utilisateur").html(response);
                     setTimeout(() => {
                         $('#edit_msg').html("");
-                    }, 9000);
+                        $.get("{{ url('/refresh_article_stock') }}", { stock_id: "<?= $stock_id ?>" }, function(liste_r) {
+                            $("#bloc_1").hide(); $("#bloc_2").hide(); $("#bloc_3").show(); $("#bloc_3").html(liste_r);
+                        });
+                    }, 5000);
                     // Optionnel : retour à la liste après modification
                     // $("#bloc_1").show();
                     // $("#bloc_2").hide();

@@ -1078,6 +1078,7 @@ use Illuminate\Support\Facades\Auth;
                                                         e.preventDefault();
                                                         $.get("{{ url('/refresh_editarticle') }}", {
                                                             user_id: <?= $data->id ?>,
+                                                            stock_id : <?= "0" ?>,
                                                         }, function(refresh_editarticle) {
                                                             $("#bloc_1").hide();
                                                             $("#bloc_2").hide();
