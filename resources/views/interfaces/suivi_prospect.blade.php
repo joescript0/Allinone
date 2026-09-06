@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 ?>
 @extends('layouts.main')
 @section('title', $nom_app)
-@section('name', 'GESTION DE PROSPECTS')
+@section('name', 'SUIVI DE PROSPECT')
 @section('body')
 @include('composants.preload')
 @include('composants.header')
@@ -522,6 +522,9 @@ select.form-control {
 .table tbody td a i.zmdi-pin {
     color: #3b82f6;
 }
+.table tbody td a i.zmdi-save {
+    /* couleur gérée dynamiquement via les classes text-danger / text-success */
+}
 .table tbody td a:hover {
     background: #e0f2fe;
     transform: translateY(-2px);
@@ -534,6 +537,12 @@ select.form-control {
 }
 .table tbody td a:hover i.zmdi-pin {
     color: #1d4ed8;
+}
+.table tbody td a:hover i.zmdi-save.text-danger {
+    color: #b91c1c;
+}
+.table tbody td a:hover i.zmdi-save.text-success {
+    color: #059669;
 }
 
 /* ========== BARRE D'ACTIONS (EN TÊTE) ========== */
@@ -1003,10 +1012,23 @@ select.form-control {
                                                data-email="<?= htmlspecialchars($data->email ?? '') ?>">
                                                 <i class="zmdi zmdi-pin"></i>
                                             </a> &nbsp;
+                                            <!-- ===== TRANSFORMATION (après la carte) ===== -->
+                                            <?php if (($edit == 1) || (Auth::user()->role == 0)) { ?>
+                                                <a id="transform_<?= $i ?>" href="#"
+                                                   data-id="<?= $data->id ?>"
+                                                   data-nom="<?= htmlspecialchars($data->name) ?>"
+                                                   data-client-id="<?= $data->client_id ?>">
+                                                    <i class="zmdi zmdi-save <?= $data->client_id == 0 ? 'text-danger' : 'text-success' ?>"></i>
+                                                </a> &nbsp;
+                                            <?php } else { ?>
+                                                <a id="transform_r<?= $i ?>" href="#">
+                                                    <i class="zmdi zmdi-save text-muted"></i>
+                                                </a> &nbsp;
+                                            <?php } ?>
                                             <script>
                                                 $("#edit_<?= $i ?>").click(function(e) {
                                                     e.preventDefault();
-                                                    $.get("{{ url('/refresh_editprospect') }}", {
+                                                    $.get("{{ url('/refresh_editprospectsuivi') }}", {
                                                         prospect_id: <?= $data->id ?>,
                                                     }, function(refresh_editutilisateur) {
                                                         $("#bloc_1").hide();
@@ -1247,6 +1269,32 @@ select.form-control {
     </div>
 </div>
 
+<!-- ===== MODAL DE CONFIRMATION TRANSFORMATION PROSPECT -> CLIENT ===== -->
+<button style="display: none;" data-toggle="modal" data-target="#transformModal" id="btn_transform">Transform</button>
+<div class="modal fade" id="transformModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="font-weight: bold;font-size: 16px;">
+                    <i class="zmdi zmdi-check-circle text-success"></i> Transformer en client ?
+                </h5>
+            </div>
+            <div class="modal-body">
+                <p id="transformElement" style="text-align: center; font-weight: 500;"></p>
+                <p class="text-muted text-center" style="font-size: 0.9rem;">Cette action est irréversible.</p>
+            </div>
+            <div style="font-weight: bold;text-align: center; padding-bottom: 15px;">
+                <a id="transformOui" href="#" class="btn btn-success btn-sm">
+                    <i class="zmdi zmdi-check"></i> Oui, transformer
+                </a>
+                <button id="transformNon" class="btn btn-danger btn-sm" data-dismiss="modal">
+                    <i class="zmdi zmdi-close"></i> Non
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ===== MODAL POUR LA CARTE D'UN CLIENT (individuel) AVEC BOUTON PARTAGER ===== -->
 <div class="modal fade" id="mapModal" tabindex="-1" role="dialog" aria-labelledby="mapModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
@@ -1385,7 +1433,7 @@ select.form-control {
         }
     }
 
-    $("#link_46").addClass("active");
+    $("#link_50").addClass("active");
 
     // ========== FILTRES AVEC PERSISTANCE ==========
     let clientFilterTimeout;
@@ -1666,7 +1714,7 @@ select.form-control {
         } else {
             // === CONCATÉNATION DU PARAMÈTRE "page=25" ===
             var serialized = $('#form_add').serialize();
-            var dataWithExtra = serialized + '&page=25';
+            var dataWithExtra = serialized + '&page=29';
 
             $("#save").attr("disabled", true);
             $.ajax({
@@ -1703,7 +1751,7 @@ select.form-control {
         var id = $("#data_id").html();
         $.get("{{ url('/refresh_deleteprospect') }}", {
             id: id,
-            page: 25
+            page: 29,
         }, function(refresh_editutilisateur) {
             $("#content_utilisateur").html(refresh_editutilisateur);
             $("#non").trigger("click");
@@ -1715,12 +1763,86 @@ select.form-control {
         });
     });
 
+    // ===== TRANSFORMATION PROSPECT -> CLIENT (avec gestion client_id) =====
+    $(document).on('click', 'a[id^="transform_"]', function(e) {
+        e.preventDefault();
+        // Si le lien est un "transform_r" (pas de droits)
+        if ($(this).attr('id').startsWith('transform_r')) {
+            $('#infoModal .modal-body').html(
+                '<i class="zmdi zmdi-alert-triangle text-danger"></i> Vous n\'avez pas les droits pour effectuer cette action.'
+            );
+            $('#infoModal').modal('show');
+            return;
+        }
+
+        // Récupération des données
+        var clientId = $(this).data('client-id');
+        var id = $(this).data('id');
+        var nom = $(this).data('nom');
+
+        // Si déjà transformé (client_id > 0)
+        if (clientId > 0) {
+            $('#infoModal .modal-body').html(
+                '<i class="zmdi zmdi-check-circle text-success" style="font-size: 20px; margin-right: 10px;"></i> ' +
+                'Ce prospect a déjà été transformé en client.'
+            );
+            $('#infoModal').modal('show');
+            return;
+        }
+
+        // Sinon, on affiche la confirmation de transformation
+        $('#transformElement').html('Voulez-vous transformer <strong>' + nom + '</strong> en client ?');
+        $('#transformModal').data('id', id);
+        $('#btn_transform').click();
+    });
+
+    // Action "Oui" dans le modal de transformation
+    $('#transformOui').click(function(e) {
+        e.preventDefault();
+        var id = $('#transformModal').data('id');
+        if (!id) {
+            $('#infoModal .modal-body').html('Erreur : aucun identifiant fourni.');
+            $('#infoModal').modal('show');
+            return;
+        }
+        $(this).prop('disabled', true).html('<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Transformation...');
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/transform_prospect') }}",
+            data: { id: id, _token: '{{ csrf_token() }}' },
+            success: function(response) {
+                $('#transformNon').click(); // ferme le modal
+                // Mettre à jour la liste
+                $('#content_utilisateur').html(response);
+                saveClientFiltersToStorage();
+                setTimeout(function() {
+                    loadClientFiltersFromStorage();
+                    filterClients();
+                }, 100);
+                showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Prospect transformé en client avec succès.', 4000);
+            },
+            error: function(xhr) {
+                $('#transformNon').click();
+                var errorMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Erreur lors de la transformation.';
+                showMsg('error', '<i class="zmdi zmdi-close-circle"></i> ' + errorMsg, 5000);
+            },
+            complete: function() {
+                $('#transformOui').prop('disabled', false).html('<i class="zmdi zmdi-check"></i> Oui, transformer');
+            }
+        });
+    });
+
+    $('#transformModal').on('hidden.bs.modal', function() {
+        $('#transformModal').data('id', null);
+        $('#transformOui').prop('disabled', false).html('<i class="zmdi zmdi-check"></i> Oui, transformer');
+    });
+
     window.addEventListener('beforeunload', function() {
         saveClientFiltersToStorage();
     });
 
     $(document).ajaxComplete(function(event, xhr, settings) {
-        if (settings.url && (settings.url.includes('refresh_') || settings.url.includes('add_client') || settings.url.includes('deleteclient'))) {
+        if (settings.url && (settings.url.includes('refresh_') || settings.url.includes('add_client') || settings.url.includes('deleteclient') || settings.url.includes('transform_prospect'))) {
             setTimeout(() => {
                 const totalClients = $('#content_utilisateur tbody tr').length;
                 $('#clientCount').text(totalClients);

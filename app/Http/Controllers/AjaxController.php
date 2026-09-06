@@ -2732,6 +2732,7 @@ class AjaxController extends Controller
         $user->image = $request->image;
         $user->poste_id = $request->poste_id;
         $user->activite_id = $request->activite_id;
+        $user->user_id =  Auth::user()->id;
         $user->save();
         $nombre = 1;
         $matricule = "";
@@ -3422,10 +3423,10 @@ class AjaxController extends Controller
         $clients->paiement = $request->paiement;
         $clients->devise = $request->devise;
         $clients->factures = $request->facture;
+        $clients->user_id = Auth::user()->id;
         $clients->password = Hash::make("12345");
         $clients->mdp = "12345";
         $clients->phone = $request->phone;
-        $clients->user_id =  Auth::user()->id;
         $clients->etat = 1;
         $clients->recherche = "";
         $clients->image = 'storage/images/user/profil_defaut.png';
@@ -3449,6 +3450,89 @@ class AjaxController extends Controller
         return view('include.refresh_client', $data);
     }
 
+    public function transform_prospect(Request $request)
+    {
+        $prospects =  prospects::where(["id" => $request->id])->first();
+
+        $id = Clients::get()->count() + 1;
+        $clients = new Clients();
+        $clients->id = $id;
+        $clients->name = $prospects->nom;
+        $clients->email = $prospects->email;
+        if(strlen(trim($prospects->email)) == 0)
+        {
+            $clients->email = 'client' . $id . '@gmail.com';
+        }
+        else
+        {
+            $clients->email = $prospects->email;
+        }
+
+        if(strlen(trim($prospects->adresse)) == 0)
+        {
+            $clients->adresse = "";
+        }
+        else
+        {
+            $clients->adresse = $prospects->adresse;
+        }
+        if(strlen(trim($request->prospects)) == 0)
+        {
+            $clients->description = "";
+        }
+        else
+        {
+            $clients->description = $prospects->description;
+        }
+        if(strlen(trim($prospects->latitude)) != 0){
+             $clients->latitude = $prospects->latitude;
+        }else{
+            $clients->latitude = 0;
+        }
+        if(strlen(trim($prospects->longitude)) != 0){
+             $clients->longitude = $prospects->longitude;
+        }else{
+            $clients->longitude = 0;
+        }
+        $clients->activite_id = $prospects->activite_id;
+        $clients->type = $prospects->type;
+        $clients->paiement = $prospects->paiement;
+        $clients->devise = $prospects->devise;
+        $clients->factures = $prospects->factures;
+        $clients->password = Hash::make("12345");
+        $clients->mdp = "12345";
+        $clients->phone = $prospects->phone;
+        $clients->user_id =  Auth::user()->id;
+        $clients->etat = 1;
+        $clients->recherche = "";
+        $clients->image = 'storage/images/user/profil_defaut.png';
+        $clients->save();
+
+        $prospects->client_id = $id;
+        $prospects->date_client = date("d/m/Y");
+        $prospects->save();
+
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 14;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        if(Auth::user()->role == 0)
+        {
+            $data["clients"] = Clients::where(["etat" => 1])->get();
+            $data["prospects"] = prospects::where(["etat" => 1])->get();
+        }
+        elseif(Auth::user()->role != 0)
+        {
+            $data["clients"] = Clients::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
+            $data["prospects"] = prospects::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
+        }
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        return view('include.refresh_prospectsuivi', $data);
+    }
+
     public function add_prospect(Request $request)
     {
         $id = prospects::get()->count() + 1;
@@ -3457,7 +3541,7 @@ class AjaxController extends Controller
         $prospects->name = $request->nom;
         if(strlen(trim($request->email)) == 0)
         {
-            $prospects->email = "";
+            $prospects->email =  'prospect' . $id . '@gmail.com';
         }
         else
         {
@@ -3495,6 +3579,7 @@ class AjaxController extends Controller
         $prospects->paiement = $request->paiement;
         $prospects->devise = $request->devise;
         $prospects->factures = $request->facture;
+        $prospects->date_client = "00/00/0000";
         $prospects->password = Hash::make("12345");
         $prospects->mdp = "12345";
         $prospects->phone = $request->phone;
@@ -3505,8 +3590,6 @@ class AjaxController extends Controller
         $prospects->save();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 14;
-        $data["groupe_user_id"] = $groupe_user_id;
         $data["utilisateurs"] = User::where(["etat" => 1])->get();
         if(Auth::user()->role == 0)
         {
@@ -3520,8 +3603,20 @@ class AjaxController extends Controller
         }
         $data["activites"] = Activites::where(["etat" => 1])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
-        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
-        return view('include.refresh_prospect', $data);
+        if($request->page == 25)
+        {
+            $data["ressource_id_1"] = $request->page;
+            $data["groupe_user_id"] = $groupe_user_id;
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            return view('include.refresh_prospect', $data);
+        }
+        else if($request->page == 29)
+        {
+            $data["ressource_id_1"] = $request->page;
+            $data["groupe_user_id"] = $groupe_user_id;
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            return view('include.refresh_prospectsuivi', $data);
+        }
     }
 
     public function add_invites(Request $request)
@@ -6224,7 +6319,7 @@ class AjaxController extends Controller
         $listesdesinvites->table_id = $request->edit_table_id;
         if(strlen(trim($request->edit_email)) == 0)
         {
-            $listesdesinvites->email = 'invite' . $request->id . '@gmail.com' ;
+            $listesdesinvites->email = 'invite' . $request->id . '@gmail.com';
         }
         else
         {
@@ -6249,6 +6344,69 @@ class AjaxController extends Controller
     }
 
     public function edit_prospect(Request $request)
+    {
+        $prospects = prospects::where('id', $request->id)->first();
+        $prospects->name = $request->edit_nom;
+        $prospects->email = $request->edit_email;
+        $prospects->phone = $request->edit_phone;
+        $prospects->paiement = $request->edit_paiement;
+        $prospects->devise = $request->edit_devise;
+        $prospects->description = $request->edit_description;
+        $prospects->factures = $request->edit_facture;
+        if(strlen(trim($request->edit_email)) == 0)
+        {
+            $prospects->email = 'prospect' . $request->id . '@gmail.com';
+        }
+        else
+        {
+            $prospects->email = $request->edit_email;
+        }
+
+        if(strlen(trim($request->edit_adresse)) == 0)
+        {
+            $prospects->adresse = "";
+        }
+        else
+        {
+            $prospects->adresse = $request->edit_adresse;
+        }
+
+        if(strlen(trim($request->edit_description)) == 0)
+        {
+            $prospects->description = "";
+        }
+        else
+        {
+            $prospects->description = $request->edit_description;
+        }
+
+        if(strlen(trim($request->edit_latitude)) != 0){
+             $prospects->latitude = $request->edit_latitude;
+        }else{
+            $prospects->latitude = 0;
+        }
+        if(strlen(trim($request->edit_longitude)) != 0){
+             $prospects->longitude = $request->edit_longitude;
+        }else
+        {
+            $prospects->longitude = 0;
+        }
+        $prospects->activite_id = $request->edit_activite_id;
+        $prospects->type = $request->edit_type_client;
+        $prospects->save();
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 14;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        $data["clients"] = Clients::where(["etat" => 1])->get();
+        $data["prospects"] = prospects::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        return view('include.refresh_prospect', $data);
+    }
+
+    public function edit_prospectsuivi(Request $request)
     {
         $prospects = prospects::where('id', $request->id)->first();
         $prospects->name = $request->edit_nom;
@@ -6308,7 +6466,7 @@ class AjaxController extends Controller
         $data["activites"] = Activites::where(["etat" => 1])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
-        return view('include.refresh_prospect', $data);
+        return view('include.refresh_prospectsuivi', $data);
     }
 
     public function cloturer_proces(Request $request)
@@ -6443,6 +6601,33 @@ class AjaxController extends Controller
         $data["groupe_user_id"] = $groupe_user_id;
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         return view('include.refresh_client', $data);
+    }
+
+    public function refresh_deleteprospect(Request $request)
+    {
+        $client = prospects::where('id', $request->id)->first();
+        $client->etat = 0;
+        $client->save();
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        $data["prospects"] = prospects::where(["etat" => 1])->get();
+        $data["clients"] = Clients::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $groupe_user_id = Auth::user()->role;
+        if($request->page == 25)
+        {
+            $data["ressource_id_1"] = $request->page;
+            $data["groupe_user_id"] = $groupe_user_id;
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            return view('include.refresh_prospect', $data);
+        }
+        else if($request->page == 29)
+        {
+            $data["ressource_id_1"] = $request->page;
+            $data["groupe_user_id"] = $groupe_user_id;
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            return view('include.refresh_prospectsuivi', $data);
+        }
     }
 
     public function refresh_deleteinvite(Request $request)
@@ -6625,6 +6810,14 @@ class AjaxController extends Controller
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $data["activites"] = Activites::where(["etat" => 1])->get();
         return view('include.refresh_editprospect', $data);
+    }
+
+    public function refresh_editprospectsuivi(Request $request)
+    {
+        $data["prospects"] = prospects::where('id', $request->prospect_id)->first();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        return view('include.refresh_editprospectsuivi', $data);
     }
 
     public function refresh_editinvite(Request $request)
@@ -7821,57 +8014,236 @@ class AjaxController extends Controller
 
     public function get_liste_employe(Request $request)
     {
-        $utilisateurs = User::where(function($query){
-            $query->where('role', '<>', 0);
-        })->where(function($query){
-            $query->where('etat', '=', 1);
-        })->get();
-        $groupes = Groupes::where(["etat" => 1])->get();
+        // Récupération des filtres via les propriétés de la requête
+        $matricule = $request->matricule;
+        $nom = $request->nom;
+        $email = $request->email;
+        $phone = $request->phone;
+        $role = $request->role;
+        $poste = $request->poste;
+        $salaire = $request->salaire;
+        $userId = $request->userId;
+
+        // Construction de la requête
+        $query = User::where('etat', 1)->where('role', '<>', 0);
+
+        if (!empty($matricule)) {
+            $query->where('matricule', 'like', '%' . $matricule . '%');
+        }
+        if (!empty($nom)) {
+            $query->where('name', 'like', '%' . $nom . '%');
+        }
+        if (!empty($email)) {
+            $query->where('email', 'like', '%' . $email . '%');
+        }
+        if (!empty($phone)) {
+            $query->where('phone', 'like', '%' . $phone . '%');
+        }
+        if (!empty($role) && $role !== 'all') {
+            $query->where('role', $role);
+        }
+        if (!empty($poste) && $poste !== 'all') {
+            $query->where('poste_id', $poste);
+        }
+        if ($salaire !== null && $salaire !== '' && is_numeric($salaire)) {
+            $query->where('salaire', $salaire);
+        }
+        if (!empty($userId) && $userId !== 'all') {
+            $query->where('user_id', $userId);
+        }
+
+        $utilisateurs = $query->get();
+        $groupes = Groupes::where('etat', 1)->get();
+        $total = $utilisateurs->count();
+
+        // ========================================
+        // GÉNÉRATION DU PDF - STYLE UNIFIÉ
+        // ========================================
         $pdf = new FPDF();
         $pdf->AddPage();
-        $pdf->Image("./connexion/images/logo_africtech.jpg", 10, 10, 70, 30);
-        $pdf->SetFont('Arial', 'B', 10);
-        $pdf->Ln(40);
+
+        // ----- En-tête -----
+        $pdf->SetFont('Arial', 'B', 14);
+        $pdf->SetTextColor(0, 80, 160);
+        $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'LISTE DES UTILISATEURS'), 0, 1, 'C');
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->SetTextColor(80, 80, 80);
+        $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Gestion des utilisateurs'), 0, 1, 'C');
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->SetTextColor(0, 80, 160);
+        $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Total : ' . $total . ' utilisateurs'), 0, 1, 'C');
+
+        // Affichage des filtres appliqués
+        $filtres = [];
+        if (!empty($matricule)) $filtres[] = 'Matricule: ' . $matricule;
+        if (!empty($nom)) $filtres[] = 'Nom: ' . $nom;
+        if (!empty($email)) $filtres[] = 'Email: ' . $email;
+        if (!empty($phone)) $filtres[] = 'Tél: ' . $phone;
+        if (!empty($role) && $role !== 'all') {
+            $groupe = Groupes::find($role);
+            $filtres[] = 'Rôle: ' . ($groupe ? $groupe->nom : $role);
+        }
+        if (!empty($poste) && $poste !== 'all') {
+            $posteModel = \App\Models\Postes::find($poste);
+            $filtres[] = 'Poste: ' . ($posteModel ? $posteModel->nom : $poste);
+        }
+        if (!empty($salaire) && is_numeric($salaire)) {
+            $filtres[] = 'Salaire: ' . $salaire;
+        }
+        if (!empty($userId) && $userId !== 'all') {
+            $user = User::find($userId);
+            $filtres[] = 'Utilisateur: ' . ($user ? $user->name : $userId);
+        }
+
+        if (count($filtres) > 0) {
+            $pdf->SetFont('Arial', 'I', 8);
+            $pdf->SetTextColor(80, 80, 80);
+            $pdf->Cell(190, 5, iconv('UTF-8', 'Windows-1252', 'Filtres : ' . implode(' | ', $filtres)), 0, 1, 'C');
+        }
+
+        $pdf->Ln(4);
+
+        // Ligne décorative
+        $pdf->SetDrawColor(0, 120, 220);
+        $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
+        $pdf->Ln(6);
+
+        // ----- En-tête du tableau -----
+        $pdf->SetFont('Arial', 'B', 8);
+        $pdf->SetFillColor(0, 80, 160);
         $pdf->SetTextColor(255, 255, 255);
-        $pdf->SetFillColor(0, 0, 0);
-        $pdf->Cell(190, 15, iconv('UTF-8', 'Windows-1252', 'LISTE DES UTILISATEURS'), 0, 1, 'C', true);
-        $pdf->Ln(2);
-        $pdf->SetFont('Arial', 'B', 7);
-        $pdf->SetTextColor(0, 0, 0);
-        $pdf->Cell(190, 5, iconv('UTF-8', 'Windows-1252', ' Utilisateurs total : ' . $utilisateurs->count()), 0, 0, 'R');
-        $pdf->Ln(7);
-        $pdf->SetTextColor(0, 0, 0);
-        $pdf->Cell(45, 5, iconv('UTF-8', 'Windows-1252', 'NOM'), 1, 0, 'L');
-        $pdf->Cell(20, 5, iconv('UTF-8', 'Windows-1252', 'SALAIRE'), 1, 0, 'L');
-        $pdf->Cell(45, 5, iconv('UTF-8', 'Windows-1252', 'EMAIL'), 1, 0, 'L');
-        $pdf->Cell(25, 5, iconv('UTF-8', 'Windows-1252', 'TELEPHONE'), 1, 0, 'L');
-        $pdf->Cell(55, 5, iconv('UTF-8', 'Windows-1252', 'ROLE / FONCTION'), 1, 0, 'L');
-        foreach ($utilisateurs as $data)
-        {
-            $pdf->Ln(5);
-            $pdf->SetFont('Arial', '', 7);
-            $pdf->SetTextColor(0, 0, 0);
-            $pdf->Cell(45, 5, iconv('UTF-8', 'Windows-1252', $data->name), 1, 0, 'L');
-            if($data->devise == 0)
-            {
-                $pdf->Cell(20, 5, iconv('UTF-8', 'Windows-1252', number_format($data->salaire, 2, ',', ' ') .'$'), 1, 0, 'L');
+        $pdf->Cell(10, 7, iconv('UTF-8', 'Windows-1252', 'N°'), 1, 0, 'C', true);
+        $pdf->Cell(25, 7, iconv('UTF-8', 'Windows-1252', 'MATRICULE'), 1, 0, 'C', true);
+        $pdf->Cell(40, 7, iconv('UTF-8', 'Windows-1252', 'NOM'), 1, 0, 'L', true);
+        $pdf->Cell(20, 7, iconv('UTF-8', 'Windows-1252', 'SALAIRE'), 1, 0, 'L', true);
+        $pdf->Cell(40, 7, iconv('UTF-8', 'Windows-1252', 'EMAIL'), 1, 0, 'L', true);
+        $pdf->Cell(20, 7, iconv('UTF-8', 'Windows-1252', 'TÉLÉPHONE'), 1, 0, 'L', true);
+        $pdf->Cell(35, 7, iconv('UTF-8', 'Windows-1252', 'ROLE / FONCTION'), 1, 0, 'L', true);
+        $pdf->Ln();
+
+        // ----- Données -----
+        $pdf->SetFont('Arial', '', 7.5);
+        $num = 1;
+        $rowCount = 0;
+        $lineHeight = 5.5;
+
+        foreach ($utilisateurs as $data) {
+            // Alternance de fond
+            if ($rowCount % 2 == 0) {
+                $pdf->SetFillColor(255, 255, 255);
+            } else {
+                $pdf->SetFillColor(235, 245, 255);
             }
-            else
-            {
-                $pdf->Cell(20, 5, iconv('UTF-8', 'Windows-1252', number_format($data->salaire, 2, ',', ' ') .'Fc'), 1, 0, 'L');
+
+            $pdf->SetTextColor(30, 30, 30);
+
+            // Numéro
+            $pdf->Cell(10, $lineHeight, $num, 1, 0, 'C', true);
+
+            // Matricule
+            $pdf->Cell(25, $lineHeight, iconv('UTF-8', 'Windows-1252', $data->matricule ?? ''), 1, 0, 'C', true);
+
+            // Nom
+            $pdf->Cell(40, $lineHeight, iconv('UTF-8', 'Windows-1252//TRANSLIT', substr($data->name, 0, 25)), 1, 0, 'L', true);
+
+            // Salaire (avec la même logique que la vue)
+            if (Auth::user()->role == 0) {
+                if ($data->devise == 0) {
+                    $salaireAffiche = number_format($data->salaire, 2, ',', ' ') . ' USD';
+                } else {
+                    $salaireAffiche = number_format($data->salaire, 2, ',', ' ') . ' CDF';
+                }
+            } else {
+                if ($data->devise == 0) {
+                    $salaireAffiche = number_format(0, 2, ',', ' ') . ' USD';
+                } else {
+                    $salaireAffiche = number_format(0, 2, ',', ' ') . ' CDF';
+                }
             }
-            $pdf->Cell(45, 5, iconv('UTF-8', 'Windows-1252', $data->email), 1, 0, 'L');
-            $pdf->Cell(25, 5, iconv('UTF-8', 'Windows-1252', $data->phone), 1, 0, 'L');
-            if ($groupes->count() != 0)
-            {
-                $pdf->Cell(55, 5, iconv('UTF-8', 'Windows-1252', Groupes::where('id', $data->role)->first()["nom"]), 1, 0, 'L');
+            $pdf->Cell(20, $lineHeight, iconv('UTF-8', 'Windows-1252', $salaireAffiche), 1, 0, 'L', true);
+
+            // Email
+            $pdf->Cell(40, $lineHeight, iconv('UTF-8', 'Windows-1252', $data->email), 1, 0, 'L', true);
+
+            // Téléphone
+            $pdf->Cell(20, $lineHeight, iconv('UTF-8', 'Windows-1252', $data->phone), 1, 0, 'L', true);
+
+            // Rôle
+            $nomRole = ($groupes->count() > 0) ? (Groupes::where('id', $data->role)->first()["nom"] ?? '') : '';
+            $pdf->Cell(35, $lineHeight, iconv('UTF-8', 'Windows-1252//TRANSLIT', substr($nomRole, 0, 20)), 1, 0, 'L', true);
+
+            $pdf->Ln();
+            $num++;
+            $rowCount++;
+
+            // Saut de page avec répétition de l'en-tête
+            if ($pdf->GetY() > 260) {
+                $pdf->AddPage();
+
+                // Ré-entête simplifié
+                $pdf->SetFont('Arial', 'B', 14);
+                $pdf->SetTextColor(0, 80, 160);
+                $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'LISTE DES UTILISATEURS (suite)'), 0, 1, 'C');
+                $pdf->SetFont('Arial', '', 9);
+                $pdf->SetTextColor(80, 80, 80);
+                $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Suite de la liste'), 0, 1, 'C');
+                $pdf->Ln(4);
+                $pdf->SetDrawColor(0, 120, 220);
+                $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
+                $pdf->Ln(6);
+
+                // Ré-en-tête du tableau
+                $pdf->SetFont('Arial', 'B', 8);
+                $pdf->SetFillColor(0, 80, 160);
+                $pdf->SetTextColor(255, 255, 255);
+                $pdf->Cell(10, 7, iconv('UTF-8', 'Windows-1252', 'N°'), 1, 0, 'C', true);
+                $pdf->Cell(25, 7, iconv('UTF-8', 'Windows-1252', 'MATRICULE'), 1, 0, 'C', true);
+                $pdf->Cell(40, 7, iconv('UTF-8', 'Windows-1252', 'NOM'), 1, 0, 'L', true);
+                $pdf->Cell(20, 7, iconv('UTF-8', 'Windows-1252', 'SALAIRE'), 1, 0, 'L', true);
+                $pdf->Cell(40, 7, iconv('UTF-8', 'Windows-1252', 'EMAIL'), 1, 0, 'L', true);
+                $pdf->Cell(20, 7, iconv('UTF-8', 'Windows-1252', 'TÉLÉPHONE'), 1, 0, 'L', true);
+                $pdf->Cell(35, 7, iconv('UTF-8', 'Windows-1252', 'ROLE / FONCTION'), 1, 0, 'L', true);
+                $pdf->Ln();
+
+                $pdf->SetFont('Arial', '', 7.5);
+                $rowCount = 0; // pour recommencer l'alternance
             }
         }
-        $nom_fichier =  "Liste_des_utilisateurs" . ".pdf";
+
+        if ($total == 0) {
+            $pdf->SetFont('Arial', 'I', 10);
+            $pdf->SetTextColor(150, 150, 150);
+            $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'Aucun utilisateur ne correspond aux critères.'), 0, 1, 'C');
+        }
+
+        // ----- Pied de page -----
+        $pdf->SetY(-18);
+        $pdf->SetDrawColor(0, 120, 220);
+        $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
+        $pdf->SetY(-15);
+        $pdf->SetFont('Arial', 'I', 7);
+        $pdf->SetTextColor(0, 80, 160);
+        $pdf->Cell(95, 5, iconv('UTF-8', 'Windows-1252', 'Total : ' . $total . ' utilisateurs - Généré le ' . date('d/m/Y à H:i')), 0, 0, 'L');
+        $pdf->Cell(95, 5, iconv('UTF-8', 'Windows-1252', 'Page {PAGE} / {NB}'), 0, 0, 'R');
+
+        $pdf->AliasNbPages();
+
+        // ----- Nom du fichier dynamique -----
+        $nom_fichier = 'liste_utilisateurs';
+        if (!empty($matricule)) $nom_fichier .= '_matricule_' . preg_replace('/[^a-zA-Z0-9]/', '_', $matricule);
+        if (!empty($nom)) $nom_fichier .= '_nom_' . preg_replace('/[^a-zA-Z0-9]/', '_', $nom);
+        if (!empty($email)) $nom_fichier .= '_email_' . preg_replace('/[^a-zA-Z0-9@.]/', '_', $email);
+        if (!empty($phone)) $nom_fichier .= '_tel_' . preg_replace('/[^0-9+]/', '_', $phone);
+        if (!empty($role) && $role !== 'all') $nom_fichier .= '_role_' . $role;
+        if (!empty($poste) && $poste !== 'all') $nom_fichier .= '_poste_' . $poste;
+        if (!empty($salaire) && is_numeric($salaire)) $nom_fichier .= '_salaire_' . $salaire;
+        if (!empty($userId) && $userId !== 'all') $nom_fichier .= '_user_' . $userId;
+        $nom_fichier .= '.pdf';
+        $nom_fichier = preg_replace('/[^a-zA-Z0-9_\-.]/', '_', $nom_fichier);
+
         $pdf->Output("F", $nom_fichier);
         echo $nom_fichier;
     }
-
 
     public function get_liste_qr_code(Request $request)
     {

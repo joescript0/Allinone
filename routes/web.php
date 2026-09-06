@@ -174,6 +174,7 @@ Route::post('/edit_utilisateur_profil', [AjaxController::class , 'edit_utilisate
 Route::post('/edit_client', [AjaxController::class , 'edit_client'])->name('edit_client');
 Route::post('/edit_invite', [AjaxController::class , 'edit_invite'])->name('edit_invite');
 Route::post('/edit_prospect', [AjaxController::class , 'edit_prospect'])->name('edit_prospect');
+Route::post('/edit_prospectsuivi', [AjaxController::class , 'edit_prospectsuivi'])->name('edit_prospectsuivi');
 Route::post('/edit_invitations', [AjaxController::class , 'edit_invitations'])->name('edit_invitations');
 Route::post('/edit_decisions', [AjaxController::class , 'edit_decisions'])->name('edit_decisions');
 Route::get('/refresh_editutilisateur', [AjaxController::class , 'refresh_editutilisateur'])->name('refresh_editutilisateur');
@@ -183,6 +184,7 @@ Route::get('/refresh_editecole', [AjaxController::class , 'refresh_editecole'])-
 Route::get('/refresh_editeleve', [AjaxController::class , 'refresh_editeleve'])->name('refresh_editeleve');
 Route::get('/refresh_editclient', [AjaxController::class , 'refresh_editclient'])->name('refresh_editclient');
 Route::get('/refresh_editprospect', [AjaxController::class , 'refresh_editprospect'])->name('refresh_editprospect');
+Route::get('/refresh_editprospectsuivi', [AjaxController::class , 'refresh_editprospectsuivi'])->name('refresh_editprospectsuivi');
 Route::get('/refresh_editarticle', [AjaxController::class , 'refresh_editarticle'])->name('refresh_editarticle');
 Route::get('/refresh_editarticle_stock', [AjaxController::class , 'refresh_editarticle_stock'])->name('refresh_editarticle_stock');
 Route::get('/refresh_appro', [AjaxController::class , 'refresh_appro'])->name('refresh_appro');
@@ -201,6 +203,7 @@ Route::get('/refresh_deleteposte', [AjaxController::class , 'refresh_deleteposte
 Route::get('/refresh_deleteecole', [AjaxController::class , 'refresh_deleteecole'])->name('refresh_deleteecole');
 Route::get('/refresh_deleteeleve', [AjaxController::class , 'refresh_deleteeleve'])->name('refresh_deleteeleve');
 Route::get('/refresh_deleteclient', [AjaxController::class , 'refresh_deleteclient'])->name('refresh_deleteclient');
+Route::get('/refresh_deleteprospect', [AjaxController::class , 'refresh_deleteprospect'])->name('refresh_deleteprospect');
 Route::get('/delete_operation', [AjaxController::class , 'delete_operation'])->name('delete_operation');
 Route::get('/delete_operation_2', [AjaxController::class , 'delete_operation_2'])->name('delete_operation_2');
 Route::get('/refresh_deletearticle', [AjaxController::class , 'refresh_deletearticle'])->name('refresh_deletearticle');
@@ -335,6 +338,7 @@ Route::get('/get_all_detail_achat_paie', [AjaxController::class, 'get_all_detail
 Route::get('/refresh_liste_invites', [AjaxController::class, 'refresh_liste_invites'])->name('refresh_liste_invites');
 Route::post('/confirm_invite', [AjaxController::class, 'confirm_invite'])->name('confirm_invite');
 Route::post('/confirm_entree', [AjaxController::class, 'confirm_entree'])->name('confirm_entree');
+Route::post('/transform_prospect', [AjaxController::class, 'transform_prospect'])->name('transform_prospect');
 Route::get('/refresh_deleteinvite', [AjaxController::class, 'refresh_deleteinvite'])->name('refresh_deleteinvite');
 Route::get('/refresh_editinvite', [AjaxController::class, 'refresh_editinvite'])->name('refresh_editinvite');
 
@@ -391,6 +395,7 @@ Route::get('/gestion_fichier', [App\Http\Controllers\HomeController::class, 'ges
 Route::get('/clients', [App\Http\Controllers\HomeController::class, 'clients'])->name('clients');
 Route::get('/prospects', [App\Http\Controllers\HomeController::class, 'prospects'])->name('prospects');
 Route::get('/suivi_credit', [App\Http\Controllers\HomeController::class, 'suivi_credit'])->name('suivi_credit');
+Route::get('/suivi_prospect', [App\Http\Controllers\HomeController::class, 'suivi_prospect'])->name('suivi_prospect');
 Route::get('/facture_point_vente', [App\Http\Controllers\HomeController::class, 'facture_point_vente'])->name('facture_point_vente');
 Route::get('/profils', [App\Http\Controllers\HomeController::class, 'profils'])->name('profils');
 Route::get('/gestion_activiter', [App\Http\Controllers\HomeController::class, 'gestion_activiter'])->name('gestion_activiter');

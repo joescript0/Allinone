@@ -2,6 +2,7 @@
     use App\Models\appnames;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
+
 <?php
 
 use App\Models\Writes;
@@ -804,6 +805,26 @@ a[id^="voir_profil_"] + * {
                         <label><i class="zmdi zmdi-money text-danger"></i> Salaire</label>
                         <input type="number" id="filterSalaire" class="form-control" placeholder="Salaire exact" step="0.01">
                     </div>
+                    <!-- ========== FILTRE PAR user_id : visible uniquement pour les admins ========== -->
+                    @if(Auth::user()->role == 0)
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-account-circle text-danger"></i> Utilisateur</label>
+                        <select id="filterUserId" class="form-control">
+                            <option value="all">Tous les utilisateurs</option>
+                            @php $allUsers = \App\Models\User::all(); @endphp
+                            @foreach ($allUsers as $user)
+                                <option value="{{ $user->id }}">
+                                    @if($user->id == Auth::user()->id)
+                                        Vous
+                                    @else
+                                        {{ $user->name }} ({{ $user->matricule ?? 'N/A' }})
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+                    <!-- ========== FIN FILTRE ========== -->
                     <div class="filter-group">
                         <button id="resetFilters" class="btn btn-secondary btn-sm" style="border-radius: 40px; padding: 8px 18px;">
                             <i class="zmdi zmdi-refresh"></i> Réinitialiser
@@ -831,98 +852,107 @@ a[id^="voir_profil_"] + * {
                                 <tbody>
                                     {{! $i = 1; }}
                                     @foreach ($utilisateurs as $data)
-                                    <tr id="row_{{ $data->id }}">
-                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">{{ $i }}</td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="matricule-cell" data-matricule="{{ $data->matricule }}">{{ $data->matricule }}</td>
-                                        <td class="align-middle nom-cell" data-nom="{{ $data->name }}" style="padding-top: 5px;padding-bottom: 5px;">
-                                            <a id="voir_profil_<?= $i ?>" href="#">
-                                                <img src="{{ asset($data->image) }}" alt="avatar" class="profile-thumb">
-                                            </a> {{ $data->name }}
-                                        </td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="salaire-cell" data-salaire="{{ $data->salaire }}" data-devise="{{ $data->devise }}">
-                                            @if ($data->devise == 0)
-                                                {{ number_format($data->salaire, 2, ',', ' ') .'$'; }}
-                                            @else
-                                                {{ number_format($data->salaire, 2, ',', ' ') .'Fc'; }}
-                                            @endif
-                                        </td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="email-cell" data-email="{{ $data->email }}">{{ $data->email }}</td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="phone-cell" data-phone="{{ $data->phone }}">{{ $data->phone }}</td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="role-cell" data-role="{{ $data->role }}">
-                                            @if ($groupes->count()!= 0)
-                                                <?= Groupes::where('id', $data->role)->first()["nom"] ?? 'N/A'; ?>
-                                            @endif
-                                        </td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="poste-cell" data-poste="{{ $data->poste_id }}">
-                                            <?php
-                                                $potess = Postes::where('id', $data->poste_id)->first()
-                                            ?>
-                                            @if ($data->poste_id == 0)
-                                                <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">{{ 'Aucun' }} </span>
-                                            @else
-                                                <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success"><?= $potess["nom"] ?? 'N/A'; ?>, <?= Lieux::where(["id" => $potess["lieuxe_id"] ?? 0])->first()["nom"] ?? 'N/A'; ?>.</span>
-                                            @endif
-                                        </td>
-                                        <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
-                                            <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                                        <!-- ========== data-user-id = $data->user_id ========== -->
+                                        <tr id="row_{{ $data->id }}" data-user-id="{{ $data->user_id }}">
+                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">{{ $i }}</td>
+                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="matricule-cell" data-matricule="{{ $data->matricule }}">{{ $data->matricule }}</td>
+                                            <td class="align-middle nom-cell" data-nom="{{ $data->name }}" style="padding-top: 5px;padding-bottom: 5px;">
+                                                <a id="voir_profil_<?= $i ?>" href="#">
+                                                    <img src="{{ asset($data->image) }}" alt="avatar" class="profile-thumb">
+                                                </a> {{ $data->name }}
+                                            </td>
+                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="salaire-cell" data-salaire="{{ $data->salaire }}" data-devise="{{ $data->devise }}">
+                                                @if (Auth::user()->role == 0)
+                                                    @if ($data->devise == 0)
+                                                        {{ number_format($data->salaire, 2, ',', ' ') .'USD'; }}
+                                                    @else
+                                                        {{ number_format($data->salaire, 2, ',', ' ') .'CDF'; }}
+                                                    @endif
+                                                @else
+                                                    @if ($data->devise == 0)
+                                                        {{ number_format(0, 2, ',', ' ') .'USD'; }}
+                                                    @else
+                                                        {{ number_format(0, 2, ',', ' ') .'CDF'; }}
+                                                    @endif
+                                                @endif
+                                            </td>
+                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="email-cell" data-email="{{ $data->email }}">{{ $data->email }}</td>
+                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="phone-cell" data-phone="{{ $data->phone }}">{{ $data->phone }}</td>
+                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="role-cell" data-role="{{ $data->role }}">
+                                                @if ($groupes->count()!= 0)
+                                                    <?= Groupes::where('id', $data->role)->first()["nom"] ?? 'N/A'; ?>
+                                                @endif
+                                            </td>
+                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="poste-cell" data-poste="{{ $data->poste_id }}">
                                                 <?php
-                                                $edit = 0;
-                                                $delete = 0;
-                                                if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
-                                                    $edit = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->edit;
-                                                    $delete = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->delete;
-                                                }
+                                                    $potess = Postes::where('id', $data->poste_id)->first()
                                                 ?>
-                                            <?php } ?>
-                                            <?php if (($edit == 1) || (Auth::user()->role == 0)) { ?>
-                                                <a id="edit_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
-                                            <?php } else { ?>
-                                                <a id="edit_r<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
-                                            <?php } ?>
-                                            <?php if (($delete == 1) || (Auth::user()->role == 0)) { ?>
-                                                <a id="delete_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
-                                            <?php } else { ?>
-                                                <a id="delete_r<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
-                                            <?php } ?>
-                                            <script>
-                                                $("#edit_<?= $i ?>").click(function(e) {
-                                                    e.preventDefault();
-                                                    $.get("{{ url('/refresh_editutilisateur') }}", {
-                                                        user_id: <?= $data->id ?>,
-                                                    }, function(refresh_editutilisateur) {
-                                                        $("#bloc_1").hide();
-                                                        $("#bloc_2").hide();
-                                                        $("#bloc_3").show();
-                                                        $("#bloc_3").html(refresh_editutilisateur);
+                                                @if ($data->poste_id == 0)
+                                                    <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">{{ 'Aucun' }} </span>
+                                                @else
+                                                    <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success"><?= $potess["nom"] ?? 'N/A'; ?>, <?= Lieux::where(["id" => $potess["lieuxe_id"] ?? 0])->first()["nom"] ?? 'N/A'; ?>.</span>
+                                                @endif
+                                            </td>
+                                            <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
+                                                <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                                                    <?php
+                                                    $edit = 0;
+                                                    $delete = 0;
+                                                    if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
+                                                        $edit = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->edit;
+                                                        $delete = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->delete;
+                                                    }
+                                                    ?>
+                                                <?php } ?>
+                                                <?php if ((($edit == 1) && ($data->user_id == Auth::user()->id)) || (Auth::user()->role == 0)) { ?>
+                                                    <a id="edit_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
+                                                <?php } else { ?>
+                                                    <a id="edit_r<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
+                                                <?php } ?>
+                                                <?php if (($delete == 1 && $data->user_id == Auth::user()->id) || (Auth::user()->role == 0)) { ?>
+                                                    <a id="delete_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
+                                                <?php } else { ?>
+                                                    <a id="delete_r<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
+                                                <?php } ?>
+                                                <script>
+                                                    $("#edit_<?= $i ?>").click(function(e) {
+                                                        e.preventDefault();
+                                                        $.get("{{ url('/refresh_editutilisateur') }}", {
+                                                            user_id: <?= $data->id ?>,
+                                                        }, function(refresh_editutilisateur) {
+                                                            $("#bloc_1").hide();
+                                                            $("#bloc_2").hide();
+                                                            $("#bloc_3").show();
+                                                            $("#bloc_3").html(refresh_editutilisateur);
+                                                        });
                                                     });
-                                                });
-                                                $("#edit_r<?= $i ?>").click(function(e) {
-                                                    e.preventDefault();
-                                                    $("#btn_refus").trigger("click");
-                                                });
-                                                $("#delete_r<?= $i ?>").click(function(e) {
-                                                    e.preventDefault();
-                                                    $("#btn_refus").trigger("click");
-                                                });
-                                                $("#delete_<?= $i ?>").click(function(e) {
-                                                    e.preventDefault();
-                                                    $("#element").html("<?= $data->name ?>");
-                                                    $("#data_id").html("<?= $data->id ?>");
-                                                    $("#btn_sup").trigger("click");
-                                                });
-                                                $("#voir_profil_<?= $i ?>").click(function(e) {
-                                                    e.preventDefault();
-                                                    $("#nom_profil").html("<?= $data->name ?>");
-                                                    $("#data_id").html("<?= $data->id ?>");
-                                                    var url = "<?= $data->image ?>";
-                                                    $("#contenu_voir_profil").html('<img src="' + url +
-                                                        '" class="img-fluid" style="max-height:100%;width: 100%;" />'
-                                                    );
-                                                    $("#btn_voir_profil").trigger("click");
-                                                });
-                                            </script>
-                                        </td>
-                                    </tr>
+                                                    $("#edit_r<?= $i ?>").click(function(e) {
+                                                        e.preventDefault();
+                                                        $("#btn_refus").trigger("click");
+                                                    });
+                                                    $("#delete_r<?= $i ?>").click(function(e) {
+                                                        e.preventDefault();
+                                                        $("#btn_refus").trigger("click");
+                                                    });
+                                                    $("#delete_<?= $i ?>").click(function(e) {
+                                                        e.preventDefault();
+                                                        $("#element").html("<?= $data->name ?>");
+                                                        $("#data_id").html("<?= $data->id ?>");
+                                                        $("#btn_sup").trigger("click");
+                                                    });
+                                                    $("#voir_profil_<?= $i ?>").click(function(e) {
+                                                        e.preventDefault();
+                                                        $("#nom_profil").html("<?= $data->name ?>");
+                                                        $("#data_id").html("<?= $data->id ?>");
+                                                        var url = "<?= $data->image ?>";
+                                                        $("#contenu_voir_profil").html('<img src="' + url +
+                                                            '" class="img-fluid" style="max-height:100%;width: 100%;" />'
+                                                        );
+                                                        $("#btn_voir_profil").trigger("click");
+                                                    });
+                                                </script>
+                                            </td>
+                                        </tr>
                                     {{! $i++; }}
                                     @endforeach
                                 </tbody>
@@ -1147,15 +1177,32 @@ a[id^="voir_profil_"] + * {
         $("#bloc_4").hide();
     });
 
+    // ========== MODIFICATION : bouton Imprimer envoie tous les filtres ==========
     $("#print").click(function(e) {
         e.preventDefault();
-        $.get("{{ url('/get_liste_employe') }}", {}, function(response)
-        {
+        // Récupérer les valeurs des filtres
+        var params = {
+            matricule: $('#filterMatricule').val(),
+            nom: $('#filterNom').val(),
+            email: $('#filterEmail').val(),
+            phone: $('#filterPhone').val(),
+            role: $('#filterRole').val(),
+            poste: $('#filterPoste').val(),
+            salaire: $('#filterSalaire').val()
+        };
+        // Ajouter user_id seulement si le filtre existe
+        if ($('#filterUserId').length) {
+            params.userId = $('#filterUserId').val();
+        } else {
+            params.userId = 'all';
+        }
+        // Effectuer la requête GET avec les paramètres
+        $.get("{{ url('/get_liste_employe') }}", params, function(response) {
             $("#bloc_1").hide();
             $("#bloc_2").hide();
             $("#bloc_3").hide();
             $("#bloc_4").show();
-            $("#data_liste").attr('src', '{{ asset("")  }}' + response);
+            $("#data_liste").attr('src', '{{ asset("") }}' + response);
         });
     });
 
@@ -1198,7 +1245,6 @@ a[id^="voir_profil_"] + * {
         var data = $("#form_add").serialize();
         if (nom.trim().length == 0) {
             $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom');
-            // Le style est géré par le CSS (via #msg:not(:empty):has(...))
             setTimeout(() => { $('#msg').html(""); }, 9000);
         } else {
             if (email.trim().length == 0) {
@@ -1366,11 +1412,15 @@ a[id^="voir_profil_"] + * {
         });
     });
 
-    // ========== FONCTIONS DE FILTRAGE POUR LES UTILISATEURS AVEC PERSISTANCE ==========
+    // ========== FONCTIONS DE FILTRAGE AVEC PERSISTANCE ==========
 
     let userFilterTimeout;
 
     function saveUserFiltersToStorage() {
+        let userId = 'all';
+        if ($('#filterUserId').length) {
+            userId = $('#filterUserId').val();
+        }
         const filters = {
             matricule: $('#filterMatricule').val(),
             nom: $('#filterNom').val(),
@@ -1378,7 +1428,8 @@ a[id^="voir_profil_"] + * {
             phone: $('#filterPhone').val(),
             role: $('#filterRole').val(),
             poste: $('#filterPoste').val(),
-            salaire: $('#filterSalaire').val()
+            salaire: $('#filterSalaire').val(),
+            userId: userId
         };
         localStorage.setItem('userFilters', JSON.stringify(filters));
     }
@@ -1394,6 +1445,9 @@ a[id^="voir_profil_"] + * {
             $('#filterRole').val(filters.role || 'all');
             $('#filterPoste').val(filters.poste || 'all');
             $('#filterSalaire').val(filters.salaire || '');
+            if ($('#filterUserId').length) {
+                $('#filterUserId').val(filters.userId || 'all');
+            }
             return true;
         }
         return false;
@@ -1407,6 +1461,7 @@ a[id^="voir_profil_"] + * {
         const filterRole = $('#filterRole').val();
         const filterPoste = $('#filterPoste').val();
         const filterSalaire = parseFloat($('#filterSalaire').val());
+        const filterUserId = $('#filterUserId').length ? $('#filterUserId').val() : 'all';
 
         let visibleCount = 0;
         let newIndex = 1;
@@ -1422,6 +1477,7 @@ a[id^="voir_profil_"] + * {
             const roleValue = $row.find('.role-cell').data('role') || '';
             const posteValue = $row.find('.poste-cell').data('poste') || '';
             const salaireValue = parseFloat($row.find('.salaire-cell').data('salaire') || 0);
+            const userId = $row.data('userId'); // $data->user_id
 
             if (filterMatricule && !matriculeValue.includes(filterMatricule)) showRow = false;
             if (showRow && filterNom && !nomValue.includes(filterNom)) showRow = false;
@@ -1430,6 +1486,7 @@ a[id^="voir_profil_"] + * {
             if (showRow && filterRole !== 'all' && roleValue != filterRole) showRow = false;
             if (showRow && filterPoste !== 'all' && posteValue != filterPoste) showRow = false;
             if (showRow && !isNaN(filterSalaire) && salaireValue != filterSalaire) showRow = false;
+            if (showRow && filterUserId !== 'all' && userId != filterUserId) showRow = false;
 
             if (showRow) {
                 $row.show();
@@ -1443,7 +1500,7 @@ a[id^="voir_profil_"] + * {
 
         $('#userCount').text(visibleCount);
 
-        if (visibleCount === 0 && (filterMatricule || filterNom || filterEmail || filterPhone || filterRole !== 'all' || filterPoste !== 'all' || !isNaN(filterSalaire))) {
+        if (visibleCount === 0 && (filterMatricule || filterNom || filterEmail || filterPhone || filterRole !== 'all' || filterPoste !== 'all' || !isNaN(filterSalaire) || filterUserId !== 'all')) {
             $('#msg').html('<i class="zmdi zmdi-info"></i> Aucun utilisateur ne correspond aux critères de recherche');
             $('#msg').css('display', 'flex');
             setTimeout(() => {
@@ -1461,6 +1518,9 @@ a[id^="voir_profil_"] + * {
         $('#filterRole').val('all');
         $('#filterPoste').val('all');
         $('#filterSalaire').val('');
+        if ($('#filterUserId').length) {
+            $('#filterUserId').val('all');
+        }
 
         saveUserFiltersToStorage();
 
@@ -1489,7 +1549,6 @@ a[id^="voir_profil_"] + * {
         }, 300);
     }
 
-    // Initialisation des événements de filtrage
     $(document).ready(function() {
         const totalUsers = $('#content_utilisateur tbody tr').length;
         $('#userCount').text(totalUsers);
@@ -1499,6 +1558,11 @@ a[id^="voir_profil_"] + * {
         $('#filterMatricule, #filterNom, #filterEmail, #filterPhone, #filterRole, #filterPoste, #filterSalaire').on('input change', function() {
             debouncedUserFilter();
         });
+        if ($('#filterUserId').length) {
+            $('#filterUserId').on('change', function() {
+                debouncedUserFilter();
+            });
+        }
 
         $('#resetFilters').click(function(e) {
             e.preventDefault();
@@ -1512,7 +1576,6 @@ a[id^="voir_profil_"] + * {
         }
     });
 
-    // Réappliquer les filtres après chaque chargement AJAX
     $(document).ajaxComplete(function(event, xhr, settings) {
         if (settings.url && (settings.url.includes('refresh_') || settings.url.includes('add_utilisateur'))) {
             setTimeout(() => {
@@ -1524,7 +1587,6 @@ a[id^="voir_profil_"] + * {
         }
     });
 
-    // Sauvegarder les filtres avant de quitter
     window.addEventListener('beforeunload', function() {
         saveUserFiltersToStorage();
     });

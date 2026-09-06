@@ -61,6 +61,7 @@
     $menu_41 = Activer();
     $menu_42 = Activer();
     $menu_43 = Activer();
+    $menu_44 = Activer();
 
   }
   elseif($menueapp == "Divine")
@@ -112,6 +113,7 @@
     $menu_41 = Activer();
     $menu_42 = Activer();
     $menu_43 = Activer();
+    $menu_44 = Activer();
   }
 ?>
 
@@ -502,6 +504,7 @@
       $data["ressource_id_26"] = 26;
       $data["ressource_id_27"] = 27;
       $data["ressource_id_28"] = 28;
+      $data["ressource_id_29"] = 29;
       $data["groupe_user_id"] = $groupe_user_id;
       ?>
       <ul class="navigation">
@@ -756,6 +759,20 @@
                 ?>
                 <?php if (((($display_28 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_28"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_28 ==  0) && (Auth::user()->role == 0))) { ?>
                     <li id="link_49"><a href="{{ route('listesdesinvites') }}" id="text_49">🧑‍🤝‍🧑  Liste des invités</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+
+        @if ($menu_44 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_29"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_29 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_29"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
+                    $display_29 = Writes::where(["ressource_id" => $data["ressource_id_29"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_29 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_29"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_29 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_50"><a href="{{ route('suivi_prospect') }}" id="text_50">👤  Suivi de prospect</a></li>
                 <?php } ?>
             <?php } ?>
         @endif
