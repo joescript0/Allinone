@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Models\Factures;
 use App\Models\Entres;
 use App\Models\Societes;
-use App\Models\Articlestocks;
+use App\Models\articlestocks;
 use Illuminate\Support\Facades\Auth;
 
 // --- Calcul des champs selon le stock ---
