@@ -3436,14 +3436,7 @@ class AjaxController extends Controller
         $data["ressource_id_1"] = 14;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["utilisateurs"] = User::where(["etat" => 1])->get();
-        if(Auth::user()->role == 0)
-        {
-            $data["clients"] = Clients::where(["etat" => 1])->get();
-        }
-        elseif(Auth::user()->role != 0)
-        {
-            $data["clients"] = Clients::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
-        }
+        $data["clients"] = Clients::where(["etat" => 1])->get();
         $data["activites"] = Activites::where(["etat" => 1])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
@@ -3594,17 +3587,16 @@ class AjaxController extends Controller
         if(Auth::user()->role == 0)
         {
             $data["clients"] = Clients::where(["etat" => 1])->get();
-            $data["prospects"] = prospects::where(["etat" => 1])->get();
         }
         elseif(Auth::user()->role != 0)
         {
             $data["clients"] = Clients::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
-            $data["prospects"] = prospects::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
         }
         $data["activites"] = Activites::where(["etat" => 1])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         if($request->page == 25)
         {
+            $data["prospects"] = prospects::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
             $data["ressource_id_1"] = $request->page;
             $data["groupe_user_id"] = $groupe_user_id;
             $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
@@ -3612,6 +3604,7 @@ class AjaxController extends Controller
         }
         else if($request->page == 29)
         {
+            $data["prospects"] = prospects::where(["etat" => 1])->get();
             $data["ressource_id_1"] = $request->page;
             $data["groupe_user_id"] = $groupe_user_id;
             $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
@@ -5684,7 +5677,7 @@ class AjaxController extends Controller
         $data["factures"] = Factures::get();
         $data["articles"] = Articles::where(["user_id" => Auth::user()->id, "supprimer" => 0])->get();
         $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
-        if(Auth::user()->role == 0) 
+        if(Auth::user()->role == 0)
         {
             $data["articles"] = Articles::where(["supprimer" => 0])->get();
         }
@@ -6399,7 +6392,7 @@ class AjaxController extends Controller
         $data["groupe_user_id"] = $groupe_user_id;
         $data["utilisateurs"] = User::where(["etat" => 1])->get();
         $data["clients"] = Clients::where(["etat" => 1])->get();
-        $data["prospects"] = prospects::where(["etat" => 1])->get();
+        $data["prospects"] = prospects::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
         $data["activites"] = Activites::where(["etat" => 1])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();

@@ -551,14 +551,7 @@ class HomeController extends Controller
             if(($display ==  1) || (Auth::user()->role == 0))
             {
                 $data["utilisateurs"] = User::where(["etat" => 1])->get();
-                if(Auth::user()->role == 0)
-                {
-                    $clients = Clients::where(["etat" => 1])->get();
-                }
-                elseif(Auth::user()->role != 0)
-                {
-                    $clients = Clients::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
-                }
+                $clients = Clients::where(["etat" => 1])->get();
                 $data["clients"] = $clients;
                 $data["activites"] = Activites::where(["etat" => 1])->get();
                 $data["groupes"] = Groupes::where(["etat" => 1])->get();
@@ -652,14 +645,7 @@ class HomeController extends Controller
                 {
                     $clients = Clients::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
                 }
-                if(Auth::user()->role == 0)
-                {
-                    $prospects = prospects::where(["etat" => 1])->get();
-                }
-                elseif(Auth::user()->role != 0)
-                {
-                    $prospects = prospects::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
-                }
+                $prospects = prospects::where(["etat" => 1])->get();
                 $data["clients"] = $clients;
                 $data["prospects"] = $prospects;
                 $data["activites"] = Activites::where(["etat" => 1])->get();
@@ -678,7 +664,7 @@ class HomeController extends Controller
             return redirect('/');
         }
     }
-    
+
     public function listesdesinvites()
     {
         $groupe_user_id = Auth::user()->role;
