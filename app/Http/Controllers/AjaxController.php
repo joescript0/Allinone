@@ -3388,10 +3388,14 @@ class AjaxController extends Controller
 
     public function add_client(Request $request)
     {
+        $activite_id = Activites::where('id', $request->activite_id)->value('id') ?? 1;
+        $activites = Activites::where('id', $activite_id)->first();
+        $paux_general = $activites->taux;
         $id = Clients::get()->count() + 1;
         $clients = new Clients();
         $clients->id = $id;
         $clients->name = $request->nom;
+
         if(strlen(trim($request->email)) == 0)
         {
             $clients->email = "";
@@ -3439,6 +3443,7 @@ class AjaxController extends Controller
         $clients->etat = 1;
         $clients->recherche = "";
         $clients->image = 'storage/images/user/profil_defaut.png';
+        $clients->taux = $paux_general;
         $clients->save();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $groupe_user_id = Auth::user()->role;
@@ -3446,7 +3451,6 @@ class AjaxController extends Controller
         $data["utilisateurs"] = User::where(["etat" => 1])->get();
         $data["activites"] = Activites::where(["etat" => 1])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
-        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         if($request->page == 14)
         {
             $data["ressource_id_1"] = 14;
@@ -3457,6 +3461,7 @@ class AjaxController extends Controller
             $data["ressource_id_1"] = 30;
             $data["clients"] = Clients::where(["etat" => 1, "user_id"])->get();
         }
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         return view('include.refresh_client', $data);
     }
 
