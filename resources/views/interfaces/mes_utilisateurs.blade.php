@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
 ?>
 @extends('layouts.main')
 @section('title', $nom_app)
-@section('name', 'UTILISATEURS')
+@section('name', 'MES UTILISATEURS')
 @section('body')
 @include('composants.preload')
 @include('composants.header')
@@ -754,7 +754,7 @@ a[id^="voir_profil_"] + * {
     <div style="margin-top: 30px;" class="container">
         <div class="row">
             <div class="col-lg-12">
-                <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Utilisateurs</h6>
+                <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Mes utilisateurs</h6>
             </div>
             <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
                 <h4 style="color:rgba(0, 0, 0, 0.6);">
@@ -1152,7 +1152,7 @@ a[id^="voir_profil_"] + * {
 <script src="{{ asset('assets/demo/js/flot-charts/pie.js') }}"></script>
 <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
 <script>
-    $("#link_40").addClass("active");
+    $("#link_52").addClass("active");
 
     $("#upload").click(function(e) {
         e.preventDefault();

@@ -980,6 +980,54 @@ select.form-control {
         padding: 6px 12px;
     }
 }
+
+/* ===== NOUVEAU : HARMONISATION DE SELECT2 AVEC LE STYLE FORM-CONTROL ===== */
+.select2-container--bootstrap .select2-selection {
+    height: 38px !important;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 0 12px;
+}
+
+.select2-container--bootstrap .select2-selection__arrow {
+    height: 38px !important;
+}
+
+.select2-container--bootstrap .select2-selection__rendered {
+    line-height: 38px !important;
+    padding-left: 0;
+    color: #1e2a3e;
+}
+
+.select2-container--bootstrap .select2-selection__placeholder {
+    color: #6c757d;
+}
+
+.select2-dropdown {
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: var(--shadow-light);
+}
+
+.select2-results__option {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+.select2-results__option--highlighted {
+    background: #e6f0ff !important;
+    color: #0a192f !important;
+}
+
+/* ===== NOUVEAU : LIMITATION DE HAUTEUR DU DROPDOWN SELECT2 ===== */
+.select2-container--bootstrap .select2-results__options {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+}
     </style>
     <section class="content">
         <div class="container">
@@ -1445,18 +1493,30 @@ select.form-control {
                                             data-placeholder="Selectionnez un article">
                                             <option selected value="">Selectionnez un article</option>
                                             @foreach ($articles as $data)
+                                                @php
+                                                    // --- AJOUT : construction de l'affichage des prix ---
+                                                    $devise = $data->devise ?? 0;
+                                                    $prix_detail = $data->prix_detail ?? 0;
+                                                    $prix_gros = $data->prix_gros ?? 0;
+                                                    if ($devise == 0) {
+                                                        $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(USD), <span class="text-success">G : </span> ' . number_format($prix_gros, 2, ',', ' ') . 'USD';
+                                                    } else {
+                                                        $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(CDF), <span class="text-success">G : </span> ' . number_format($prix_gros, 2, ',', ' ') . '(CDF)';
+                                                    }
+                                                @endphp
+
                                                 @if (($data->activite_id != 0) && ($data->stock > $data->seuil_minimum))
                                                     {{-- Cas OK : activité définie et stock suffisant --}}
                                                     <option value="{{ $data->id }}">
                                                         🟢 {{ $data->nom_article }}
                                                         {{ (Mesures::where('id', $data->mesure_id)->first()['nom'] ?? 'N/A') }}
                                                         ({{ Societes::where('id', $data->societe_id)->first()['nom'] ?? 'N/A' }})
+                                                        Prix : ({!! $prixHtml !!})
                                                     </option>
                                                 @else
                                                     @php
                                                         $erreurs = [];
-                                                        if ($data->activite_id == 0)
-                                                        {
+                                                        if ($data->activite_id == 0) {
                                                             $erreurs[] = 'Activité non définie';
                                                         }
                                                         if ($data->stock <= $data->seuil_minimum) {
@@ -1468,7 +1528,7 @@ select.form-control {
                                                         🔴 {{ $data->nom_article }}
                                                         {{ (Mesures::where('id', $data->mesure_id)->first()['nom'] ?? 'N/A') }}
                                                         ({{ Societes::where('id', $data->societe_id)->first()['nom'] ?? 'N/A' }})
-                                                        : {{ $message }}
+                                                        Prix : {!! $prixHtml !!} : {{ $message }}
                                                     </option>
                                                 @endif
                                             @endforeach
@@ -1555,11 +1615,13 @@ select.form-control {
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
                                                 class="zmdi zmdi-accounts"></i> Clients </span></label>
-                                        <select id="client_id" name="client_id" class="form-control"
-                                            data-placeholder="Selectionnez un client">
-                                            <option selected class="form-control" value="">Selectionnez un client</option>
+                                        <!-- ===== SELECT2 AVEC RECHERCHE ET THÈME BOOTSTRAP ===== -->
+                                        <select id="client_id" name="client_id" class="form-control select2"
+                                                data-placeholder="Rechercher un client..." style="width: 100%;"
+                                                data-theme="bootstrap">
+                                            <option value="">Selectionnez un client</option>
                                             @foreach ($clients as $data)
-                                                <option value="{{ $data->id }}"><?= $data->name ?></option>
+                                                <option value="{{ $data->id }}">{{ $data->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -2249,6 +2311,14 @@ select.form-control {
 
         // ========== INITIALISATION ==========
         $(document).ready(function() {
+            // ===== INITIALISATION DE SELECT2 POUR LE CLIENT =====
+            $('#client_id').select2({
+                placeholder: "Rechercher un client...",
+                allowClear: true,
+                theme: 'bootstrap',
+                width: '100%'
+            });
+
             var today = moment();
             var todayStr = today.format('DD/MM/YYYY');
             $('#filterDateRange').val(todayStr + ' - ' + todayStr);

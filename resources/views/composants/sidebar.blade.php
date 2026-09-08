@@ -62,7 +62,11 @@
     $menu_42 = Activer();
     $menu_43 = Activer();
     $menu_44 = Activer();
-
+    $menu_45 = Activer();
+    $menu_46 = Activer();
+    $menu_47 = Activer();
+    $menu_48 = Desactiver();
+    $menu_49 = Desactiver();
   }
   elseif($menueapp == "Divine")
   {
@@ -114,6 +118,11 @@
     $menu_42 = Activer();
     $menu_43 = Activer();
     $menu_44 = Activer();
+    $menu_45 = Activer();
+    $menu_46 = Activer();
+    $menu_47 = Activer();
+    $menu_48 = Desactiver();
+    $menu_49 = Desactiver();
   }
 ?>
 
@@ -505,6 +514,11 @@
       $data["ressource_id_27"] = 27;
       $data["ressource_id_28"] = 28;
       $data["ressource_id_29"] = 29;
+      $data["ressource_id_30"] = 30;
+      $data["ressource_id_31"] = 31;
+      $data["ressource_id_32"] = 32;
+      $data["ressource_id_33"] = 33;
+      $data["ressource_id_34"] = 34;
       $data["groupe_user_id"] = $groupe_user_id;
       ?>
       <ul class="navigation">
@@ -715,7 +729,7 @@
                     }
                 ?>
                 <?php if (((($display_25 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_25"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_25 ==  0) && (Auth::user()->role == 0))) { ?>
-                    <li id="link_46"><a href="{{ route('prospects') }}" id="text_46">👤 Gestion de prospects</a></li>
+                    <li id="link_46"><a href="{{ route('prospects') }}" id="text_46">👤 Mes prospects</a></li>
                 <?php } ?>
             <?php } ?>
         @endif
@@ -748,7 +762,7 @@
                 <?php } ?>
             <?php } ?>
         @endif
-        
+
         @if ($menu_43 == 1)
             <?php if ((Writes::where(["ressource_id" => $data["ressource_id_28"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                 <?php
@@ -772,11 +786,83 @@
                     }
                 ?>
                 <?php if (((($display_29 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_29"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_29 ==  0) && (Auth::user()->role == 0))) { ?>
-                    <li id="link_50"><a href="{{ route('suivi_prospect') }}" id="text_50">👤  Suivi de prospect</a></li>
+                    <li id="link_50"><a href="{{ route('suivi_prospect') }}" id="text_50">👤  Gestion de prospect</a></li>
                 <?php } ?>
             <?php } ?>
         @endif
 
+        @if ($menu_45 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_30"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_30 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_30"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
+                    $display_30 = Writes::where(["ressource_id" => $data["ressource_id_30"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_30 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_30"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_30 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_51"><a href="{{ route('mes_clients') }}" id="text_51">🧑‍🤝‍🧑  Mes clients</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+        
+        @if ($menu_46 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_31"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_31 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_31"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
+                    $display_31 = Writes::where(["ressource_id" => $data["ressource_id_31"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_31 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_31"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_31 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_52"><a href="{{ route('mes_utilisateurs') }}" id="text_52">👤  Mes utilisateurs</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+        
+        @if ($menu_47 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_34"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_34 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_34"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) 
+                    {
+                        $display_34 = Writes::where(["ressource_id" => $data["ressource_id_34"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_34 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_34"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_34 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_53"><a href="{{ route('mon_stock') }}" id="text_53">📦  Mon stock</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+        
+        @if ($menu_48 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_32"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_32 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_32"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) 
+                    {
+                        $display_32 = Writes::where(["ressource_id" => $data["ressource_id_32"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_32 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_32"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_32 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_54"><a href="{{ route('commissions') }}" id="text_54">💰  Gestion commissions</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+        
+        @if ($menu_49 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_33"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_33 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_33"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) 
+                    {
+                        $display_33 = Writes::where(["ressource_id" => $data["ressource_id_33"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_33 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_33"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_33 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_55"><a href="{{ route('mes_commissions') }}" id="text_55"> 🏆  Mes commissions</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
 
         @if ($menu_33 == 1)
             <?php if ((Writes::where(["ressource_id" => $data["ressource_id_19"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>

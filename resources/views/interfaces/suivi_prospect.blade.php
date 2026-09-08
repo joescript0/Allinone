@@ -868,7 +868,7 @@ select.form-control {
     <div style="margin-top: 30px;padding-bottom: 100px;" class="container">
         <div class="row">
             <div class="col-lg-12">
-                <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Prospects</h6>
+                <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Gestion de prospects</h6>
             </div>
             <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
                 <h4 style="color:rgba(0, 0, 0, 0.6);">

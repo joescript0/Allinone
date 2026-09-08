@@ -14,6 +14,7 @@ use App\Models\prospects;
 use \Osms\Osms;
 use App\Models\Droit_fichiers;
 use App\Models\Rendezvous;
+use App\Models\commisionsagents;
 use App\Models\Annees;
 use App\Models\Contentieurs;
 use App\Models\Contrevenants;
@@ -2747,17 +2748,25 @@ class AjaxController extends Controller
             }
             $nombre++;
         }
-        $data["utilisateurs"] = User::where(function($query){
-            $query->where('role', '<>', 0);
-        })->where(function($query){
-            $query->where('etat', '=', 1);
-        })->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 2;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
-
+        if($request->page == 19)
+        {
+            $data["ressource_id_1"] = 19;
+            $data["utilisateurs"] = User::where('role', '<>', 0)
+                          ->where('etat', '=', 1)
+                          ->get();
+        }
+        else if($request->page == 31)
+        {
+            $data["ressource_id_1"] = 31;
+            $data["utilisateurs"] = User::where('role', '<>', 0)
+                          ->where('etat', '=', 1)
+                          ->where('user_id', Auth::user()->id)
+                          ->get();
+        }
         return view('include.refresh_utilisateur', $data);
     }
 
@@ -3433,13 +3442,21 @@ class AjaxController extends Controller
         $clients->save();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 14;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["utilisateurs"] = User::where(["etat" => 1])->get();
-        $data["clients"] = Clients::where(["etat" => 1])->get();
         $data["activites"] = Activites::where(["etat" => 1])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        if($request->page == 14)
+        {
+            $data["ressource_id_1"] = 14;
+            $data["clients"] = Clients::where(["etat" => 1])->get();
+        }
+        else if($request->page == 30)
+        {
+            $data["ressource_id_1"] = 30;
+            $data["clients"] = Clients::where(["etat" => 1, "user_id"])->get();
+        }
         return view('include.refresh_client', $data);
     }
 
@@ -3450,7 +3467,7 @@ class AjaxController extends Controller
         $id = Clients::get()->count() + 1;
         $clients = new Clients();
         $clients->id = $id;
-        $clients->name = $prospects->nom;
+        $clients->name = $prospects->name;
         $clients->email = $prospects->email;
         if(strlen(trim($prospects->email)) == 0)
         {
@@ -5094,210 +5111,281 @@ class AjaxController extends Controller
     {
         date_default_timezone_set('Africa/Lubumbashi');
 
-        // --- 1. Récupération du point de vente et du stock (adaptation) ---
-        $pointdeventes_id = $request->pointdeventes_id; // nouveau paramètre
-        $table_id = $request->table_id;                 // existant
-        $stock_id = 0;
-        $pointdeventes = null;
+        // AJOUT : début de la transaction et du try
+        DB::beginTransaction();
+        try {
+            // --- 1. Récupération du point de vente et du stock (adaptation) ---
+            $pointdeventes_id = $request->pointdeventes_id; // nouveau paramètre
+            $table_id = $request->table_id;                 // existant
+            $stock_id = 0;
+            $achat_id = Achats::get()->count() + 1;
+            $pointdeventes = null;
 
-        if ($pointdeventes_id) {
-            $pointdeventes = pointdeventes::find($pointdeventes_id);
-        } elseif ($table_id) {
-            $table = Tables::find($table_id);
-            if ($table) {
-                $pointdeventes = pointdeventes::find($table->pointdeventes_id);
-                if ($pointdeventes) {
-                    $pointdeventes_id = $pointdeventes->id;
-                }
-            }
-        }
-
-        if ($pointdeventes) {
-            $stock_id = $pointdeventes->stock_id;
-        }
-
-        // --- 2. Récupération de l'article selon le stock (inchangé) ---
-        $article_id = $request->type_sortie;
-
-        if ($stock_id == 0) {
-            $article = Articles::where('id', $article_id)->first();
-        } else {
-            $article = articlestocks::where([
-                'stock_id'   => $stock_id,
-                'article_id' => $article_id,
-            ])->first();
-        }
-
-        if (!$article) {
-            return back()->withErrors(['article' => 'Article introuvable pour ce stock.']);
-        }
-
-        // --- 3. Calcul des données communes (inchangé) ---
-        $dernierApprovisionnement = Approvisionnements::where('article_id', $article_id)->latest('id')->first();
-
-        $stock = $article->stock;
-        $devise_article = $article->devise;
-        $avoir_stock = $article->avoir_stock;
-
-        if ($avoir_stock == 1) {
-            $prix_achat = $dernierApprovisionnement->prix_unitaire;
-            $devise_achat = $dernierApprovisionnement->devise;
-        } else {
-            $prix_achat = ($request->type_vente_id == 1) ? $article->prix_detail : $article->prix_gros;
-            $devise_achat = $article->devise;
-        }
-
-        if ($request->type_vente_id == 1) {
-            $taille_lot = $article->taille_piece;
-            $prix_unitaire = $article->prix_detail;
-        } else {
-            $taille_lot = $article->taille_lot;
-            $prix_unitaire = $article->prix_gros;
-        }
-
-        // --- 4. Gestion de la facture (création si nécessaire) ---
-        $facture_id = Session::get("facture_user_id");
-
-        if (!$facture_id) {
-            $id = Factureass::get()->count() + 1;
-            $nb_annonce = str_pad($id, 4, '0', STR_PAD_LEFT);
-
-            $activite_id = Articles::where('id', $article_id)->first()["activite_id"];
-            $activites = Activites::where('id', $activite_id)->first();
-            $taux_general = $activites->taux;
-            $tva_general = $activites->tva;
-
-            $facture = new Factureass();
-            $facture->id = $id;
-            $facture->numero = $nb_annonce;
-            $facture->date_creation = date("d/m/Y");
-            $facture->devise = $devise_article;
-            $facture->taux = $taux_general;
-            $facture->libelle = $request->libelle;
-            $facture->tva = $tva_general;
-            $facture->user_id = Auth::user()->id;
-            $facture->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
-            $facture->table_id = (strlen(trim($request->table_id))) ? $request->table_id : 0;
-            // === NOUVEAU : enregistrement du point de vente ===
-            $facture->pointdeventes_id = $pointdeventes_id ?? 0;
-            $facture->save();
-
-            // Gestion du client (inchangé)
-            $data_client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
-            if ($data_client_id != 0) {
-                $client = Clients::find($data_client_id);
-                if ($client) {
-                    $phone = $client->phone;
-                    $digits = preg_replace('/\D/', '', $phone);
-                    if (strlen($digits) > 9) {
-                        $last9 = substr($digits, -9);
-                        $client->phone = '+243' . $last9;
-                        if ($client->sms_initial < 5) {
-                            $this->orange_api(1, 'tel:' . $client->phone);
-                            $client->sms_initial = $client->sms_initial + 1;
-                        }
-                        $client->save();
+            if ($pointdeventes_id) {
+                $pointdeventes = pointdeventes::find($pointdeventes_id);
+            } elseif ($table_id) {
+                $table = Tables::find($table_id);
+                if ($table) {
+                    $pointdeventes = pointdeventes::find($table->pointdeventes_id);
+                    if ($pointdeventes) {
+                        $pointdeventes_id = $pointdeventes->id;
                     }
                 }
             }
 
-            // Marquage de la table (inchangé)
-            if (!empty($table_id)) {
-                $table = Tables::find($table_id);
-                if ($table) {
-                    $table->occupee = 1;
-                    $table->propre = 1;
-                    $table->save();
+            if ($pointdeventes) {
+                $stock_id = $pointdeventes->stock_id;
+            }
+
+            // --- 2. Récupération de l'article selon le stock (inchangé) ---
+            $article_id = $request->type_sortie;
+
+            if ($stock_id == 0) {
+                $article = Articles::where('id', $article_id)->first();
+            } else {
+                $article = articlestocks::where([
+                    'stock_id'   => $stock_id,
+                    'article_id' => $article_id,
+                ])->first();
+            }
+
+            if (!$article) {
+                // MODIF : rollback avant de retourner l'erreur
+                DB::rollBack();
+                return back()->withErrors(['article' => 'Article introuvable pour ce stock.']);
+            }
+
+            // --- 3. Calcul des données communes (inchangé) ---
+            $dernierApprovisionnement = Approvisionnements::where('article_id', $article_id)->latest('id')->first();
+
+            $stock = $article->stock;
+            $devise_article = $article->devise;
+            $avoir_stock = $article->avoir_stock;
+
+            if ($avoir_stock == 1) {
+                $prix_achat = $dernierApprovisionnement->prix_unitaire;
+                $devise_achat = $dernierApprovisionnement->devise;
+            } else {
+                $prix_achat = ($request->type_vente_id == 1) ? $article->prix_detail : $article->prix_gros;
+                $devise_achat = $article->devise;
+            }
+
+            if ($request->type_vente_id == 1) {
+                $taille_lot = $article->taille_piece;
+                $prix_unitaire = $article->prix_detail;
+            } else {
+                $taille_lot = $article->taille_lot;
+                $prix_unitaire = $article->prix_gros;
+            }
+
+            // --- 4. Gestion de la facture (création si nécessaire) ---
+            $facture_id = Session::get("facture_user_id");
+
+            if (!$facture_id)
+            {
+                $id = Factureass::get()->count() + 1;
+                $nb_annonce = str_pad($id, 4, '0', STR_PAD_LEFT);
+
+                $activite_id = Articles::where('id', $article_id)->first()["activite_id"];
+                $activites = Activites::where('id', $activite_id)->first();
+                $taux_general = $activites->taux;
+                $tva_general = $activites->tva;
+
+                $facture = new Factureass();
+                $facture->id = $id;
+                $facture->numero = $nb_annonce;
+                $facture->date_creation = date("d/m/Y");
+                $facture->devise = $devise_article;
+                $facture->taux = $taux_general;
+                $facture->libelle = $request->libelle;
+                $facture->tva = $tva_general;
+                $facture->user_id = Auth::user()->id;
+                $facture->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
+                $facture->table_id = (strlen(trim($request->table_id))) ? $request->table_id : 0;
+                // === NOUVEAU : enregistrement du point de vente ===
+                $facture->pointdeventes_id = $pointdeventes_id ?? 0;
+                $facture->save();
+
+                // Gestion du client (inchangé)
+                $data_client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
+                if ($data_client_id != 0)
+                {
+                    $client = Clients::find($data_client_id);
+                    if ($client)
+                    {
+                        $phone = $client->phone;
+                        $digits = preg_replace('/\D/', '', $phone);
+                        if (strlen($digits) > 9) {
+                            $last9 = substr($digits, -9);
+                            $client->phone = '+243' . $last9;
+                            if ($client->sms_initial < 5) {
+                                $this->orange_api(1, 'tel:' . $client->phone);
+                                $client->sms_initial = $client->sms_initial + 1;
+                            }
+                            $client->save();
+                        }
+                    }
+                }
+
+                // Marquage de la table (inchangé)
+                if (!empty($table_id)) {
+                    $table = Tables::find($table_id);
+                    if ($table) {
+                        $table->occupee = 1;
+                        $table->propre = 1;
+                        $table->save();
+                    }
+                }
+
+                Session::put("facture_user_id", $id);
+                $facture_id = $id;
+            }
+
+            // --- 5. Création de l'achat (inchangé) ---
+            $achat = new Achats();
+            $achat->id = $achat_id;
+            $achat->user_id = Auth::user()->id;
+            $achat->facture_id = $facture_id;
+            $achat->article_id = $article_id;
+            $achat->type = $request->action;
+            $achat->prix_unitaire = $prix_unitaire;
+            $achat->quantite = $request->quantite;
+            $achat->type_vente_id = $request->type_vente_id;
+            $achat->taille_lot = $taille_lot;
+            $achat->total = round($prix_unitaire * $request->quantite, 2);
+            $achat->devise = $devise_article;
+            $achat->taux = $request->taux;
+            $achat->libelle = $request->libelle;
+            $achat->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
+            $achat->date_creation = date("d/m/Y");
+            $achat->prix_achat = $prix_achat;
+            $achat->devise_achat = $devise_achat;
+
+            // Preuve (inchangé)
+            $preuve = "";
+            $nb_file = Fichierss::where(["numero_sortie" => Auth::user()->id])->count();
+            if ($nb_file != 0) {
+                $preuve = Fichierss::where('id', Auth::user()->id)->first()["lien"];
+            }
+            $achat->preuve_de_sortie = $preuve;
+            $achat->save();
+
+            // --- 6. Mise à jour du stock (inchangé) ---
+            $stock = $stock - $request->quantite;
+            $article->stock = round($stock);
+            $article->save();
+
+
+
+            $data_client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
+            if ($data_client_id != 0)
+            {
+                $client = Clients::find($data_client_id);
+                if ($client)
+                {
+                   $prospects = prospects::where(['client_id' => $data_client_id])->first();
+                   if ($prospects)
+                   {
+                       // --- 7. Création de la commission (inchangé) ---
+                       $prospects_user_id = $prospects->user_id;
+                       $prospects_client_id = $data_client_id;
+                       $prospects_article_id = $article_id;
+                       $prospects_montant = round($prix_unitaire * $request->quantite, 2);
+                       $taux_commission = 0.05; // 5%
+                       $prospects_commission = round($prospects_montant * $taux_commission, 2);
+                       $prospects_activite_id = Articles::where('id', $article_id)->first()["activite_id"];
+                       $prospects_activites = Activites::where('id', $prospects_activite_id)->first();
+                       $prospects_taux_general = $prospects_activites->taux;
+                       $prospects_devise = $devise_article;
+                       $prospects_date_creation = date("d/m/Y");
+                       $prospects_achat_id = $achat_id;
+
+                       $commisionsagents = new commisionsagents();
+                       $commisionsagents->user_id = $prospects_user_id;
+                       $commisionsagents->client_id = $prospects_client_id;
+                       $commisionsagents->article_id = $prospects_article_id;
+                       $commisionsagents->montant = $prospects_montant;
+                       $commisionsagents->commision = $prospects_commission;
+                       $commisionsagents->devise = $prospects_devise;
+                       $commisionsagents->date_creation = $prospects_date_creation;
+                       $commisionsagents->achat_id = $prospects_achat_id;
+                       $commisionsagents->taux = $prospects_taux_general;
+
+                       $commisionsagents->save();
+                   }
                 }
             }
 
-            Session::put("facture_user_id", $id);
-            $facture_id = $id;
+
+            Fichierss::where('id', Auth::user()->id)->delete();
+
+            // --- 8. Retour de la vue (inchangé) ---
+            $groupe_user_id = Auth::user()->role;
+            $data["ressource_id_1"] = 2;
+            $data["groupe_user_id"] = $groupe_user_id;
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            $data["factures"] = Factureass::where(["user_id" => Auth::user()->id, "etat" => 0])->get();
+            if(Auth::user()->role == 0) {
+                $data["factures"] = Factureass::where(["etat" => 0])->get();
+            }
+
+            // AJOUT : tout s'est bien passé, on valide la transaction
+            DB::commit();
+            return view('include.refresh_factureass', $data);
+
+        } catch (\Exception $e) {
+            // AJOUT : en cas d'exception, on annule tout et on retourne une erreur
+            DB::rollBack();
+            // Vous pouvez personnaliser le message ou logger l'erreur
+            return back()->withErrors(['error' => 'Une erreur est survenue : ' . $e->getMessage()]);
         }
-
-        // --- 5. Création de l'achat (inchangé) ---
-        $achat = new Achats();
-        $achat->id = Achats::get()->count() + 1;
-        $achat->user_id = Auth::user()->id;
-        $achat->facture_id = $facture_id;
-        $achat->article_id = $article_id;
-        $achat->type = $request->action;
-        $achat->prix_unitaire = $prix_unitaire;
-        $achat->quantite = $request->quantite;
-        $achat->type_vente_id = $request->type_vente_id;
-        $achat->taille_lot = $taille_lot;
-        $achat->total = round($prix_unitaire * $request->quantite, 2);
-        $achat->devise = $devise_article;
-        $achat->taux = $request->taux;
-        $achat->libelle = $request->libelle;
-        $achat->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
-        $achat->date_creation = date("d/m/Y");
-        $achat->prix_achat = $prix_achat;
-        $achat->devise_achat = $devise_achat;
-
-        // Preuve (inchangé)
-        $preuve = "";
-        $nb_file = Fichierss::where(["numero_sortie" => Auth::user()->id])->count();
-        if ($nb_file != 0) {
-            $preuve = Fichierss::where('id', Auth::user()->id)->first()["lien"];
-        }
-        $achat->preuve_de_sortie = $preuve;
-        $achat->save();
-
-        // --- 6. Mise à jour du stock (inchangé) ---
-        $stock = $stock - $request->quantite;
-        $article->stock = round($stock);
-        $article->save();
-
-        Fichierss::where('id', Auth::user()->id)->delete();
-
-        // --- 7. Retour de la vue (inchangé) ---
-        $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 2;
-        $data["groupe_user_id"] = $groupe_user_id;
-        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
-        $data["factures"] = Factureass::where(["user_id" => Auth::user()->id, "etat" => 0])->get();
-        if(Auth::user()->role == 0) {
-            $data["factures"] = Factureass::where(["etat" => 0])->get();
-        }
-        return view('include.refresh_factureass', $data);
     }
 
     public function orange_api($m, $receiverAddress)
     {
-        $config = array(
-            'clientId'     => 'oqlLT3dmjxVkxKPwj8vtAmKGaxDDaIji',
-            'clientSecret' => 'wpTonBIb7HytohJvPG0cxKUHUruv3u4oEpyUo0BKv94e'
-        );
-
-        $osms = new Osms($config);
-
-        // Sélection du message en fonction de $m
-        $texte = '';
-        if ($m == 1) {
-            $texte = 'Bonjour cher client, les 300 hommes vous disent merci pour votre confiance et votre fidélité.';
-        } elseif ($m == 2) {
-            $texte = 'Bonjour cher client, dernier rappel : votre dette auprès des 300 hommes doit être réglée aujourd\'hui. Merci de votre compréhension.';
-        } else {
-            // Message par défaut si $m n'est ni 1 ni 2
-            $texte = 'Bonjour cher client, ceci est un message automatique des 300 hommes.';
-        }
-
-        // Récupération automatique du token
-        $response = $osms->getTokenFromConsumerKey();
-
-        if (!empty($response['access_token'])) {
-            $senderAddress   = 'tel:+243891470750';   // Votre numéro d'expéditeur (fixe)
-            // $receiverAddress est passé en paramètre
-            $message         = $texte;
-            $senderName      = 'LES300HG';            // Nom de l'expéditeur
-
-            $osms->sendSMS($senderAddress, $receiverAddress, $message, $senderName);
-            echo "SMS envoyé avec succès !";
-        } else {
-            echo "Erreur : impossible d'obtenir le token.";
-        }
+    // Sécurisation du destinataire
+    if (is_array($receiverAddress)) {
+        $receiverAddress = reset($receiverAddress);
     }
+    $receiverAddress = (string) $receiverAddress;
+    $m = (int) $m;
+
+    $config = [
+        'clientId'     => 'oqlLT3dmjxVkxKPwj8vtAmKGaxDDaIji',
+        'clientSecret' => 'wpTonBIb7HytohJvPG0cxKUHUruv3u4oEpyUo0BKv94e'
+    ];
+
+    $osms = new Osms($config);
+
+    // Message
+    switch ($m) {
+        case 1:
+            $texte = 'Bonjour cher client, les 300 hommes vous disent merci pour votre confiance et votre fidélité.';
+            break;
+        case 2:
+            $texte = 'Bonjour cher client, dernier rappel : votre dette auprès des 300 hommes doit être réglée aujourd\'hui. Merci de votre compréhension.';
+            break;
+        default:
+            $texte = 'Bonjour cher client, ceci est un message automatique des 300 hommes.';
+    }
+
+    // Récupération du token
+    $response = $osms->getTokenFromConsumerKey();
+
+    if (empty($response['access_token'])) {
+        return false;
+    }
+
+    $senderAddress = 'tel:+243891470750';
+    $senderName    = 'LES300HG';
+
+    try {
+        $osms->sendSMS($senderAddress, $receiverAddress, $texte, $senderName);
+        return true;
+    } catch (\Exception $e) {
+        return false;
+    }
+}
 
     public function add_article(Request $request)
     {
@@ -6211,16 +6299,25 @@ class AjaxController extends Controller
         $user->poste_id = $request->edit_poste_id;
         $user->activite_id = $request->edit_activite_id;
         $user->save();
-        $data["utilisateurs"] = User::where(function($query){
-            $query->where('role', '<>', 0);
-        })->where(function($query){
-            $query->where('etat', '=', 1);
-        })->get();
         $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 2;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $data["activites"] = Activites::where(["supprimer" => 0])->get();
+        if($request->page == 19)
+        {
+            $data["ressource_id_1"] = 19;
+            $data["utilisateurs"] = User::where('role', '<>', 0)
+                          ->where('etat', '=', 1)
+                          ->get();
+        }
+        else if($request->page == 31)
+        {
+            $data["ressource_id_1"] = 31;
+            $data["utilisateurs"] = User::where('role', '<>', 0)
+                          ->where('etat', '=', 1)
+                          ->where('user_id', Auth::user()->id)
+                          ->get();
+        }
         return view('include.refresh_utilisateur', $data);
     }
 
@@ -6296,10 +6393,19 @@ class AjaxController extends Controller
         $data["ressource_id_1"] = 14;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["utilisateurs"] = User::where(["etat" => 1])->get();
-        $data["clients"] = Clients::where(["etat" => 1])->get();
         $data["activites"] = Activites::where(["etat" => 1])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        if($request->page == 14)
+        {
+            $data["ressource_id_1"] = 14;
+            $data["clients"] = Clients::where(["etat" => 1])->get();
+        }
+        else if($request->page == 30)
+        {
+            $data["ressource_id_1"] = 30;
+            $data["clients"] = Clients::where(["etat" => 1, "user_id"])->get();
+        }
         return view('include.refresh_client', $data);
     }
 
@@ -6486,16 +6592,25 @@ class AjaxController extends Controller
         $user = User::where('id', $request->id)->first();
         $user->etat = 0;
         $user->save();
-        $data["utilisateurs"] = User::where(function($query){
-            $query->where('role', '<>', 0);
-        })->where(function($query){
-            $query->where('etat', '=', 1);
-        })->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 2;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        if($request->page == 19)
+        {
+            $data["ressource_id_1"] = 19;
+            $data["utilisateurs"] = User::where('role', '<>', 0)
+                          ->where('etat', '=', 1)
+                          ->get();
+        }
+        else if($request->page == 31)
+        {
+            $data["ressource_id_1"] = 31;
+            $data["utilisateurs"] = User::where('role', '<>', 0)
+                          ->where('etat', '=', 1)
+                          ->where('user_id', Auth::user()->id)
+                          ->get();
+        }
         return view('include.refresh_utilisateur', $data);
     }
 
@@ -6586,13 +6701,20 @@ class AjaxController extends Controller
         $client->etat = 0;
         $client->save();
         $data["utilisateurs"] = User::where(["etat" => 1])->get();
-        $data["clients"] = Clients::where(["etat" => 1])->get();
         $data["activites"] = Activites::where(["etat" => 1])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $groupe_user_id = Auth::user()->role;
         $data["ressource_id_1"] = 14;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        if($request->page == 14)
+        {
+            $data["clients"] = Clients::where(["etat" => 1])->get();
+        }
+        else if($request->page == 30)
+        {
+            $data["clients"] = Clients::where(["etat" => 1, "user_id"])->get();
+        }
         return view('include.refresh_client', $data);
     }
 
@@ -6741,6 +6863,7 @@ class AjaxController extends Controller
         $data["utilisateurs"] = User::where('id', $request->user_id)->first();
         $data["activites"] = Activites::where(["supprimer" => 0])->get();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["page"] = $request->page;
         $data["postes"] = Postes::where(["supprimer" => 0])->get();
         return view('include.refresh_editutilisateur', $data);
     }
@@ -6793,6 +6916,7 @@ class AjaxController extends Controller
     {
         $data["clients"] = Clients::where('id', $request->client_id)->first();
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["page"] = $request->page;
         $data["activites"] = Activites::where(["etat" => 1])->get();
         return view('include.refresh_editclient', $data);
     }
@@ -8007,7 +8131,7 @@ class AjaxController extends Controller
 
     public function get_liste_employe(Request $request)
     {
-        // Récupération des filtres via les propriétés de la requête
+        // Récupération des filtres
         $matricule = $request->matricule;
         $nom = $request->nom;
         $email = $request->email;
@@ -8017,9 +8141,25 @@ class AjaxController extends Controller
         $salaire = $request->salaire;
         $userId = $request->userId;
 
-        // Construction de la requête
-        $query = User::where('etat', 1)->where('role', '<>', 0);
+        // --------------------------------------------------------------
+        // 1. Construction de la requête (Builder) – on n'appelle PAS get() ici
+        // --------------------------------------------------------------
+        $query = User::where('role', '<>', 0)
+                     ->where('etat', '=', 1);
 
+        // Application des conditions spécifiques selon la page
+        if ($request->page == 19) {
+            // Pour la page 19 : tous les utilisateurs actifs (aucun filtre supplémentaire)
+            // (Ne rien faire)
+        } elseif ($request->page == 31) {
+            // Pour la page 31 : uniquement ceux créés par l'utilisateur connecté
+            $query->where('user_id', Auth::user()->id);
+        }
+        // Si page est autre chose, on garde la requête de base (tous les actifs)
+
+        // --------------------------------------------------------------
+        // 2. Application des filtres (toujours sur le Builder)
+        // --------------------------------------------------------------
         if (!empty($matricule)) {
             $query->where('matricule', 'like', '%' . $matricule . '%');
         }
@@ -8045,13 +8185,19 @@ class AjaxController extends Controller
             $query->where('user_id', $userId);
         }
 
+        // --------------------------------------------------------------
+        // 3. Exécution de la requête (une seule fois)
+        // --------------------------------------------------------------
         $utilisateurs = $query->get();
-        $groupes = Groupes::where('etat', 1)->get();
+
+        // Chargement des groupes une fois pour toute la liste
+        $groupes = Groupes::where('etat', 1)->get()->keyBy('id'); // indexé par id
+
         $total = $utilisateurs->count();
 
-        // ========================================
-        // GÉNÉRATION DU PDF - STYLE UNIFIÉ
-        // ========================================
+        // ==============================================================
+        // GÉNÉRATION DU PDF (FPDF) – style inchangé, sauf la boucle
+        // ==============================================================
         $pdf = new FPDF();
         $pdf->AddPage();
 
@@ -8161,8 +8307,8 @@ class AjaxController extends Controller
             // Téléphone
             $pdf->Cell(20, $lineHeight, iconv('UTF-8', 'Windows-1252', $data->phone), 1, 0, 'L', true);
 
-            // Rôle
-            $nomRole = ($groupes->count() > 0) ? (Groupes::where('id', $data->role)->first()["nom"] ?? '') : '';
+            // Rôle – RÉCUPÉRATION OPTIMISÉE (sans requête en boucle)
+            $nomRole = $groupes->get($data->role)->nom ?? '';
             $pdf->Cell(35, $lineHeight, iconv('UTF-8', 'Windows-1252//TRANSLIT', substr($nomRole, 0, 20)), 1, 0, 'L', true);
 
             $pdf->Ln();
@@ -8344,53 +8490,138 @@ class AjaxController extends Controller
 
     public function get_liste_client(Request $request)
     {
-        if(Auth::user()->role == 0)
-        {
-             $clients = Clients::where(["etat" => 1])->get();
+        $page = $request->page;
+
+        // Construction de la requête selon la page
+        $query = Clients::where('etat', 1);
+
+        if ($page == 14) {
+            // Tous les clients
+        } elseif ($page == 30) {
+            $query->where('user_id', Auth::user()->id);
+        } else {
+            if (Auth::user()->role != 0) {
+                $query->where('user_id', Auth::user()->id);
+            }
         }
-        elseif(Auth::user()->role != 0)
-        {
-            $clients = Clients::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
-        }
-        $groupes = Groupes::where(["etat" => 1])->get();
+
+        $clients = $query->get();
+        $activites = Activites::where('etat', 1)->get()->keyBy('id');
+        $total = $clients->count();
+
+        // PDF
         $pdf = new FPDF();
         $pdf->AddPage();
-        $pdf->Image("./connexion/images/logo_africtech.jpg", 10, 10, 70, 30);
-        $pdf->SetFont('Arial', 'B', 10);
-        $pdf->Ln(40);
+
+        // ---- En-tête (sans logo) ----
+        $pdf->SetFont('Arial', 'B', 14);
+        $pdf->SetTextColor(0, 80, 160);
+        $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'LISTE DES CLIENTS'), 0, 1, 'C');
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->SetTextColor(80, 80, 80);
+        $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Gestion des clients'), 0, 1, 'C');
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->SetTextColor(0, 80, 160);
+        $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Total : ' . $total . ' clients'), 0, 1, 'C');
+
+        // Ligne décorative
+        $pdf->Ln(4);
+        $pdf->SetDrawColor(0, 120, 220);
+        $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
+        $pdf->Ln(6);
+
+        // ---- Tableau ----
+        $pdf->SetFont('Arial', 'B', 8);
+        $pdf->SetFillColor(0, 80, 160);
         $pdf->SetTextColor(255, 255, 255);
-        $pdf->SetFillColor(0, 0, 0);
-        $pdf->Cell(190, 15, iconv('UTF-8', 'Windows-1252', 'LISTE DES CLIENS'), 0, 1, 'C', true);
-        $pdf->Ln(2);
-        $pdf->SetFont('Arial', 'B', 7);
-        $pdf->SetTextColor(0, 0, 0);
-        $pdf->Cell(190, 5, iconv('UTF-8', 'Windows-1252', ' Clients total : ' . $clients->count()), 0, 0, 'R');
-        $pdf->Ln(7);
-        $pdf->SetTextColor(0, 0, 0);
-        $pdf->Cell(45, 5, iconv('UTF-8', 'Windows-1252', 'NOM'), 1, 0, 'L');
-        $pdf->Cell(45, 5, iconv('UTF-8', 'Windows-1252', 'EMAIL'), 1, 0, 'L');
-        $pdf->Cell(25, 5, iconv('UTF-8', 'Windows-1252', 'TELEPHONE'), 1, 0, 'L');
-        $pdf->Cell(25, 5, iconv('UTF-8', 'Windows-1252', 'TYPE'), 1, 0, 'L');
-        $pdf->Cell(50, 5, iconv('UTF-8', 'Windows-1252', 'ACTIVITE'), 1, 0, 'L');
-        foreach ($clients as $data)
-        {
-            $pdf->Ln(5);
-            $pdf->SetFont('Arial', '', 7);
-            $pdf->SetTextColor(0, 0, 0);
-            $pdf->Cell(45, 5, iconv('UTF-8', 'Windows-1252', $data->name), 1, 0, 'L');
-            $pdf->Cell(45, 5, iconv('UTF-8', 'Windows-1252', $data->email), 1, 0, 'L');
-            $pdf->Cell(25, 5, iconv('UTF-8', 'Windows-1252', $data->phone), 1, 0, 'L');
-            if ($data->type == 0)
-            {
-                $pdf->Cell(25, 5, iconv('UTF-8', 'Windows-1252', "Privé"), 1, 0, 'L');
+        $pdf->Cell(10, 7, iconv('UTF-8', 'Windows-1252', 'N°'), 1, 0, 'C', true);
+        $pdf->Cell(45, 7, iconv('UTF-8', 'Windows-1252', 'NOM'), 1, 0, 'L', true);
+        $pdf->Cell(50, 7, iconv('UTF-8', 'Windows-1252', 'EMAIL'), 1, 0, 'L', true);
+        $pdf->Cell(25, 7, iconv('UTF-8', 'Windows-1252', 'TÉLÉPHONE'), 1, 0, 'L', true);
+        $pdf->Cell(25, 7, iconv('UTF-8', 'Windows-1252', 'TYPE'), 1, 0, 'L', true);
+        $pdf->Cell(35, 7, iconv('UTF-8', 'Windows-1252', 'ACTIVITÉ'), 1, 0, 'L', true);
+        $pdf->Ln();
+
+        // Données
+        $pdf->SetFont('Arial', '', 7.5);
+        $num = 1;
+        $rowCount = 0;
+        $lineHeight = 5.5;
+
+        foreach ($clients as $data) {
+            if ($rowCount % 2 == 0) {
+                $pdf->SetFillColor(255, 255, 255);
+            } else {
+                $pdf->SetFillColor(235, 245, 255);
             }
-            else
-            {
-                $pdf->Cell(25, 5, iconv('UTF-8', 'Windows-1252', "Entreprise"), 1, 0, 'L');
+            $pdf->SetTextColor(30, 30, 30);
+
+            $pdf->Cell(10, $lineHeight, $num, 1, 0, 'C', true);
+            $pdf->Cell(45, $lineHeight, iconv('UTF-8', 'Windows-1252//TRANSLIT', substr($data->name, 0, 30)), 1, 0, 'L', true);
+            $pdf->Cell(50, $lineHeight, iconv('UTF-8', 'Windows-1252', $data->email), 1, 0, 'L', true);
+            $pdf->Cell(25, $lineHeight, iconv('UTF-8', 'Windows-1252', $data->phone), 1, 0, 'L', true);
+            $typeLabel = ($data->type == 0) ? 'Privé' : 'Entreprise';
+            $pdf->Cell(25, $lineHeight, iconv('UTF-8', 'Windows-1252', $typeLabel), 1, 0, 'L', true);
+            $nomActivite = $activites->get($data->activite_id)->nom ?? '';
+            $pdf->Cell(35, $lineHeight, iconv('UTF-8', 'Windows-1252//TRANSLIT', substr($nomActivite, 0, 25)), 1, 0, 'L', true);
+
+            $pdf->Ln();
+            $num++;
+            $rowCount++;
+
+            // Saut de page
+            if ($pdf->GetY() > 260) {
+                $pdf->AddPage();
+                // Ré-entête (raccourci)
+                $pdf->SetFont('Arial', 'B', 14);
+                $pdf->SetTextColor(0, 80, 160);
+                $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'LISTE DES CLIENTS (suite)'), 0, 1, 'C');
+                $pdf->SetFont('Arial', '', 9);
+                $pdf->SetTextColor(80, 80, 80);
+                $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Suite de la liste'), 0, 1, 'C');
+                $pdf->Ln(4);
+                $pdf->SetDrawColor(0, 120, 220);
+                $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
+                $pdf->Ln(6);
+
+                $pdf->SetFont('Arial', 'B', 8);
+                $pdf->SetFillColor(0, 80, 160);
+                $pdf->SetTextColor(255, 255, 255);
+                $pdf->Cell(10, 7, iconv('UTF-8', 'Windows-1252', 'N°'), 1, 0, 'C', true);
+                $pdf->Cell(45, 7, iconv('UTF-8', 'Windows-1252', 'NOM'), 1, 0, 'L', true);
+                $pdf->Cell(50, 7, iconv('UTF-8', 'Windows-1252', 'EMAIL'), 1, 0, 'L', true);
+                $pdf->Cell(25, 7, iconv('UTF-8', 'Windows-1252', 'TÉLÉPHONE'), 1, 0, 'L', true);
+                $pdf->Cell(25, 7, iconv('UTF-8', 'Windows-1252', 'TYPE'), 1, 0, 'L', true);
+                $pdf->Cell(35, 7, iconv('UTF-8', 'Windows-1252', 'ACTIVITÉ'), 1, 0, 'L', true);
+                $pdf->Ln();
+                $pdf->SetFont('Arial', '', 7.5);
+                $rowCount = 0;
             }
-            $pdf->Cell(50, 5, iconv('UTF-8', 'Windows-1252', Activites::where('id', $data->activite_id)->first()["nom"]), 1, 0, 'L');
         }
-        $nom_fichier =  "Liste_des_clients" . ".pdf";
+
+        if ($total == 0) {
+            $pdf->SetFont('Arial', 'I', 10);
+            $pdf->SetTextColor(150, 150, 150);
+            $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'Aucun client ne correspond aux critères.'), 0, 1, 'C');
+        }
+
+        // Pied de page
+        $pdf->SetY(-18);
+        $pdf->SetDrawColor(0, 120, 220);
+        $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
+        $pdf->SetY(-15);
+        $pdf->SetFont('Arial', 'I', 7);
+        $pdf->SetTextColor(0, 80, 160);
+        $pdf->Cell(95, 5, iconv('UTF-8', 'Windows-1252', 'Total : ' . $total . ' clients - Généré le ' . date('d/m/Y à H:i')), 0, 0, 'L');
+        $pdf->Cell(95, 5, iconv('UTF-8', 'Windows-1252', 'Page {PAGE} / {NB}'), 0, 0, 'R');
+        $pdf->AliasNbPages();
+
+        // Nom du fichier
+        $nom_fichier = 'liste_clients';
+        if ($page) {
+            $nom_fichier .= '_page' . $page;
+        }
+        $nom_fichier .= '.pdf';
         $pdf->Output("F", $nom_fichier);
         echo $nom_fichier;
     }
@@ -12680,6 +12911,43 @@ class AjaxController extends Controller
         return view('include.refresh_article_stock', $data);
     }
 
+    public function refresh_article_stock_pointdevente(Request $request)
+    {
+        if($request->stock_id != 0)
+        {
+            $stock = Stocks::where(["etat" => 1, "supprimer" => 0, "id" => $request->stock_id])->first();
+            $data["nom"] = $stock->nom;
+        }
+        else
+        {
+            $data["nom"] = "Stock principal";
+        }
+        if($request->stock_id == 0)
+        {
+            $data["articles"] = Articles::where(["supprimer" => 0])->get();
+        }
+        else
+        {
+            $data["articles"] = articlestocks::where(["supprimer" => 0, "stock_id" => $request->stock_id])->get();
+        }
+        $data["stocks"] = Stocks::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
+        $data["pointdeventes"] = Pointdeventes::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
+        $data["stock_id"] = $request->stock_id;
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 2;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        $data["societes"] = Societes::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["supprimer" => 0])->get();
+        $data["utilisateurs"] = User::where(["etat" => 1,"id" => Auth::user()->id])->get();
+        if(Auth::user()->role == 0)
+        {
+            $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        }
+        return view('include.refresh_article_stock_pointdevente', $data);
+    }
+
     public function refresh_partager_fichier(Request $request)
     {
         $data["fichier_document_id"] = $request->fichier_document_id;
@@ -15234,10 +15502,8 @@ class AjaxController extends Controller
 
         // 2. Détermination du point de vente et de son stock_id
         if ($pointdeventes_id) {
-            // Cas de la page de facture : on a directement l'ID du point de vente
             $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
         } elseif ($table_id) {
-            // Cas existant (autre page) : on passe par la table
             $table = Tables::where('id', $table_id)->first();
             if ($table) {
                 $pointdeventes_id = $table->pointdeventes_id;
@@ -15249,16 +15515,12 @@ class AjaxController extends Controller
             $pointdeventes = null;
         }
 
-        // Si aucun point de vente n'est trouvé, on retourne un select vide
         if (!$pointdeventes) {
             return '<option selected value="">Sélectionnez un article</option>';
         }
 
         $stock_id = $pointdeventes->stock_id;
 
-        // ------------------------------------------------------------------
-        // 3. Le reste du code est strictement inchangé (même logique)
-        // ------------------------------------------------------------------
         $html = '<option selected value="">Sélectionnez un article</option>';
 
         if ($stock_id == 0) {
@@ -15268,11 +15530,24 @@ class AjaxController extends Controller
                 $nomMesure = Mesures::where('id', $article->mesure_id)->first()['nom'] ?? 'N/A';
                 $nomSociete = Societes::where('id', $article->societe_id)->first()['nom'] ?? 'N/A';
                 $label = $article->nom_article . ' ' . $nomMesure . ' (' . $nomSociete . ')';
+
+                // --- AJOUT : affichage des prix ---
+                $devise = $article->devise ?? 0;
+                $prix_detail = $article->prix_detail ?? 0;
+                $prix_gros = $article->prix_gros ?? 0;
+                if ($devise == 0) {
+                    $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(USD), <span class="text-success">G : </span> ' . number_format($prix_gros, 2, ',', ' ') . 'USD';
+                } else {
+                    $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(CDF), <span class="text-success">G : </span> ' . number_format($prix_gros, 2, ',', ' ') . '(CDF)';
+                }
+                // ---------------------------------
+
                 $disabled = ($article->activite_id == 0) ? 'disabled' : '';
                 $icon = ($article->activite_id != 0) ? '🟢' : '🔴';
                 $message = $disabled ? ' : Activité non définie' : '';
+
                 $html .= '<option value="' . $article->id . '" ' . $disabled . '>'
-                    . $icon . ' ' . e($label) . $message
+                    . $icon . ' ' . e($label) . ' Prix : ' . $prixHtml . $message
                     . '</option>';
             }
         } else {
@@ -15287,9 +15562,19 @@ class AjaxController extends Controller
                 $nomSociete = Societes::where('id', $article->societe_id)->first()['nom'] ?? 'N/A';
                 $label = $article->nom_article . ' ' . $nomMesure . ' (' . $nomSociete . ')';
 
-                // Vérifications
+                // --- AJOUT : affichage des prix ---
+                $devise = $article->devise ?? 0;
+                $prix_detail = $article->prix_detail ?? 0;
+                $prix_gros = $article->prix_gros ?? 0;
+                if ($devise == 0) {
+                    $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(USD), <span class="text-success">G : </span> ' . number_format($prix_gros, 2, ',', ' ') . 'USD';
+                } else {
+                    $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(CDF), <span class="text-success">G : </span> ' . number_format($prix_gros, 2, ',', ' ') . '(CDF)';
+                }
+                // ---------------------------------
+
                 $activiteOk = ($article->activite_id != 0);
-                $stockOk = ($articlestock->stock > $articlestock->seuil_minimum); // supposé existant
+                $stockOk = ($articlestock->stock > $articlestock->seuil_minimum);
 
                 $disabled = false;
                 $messages = [];
@@ -15308,9 +15593,8 @@ class AjaxController extends Controller
 
                 $icon = ($activiteOk && $stockOk) ? '🟢' : '🔴';
 
-                // ✅ Modification : on utilise l'ID de l'article (via la clé étrangère article_id)
                 $html .= '<option value="' . $articlestock->article_id . '" ' . ($disabled ? 'disabled' : '') . '>'
-                    . $icon . ' ' . e($label) . $message
+                    . $icon . ' ' . e($label) . ' Prix : ' . $prixHtml . $message
                     . '</option>';
             }
         }

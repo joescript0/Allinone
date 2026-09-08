@@ -958,6 +958,54 @@ select.form-control {
         padding: 6px 12px;
     }
 }
+
+/* ===== NOUVEAU : HARMONISATION DE SELECT2 AVEC LE STYLE FORM-CONTROL ===== */
+.select2-container--bootstrap .select2-selection {
+    height: 38px !important;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 0 12px;
+}
+
+.select2-container--bootstrap .select2-selection__arrow {
+    height: 38px !important;
+}
+
+.select2-container--bootstrap .select2-selection__rendered {
+    line-height: 38px !important;
+    padding-left: 0;
+    color: #1e2a3e;
+}
+
+.select2-container--bootstrap .select2-selection__placeholder {
+    color: #6c757d;
+}
+
+.select2-dropdown {
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: var(--shadow-light);
+}
+
+.select2-results__option {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+.select2-results__option--highlighted {
+    background: #e6f0ff !important;
+    color: #0a192f !important;
+}
+
+/* ===== NOUVEAU : LIMITATION DE HAUTEUR DU DROPDOWN SELECT2 ===== */
+.select2-container--bootstrap .select2-results__options {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+}
     </style>
     <section class="content">
         <div class="container">
@@ -1534,11 +1582,13 @@ select.form-control {
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
                                                 class="zmdi zmdi-accounts"></i> Clients </span></label>
-                                        <select id="client_id" name="client_id" class="form-control"
-                                            data-placeholder="Selectionnez un client">
-                                            <option selected class="form-control" value="">Selectionnez un client</option>
+                                        <!-- ===== MODIFICATION : select2 avec recherche et thème bootstrap ===== -->
+                                        <select id="client_id" name="client_id" class="form-control select2"
+                                                data-placeholder="Rechercher un client..." style="width: 100%;"
+                                                data-theme="bootstrap">
+                                            <option value="">Selectionnez un client</option>
                                             @foreach ($clients as $data)
-                                                <option value="{{ $data->id }}"><?= $data->name ?></option>
+                                                <option value="{{ $data->id }}">{{ $data->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -2389,6 +2439,14 @@ select.form-control {
 
         // ========== INITIALISATION (COMME DANS RAPPORT) ==========
         $(document).ready(function() {
+            // ===== INITIALISATION DE SELECT2 POUR LE CLIENT =====
+            $('#client_id').select2({
+                placeholder: "Rechercher un client...",
+                allowClear: true,
+                theme: 'bootstrap',
+                width: '100%'
+            });
+
             // Initialisation du Date Range Picker avec la date du jour par défaut
             var today = moment();
             var todayStr = today.format('DD/MM/YYYY');
@@ -2523,6 +2581,50 @@ select.form-control {
                     }
                 });
             });
+
+            // ================================================================
+            // GESTION DU CHARGEMENT DES ARTICLES SELON LA TABLE
+            // ================================================================
+            // Fonction pour charger les articles disponibles pour une table donnée
+            function loadArticlesForTable(tableId) {
+                // Si aucun ID de table ou vide, on vide le select des articles
+                if (!tableId || tableId.trim() === '') {
+                    $("#type_sortie").html('<option value="">Selectionnez un article</option>');
+                    return;
+                }
+
+                // Appel AJAX à la route get_articles_by_table (à créer côté Laravel)
+                $.get("{{ url('/get_articles_select') }}", { table_id : tableId })
+                    .done(function(response) {
+                        // Remplacer le contenu du select #type_sortie par la réponse HTML (options)
+                        $("#type_sortie").html(response);
+
+                        // Si un article était déjà sélectionné, on déclenche son événement change
+                        // pour que l'écouteur existant sur #type_sortie mette à jour les détails
+                        var currentArticle = $("#type_sortie").val();
+                        if (currentArticle && currentArticle.trim() !== '') {
+                            $("#type_sortie").trigger('change');
+                        }
+                    })
+                    .fail(function() {
+                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors du chargement des articles pour cette table');
+                        setTimeout(function() {
+                            $('#msg').html('');
+                        }, 9000);
+                    });
+            }
+
+            // Écouteur sur le changement de la table
+            $("#table_id").on('change', function() {
+                var tableId = $(this).val();
+                loadArticlesForTable(tableId);
+            });
+
+            // Si une table est déjà sélectionnée dans le select, on charge ses articles
+            var initialTableId = $("#table_id").val();
+            if (initialTableId && initialTableId.trim() !== '') {
+                loadArticlesForTable(initialTableId);
+            }
         });
 
         // Sauvegarde automatique avant de quitter
@@ -2701,56 +2803,6 @@ select.form-control {
 
         $("#pdfModal").on("hidden.bs.modal", function() {
             $("#pdfIframe").attr("src", "");
-        });
-
-        // ================================================================
-        // GESTION DU CHARGEMENT DES ARTICLES SELON LA TABLE
-        // ================================================================
-
-        // Fonction pour charger les articles disponibles pour une table donnée
-        function loadArticlesForTable(tableId) {
-            // Si aucun ID de table ou vide, on vide le select des articles
-            if (!tableId || tableId.trim() === '') {
-                $("#type_sortie").html('<option value="">Selectionnez un article</option>');
-                return;
-            }
-
-            // Appel AJAX à la route get_articles_by_table (à créer côté Laravel)
-            $.get("{{ url('/get_articles_select') }}", { table_id : tableId })
-                .done(function(response) {
-                    // Remplacer le contenu du select #type_sortie par la réponse HTML (options)
-                    $("#type_sortie").html(response);
-
-                    // Si un article était déjà sélectionné, on déclenche son événement change
-                    // pour que l'écouteur existant sur #type_sortie mette à jour les détails
-                    var currentArticle = $("#type_sortie").val();
-                    if (currentArticle && currentArticle.trim() !== '') {
-                        $("#type_sortie").trigger('change');
-                    }
-                })
-                .fail(function() {
-                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors du chargement des articles pour cette table');
-                    setTimeout(function() {
-                        $('#msg').html('');
-                    }, 9000);
-                });
-        }
-
-        // Écouteur sur le changement de la table
-        $("#table_id").on('change', function() {
-            var tableId = $(this).val();
-            loadArticlesForTable(tableId);
-        });
-
-        // Initialisation au chargement de la page
-        $(document).ready(function() {
-            // ... vos autres initialisations (datepicker, filtres, etc.) ...
-
-            // Si une table est déjà sélectionnée dans le select, on charge ses articles
-            var initialTableId = $("#table_id").val();
-            if (initialTableId && initialTableId.trim() !== '') {
-                loadArticlesForTable(initialTableId);
-            }
         });
     </script>
 @endsection

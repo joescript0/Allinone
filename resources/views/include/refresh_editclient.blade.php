@@ -295,10 +295,12 @@
             showEditMsg('error', '<i class="zmdi zmdi-close-circle"></i> Completez le nom', 9000);
         } else {
             $("#edit_save").attr("disabled", true);
+            var page = <?= $page ?>;
+            var formData = $("#form_edit").serialize() + "&page=" + encodeURIComponent(page);
             $.ajax({
                 type: "POST",
                 url: "/edit_client",
-                data: data,
+                data: formData,
                 success: function(response) {
                     var currentLat = $('#edit_latitude').val();
                     var currentLng = $('#edit_longitude').val();

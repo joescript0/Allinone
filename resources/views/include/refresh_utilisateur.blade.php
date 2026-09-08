@@ -26,90 +26,76 @@ use Illuminate\Support\Facades\Auth;
                 </tr>
             </thead>
             <tbody>
-                {{ !($i = 1) }}
+                {{! $i = 1; }}
                 @foreach ($utilisateurs as $data)
                     <!-- ========== data-user-id = $data->user_id ========== -->
                     <tr id="row_{{ $data->id }}" data-user-id="{{ $data->user_id }}">
                         <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">{{ $i }}</td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;" class="matricule-cell"
-                            data-matricule="{{ $data->matricule }}">{{ $data->matricule }}</td>
-                        <td class="align-middle nom-cell" data-nom="{{ $data->name }}"
-                            style="padding-top: 5px;padding-bottom: 5px;">
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="matricule-cell" data-matricule="{{ $data->matricule }}">{{ $data->matricule }}</td>
+                        <td class="align-middle nom-cell" data-nom="{{ $data->name }}" style="padding-top: 5px;padding-bottom: 5px;">
                             <a id="voir_profil_<?= $i ?>" href="#">
                                 <img src="{{ asset($data->image) }}" alt="avatar" class="profile-thumb">
                             </a> {{ $data->name }}
                         </td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;" class="salaire-cell"
-                            data-salaire="{{ $data->salaire }}" data-devise="{{ $data->devise }}">
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="salaire-cell" data-salaire="{{ $data->salaire }}" data-devise="{{ $data->devise }}">
                             @if (Auth::user()->role == 0)
                                 @if ($data->devise == 0)
-                                    {{ number_format($data->salaire, 2, ',', ' ') . 'USD' }}
+                                    {{ number_format($data->salaire, 2, ',', ' ') .'USD'; }}
                                 @else
-                                    {{ number_format($data->salaire, 2, ',', ' ') . 'CDF' }}
+                                    {{ number_format($data->salaire, 2, ',', ' ') .'CDF'; }}
                                 @endif
                             @else
                                 @if ($data->devise == 0)
-                                    {{ number_format(0, 2, ',', ' ') . 'USD' }}
+                                    {{ number_format(0, 2, ',', ' ') .'USD'; }}
                                 @else
-                                    {{ number_format(0, 2, ',', ' ') . 'CDF' }}
+                                    {{ number_format(0, 2, ',', ' ') .'CDF'; }}
                                 @endif
                             @endif
                         </td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;" class="email-cell"
-                            data-email="{{ $data->email }}">{{ $data->email }}</td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;" class="phone-cell"
-                            data-phone="{{ $data->phone }}">{{ $data->phone }}</td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;" class="role-cell"
-                            data-role="{{ $data->role }}">
-                            @if ($groupes->count() != 0)
-                                <?= Groupes::where('id', $data->role)->first()['nom'] ?? 'N/A' ?>
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="email-cell" data-email="{{ $data->email }}">{{ $data->email }}</td>
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="phone-cell" data-phone="{{ $data->phone }}">{{ $data->phone }}</td>
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="role-cell" data-role="{{ $data->role }}">
+                            @if ($groupes->count()!= 0)
+                                <?= Groupes::where('id', $data->role)->first()["nom"] ?? 'N/A'; ?>
                             @endif
                         </td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;" class="poste-cell"
-                            data-poste="{{ $data->poste_id }}">
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="poste-cell" data-poste="{{ $data->poste_id }}">
                             <?php
-                            $potess = Postes::where('id', $data->poste_id)->first();
+                                $potess = Postes::where('id', $data->poste_id)->first()
                             ?>
                             @if ($data->poste_id == 0)
-                                <i class="zmdi zmdi-close-circle text-danger"></i> <span
-                                    class="text-danger">{{ 'Aucun' }} </span>
+                                <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">{{ 'Aucun' }} </span>
                             @else
-                                <i class="zmdi zmdi-check-circle text-success"></i> <span
-                                    class="text-success"><?= $potess['nom'] ?? 'N/A' ?>,
-                                    <?= Lieux::where(['id' => $potess['lieuxe_id'] ?? 0])->first()['nom'] ?? 'N/A' ?>.</span>
+                                <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success"><?= $potess["nom"] ?? 'N/A'; ?>, <?= Lieux::where(["id" => $potess["lieuxe_id"] ?? 0])->first()["nom"] ?? 'N/A'; ?>.</span>
                             @endif
                         </td>
                         <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                             <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
-                            <?php
-                            $edit = 0;
-                            $delete = 0;
-                            if (
-                                Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])
-                                    ->get()
-                                    ->count() != 0
-                            ) {
-                                $edit = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->edit;
-                                $delete = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->delete;
-                            }
-                            ?>
+                                <?php
+                                $edit = 0;
+                                $delete = 0;
+                                if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
+                                    $edit = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->edit;
+                                    $delete = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->delete;
+                                }
+                                ?>
                             <?php } ?>
                             <?php if ((($edit == 1) && ($data->user_id == Auth::user()->id)) || (Auth::user()->role == 0)) { ?>
-                            <a id="edit_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
+                                <a id="edit_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
                             <?php } else { ?>
-                            <a id="edit_r<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a>
-                            &nbsp;
+                                <a id="edit_r<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
                             <?php } ?>
                             <?php if (($delete == 1 && $data->user_id == Auth::user()->id) || (Auth::user()->role == 0)) { ?>
-                            <a id="delete_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
+                                <a id="delete_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
                             <?php } else { ?>
-                            <a id="delete_r<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
+                                <a id="delete_r<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
                             <?php } ?>
                             <script>
                                 $("#edit_<?= $i ?>").click(function(e) {
                                     e.preventDefault();
                                     $.get("{{ url('/refresh_editutilisateur') }}", {
                                         user_id: <?= $data->id ?>,
+                                        page: <?= $ressource_id_1 ?>,
                                     }, function(refresh_editutilisateur) {
                                         $("#bloc_1").hide();
                                         $("#bloc_2").hide();
@@ -144,7 +130,7 @@ use Illuminate\Support\Facades\Auth;
                             </script>
                         </td>
                     </tr>
-                    {{ !$i++ }}
+                {{! $i++; }}
                 @endforeach
             </tbody>
         </table>

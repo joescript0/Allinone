@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 ?>
 @extends('layouts.main')
 @section('title', $nom_app)
-@section('name', 'MES PROSPECTS')
+@section('name', 'MES CLIENTS')
 @section('body')
 @include('composants.preload')
 @include('composants.header')
@@ -345,9 +345,16 @@ h4 i.zmdi {
     height: 36px;
 }
 
+/* ===== BADGES DE TOTAUX ET COMPTEURS ===== */
+.client-badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px 12px;
+    margin-bottom: 15px;
+}
+
 .client-count-badge {
-    background: var(--rouge-gradient);
-    color: white;
     border-radius: 50px;
     padding: 4px 12px;
     font-size: 0.75rem;
@@ -355,7 +362,27 @@ h4 i.zmdi {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-bottom: 12px;
+    white-space: nowrap;
+    color: white;
+}
+
+/* Badges de compteurs */
+.client-count-badge.non-renseigne-badge {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.client-count-badge.renseigne-badge {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+/* Badges de totaux USD/CDF */
+.client-count-badge.usd-badge {
+    background: linear-gradient(135deg, #3B82F6, #2563eb);
+}
+.client-count-badge.cdf-badge {
+    background: linear-gradient(135deg, #3B82F6, #2563eb);
+}
+/* Badge de compteur total (liste) */
+.client-count-badge.count-badge {
+    background: var(--rouge-gradient);
 }
 
 /* ========== FORMULAIRES : AJOUT ET MODIFICATION ========== */
@@ -700,6 +727,10 @@ select.form-control {
     .filter-group .form-control {
         height: 34px !important;
     }
+    .client-badges-container {
+        justify-content: flex-start;
+        gap: 6px 8px;
+    }
     .client-count-badge {
         font-size: 0.65rem;
         padding: 3px 10px;
@@ -859,13 +890,13 @@ select.form-control {
     <div style="margin-top: 30px;padding-bottom: 100px;" class="container">
         <div class="row">
             <div class="col-lg-12">
-                <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Mes prospects</h6>
+                <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Mes clients</h6>
             </div>
             <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
                 <h4 style="color:rgba(0, 0, 0, 0.6);">
                     <i style="font-size: 40px;" class="zmdi zmdi-accounts text-info"></i>
                     Liste
-                    <span class="client-count-badge">
+                    <span class="client-count-badge count-badge" style="margin-left: 8px;">
                         <i class="zmdi zmdi-view-list"></i> <span id="clientCount">0</span>
                     </span>
                 </h4>
@@ -901,9 +932,10 @@ select.form-control {
                             @endforeach
                         </select>
                     </div>
+                    <!-- ===== FILTRE ABONNEMENT ===== -->
                     <div class="filter-group">
-                        <label><i class="zmdi zmdi-map text-danger"></i> Adresse</label>
-                        <input type="text" id="filterAdresse" class="form-control" placeholder="Rechercher par adresse...">
+                        <label><i class="zmdi zmdi-money text-danger"></i> Abonnement</label>
+                        <input type="text" id="filterAbonnement" class="form-control" placeholder="Montant (ex: 100)">
                     </div>
                     <div class="filter-group">
                         <label><i class="zmdi zmdi-account text-danger"></i> Utilisateur</label>
@@ -914,6 +946,25 @@ select.form-control {
                             <i class="zmdi zmdi-refresh"></i> Réinitialiser
                         </button>
                     </div>
+                </div>
+
+                <!-- ===== BADGES : NON RENSEIGNÉS, ENREGISTRÉS, TOTAUX USD/CDF ===== -->
+                <div class="client-badges-container">
+                    <!-- 1. Non renseignés (orange) avec icône utilisateur barrée -->
+                    <span class="client-count-badge non-renseigne-badge">
+                        <i class="zmdi zmdi-account"></i> Enregistrés sans abonnement : <span id="clientNonRenseigneCount">0</span>
+                    </span>
+                    <!-- 2. Enregistrés (vert) avec icône utilisateur pleine -->
+                    <span class="client-count-badge renseigne-badge">
+                        <i class="zmdi zmdi-account"></i> Enregistrés avec abonnement: <span id="clientRenseigneCount">0</span>
+                    </span>
+                    <!-- 3. Totaux USD et CDF (bleu) -->
+                    <span class="client-count-badge usd-badge">
+                        <i class="zmdi zmdi-money"></i> Total abonnements USD : <span id="totalAbonnementUsd">0,00</span> $
+                    </span>
+                    <span class="client-count-badge cdf-badge">
+                        <i class="zmdi zmdi-money-box"></i> Total abonnements CDF : <span id="totalAbonnementCdf">0,00</span> CDF
+                    </span>
                 </div>
 
                 <div id="content_utilisateur" class="row">
@@ -928,17 +979,47 @@ select.form-control {
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Telephone</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Type</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Activité</th>
-                                        <th style="padding-top: 5px;padding-bottom: 5px;">Adresse</th>
+                                        <!-- ===== ABONNEMENT ===== -->
+                                        <th style="padding-top: 5px;padding-bottom: 5px;">Abonnement</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Utilisateur</th>
-                                        <!-- ===== COLONNE CLIENT AVEC BADGES ===== -->
-                                        <th style="padding-top: 5px;padding-bottom: 5px;">Client</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {{! $i = 1; }}
-                                    @foreach ($prospects as $data)
-                                    <tr>
+                                    @foreach ($clients as $data)
+                                    @php
+                                        // --- Calcul des équivalents USD et CDF pour chaque ligne ---
+                                        $montant = (float) ($data->paiement ?? 0);
+                                        $devise = (int) ($data->devise ?? 0);
+                                        $taux = (float) ($data->taux ?? 1);
+                                        if ($taux <= 0) $taux = 1; // sécurité
+
+                                        if ($montant > 0) {
+                                            if ($devise == 0) {
+                                                $row_usd = $montant;
+                                                $row_cdf = $montant * $taux;
+                                            } else {
+                                                $row_cdf = $montant;
+                                                $row_usd = ($taux > 0) ? $montant / $taux : 0;
+                                            }
+                                        } else {
+                                            $row_usd = 0;
+                                            $row_cdf = 0;
+                                        }
+
+                                        // Affichage double devise (format identique à la page Factures)
+                                        if ($montant > 0) {
+                                            if ($devise == 0) {
+                                                $affiche = number_format($montant, 2, ',', ' ') . ' USD (' . number_format($montant * $taux, 2, ',', ' ') . ' CDF)';
+                                            } else {
+                                                $affiche = number_format($montant, 2, ',', ' ') . ' CDF (' . number_format(($taux > 0 ? $montant / $taux : 0), 2, ',', ' ') . ' USD)';
+                                            }
+                                        } else {
+                                            $affiche = 'Non renseigné';
+                                        }
+                                    @endphp
+                                    <tr data-usd="{{ $row_usd }}" data-cdf="{{ $row_cdf }}">
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">{{ $i }}</td>
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="nom-cell" data-nom="{{ $data->name }}">{{ $data->name }}</td>
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="email-cell" data-email="{{ $data->email }}">{{ $data->email }}</td>
@@ -953,20 +1034,15 @@ select.form-control {
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="activite-cell" data-activite="{{ $data->activite_id }}">
                                             <?= Activites::where('id', $data->activite_id)->first()["nom"]; ?>
                                         </td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="adresse-cell" data-adresse="{{ $data->adresse }}">{{ $data->adresse }}</td>
+                                        <!-- ===== CELLULE ABONNEMENT ===== -->
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="abonnement-cell" data-paiement="{{ $data->paiement ?? 0 }}" data-devise="{{ $data->devise ?? 0 }}" data-taux="{{ $data->taux ?? 1 }}">
+                                            {{ $affiche }}
+                                        </td>
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ $data->user_id }}">
                                             @if (Auth::user()->id == $data->user_id)
                                                 Vous
                                             @else
                                                 {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
-                                            @endif
-                                        </td>
-                                        <!-- ===== CELLULE CLIENT AVEC BADGE ===== -->
-                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="client-cell" data-client-id="{{ $data->client_id }}">
-                                            @if ($data->client_id == 0)
-                                                <span class="badge badge-danger">Non</span>
-                                            @else
-                                                <span class="badge badge-success">Oui</span>
                                             @endif
                                         </td>
                                         <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
@@ -980,19 +1056,18 @@ select.form-control {
                                                 }
                                                 ?>
                                             <?php } ?>
-                                            <!-- ===== ÉDITION ===== -->
                                             <?php if (($edit == 1) || (Auth::user()->role == 0)) { ?>
                                                 <a id="edit_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
                                             <?php } else { ?>
                                                 <a id="edit_r<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
                                             <?php } ?>
-                                            <!-- ===== SUPPRESSION ===== -->
                                             <?php if (($delete == 1) || (Auth::user()->role == 0)) { ?>
-                                                <a id="delete_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a> &nbsp;
+                                                <a id="delete_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
                                             <?php } else { ?>
-                                                <a id="delete_r<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a> &nbsp;
+                                                <a id="delete_r<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
                                             <?php } ?>
-                                            <!-- ===== CARTE ===== -->
+                                            &nbsp;
+                                            <!-- ===== ICÔNE POUR AFFICHER LA POSITION D'UN CLIENT ===== -->
                                             <a id="map_<?= $i ?>" href="#"
                                                data-id="<?= $data->id ?>"
                                                data-lat="<?= $data->latitude ?? '' ?>"
@@ -1002,12 +1077,13 @@ select.form-control {
                                                data-phone="<?= htmlspecialchars($data->phone ?? '') ?>"
                                                data-email="<?= htmlspecialchars($data->email ?? '') ?>">
                                                 <i class="zmdi zmdi-pin"></i>
-                                            </a> &nbsp;
+                                            </a>
                                             <script>
                                                 $("#edit_<?= $i ?>").click(function(e) {
                                                     e.preventDefault();
-                                                    $.get("{{ url('/refresh_editprospect') }}", {
-                                                        prospect_id: <?= $data->id ?>,
+                                                    $.get("{{ url('/refresh_editclient') }}", {
+                                                        client_id: <?= $data->id ?>,
+                                                        page: <?= $ressource_id_1 ?>
                                                     }, function(refresh_editutilisateur) {
                                                         $("#bloc_1").hide();
                                                         $("#bloc_2").hide();
@@ -1255,7 +1331,7 @@ select.form-control {
             <div class="modal-header" style="flex-shrink: 0; background: linear-gradient(135deg, #1e3a5f, #0a192f); padding: 20px 25px; color: white !important; border-radius: 28px 28px 0 0; border-bottom: none; position: relative;">
                 <h3 style="margin:0; font-weight:700; font-size:1.4rem; color:white !important; display:flex; align-items:center; gap:12px; width:100%;">
                     <i class="zmdi zmdi-pin" style="font-size:1.8rem; color: #e31b23;"></i>
-                    LOCALISATION DU PROSPECT
+                    LOCALISATION DU CLIENT
                     <span style="font-size:0.75rem; background:rgba(255,255,255,0.2); padding:4px 12px; border-radius:50px; margin-left:auto;">
                         <i class="zmdi zmdi-pin"></i> Position
                     </span>
@@ -1294,7 +1370,7 @@ select.form-control {
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="mapAllModalLabel">
-                    <i class="zmdi zmdi-pin text-danger"></i> Tous les prospects sur la carte
+                    <i class="zmdi zmdi-pin text-danger"></i> Tous les clients sur la carte
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -1385,7 +1461,7 @@ select.form-control {
         }
     }
 
-    $("#link_46").addClass("active");
+    $("#link_51").addClass("active");
 
     // ========== FILTRES AVEC PERSISTANCE ==========
     let clientFilterTimeout;
@@ -1397,7 +1473,7 @@ select.form-control {
             phone: $('#filterPhone').val(),
             type: $('#filterType').val(),
             activite: $('#filterActivite').val(),
-            adresse: $('#filterAdresse').val(),
+            abonnement: $('#filterAbonnement').val(),
             user: $('#filterUser').val()
         };
         localStorage.setItem('clientFilters', JSON.stringify(filters));
@@ -1412,7 +1488,7 @@ select.form-control {
             $('#filterPhone').val(filters.phone || '');
             $('#filterType').val(filters.type || 'all');
             $('#filterActivite').val(filters.activite || 'all');
-            $('#filterAdresse').val(filters.adresse || '');
+            $('#filterAbonnement').val(filters.abonnement || '');
             $('#filterUser').val(filters.user || '');
             return true;
         }
@@ -1425,11 +1501,12 @@ select.form-control {
         const filterPhone = $('#filterPhone').val().toLowerCase().trim();
         const filterType = $('#filterType').val();
         const filterActivite = $('#filterActivite').val();
-        const filterAdresse = $('#filterAdresse').val().toLowerCase().trim();
+        const filterAbonnement = $('#filterAbonnement').val().toLowerCase().trim();
         const filterUser = $('#filterUser').val().toLowerCase().trim();
 
         let visibleCount = 0;
-        let newIndex = 1;
+        let totalUsd = 0, totalCdf = 0;
+        let renseigneCount = 0, nonRenseigneCount = 0;
 
         $('#content_utilisateur tbody tr').each(function() {
             const $row = $(this);
@@ -1440,7 +1517,7 @@ select.form-control {
             const phoneValue = ($row.find('.phone-cell').data('phone') || '').toLowerCase();
             const typeValue = $row.find('.type-cell').data('type') + '';
             const activiteValue = $row.find('.activite-cell').data('activite') + '';
-            const adresseValue = ($row.find('.adresse-cell').data('adresse') || '').toLowerCase();
+            const abonnementValue = ($row.find('.abonnement-cell').data('paiement') || '').toString();
             const userText = ($row.find('.user-cell').text() || '').toLowerCase();
 
             if (filterNom && !nomValue.includes(filterNom)) showRow = false;
@@ -1448,22 +1525,35 @@ select.form-control {
             if (showRow && filterPhone && !phoneValue.includes(filterPhone)) showRow = false;
             if (showRow && filterType !== 'all' && typeValue !== filterType) showRow = false;
             if (showRow && filterActivite !== 'all' && activiteValue !== filterActivite) showRow = false;
-            if (showRow && filterAdresse && !adresseValue.includes(filterAdresse)) showRow = false;
+            if (showRow && filterAbonnement && !abonnementValue.includes(filterAbonnement)) showRow = false;
             if (showRow && filterUser && !userText.includes(filterUser)) showRow = false;
 
             if (showRow) {
                 $row.show();
-                $row.find('.row-num').text(newIndex);
-                newIndex++;
-                visibleCount++;
+                $row.find('.row-num').text(++visibleCount);
+                totalUsd += parseFloat($row.data('usd')) || 0;
+                totalCdf += parseFloat($row.data('cdf')) || 0;
+
+                // Compter selon paiement
+                const paiement = parseFloat($row.find('.abonnement-cell').data('paiement')) || 0;
+                if (paiement > 0) {
+                    renseigneCount++;
+                } else {
+                    nonRenseigneCount++;
+                }
             } else {
                 $row.hide();
             }
         });
 
+        // Mise à jour des badges
         $('#clientCount').text(visibleCount);
+        $('#clientNonRenseigneCount').text(nonRenseigneCount);
+        $('#clientRenseigneCount').text(renseigneCount);
+        $('#totalAbonnementUsd').text(totalUsd.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+        $('#totalAbonnementCdf').text(totalCdf.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 
-        if (visibleCount === 0 && (filterNom || filterEmail || filterPhone || filterType !== 'all' || filterActivite !== 'all' || filterAdresse || filterUser)) {
+        if (visibleCount === 0 && (filterNom || filterEmail || filterPhone || filterType !== 'all' || filterActivite !== 'all' || filterAbonnement || filterUser)) {
             $('#infoModal .modal-body').html(
                 '<i class="zmdi zmdi-search text-warning" style="font-size: 20px; margin-right: 10px;"></i> ' +
                 'Aucun client ne correspond aux critères de recherche.'
@@ -1478,19 +1568,11 @@ select.form-control {
         $('#filterPhone').val('');
         $('#filterType').val('all');
         $('#filterActivite').val('all');
-        $('#filterAdresse').val('');
+        $('#filterAbonnement').val('');
         $('#filterUser').val('');
 
         saveClientFiltersToStorage();
-
-        $('#content_utilisateur tbody tr').show();
-        let newIndex = 1;
-        $('#content_utilisateur tbody tr:visible').each(function() {
-            $(this).find('.row-num').text(newIndex);
-            newIndex++;
-        });
-        const totalCount = $('#content_utilisateur tbody tr').length;
-        $('#clientCount').text(totalCount);
+        filterClients(); // recalcule les totaux immédiatement
 
         showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Tous les filtres ont été réinitialisés', 3000);
     }
@@ -1509,7 +1591,7 @@ select.form-control {
 
         const hasSavedFilters = loadClientFiltersFromStorage();
 
-        $('#filterNom, #filterEmail, #filterPhone, #filterType, #filterActivite, #filterAdresse, #filterUser').on('input change', function() {
+        $('#filterNom, #filterEmail, #filterPhone, #filterType, #filterActivite, #filterAbonnement, #filterUser').on('input change', function() {
             debouncedClientFilter();
         });
 
@@ -1518,11 +1600,10 @@ select.form-control {
             resetClientFilters();
         });
 
-        if (hasSavedFilters) {
-            setTimeout(function() {
-                filterClients();
-            }, 100);
-        }
+        // Premier calcul des totaux
+        setTimeout(function() {
+            filterClients();
+        }, 100);
     });
 
     // ========== NAVIGATION ==========
@@ -1552,7 +1633,7 @@ select.form-control {
 
     $("#print").click(function(e) {
         e.preventDefault();
-        $.get("{{ url('/get_liste_client') }}", {}, function(response) {
+        $.get("{{ url('/get_liste_client') }}", { page: "<?= $ressource_id_1 ?>"}, function(response) {
             $("#bloc_1").hide();
             $("#bloc_2").hide();
             $("#bloc_3").hide();
@@ -1660,50 +1741,62 @@ select.form-control {
     // ===== AJOUT CLIENT =====
     $("#save").click(function(e) {
         e.preventDefault();
-        var nom = $("#nom").val();
-        if (nom.trim().length == 0) {
-            showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Veuillez compléter le nom du prospect', 9000);
-        } else {
-            // === CONCATÉNATION DU PARAMÈTRE "page=25" ===
-            var serialized = $('#form_add').serialize();
-            var dataWithExtra = serialized + '&page=25';
 
-            $("#save").attr("disabled", true);
-            $.ajax({
-                type: "POST",
-                url: "/add_prospect",
-                data: dataWithExtra, // on envoie la nouvelle chaîne
-                success: function(response) {
-                    $("#save").attr("disabled", false);
-                    // ... votre traitement (vidage des champs, mise à jour du tableau, etc.)
-                    $("#nom").val("");
-                    $("#email").val("");
-                    $("#phone").val("");
-                    $("#adresse").val("");
-                    $("#description").val("");
-                    showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Prospect ajouté avec succès', 9000);
-                    $("#content_utilisateur").html(response);
-                    saveClientFiltersToStorage();
-                    setTimeout(function() {
-                        loadClientFiltersFromStorage();
-                        filterClients();
-                    }, 100);
-                },
-                error: function() {
-                    $("#save").attr("disabled", false);
-                    showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Une erreur est survenue', 5000);
-                }
-            });
+        // Récupération du nom
+        var $nom = $("#nom");
+        var nom = $nom.val().trim();
+
+        // Validation
+        if (nom.length === 0) {
+            showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Veuillez compléter le nom du client', 9000);
+            return;
         }
+
+        // Désactivation du bouton
+        var $btn = $(this);
+        $btn.prop("disabled", true);
+
+        // Ajout du paramètre "page" dans les données sérialisées
+        var page = "<?= $ressource_id_1 ?>"; // La variable s'appelle bien "page"
+        var formData = $("#form_add").serialize() + "&page=" + encodeURIComponent(page);
+
+        $.ajax({
+            type: "POST",
+            url: "/add_client",
+            data: formData,
+            success: function(response) {
+                $btn.prop("disabled", false);
+
+                // Réinitialisation des champs
+                $("#nom").val("");
+                $("#email").val("");
+                $("#phone").val("");
+                $("#adresse").val("");
+                $("#description").val("");
+
+                showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Client ajouté avec succès', 9000);
+                $("#content_utilisateur").html(response);
+
+                saveClientFiltersToStorage();
+                setTimeout(function() {
+                    loadClientFiltersFromStorage();
+                    filterClients();
+                }, 100);
+            },
+            error: function(xhr, status, error) {
+                showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Une erreur est survenue : ' + error, 9000);
+                $btn.prop("disabled", false);
+            }
+        });
     });
 
     // ===== SUPPRESSION =====
     $("#oui").click(function(e) {
         e.preventDefault();
         var id = $("#data_id").html();
-        $.get("{{ url('/refresh_deleteprospect') }}", {
+        $.get("{{ url('/refresh_deleteclient') }}", {
             id: id,
-            page: 25
+            page: <?= $ressource_id_1 ?>
         }, function(refresh_editutilisateur) {
             $("#content_utilisateur").html(refresh_editutilisateur);
             $("#non").trigger("click");
@@ -1953,7 +2046,7 @@ select.form-control {
             if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
                 $('#infoModal .modal-body').html(
                     '<i class="zmdi zmdi-alert-triangle text-danger" style="font-size: 20px; margin-right: 10px;"></i> ' +
-                    'Ce prospect n\'a pas de coordonnées géographiques enregistrées.'
+                    'Ce client n\'a pas de coordonnées géographiques enregistrées.'
                 );
                 $('#infoModal').modal('show');
                 return;
@@ -2009,7 +2102,7 @@ select.form-control {
             var encodedData = utf8ToBase64(jsonString);
             var shareUrl = "{{ route('client_partager') }}?data=" + encodeURIComponent(encodedData);
 
-            var message = '*Position du prospect*\n\n' +
+            var message = '*Position du client*\n\n' +
                         'Nom: ' + data.nom + '\n' +
                         'Adresse: ' + data.adresse + '\n' +
                         'Telephone: ' + data.phone + '\n' +

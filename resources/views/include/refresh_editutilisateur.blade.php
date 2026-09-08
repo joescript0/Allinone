@@ -176,6 +176,8 @@ use Illuminate\Support\Facades\Auth;
         var cmdp = $("#edit_cmdp").val();
         var salaire = $("#edit_salaire").val();
         var data = $("#form_edit").serialize();
+        var page = "<?= $page ?>"; // La variable s'appelle bien "page"
+        var formData = $("#form_edit").serialize() + "&page=" + encodeURIComponent(page);
         if (nom.trim().length == 0) {
             $('#edit_msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom');
             $('#edit_msg').css('color', "#ff6b68");
@@ -277,7 +279,7 @@ use Illuminate\Support\Facades\Auth;
                                                                         $.ajax({
                                                                             type: "POST",
                                                                             url: "/edit_utilisateur",
-                                                                            data: data,
+                                                                            data: formData,
                                                                             success: function(response) {
                                                                                 $("#edit_save").attr("disabled", false);
                                                                                 $('#edit_msg').html('<i class="zmdi zmdi-check-circle"></i> Utilisateur modifié avec succès');

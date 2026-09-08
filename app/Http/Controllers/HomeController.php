@@ -16,6 +16,7 @@ use App\Models\Fichier_documents;
 use App\Models\User;
 use App\Models\Entres;
 use App\Models\Factures;
+use App\Models\commisionsagents;
 use App\Models\Postes;
 use App\Models\Lieux;
 use App\Models\Factureas;
@@ -260,6 +261,160 @@ class HomeController extends Controller
                     $nombre++;
                 }
                 return view('interfaces.utilisateurs', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+    
+    public function commissions()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 19;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(($display ==  1) || (Auth::user()->role == 0))
+            {
+                $data["utilisateurs"] = User::where(function($query){
+                    $query->where('role', '<>', 0);
+                })->where(function($query){
+                    $query->where('etat', '=', 1);
+                })->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["commisionsagents"] = commisionsagents::where(["etat" => 1])->get();
+                $data["postes"] = Postes::where(["supprimer" => 0])->get();
+                $data["activites"] = Activites::where(["supprimer" => 0])->get();
+                $nombre = 1;
+                $matricule = "";
+                foreach (User::get() as $ut)
+                {
+                    if(strlen(trim($ut->matricule)) == 0)
+                    {
+                        $user = User::where(["id" => $ut->id])->first();
+                        $matricule = 'CAC' . str_pad($nombre, 4, '0', STR_PAD_LEFT);
+                        $user->matricule = $matricule;
+                        $user->save();
+                    }
+                    $nombre++;
+                }
+                return view('interfaces.commissions', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+    
+    public function mes_commissions()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 33;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(($display ==  1) || (Auth::user()->role == 0))
+            {
+                $data["utilisateurs"] = User::where(function($query){
+                    $query->where('role', '<>', 0);
+                })->where(function($query){
+                    $query->where('etat', '=', 1);
+                })->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["commisionsagents"] = commisionsagents::where(["etat" => 1])->get();
+                $data["postes"] = Postes::where(["supprimer" => 0])->get();
+                $data["activites"] = Activites::where(["supprimer" => 0])->get();
+                $nombre = 1;
+                $matricule = "";
+                foreach (User::get() as $ut)
+                {
+                    if(strlen(trim($ut->matricule)) == 0)
+                    {
+                        $user = User::where(["id" => $ut->id])->first();
+                        $matricule = 'CAC' . str_pad($nombre, 4, '0', STR_PAD_LEFT);
+                        $user->matricule = $matricule;
+                        $user->save();
+                    }
+                    $nombre++;
+                }
+                return view('interfaces.mes_commissions', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+    
+    public function mes_utilisateurs()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 31;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(($display ==  1) || (Auth::user()->role == 0))
+            {
+                $data["utilisateurs"] = User::where('role', '<>', 0)
+                          ->where('etat', '=', 1)
+                          ->where('user_id', Auth::user()->id)
+                          ->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["postes"] = Postes::where(["supprimer" => 0])->get();
+                $data["activites"] = Activites::where(["supprimer" => 0])->get();
+                $nombre = 1;
+                $matricule = "";
+                foreach (User::get() as $ut)
+                {
+                    if(strlen(trim($ut->matricule)) == 0)
+                    {
+                        $user = User::where(["id" => $ut->id])->first();
+                        $matricule = 'CAC' . str_pad($nombre, 4, '0', STR_PAD_LEFT);
+                        $user->matricule = $matricule;
+                        $user->save();
+                    }
+                    $nombre++;
+                }
+                return view('interfaces.mes_utilisateurs', $data);
             }
             else
             {
@@ -569,6 +724,41 @@ class HomeController extends Controller
             return redirect('/');
         }
     }
+    
+    public function mes_clients()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 30;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(($display ==  1) || (Auth::user()->role == 0))
+            {
+                $data["utilisateurs"] = User::where(["etat" => 1])->get();
+                $clients = Clients::where(["etat" => 1, 'user_id' => Auth::user()->id])->get();
+                $data["clients"] = $clients;
+                $data["activites"] = Activites::where(["etat" => 1])->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                return view('interfaces.mes_clients', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
 
     public function prospects()
     {
@@ -594,14 +784,7 @@ class HomeController extends Controller
                 {
                     $clients = Clients::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
                 }
-                if(Auth::user()->role == 0)
-                {
-                    $prospects = prospects::where(["etat" => 1])->get();
-                }
-                elseif(Auth::user()->role != 0)
-                {
-                    $prospects = prospects::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
-                }
+                $prospects = prospects::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
                 $data["clients"] = $clients;
                 $data["prospects"] = $prospects;
                 $data["activites"] = Activites::where(["etat" => 1])->get();
@@ -1485,6 +1668,49 @@ class HomeController extends Controller
     {
         $data["stocks"] = Stocks::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
         return view('interfaces.gestion_stock', $data);
+    }
+    
+    public function mon_stock()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 34;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(((($display ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display ==  0) && (Auth::user()->role == 0)))
+            {
+                $data["utilisateurs"] = User::where(["etat" => 1])->get();
+                $data["verbalisateurs"] = Verbalisateurs::where(["etat" => 1])->get();
+                $data["contrevenants"] = Contrevenants::where(["etat" => 1])->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["invitations"] = Invitations::where(["etat" => 1])->get();
+                $data["decisions"] = Decisions::where(["etat" => 1])->get();
+                $data["factures"] = Facturess::where(["user_id" => Auth::user()->id])->get();
+                $data["stocks"] = Stocks::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
+                if(Auth::user()->role == 0)
+                {
+                    $data["factures"] = Facturess::get();
+                }
+                $data["type_frais"] = Type_frais::where(["etat" => 1])->get();
+                return view('interfaces.mon_stock', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
     }
 
     public function gestion_table()

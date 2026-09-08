@@ -18,7 +18,8 @@ use App\Models\Activites;
                     <th style="padding-top: 5px;padding-bottom: 5px;">Telephone</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Type</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Activité</th>
-                    <th style="padding-top: 5px;padding-bottom: 5px;">Adresse</th>
+                    <!-- ===== ABONNEMENT ===== -->
+                    <th style="padding-top: 5px;padding-bottom: 5px;">Abonnement</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Utilisateur</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                 </tr>
@@ -26,7 +27,38 @@ use App\Models\Activites;
             <tbody>
                 {{! $i = 1; }}
                 @foreach ($clients as $data)
-                <tr>
+                @php
+                    // --- Calcul des équivalents USD et CDF pour chaque ligne ---
+                    $montant = (float) ($data->paiement ?? 0);
+                    $devise = (int) ($data->devise ?? 0);
+                    $taux = (float) ($data->taux ?? 1);
+                    if ($taux <= 0) $taux = 1; // sécurité
+
+                    if ($montant > 0) {
+                        if ($devise == 0) {
+                            $row_usd = $montant;
+                            $row_cdf = $montant * $taux;
+                        } else {
+                            $row_cdf = $montant;
+                            $row_usd = ($taux > 0) ? $montant / $taux : 0;
+                        }
+                    } else {
+                        $row_usd = 0;
+                        $row_cdf = 0;
+                    }
+
+                    // Affichage double devise (format identique à la page Factures)
+                    if ($montant > 0) {
+                        if ($devise == 0) {
+                            $affiche = number_format($montant, 2, ',', ' ') . ' USD (' . number_format($montant * $taux, 2, ',', ' ') . ' CDF)';
+                        } else {
+                            $affiche = number_format($montant, 2, ',', ' ') . ' CDF (' . number_format(($taux > 0 ? $montant / $taux : 0), 2, ',', ' ') . ' USD)';
+                        }
+                    } else {
+                        $affiche = 'Non renseigné';
+                    }
+                @endphp
+                <tr data-usd="{{ $row_usd }}" data-cdf="{{ $row_cdf }}">
                     <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">{{ $i }}</td>
                     <td style="padding-top: 5px;padding-bottom: 5px;" class="nom-cell" data-nom="{{ $data->name }}">{{ $data->name }}</td>
                     <td style="padding-top: 5px;padding-bottom: 5px;" class="email-cell" data-email="{{ $data->email }}">{{ $data->email }}</td>
@@ -41,7 +73,10 @@ use App\Models\Activites;
                     <td style="padding-top: 5px;padding-bottom: 5px;" class="activite-cell" data-activite="{{ $data->activite_id }}">
                         <?= Activites::where('id', $data->activite_id)->first()["nom"]; ?>
                     </td>
-                    <td style="padding-top: 5px;padding-bottom: 5px;" class="adresse-cell" data-adresse="{{ $data->adresse }}">{{ $data->adresse }}</td>
+                    <!-- ===== CELLULE ABONNEMENT ===== -->
+                    <td style="padding-top: 5px;padding-bottom: 5px;" class="abonnement-cell" data-paiement="{{ $data->paiement ?? 0 }}" data-devise="{{ $data->devise ?? 0 }}" data-taux="{{ $data->taux ?? 1 }}">
+                        {{ $affiche }}
+                    </td>
                     <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ $data->user_id }}">
                         @if (Auth::user()->id == $data->user_id)
                             Vous
@@ -87,6 +122,7 @@ use App\Models\Activites;
                                 e.preventDefault();
                                 $.get("{{ url('/refresh_editclient') }}", {
                                     client_id: <?= $data->id ?>,
+                                    page: <?= $ressource_id_1 ?>
                                 }, function(refresh_editutilisateur) {
                                     $("#bloc_1").hide();
                                     $("#bloc_2").hide();

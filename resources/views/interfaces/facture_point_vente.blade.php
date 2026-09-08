@@ -943,6 +943,54 @@ select.form-control {
         padding: 6px 12px;
     }
 }
+
+/* ===== NOUVEAU : HARMONISATION DE SELECT2 AVEC LE STYLE FORM-CONTROL ===== */
+.select2-container--bootstrap .select2-selection {
+    height: 38px !important;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 0 12px;
+}
+
+.select2-container--bootstrap .select2-selection__arrow {
+    height: 38px !important;
+}
+
+.select2-container--bootstrap .select2-selection__rendered {
+    line-height: 38px !important;
+    padding-left: 0;
+    color: #1e2a3e;
+}
+
+.select2-container--bootstrap .select2-selection__placeholder {
+    color: #6c757d;
+}
+
+.select2-dropdown {
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: var(--shadow-light);
+}
+
+.select2-results__option {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+.select2-results__option--highlighted {
+    background: #e6f0ff !important;
+    color: #0a192f !important;
+}
+
+/* ===== NOUVEAU : LIMITATION DE HAUTEUR DU DROPDOWN SELECT2 ===== */
+.select2-container--bootstrap .select2-results__options {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+}
     </style>
     <section class="content">
         <div class="container">
@@ -1506,11 +1554,13 @@ select.form-control {
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
                                                 class="zmdi zmdi-accounts"></i> Clients </span></label>
-                                        <select id="client_id" name="client_id" class="form-control"
-                                            data-placeholder="Selectionnez un client">
-                                            <option selected class="form-control" value="">Selectionnez un client</option>
+                                        <!-- ===== MODIFICATION : select2 avec recherche et thème bootstrap ===== -->
+                                        <select id="client_id" name="client_id" class="form-control select2"
+                                                data-placeholder="Rechercher un client..." style="width: 100%;"
+                                                data-theme="bootstrap">
+                                            <option value="">Selectionnez un client</option>
                                             @foreach ($clients as $data)
-                                                <option value="{{ $data->id }}"><?= $data->name ?></option>
+                                                <option value="{{ $data->id }}">{{ $data->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -2247,6 +2297,14 @@ select.form-control {
 
         // ========== INITIALISATION ==========
         $(document).ready(function() {
+            // ===== INITIALISATION DE SELECT2 POUR LE CLIENT =====
+            $('#client_id').select2({
+                placeholder: "Rechercher un client...",
+                allowClear: true,
+                theme: 'bootstrap',
+                width: '100%'
+            });
+
             // Initialisation du Date Range Picker avec la date du jour par défaut
             var today = moment();
             var todayStr = today.format('DD/MM/YYYY');
@@ -2381,6 +2439,12 @@ select.form-control {
                     }
                 });
             });
+
+            // Chargement initial des articles si un point de vente est sélectionné par défaut
+            var initialPdv = $("#pointdeventes_id").val();
+            if (initialPdv && initialPdv.trim() !== '') {
+                loadArticlesForPointVente(initialPdv);
+            }
         });
 
         // Sauvegarde automatique avant de quitter
@@ -2559,14 +2623,6 @@ select.form-control {
 
         $("#pdfModal").on("hidden.bs.modal", function() {
             $("#pdfIframe").attr("src", "");
-        });
-
-        // Initialisation du chargement des articles si un point de vente est sélectionné par défaut
-        $(document).ready(function() {
-            var initialPdv = $("#pointdeventes_id").val();
-            if (initialPdv && initialPdv.trim() !== '') {
-                loadArticlesForPointVente(initialPdv);
-            }
         });
     </script>
 @endsection

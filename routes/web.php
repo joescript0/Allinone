@@ -263,6 +263,7 @@ Route::get('/refresh_affectation_stock_vente', [AjaxController::class , 'refresh
 Route::get('/refresh_affectation_table_utilisateur', [AjaxController::class , 'refresh_affectation_table_utilisateur'])->name('refresh_affectation_table_utilisateur');
 Route::get('/refresh_affectation_point_vente_utilisateur', [AjaxController::class , 'refresh_affectation_point_vente_utilisateur'])->name('refresh_affectation_point_vente_utilisateur');
 Route::get('/refresh_article_stock', [AjaxController::class , 'refresh_article_stock'])->name('refresh_article_stock');
+Route::get('/refresh_article_stock_pointdevente', [AjaxController::class , 'refresh_article_stock_pointdevente'])->name('refresh_article_stock_pointdevente');
 Route::get('/etat_display', [AjaxController::class , 'etat_display'])->name('etat_display');
 Route::get('/etat_affectation_pointdeventes', [AjaxController::class , 'etat_affectation_pointdeventes'])->name('etat_affectation_pointdeventes');
 Route::get('/etat_affectation_table_utilisateur', [AjaxController::class , 'etat_affectation_table_utilisateur'])->name('etat_affectation_table_utilisateur');
@@ -361,6 +362,9 @@ Auth::routes();
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('index');
 Route::get('/utilisateurs', [App\Http\Controllers\HomeController::class, 'utilisateurs'])->name('utilisateurs');
+Route::get('/commissions', [App\Http\Controllers\HomeController::class, 'commissions'])->name('commissions');
+Route::get('/mes_utilisateurs', [App\Http\Controllers\HomeController::class, 'mes_utilisateurs'])->name('mes_utilisateurs');
+Route::get('/mes_commissions', [App\Http\Controllers\HomeController::class, 'mes_commissions'])->name('mes_commissions');
 Route::get('/postes', [App\Http\Controllers\HomeController::class, 'postes'])->name('postes');
 Route::get('/droits', [App\Http\Controllers\HomeController::class, 'droits'])->name('droits');
 Route::get('/invitations', [App\Http\Controllers\HomeController::class, 'invitations'])->name('invitations');
@@ -393,6 +397,7 @@ Route::get('/alerte_centrale', [App\Http\Controllers\HomeController::class, 'ale
 Route::get('/alerte_mobile', [App\Http\Controllers\HomeController::class, 'alerte_mobile'])->name('alerte_mobile');
 Route::get('/gestion_fichier', [App\Http\Controllers\HomeController::class, 'gestion_fichier'])->name('gestion_fichier');
 Route::get('/clients', [App\Http\Controllers\HomeController::class, 'clients'])->name('clients');
+Route::get('/mes_clients', [App\Http\Controllers\HomeController::class, 'mes_clients'])->name('mes_clients');
 Route::get('/prospects', [App\Http\Controllers\HomeController::class, 'prospects'])->name('prospects');
 Route::get('/suivi_credit', [App\Http\Controllers\HomeController::class, 'suivi_credit'])->name('suivi_credit');
 Route::get('/suivi_prospect', [App\Http\Controllers\HomeController::class, 'suivi_prospect'])->name('suivi_prospect');
@@ -402,6 +407,7 @@ Route::get('/gestion_activiter', [App\Http\Controllers\HomeController::class, 'g
 Route::get('/point_vente', [App\Http\Controllers\HomeController::class, 'point_vente'])->name('point_vente');
 Route::get('/gestion_table', [App\Http\Controllers\HomeController::class, 'gestion_table'])->name('gestion_table');
 Route::get('/gestion_stock', [App\Http\Controllers\HomeController::class, 'gestion_stock'])->name('gestion_stock');
+Route::get('/mon_stock', [App\Http\Controllers\HomeController::class, 'mon_stock'])->name('mon_stock');
 Route::get('/rendez_vous', [App\Http\Controllers\HomeController::class, 'rendez_vous'])->name('rendez_vous');
 Route::get('/scanner_rq_code', [App\Http\Controllers\OfficierController::class, 'scanner_rq_code'])->name('scanner_rq_code');
 Route::get('/paiement', [App\Http\Controllers\PaiementController::class, 'paiement'])->name('paiement');
