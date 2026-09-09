@@ -65,8 +65,8 @@
     $menu_45 = Activer();
     $menu_46 = Activer();
     $menu_47 = Activer();
-    $menu_48 = Desactiver();
-    $menu_49 = Desactiver();
+    $menu_48 = Activer();
+    $menu_49 = Activer();
   }
   elseif($menueapp == "Divine")
   {
@@ -121,8 +121,8 @@
     $menu_45 = Activer();
     $menu_46 = Activer();
     $menu_47 = Activer();
-    $menu_48 = Desactiver();
-    $menu_49 = Desactiver();
+    $menu_48 = Activer();
+    $menu_49 = Activer();
   }
 ?>
 

@@ -297,6 +297,8 @@ class HomeController extends Controller
                 })->get();
                 $data["groupes"] = Groupes::where(["etat" => 1])->get();
                 $data["commisionsagents"] = commisionsagents::where(["etat" => 1])->get();
+                $data["articles"] = Articles::where(["user_id" => Auth::user()->id, "supprimer" => 0])->get();
+                $data["clients"] =  Clients::where(["etat" => 1])->get();
                 $data["postes"] = Postes::where(["supprimer" => 0])->get();
                 $data["activites"] = Activites::where(["supprimer" => 0])->get();
                 $nombre = 1;
@@ -348,7 +350,9 @@ class HomeController extends Controller
                     $query->where('etat', '=', 1);
                 })->get();
                 $data["groupes"] = Groupes::where(["etat" => 1])->get();
-                $data["commisionsagents"] = commisionsagents::where(["etat" => 1])->get();
+                $data["commisionsagents"] = commisionsagents::where(["etat" => 1, "user_id" => Auth::user()->id])->get();
+                $data["articles"] = Articles::where(["user_id" => Auth::user()->id, "supprimer" => 0])->get();
+                $data["clients"] =  Clients::where(["etat" => 1])->get();
                 $data["postes"] = Postes::where(["supprimer" => 0])->get();
                 $data["activites"] = Activites::where(["supprimer" => 0])->get();
                 $nombre = 1;
