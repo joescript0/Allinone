@@ -1956,7 +1956,7 @@ class AjaxController extends Controller
         {
             $data["factures"] = Factureass::where(["etat" => 0])->get();
         }
-        return view('include.refresh_factureass_suivie', $data);
+        return view('include.refresh_factureass_suivi', $data);
     }
 
     public function get_all_detail_achat_paie(Request $request)

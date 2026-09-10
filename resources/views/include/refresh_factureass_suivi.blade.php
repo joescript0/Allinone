@@ -41,12 +41,17 @@ use Illuminate\Support\Facades\Auth;
 
                         // Récupération des achats
                         $ent = Achats::where('facture_id', $data->id)->get();
+                        $total_frais_credit = 0; // <-- NOUVEAU : cumul des frais de crédit
 
                         // Calcul du total original (sans frais)
                         $total_original = 0;
                         foreach ($ent as $e)
                         {
                             $total_original += $e->total;
+                            // Ajout des frais de crédit s'ils existent
+                            if ($e->frais_credit != 0 && $e->frais_credit !== null) {
+                                $total_frais_credit += $e->frais_credit;
+                            }
                         }
 
                         // Récupération des paiements
@@ -149,7 +154,9 @@ use Illuminate\Support\Facades\Auth;
                         $statut_text = $reste_usd > 0 ? 'Impayé' : 'Payé';
                         $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
                     @endphp
-                    @if ($reste_usd > 0)
+
+                    {{-- Condition modifiée : afficher si impayé OU si des frais de crédit ont été appliqués --}}
+                    @if ($reste_usd > 0 || $total_frais_credit > 0)
                     <tr id="row_{{ $data->id }}"
                         data-montant-usd="{{ $montant_usd }}"
                         data-montant-cdf="{{ $montant_cdf }}"
