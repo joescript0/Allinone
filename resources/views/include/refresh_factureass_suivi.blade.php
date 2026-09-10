@@ -24,11 +24,11 @@ use Illuminate\Support\Facades\Auth;
                     <th style="padding-top: 5px;padding-bottom: 5px;">N° Facture</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Utilisateur</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Libelle / Client</th>
-                    <th style="padding-top: 5px;padding-bottom: 5px;">Table</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Montant</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Payé</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Crédit</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Date</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">Date de paie</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Mode de paiement</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                 </tr>
@@ -67,6 +67,16 @@ use Illuminate\Support\Facades\Auth;
                                 $montant_cdf_paye += $paiement->montant_recu;
                                 $montant_usd_paye += $paiement->montant_recu / $taux;
                             }
+                        }
+
+                        // 🔥 Récupération de la DERNIÈRE date de paiement pour cette facture
+                        $dernier_paiement = detailpaiessachats::where('facture_id', $data->id)
+                            ->orderBy('created_at', 'desc')
+                            ->first();
+                        if ($dernier_paiement && $dernier_paiement->created_at) {
+                            $date_paie = date('d/m/Y à H:i', strtotime($dernier_paiement->created_at));
+                        } else {
+                            $date_paie = 'Aucune';
                         }
 
                         // Conversion du total original en USD / CDF selon devise de la facture
@@ -177,19 +187,6 @@ use Illuminate\Support\Facades\Auth;
                                 <?= Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' ?>
                             @endif
                         </td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;" class="table-cell" data-table="{{ $data->table_id == 0 ? 'Aucune' : (Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A') }}">
-                            @if ($data->table_id == 0)
-                                Aucune
-                            @else
-                                <?php  $table = Tables::where('id', $data->table_id)->first() ?? 'N/A' ?>
-                                @if ($table->occupee == 1)
-                                    <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger"> {{ $table->nom }}</span>
-                                @endif
-                                @if ($table->occupee == 0)
-                                    <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success"> {{ $table->nom }}</span>
-                                @endif
-                            @endif
-                        </td>
                         <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="{{ $total }}">
                             {{ $montant_affichage }}
                         </td>
@@ -205,6 +202,13 @@ use Illuminate\Support\Facades\Auth;
                                 $date_1 = explode(' ', $date);
                                 echo explode('-', $date_1[0])[2] . '/' . explode('-', $date_1[0])[1] . '/' . explode('-', $date_1[0])[0] . ' à ' . $date_1[1];
                             ?>
+                        </td>
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="date-paie-cell" data-date-paie="{{ $date_paie }}">
+                            @if ($date_paie == 'Aucune')
+                                <span class="text-muted"><i class="zmdi zmdi-time-restore"></i> Aucune</span>
+                            @else
+                                <span class="text-success"><i class="zmdi zmdi-check-circle"></i> {{ $date_paie }}</span>
+                            @endif
                         </td>
                         <td style="padding-top: 5px;padding-bottom: 5px;" class="statut-cell" data-statut="{{ $reste_usd > 0 ? 'unpaid' : 'paid' }}">
                             @if ($reste_usd > 0)

@@ -1034,13 +1034,13 @@ select.form-control {
                 <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
                     <!-- TITRE AVEC BADGE INTÉGRÉ -->
                     <h4 style="color:rgba(0, 0, 0, 0.6);">
-                        <i style="font-size: 40px;" class="zmdi zmdi-email-open text-info"></i> Liste des factures impayées
+                        <i style="font-size: 40px;" class="zmdi zmdi-email-open text-info"></i> Suivi des factures
                         <span class="badge-invoice">
                             <i class="zmdi zmdi-view-list" style="color: white;"></i> Factures : <span id="invoiceCount">0</span>
                         </span>
                     </h4>
 
-                    <!-- SECTION FILTRES (sans le filtre Table) -->
+                    <!-- SECTION FILTRES (avec filtre Statut : Tous / Payé / Impayé) -->
                     <div class="filters-container">
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-label text-danger"></i> N° Facture</label>
@@ -1061,6 +1061,14 @@ select.form-control {
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-chart text-danger"></i> Montant</label>
                             <input type="number" id="filterMontant" class="form-control" placeholder="Montant exact" step="0.01">
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-balance-wallet text-danger"></i> Statut de paiement</label>
+                            <select id="filterStatut" class="form-control">
+                                <option value="">Tous</option>
+                                <option value="paid">Payés</option>
+                                <option value="unpaid">Impayés</option>
+                            </select>
                         </div>
                         <div class="filter-group">
                             <button id="resetFilters" class="btn btn-secondary btn-sm" style="border-radius: 40px; padding: 8px 18px;">
@@ -1106,11 +1114,11 @@ select.form-control {
                                             <th style="padding-top: 5px;padding-bottom: 5px;">N° Facture</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Utilisateur</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Libelle / Client</th>
-                                            <th style="padding-top: 5px;padding-bottom: 5px;">Table</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Montant</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Payé</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Crédit</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Date</th>
+                                            <th style="padding-top: 5px;padding-bottom: 5px;">Date de paie</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Mode de paiement</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                                         </tr>
@@ -1149,6 +1157,16 @@ select.form-control {
                                                         $montant_cdf_paye += $paiement->montant_recu;
                                                         $montant_usd_paye += $paiement->montant_recu / $taux;
                                                     }
+                                                }
+
+                                                // 🔥 Récupération de la DERNIÈRE date de paiement pour cette facture
+                                                $dernier_paiement = detailpaiessachats::where('facture_id', $data->id)
+                                                    ->orderBy('created_at', 'desc')
+                                                    ->first();
+                                                if ($dernier_paiement && $dernier_paiement->created_at) {
+                                                    $date_paie = date('d/m/Y à H:i', strtotime($dernier_paiement->created_at));
+                                                } else {
+                                                    $date_paie = 'Aucune';
                                                 }
 
                                                 // Conversion du total original en USD / CDF selon devise de la facture
@@ -1259,19 +1277,6 @@ select.form-control {
                                                         <?= Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' ?>
                                                     @endif
                                                 </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="table-cell" data-table="{{ $data->table_id == 0 ? 'Aucune' : (Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A') }}">
-                                                    @if ($data->table_id == 0)
-                                                        Aucune
-                                                    @else
-                                                        <?php  $table = Tables::where('id', $data->table_id)->first() ?? 'N/A' ?>
-                                                        @if ($table->occupee == 1)
-                                                            <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger"> {{ $table->nom }}</span>
-                                                        @endif
-                                                        @if ($table->occupee == 0)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success"> {{ $table->nom }}</span>
-                                                        @endif
-                                                    @endif
-                                                </td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="{{ $total }}">
                                                     {{ $montant_affichage }}
                                                 </td>
@@ -1287,6 +1292,13 @@ select.form-control {
                                                         $date_1 = explode(' ', $date);
                                                         echo explode('-', $date_1[0])[2] . '/' . explode('-', $date_1[0])[1] . '/' . explode('-', $date_1[0])[0] . ' à ' . $date_1[1];
                                                     ?>
+                                                </td>
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="date-paie-cell" data-date-paie="{{ $date_paie }}">
+                                                    @if ($date_paie == 'Aucune')
+                                                        <span class="text-muted"><i class="zmdi zmdi-time-restore"></i> Aucune</span>
+                                                    @else
+                                                        <span class="text-success"><i class="zmdi zmdi-check-circle"></i> {{ $date_paie }}</span>
+                                                    @endif
                                                 </td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="statut-cell" data-statut="{{ $reste_usd > 0 ? 'unpaid' : 'paid' }}">
                                                     @if ($reste_usd > 0)
@@ -2072,7 +2084,8 @@ select.form-control {
                 client: $('#filterClient').val(),
                 user: $('#filterUser').val(),
                 dateRange: $('#filterDateRange').val(),
-                montant: $('#filterMontant').val()
+                montant: $('#filterMontant').val(),
+                statut: $('#filterStatut').val()
             };
             localStorage.setItem('invoiceFilters', JSON.stringify(filters));
         }
@@ -2086,6 +2099,7 @@ select.form-control {
                 $('#filterUser').val(filters.user || '');
                 $('#filterDateRange').val(filters.dateRange || '');
                 $('#filterMontant').val(filters.montant || '');
+                $('#filterStatut').val(filters.statut || '');
                 return true;
             }
             return false;
@@ -2096,6 +2110,7 @@ select.form-control {
             const filterClient = $('#filterClient').val().toLowerCase();
             const filterUser = $('#filterUser').val().toLowerCase();
             const filterMontant = parseFloat($('#filterMontant').val());
+            const filterStatut = $('#filterStatut').val(); // '' | 'paid' | 'unpaid'
 
             var dateRange = $('#filterDateRange').val() || '';
             var dateDebut = null, dateFin = null;
@@ -2134,11 +2149,18 @@ select.form-control {
                 const clientValue = $row.find('.client-cell').data('client')?.toLowerCase() || '';
                 const userValue = $row.find('.user-cell').data('user')?.toLowerCase() || '';
                 const montantRaw = parseFloat($row.find('.montant-cell').data('montant')) || 0;
+                const statutValue = ($row.find('.statut-cell').data('statut') || '').toString();
 
                 if (filterNumero && !numeroValue.includes(filterNumero)) showRow = false;
                 if (showRow && filterClient && !clientValue.includes(filterClient)) showRow = false;
                 if (showRow && filterUser && !userValue.includes(filterUser)) showRow = false;
                 if (showRow && !isNaN(filterMontant) && Math.abs(montantRaw - filterMontant) > 0.009) showRow = false;
+
+                // Filtre statut : Payé / Impayé / Tous
+                if (showRow && filterStatut && filterStatut !== '') {
+                    if (filterStatut === 'paid' && statutValue !== 'paid') showRow = false;
+                    if (filterStatut === 'unpaid' && statutValue !== 'unpaid') showRow = false;
+                }
 
                 if (showRow && dateDebut && dateFin) {
                     var dateText = $row.find('.date-cell').text().trim();
@@ -2192,7 +2214,7 @@ select.form-control {
             $('#totalBeneficeUsd').text(totalBeneficeUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalBeneficeCdf').text(totalBeneficeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 
-            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || dateRange || !isNaN(filterMontant))) {
+            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || dateRange || !isNaN(filterMontant) || filterStatut)) {
                 $('#msg').html('<i class="zmdi zmdi-info"></i> Aucune facture ne correspond aux critères de recherche');
                 $('#msg').css('display', 'flex');
                 setTimeout(() => {
@@ -2215,6 +2237,7 @@ select.form-control {
             $('#filterClient').val('');
             $('#filterUser').val('');
             $('#filterMontant').val('');
+            $('#filterStatut').val('');
 
             saveFiltersToStorage();
             filterInvoices();
@@ -2292,6 +2315,12 @@ select.form-control {
 
             $('#filterNumero, #filterClient, #filterUser, #filterMontant').on('input change', function() {
                 debouncedFilter();
+            });
+
+            // Le select Statut déclenche immédiatement le filtre
+            $('#filterStatut').on('change', function() {
+                filterInvoices();
+                saveFiltersToStorage();
             });
 
             $('#resetFilters').click(function(e) {
