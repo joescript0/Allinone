@@ -1956,7 +1956,7 @@ class AjaxController extends Controller
         {
             $data["factures"] = Factureass::where(["etat" => 0])->get();
         }
-        return view('include.refresh_factureass_suivi', $data);
+        return view('include.refresh_factureass_suivie', $data);
     }
 
     public function get_all_detail_achat_paie(Request $request)
@@ -4928,7 +4928,7 @@ class AjaxController extends Controller
         $data["ressource_id_1"] = 2;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
-        $data["factures"] = Factureas::get();
+        $data["factures"] = Factureas::where(["etat" => 0])->get();
         return view('include.refresh_factureas', $data);
     }
 

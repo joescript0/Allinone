@@ -39,22 +39,18 @@ use Illuminate\Support\Facades\Auth;
                     @php
                         $taux = $data->taux;
 
-                        // Récupération des achats
                         $ent = Achats::where('facture_id', $data->id)->get();
-                        $total_frais_credit = 0; // <-- NOUVEAU : cumul des frais de crédit
+                        $total_frais_credit = 0;
 
-                        // Calcul du total original (sans frais)
                         $total_original = 0;
                         foreach ($ent as $e)
                         {
                             $total_original += $e->total;
-                            // Ajout des frais de crédit s'ils existent
                             if ($e->frais_credit != 0 && $e->frais_credit !== null) {
                                 $total_frais_credit += $e->frais_credit;
                             }
                         }
 
-                        // Récupération des paiements
                         $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
                         $montant_usd_paye = 0;
                         $montant_cdf_paye = 0;
@@ -69,17 +65,16 @@ use Illuminate\Support\Facades\Auth;
                             }
                         }
 
-                        // 🔥 Récupération de la DERNIÈRE date de paiement pour cette facture
                         $dernier_paiement = detailpaiessachats::where('facture_id', $data->id)
                             ->orderBy('created_at', 'desc')
                             ->first();
+
                         if ($dernier_paiement && $dernier_paiement->created_at) {
                             $date_paie = date('d/m/Y à H:i', strtotime($dernier_paiement->created_at));
                         } else {
-                            $date_paie = 'Aucune';
+                            $date_paie = date('d/m/Y à H:i');
                         }
 
-                        // Conversion du total original en USD / CDF selon devise de la facture
                         if ($data->devise == 0)
                         {
                             $total_original_usd = $total_original;
@@ -91,31 +86,25 @@ use Illuminate\Support\Facades\Auth;
                             $total_original_usd = $total_original / $taux;
                         }
 
-                        // Déterminer si la facture est impayée (sans tolérance)
                         $est_impayee = ($montant_usd_paye < $total_original_usd) || ($montant_cdf_paye < $total_original_cdf);
 
-                        // 🔥 DÉLAI D'1 HEURE (3600 secondes) basé sur la date/heure actuelle
                         $date_creation_facture = strtotime($data->created_at);
-                        $delai_1h = 3600; // 1 heure en secondes
+                        $delai_1h = 3600;
                         $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
 
-                        // Parcours final des achats pour construire le total (incluant les frais)
                         $total = 0;
                         $achat_total_usd = 0;
                         $achat_total_cdf = 0;
 
                         foreach ($ent as $e)
                         {
-                            // Montant de base
                             $total += $e->total;
 
-                            // Gestion des frais de crédit (5%)
                             if ($e->frais_credit != 0 && $e->frais_credit !== null) {
-                                // Déjà enregistré, on l'ajoute
                                 $total += $e->frais_credit;
-                            } else
+                            }
+                            else
                             {
-                                // Non enregistré : on vérifie les conditions
                                 if ($est_impayee && $delai_depasse) {
                                     $frais = $e->total * 0.05;
                                     $total += $frais;
@@ -124,7 +113,6 @@ use Illuminate\Support\Facades\Auth;
                                 }
                             }
 
-                            // Calcul du coût d'achat pour le bénéfice
                             $prix_achat = $e->prix_achat ?? 0;
                             $quantite = $e->quantite ?? 1;
                             $prix_achat_total = $prix_achat * $quantite;
@@ -139,7 +127,14 @@ use Illuminate\Support\Facades\Auth;
                             }
                         }
 
-                        // Conversion et affichage
+                        $total_frais_credit_final = 0;
+                        foreach ($ent as $e) {
+                            if ($e->frais_credit != 0 && $e->frais_credit !== null) {
+                                $total_frais_credit_final += $e->frais_credit;
+                            }
+                        }
+                        $a_frais_credit = ($total_frais_credit_final > 0);
+
                         if ($data->devise == 0)
                         {
                             $montant_usd = $total;
@@ -151,11 +146,9 @@ use Illuminate\Support\Facades\Auth;
                             $montant_affichage = number_format($total, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
                         }
 
-                        // Bénéfices
                         $benefice_usd = $montant_usd - $achat_total_usd;
                         $benefice_cdf = $montant_cdf - $achat_total_cdf;
 
-                        // Crédit restant
                         $reste_usd = $montant_usd - $montant_usd_paye;
                         $reste_cdf = $montant_cdf - $montant_cdf_paye;
 
@@ -163,10 +156,51 @@ use Illuminate\Support\Facades\Auth;
                         $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
                         $statut_text = $reste_usd > 0 ? 'Impayé' : 'Payé';
                         $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
+
+                        $est_partiel = ($reste_usd > 0 && $montant_usd_paye > 0);
+                        $est_solde = ($reste_usd <= 0);
+
+                        if ($est_partiel) {
+                            $statut_data = 'partial';
+                        } elseif ($est_solde) {
+                            $statut_data = 'paid';
+                        } else {
+                            $statut_data = 'unpaid';
+                        }
+
+                        $date_creation_date = date('Y-m-d', strtotime($data->created_at));
+                        $date_aujourdhui   = date('Y-m-d');
+
+                        if ($est_solde && $a_frais_credit && $dernier_paiement) {
+                            $date_comparaison = date('Y-m-d', strtotime($dernier_paiement->created_at));
+                        } else {
+                            $date_comparaison = $date_aujourdhui;
+                        }
+
+                        $nb_jours_retard = (int) ((strtotime($date_comparaison) - strtotime($date_creation_date)) / 86400);
+                        if ($nb_jours_retard < 0) {
+                            $nb_jours_retard = 0;
+                        }
+
+                        $show_delay_badge = false;
+
+                        if (!$dernier_paiement) {
+                            $show_delay_badge = true;
+                        } elseif ($est_partiel) {
+                            $show_delay_badge = true;
+                        } elseif ($est_solde && $a_frais_credit && $dernier_paiement) {
+                            $show_delay_badge = true;
+                        }
+
+                        $delay_badge_type = 'success';
+                        if ($nb_jours_retard >= 7 && $nb_jours_retard <= 15) {
+                            $delay_badge_type = 'warning';
+                        } elseif ($nb_jours_retard > 15) {
+                            $delay_badge_type = 'danger';
+                        }
                     @endphp
 
-                    {{-- Condition modifiée : afficher si impayé OU si des frais de crédit ont été appliqués --}}
-                    @if ($reste_usd > 0 || $total_frais_credit > 0)
+                    @if ($reste_usd > 0 || $total_frais_credit_final > 0)
                     <tr id="row_{{ $data->id }}"
                         data-montant-usd="{{ $montant_usd }}"
                         data-montant-cdf="{{ $montant_cdf }}"
@@ -175,7 +209,8 @@ use Illuminate\Support\Facades\Auth;
                         data-credit-usd="{{ $reste_usd }}"
                         data-credit-cdf="{{ $reste_cdf }}"
                         data-benefice-usd="{{ $benefice_usd }}"
-                        data-benefice-cdf="{{ $benefice_cdf }}">
+                        data-benefice-cdf="{{ $benefice_cdf }}"
+                        data-jours-retard="{{ $nb_jours_retard }}">
                         <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell" data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
                         <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
                             {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
@@ -204,20 +239,24 @@ use Illuminate\Support\Facades\Auth;
                             ?>
                         </td>
                         <td style="padding-top: 5px;padding-bottom: 5px;" class="date-paie-cell" data-date-paie="{{ $date_paie }}">
-                            @if ($date_paie == 'Aucune')
-                                <span class="text-muted"><i class="zmdi zmdi-time-restore"></i> Aucune</span>
+                            @if (!$dernier_paiement)
+                                <span class="text-danger"><i class="zmdi zmdi-time-restore"></i> {{ $date_paie }}</span>
+                            @elseif ($est_partiel)
+                                <span class="text-warning"><i class="zmdi zmdi-time"></i> {{ $date_paie }}</span>
                             @else
                                 <span class="text-success"><i class="zmdi zmdi-check-circle"></i> {{ $date_paie }}</span>
                             @endif
+
+                            @if ($show_delay_badge)
+                                <span class="badge-delay {{ $delay_badge_type }}" title="Nombre de jours de retard">
+                                    <i class="zmdi zmdi-alarm"></i> {{ $nb_jours_retard }}j
+                                </span>
+                            @endif
                         </td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;" class="statut-cell" data-statut="{{ $reste_usd > 0 ? 'unpaid' : 'paid' }}">
-                            @if ($reste_usd > 0)
-                                @if ($montant_usd_paye > 0)
-                                    <i class="zmdi zmdi-time text-warning"></i> <span class="text-warning">Partiel</span>
-                                @else
-                                    <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">Impayé</span>
-                                @endif
-                            @else
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="statut-cell" data-statut="{{ $statut_data }}">
+                            @if ($est_partiel)
+                                <i class="zmdi zmdi-time text-warning"></i> <span class="text-warning">Partiel</span>
+                            @elseif ($est_solde)
                                 @if ($data->mode_de_paiement == 1)
                                     <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">CASH</span>
                                 @endif
@@ -227,6 +266,8 @@ use Illuminate\Support\Facades\Auth;
                                 @if ($data->mode_de_paiement == 3)
                                     <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Bank</span>
                                 @endif
+                            @else
+                                <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">Impayé</span>
                             @endif
                         </td>
                         <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
@@ -259,7 +300,6 @@ use Illuminate\Support\Facades\Auth;
                                     <a id="detail_r{{ $i }}" href="#"><i class="zmdi zmdi-eye text-success"></i></a> &nbsp;
                                 @endif
                             <?php } ?>
-                            {{-- Icône de suppression enrichie en données --}}
                             <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
                                 <a href="#" class="delete-facture-btn"
                                     data-id="{{ $data->id }}"

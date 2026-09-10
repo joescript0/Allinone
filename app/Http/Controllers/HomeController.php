@@ -1241,7 +1241,7 @@ class HomeController extends Controller
                 $data["invitations"] = Invitations::where(["etat" => 1])->get();
                 $data["decisions"] = Decisions::where(["etat" => 1])->get();
                 $data["articles"] = Articles::where(["supprimer" => 0])->get();
-                $data["factures"] = Factureas::get();
+                $data["factures"] = Factureas::where(["etat" => 0])->get();
                 $data["type_frais"] = Type_frais::where(["etat" => 1])->get();
                 return view('interfaces.app_article', $data);
             }
