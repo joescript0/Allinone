@@ -27,37 +27,49 @@ use Illuminate\Support\Facades\Auth;
                     @php
                         $t = 0;
                         $ent = Approvisionnements::where('facture_id', $data->id)->get();
-                        foreach ($ent as $e) {
+                        $montant_usd = 0;
+                        $montant_cdf = 0;
+
+                        foreach ($ent as $e)
+                        {
                             $t = $t + $e->total;
 
-                            // Taux de la facture (si disponible, sinon 1)
+                            // Taux de la facture (si disponible, sinon 1 pour éviter division par 0)
                             $tauxFacture = $e->taux ?? 1;
-                            if ($data->devise == 0) {
+                            if ($tauxFacture == 0) {
+                                $tauxFacture = 1;
+                            }
+
+                            if ($data->devise == 0)
+                            {
+                                // Facture en USD : le total est en USD, on convertit en CDF
                                 $montant_usd = $t;
                                 $montant_cdf = $t * $tauxFacture;
-                            } else {
+                            }
+                            else
+                            {
+                                // Facture en CDF : le total est en CDF, on convertit en USD
                                 $montant_cdf = $t;
                                 $montant_usd = $t / $tauxFacture;
                             }
                         }
+
+                        // Construction de l'affichage en deux devises (comme sur la page Factures / Achats)
+                        if ($data->devise == 0) {
+                            $montant_affichage = number_format($montant_usd, 2, ',', ' ') . ' USD (' . number_format($montant_cdf, 2, ',', ' ') . ' CDF)';
+                        } else {
+                            $montant_affichage = number_format($montant_cdf, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
+                        }
                     @endphp
-                    <tr id="row_{{ $data->id }}" data-montant-usd="{{ $montant_usd }}"
+                    <tr id="row_{{ $data->id }}"
+                        data-montant-usd="{{ $montant_usd }}"
                         data-montant-cdf="{{ $montant_cdf }}">
-                        <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell"
-                            data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell"
-                            data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell" data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
                             {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
                         </td>
-                        <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell"
-                            data-montant="<?php echo $t; ?>">
-                            <?php
-                            if ($data->devise == 0) {
-                                echo number_format($t, 2, ',', ' ') . '(USD)';
-                            } else {
-                                echo number_format($t, 2, ',', ' ') . '(CDF)';
-                            }
-                            ?>
+                        <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="<?php echo $t; ?>">
+                            {{ $montant_affichage }}
                         </td>
                         <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell" data-date="{{ $data->created_at }}">
                             <?php
@@ -84,10 +96,24 @@ use Illuminate\Support\Facades\Auth;
                             ?>
                             <?php } ?>
                             <?php if ((($display == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display == 0) && (Auth::user()->role == 0))) { ?>
-                            <a id="detail_<?= $i ?>" href="#"><i class="zmdi zmdi-eye text-info"></i></a> &nbsp;
+                            <a id="detail_<?= $i ?>" href="#" title="Voir détails"><i class="zmdi zmdi-eye text-info"></i></a> &nbsp;
                             <?php } else { ?>
                             <a id="detail_r<?= $i ?>" href="#"><i class="zmdi zmdi-eye text-info"></i></a> &nbsp;
                             <?php } ?>
+
+                            {{-- ===== NOUVEAU : ICÔNE DE SUPPRESSION ===== --}}
+                            <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
+                                <a href="#" class="delete-app-btn"
+                                    data-id="{{ $data->id }}"
+                                    data-numero="{{ $data->numero }}"
+                                    data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}"
+                                    data-montant="{{ $montant_affichage }}"
+                                    data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
+                                    title="Supprimer cet approvisionnement">
+                                    <i class="zmdi zmdi-delete text-danger"></i>
+                                </a>
+                            <?php } ?>
+
                             <script>
                                 $("#detail_<?= $i ?>").click(function(e) {
                                     e.preventDefault();

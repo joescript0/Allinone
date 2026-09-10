@@ -26,14 +26,9 @@ use Illuminate\Support\Facades\Auth;
     @include('composants.chat')
     <style>
         /* =============================================
-   DESIGN PREMIUM - VERSION FINALE (copié de la page Gestion article)
-   BOUTONS MODERNES & UNIFORMISÉS
-   LIGNES DE TABLEAU RÉDUITES
-   FILTRES MODERNES
-   RESPONSIVE AVANCÉE
+   DESIGN PREMIUM - VERSION FINALE
    ============================================= */
 
-/* --- Reset des marges pour occuper tout l'écran --- */
 body {
     margin: 0;
     padding: 0;
@@ -58,7 +53,6 @@ body {
     padding-right: 0.75rem;
 }
 
-/* --- Variables --- */
 :root {
     --bleu-nuit: #0a192f;
     --bleu-nuit-clair: #112240;
@@ -73,7 +67,6 @@ body {
     --border-radius-lg: 16px;
 }
 
-/* --- Cartes principales --- */
 #bloc_1,
 #bloc_2,
 #bloc_3 {
@@ -85,7 +78,6 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* --- En-têtes --- */
 h4 {
     font-weight: 700;
     border-left: 6px solid #e31b23;
@@ -102,7 +94,6 @@ h4 i.zmdi {
     color: transparent !important;
 }
 
-/* ========== TABLEAU : LIGNES PLUS AÉRÉES ET VISIBLES ========== */
 .table-responsive {
     overflow-x: auto;
     overflow-y: visible;
@@ -120,7 +111,6 @@ h4 i.zmdi {
     table-layout: auto;
 }
 
-/* En-tête */
 .table thead th {
     background: #E7F5FE !important;
     color: #0a192f;
@@ -135,46 +125,40 @@ h4 i.zmdi {
     word-break: break-word;
 }
 
-/* Lignes du tableau : padding augmenté, rayures et bordures nettes */
 .table tbody tr {
     transition: all 0.15s ease;
-    border-bottom: 1px solid #e2e8f0; /* bordure plus visible */
+    border-bottom: 1px solid #e2e8f0;
 }
 
-/* Rayures (zebra) pour une meilleure lisibilité */
 .table tbody tr:nth-child(even) {
-    background-color: #f8fafc; /* fond très clair pour les lignes paires */
+    background-color: #f8fafc;
 }
 
 .table tbody tr:nth-child(odd) {
     background-color: #ffffff;
 }
 
-/* Survol */
 .table tbody tr:hover {
-    background: #e6f0ff !important; /* bleu clair plus prononcé */
+    background: #e6f0ff !important;
     cursor: default;
 }
 
-/* Cellules : espacement augmenté */
 .table tbody td {
-    padding: 10px 12px !important;  /* plus d'espace pour la lisibilité */
+    padding: 10px 12px !important;
     vertical-align: middle !important;
     font-weight: 500;
-    font-size: 0.85rem; /* légèrement plus grand */
+    font-size: 0.85rem;
     color: #1e2a3e;
     word-break: break-word;
     border-bottom: 1px solid #eef2f6;
     line-height: 1.4;
 }
 
-/* Dernière cellule (contrôle) centrée */
 .table tbody td:last-child {
     text-align: center;
     vertical-align: middle;
 }
 
-/* ========== STYLE UNIQUE POUR TOUS LES BOUTONS (MODERNE, ARRONDI, OMBRE) ========== */
 #bloc_1 button,
 #bloc_2 button,
 #bloc_3 button,
@@ -209,7 +193,6 @@ h4 i.zmdi {
     line-height: 1.5;
 }
 
-/* Couleurs spécifiques pour chaque type de bouton */
 #liste,
 .btn-primary {
     background: #3B82F6 !important;
@@ -268,7 +251,6 @@ h4 i.zmdi {
     box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
 }
 
-/* Bouton désactivé (ex: add_r, save_r) */
 #add_r,
 #save_r {
     background: #cbd5e1 !important;
@@ -279,7 +261,6 @@ h4 i.zmdi {
     box-shadow: none !important;
 }
 
-/* ========== FILTRES ========== */
 .filters-container {
     display: flex;
     flex-wrap: wrap;
@@ -325,7 +306,6 @@ h4 i.zmdi {
     margin-bottom: 12px;
 }
 
-/* Badge spécifique aux approvisionnements */
 .appro-count-badge {
     background: var(--rouge-gradient);
     color: white;
@@ -339,7 +319,6 @@ h4 i.zmdi {
     margin-bottom: 12px;
 }
 
-/* Badge Total USD / CDF (ajoutés) */
 .appro-count-badge.usd-badge {
     background: linear-gradient(135deg, #0f4c5f, #1e6f5c);
 }
@@ -347,7 +326,6 @@ h4 i.zmdi {
     background: linear-gradient(135deg, #0d6efd, #0a58ca);
 }
 
-/* ========== FORMULAIRES : AJOUT ET MODIFICATION ========== */
 #form_add .row,
 #form_edit .row {
     display: flex;
@@ -422,7 +400,6 @@ select.form-control {
     background: #fff9ef !important;
 }
 
-/* ========== RESPONSIVE ========== */
 @media (max-width: 992px) {
     .content .container {
         padding: 0.5rem 1rem !important;
@@ -537,7 +514,6 @@ select.form-control {
     }
 }
 
-/* ========== MESSAGES STYLISÉS (SUCCÈS / ERREUR / INFO) ========== */
 #msg,
 #edit_msg {
     display: none !important;
@@ -602,8 +578,6 @@ select.form-control {
     }
 }
 
-/* ========== AJOUTS POUR LES ÉLÉMENTS PROPRES À CETTE PAGE ========== */
-/* Boutons de contrôle dans le tableau (œil, etc.) */
 .table tbody td a {
     display: inline-flex;
     align-items: center;
@@ -637,7 +611,6 @@ select.form-control {
     background: #ffe5e5;
 }
 
-/* Ajustement pour le conteneur d'actions (barre des boutons) */
 [style*="background-color: rgba(0, 0, 0, 0.1)"] {
     background: #eef3fc !important;
     border-radius: 60px;
@@ -649,17 +622,97 @@ select.form-control {
     justify-content: flex-start;
 }
 
-/* Alignement des colonnes de contrôle dans le tableau */
 .table tbody td:last-child {
     text-align: center;
 }
 
-/* Responsive fine */
 @media (max-width: 768px) {
     [style*="background-color: rgba(0, 0, 0, 0.1)"] {
         justify-content: center;
         gap: 8px;
     }
+}
+
+/* ===== MODALE D'ERREUR PREMIUM ===== */
+#errorAppModal .modal-content {
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+}
+#errorAppModal .modal-header {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    color: #fff;
+    border-bottom: none;
+    padding: 16px 20px;
+}
+#errorAppModal .modal-header .modal-title {
+    color: #fff;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+}
+#errorAppModal .modal-header .close {
+    color: #fff;
+    opacity: 0.9;
+    text-shadow: none;
+    font-size: 1.6rem;
+    outline: none;
+}
+#errorAppModal .modal-header .close:hover {
+    opacity: 1;
+}
+#errorAppModal .modal-body {
+    padding: 20px 22px;
+    background: #fff;
+}
+#errorAppModal .error-icon-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+#errorAppModal .error-icon-wrapper i {
+    font-size: 3rem;
+    color: #ef4444;
+    background: #fee2e2;
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+#errorAppModal .error-title {
+    text-align: center;
+    font-weight: 700;
+    color: #991b1b;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+#errorAppModal .error-message {
+    background: #fef2f2;
+    border-left: 4px solid #ef4444;
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: #7f1d1d;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    word-break: break-word;
+    white-space: pre-wrap;
+    max-height: 260px;
+    overflow-y: auto;
+    font-weight: 500;
+}
+#errorAppModal .modal-footer {
+    border-top: none;
+    padding: 12px 20px 20px;
+    justify-content: center;
+    background: #fff;
+}
+#errorAppModal .modal-footer .btn {
+    min-width: 130px;
 }
     </style>
     <section class="content">
@@ -769,21 +822,34 @@ select.form-control {
                                             @php
                                                 $t = 0;
                                                 $ent = Approvisionnements::where('facture_id', $data->id)->get();
+                                                $montant_usd = 0;
+                                                $montant_cdf = 0;
+
                                                 foreach ($ent as $e)
                                                 {
                                                     $t = $t + $e->total;
 
-                                                    // Taux de la facture (si disponible, sinon 1)
                                                     $tauxFacture = $e->taux ?? 1;
+                                                    if ($tauxFacture == 0) {
+                                                        $tauxFacture = 1;
+                                                    }
+
                                                     if ($data->devise == 0)
                                                     {
                                                         $montant_usd = $t;
                                                         $montant_cdf = $t * $tauxFacture;
-                                                    } else
+                                                    }
+                                                    else
                                                     {
                                                         $montant_cdf = $t;
                                                         $montant_usd = $t / $tauxFacture;
                                                     }
+                                                }
+
+                                                if ($data->devise == 0) {
+                                                    $montant_affichage = number_format($montant_usd, 2, ',', ' ') . ' USD (' . number_format($montant_cdf, 2, ',', ' ') . ' CDF)';
+                                                } else {
+                                                    $montant_affichage = number_format($montant_cdf, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
                                                 }
                                             @endphp
                                             <tr id="row_{{ $data->id }}"
@@ -794,14 +860,7 @@ select.form-control {
                                                     {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
                                                 </td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="<?php echo $t; ?>">
-                                                    <?php
-                                                        if ($data->devise == 0)
-                                                        {
-                                                            echo number_format($t, 2, ',', ' ') .  '(USD)';
-                                                        } else {
-                                                            echo number_format($t, 2, ',', ' ') . '(CDF)';
-                                                        }
-                                                    ?>
+                                                    {{ $montant_affichage }}
                                                 </td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell" data-date="{{ $data->created_at }}">
                                                     <?php
@@ -828,10 +887,23 @@ select.form-control {
                                                     ?>
                                                     <?php } ?>
                                                     <?php if ((($display == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display == 0) && (Auth::user()->role == 0))) { ?>
-                                                    <a id="detail_<?= $i ?>" href="#"><i class="zmdi zmdi-eye text-info"></i></a> &nbsp;
+                                                    <a id="detail_<?= $i ?>" href="#" title="Voir détails"><i class="zmdi zmdi-eye text-info"></i></a> &nbsp;
                                                     <?php } else { ?>
                                                     <a id="detail_r<?= $i ?>" href="#"><i class="zmdi zmdi-eye text-info"></i></a> &nbsp;
                                                     <?php } ?>
+
+                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
+                                                        <a href="#" class="delete-app-btn"
+                                                           data-id="{{ $data->id }}"
+                                                           data-numero="{{ $data->numero }}"
+                                                           data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}"
+                                                           data-montant="{{ $montant_affichage }}"
+                                                           data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
+                                                           title="Supprimer cet approvisionnement">
+                                                            <i class="zmdi zmdi-delete text-danger"></i>
+                                                        </a>
+                                                    <?php } ?>
+
                                                     <script>
                                                         $("#detail_<?= $i ?>").click(function(e) {
                                                             e.preventDefault();
@@ -1082,8 +1154,68 @@ select.form-control {
             </div>
         </div>
     </div>
+
+    {{-- ===== MODALE DE SUPPRESSION AVEC DÉTAILS ===== --}}
+    <div class="modal fade" id="deleteAppModal" tabindex="-1" role="dialog" aria-labelledby="deleteAppModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="font-weight: bold;font-size: 16px;">Confirmer la suppression</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Voulez-vous vraiment supprimer cet approvisionnement ? Cette action est irréversible.</p>
+                    <div style="background: #f8f9fa; padding: 12px 15px; border-radius: 8px; margin-top: 10px;">
+                        <table style="width:100%; font-size:0.9rem; border-collapse:collapse;">
+                            <tr><td style="padding:5px 0; font-weight:600;">N° facture :</td><td style="padding:5px 0;" id="delete_app_numero">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Utilisateur :</td><td style="padding:5px 0;" id="delete_app_user">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Montant :</td><td style="padding:5px 0;" id="delete_app_montant">-</td></tr>
+                            <tr><td style="padding:5px 0; font-weight:600;">Date :</td><td style="padding:5px 0;" id="delete_app_date">-</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div style="font-weight: bold;text-align: center; padding-bottom: 15px;">
+                    <button id="confirm_delete_app" class="btn btn-info btn-sm" style="margin-right: 8px;">Oui, supprimer</button>
+                    <button class="btn btn-danger btn-sm" data-dismiss="modal">Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ===== NOUVELLE MODALE : ERREUR BACKEND ===== --}}
+    <div class="modal fade" id="errorAppModal" tabindex="-1" role="dialog" aria-labelledby="errorAppModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="errorAppModalLabel">
+                        <i class="zmdi zmdi-alert-circle"></i> Échec de l'opération
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="error-icon-wrapper">
+                        <i class="zmdi zmdi-close-circle"></i>
+                    </div>
+                    <div class="error-title" id="error_app_title">Impossible de supprimer cet approvisionnement</div>
+                    <div class="error-message" id="error_app_message">
+                        Une erreur inconnue est survenue.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">
+                        <i class="zmdi zmdi-close"></i> Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @section('js-code')
-    {{-- Ajout des dépendances pour le Date Range Picker (identique aux factures) --}}
+    {{-- Dépendances Date Range Picker --}}
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" />
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
@@ -1113,7 +1245,7 @@ select.form-control {
             $("#bloc_2").hide();
             $("#bloc_3").hide();
             setTimeout(function() {
-                filterApprovisionnements();
+                applyApproFilters();
             }, 100);
         });
 
@@ -1143,12 +1275,22 @@ select.form-control {
             $("#bloc_2").hide();
             $("#bloc_3").hide();
             setTimeout(function() {
-                filterApprovisionnements();
+                applyApproFilters();
             }, 100);
         });
 
+        // ========== BOUTON SAVE ==========
         $("#save").click(function(e) {
             e.preventDefault();
+            var btn = $(this);
+            btn.prop('disabled', true).html(
+                '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...'
+            );
+
+            function resetButton() {
+                btn.prop('disabled', false).html('Enregister <i class="zmdi zmdi-save"></i>');
+            }
+
             var numero_facture = $("#numero_facture").val();
             var type_sortie = $("#type_sortie").val();
             var prix_unitaire = $("#prix_unitaire").val();
@@ -1158,79 +1300,102 @@ select.form-control {
             var libelle = $("#libelle").val();
             var data = $("#form_add").serialize();
 
+            // ===== VALIDATIONS =====
             if (numero_facture.trim().length == 0) {
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le numero d\'entré');
                 setTimeout(() => { $('#msg').html(""); }, 9000);
-            } else {
-                if (type_sortie.trim().length == 0) {
-                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom de l\'article');
-                    setTimeout(() => { $('#msg').html(""); }, 9000);
-                } else {
-                    if (prix_unitaire.trim().length == 0) {
-                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le prix d\'achat');
-                        setTimeout(() => { $('#msg').html(""); }, 9000);
-                    } else {
-                        if (quantite.trim().length == 0) {
-                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez la quantité');
-                            setTimeout(() => { $('#msg').html(""); }, 9000);
-                        } else {
-                            $.get("{{ url('/check_seuil_maximum') }}", {
-                                article_id: type_sortie,
-                                devise: devise,
-                                quantite: quantite,
-                                prix_unitaire: prix_unitaire,
-                                taux: taux,
-                            }, function(repp) {
-                                var data_rep = repp.split("__________")
-                                if (data_rep[0] == 0) {
-                                    $('#msg').html(
-                                        '<i class="zmdi zmdi-close-circle"></i> Le seuil maximum de cette article est de : ' +
-                                        data_rep[1] + ', stock disponible : ' + data_rep[2]);
-                                    setTimeout(() => { $('#msg').html(""); }, 9000);
-                                } else {
-                                    if (devise.trim().length == 0) {
-                                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez la devise');
-                                        setTimeout(() => { $('#msg').html(""); }, 9000);
-                                    } else {
-                                        if (taux.trim().length == 0) {
-                                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le taux');
-                                            setTimeout(() => { $('#msg').html(""); }, 9000);
-                                        } else {
-                                            $("#save").attr("disabled", true);
-                                            $.ajax({
-                                                type: "POST",
-                                                url: "/add_app_article",
-                                                data: data,
-                                                success: function(response) {
-                                                    Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
-                                                    $("#save").attr("disabled", false);
-                                                    $("#prix_unitaire").val("");
-                                                    $("#quantite").val("");
-                                                    $("#taux").val("");
-                                                    $("#libelle").val("");
-                                                    $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Approvisionnement ajouté avec succès');
-                                                    $("#content_utilisateur").html(response);
-                                                    $.get("{{ url('/get_approvisionnement') }}", {}, function(response) {
-                                                        $("#content_sortie").html(response);
-                                                    });
-                                                    setTimeout(() => { $('#msg').html(""); }, 9000);
-                                                    saveApproFiltersToStorage();
-                                                    setTimeout(function() {
-                                                        loadApproFiltersFromStorage();
-                                                        filterApprovisionnements();
-                                                    }, 100);
-                                                }
-                                            });
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                    }
-                }
+                resetButton();
+                return;
             }
+            if (type_sortie.trim().length == 0) {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom de l\'article');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+                resetButton();
+                return;
+            }
+            if (prix_unitaire.trim().length == 0) {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le prix d\'achat');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+                resetButton();
+                return;
+            }
+            if (quantite.trim().length == 0) {
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez la quantité');
+                setTimeout(() => { $('#msg').html(""); }, 9000);
+                resetButton();
+                return;
+            }
+
+            // ===== VÉRIFICATION DU SEUIL MAXIMUM =====
+            $.get("{{ url('/check_seuil_maximum') }}", {
+                article_id: type_sortie,
+                devise: devise,
+                quantite: quantite,
+                prix_unitaire: prix_unitaire,
+                taux: taux,
+            }, function(repp) {
+                var data_rep = repp.split("__________")
+                if (data_rep[0] == 0) {
+                    $('#msg').html(
+                        '<i class="zmdi zmdi-close-circle"></i> Le seuil maximum de cette article est de : ' +
+                        data_rep[1] + ', stock disponible : ' + data_rep[2]);
+                    setTimeout(() => { $('#msg').html(""); }, 9000);
+                    resetButton();
+                    return;
+                } else {
+                    if (devise.trim().length == 0) {
+                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez la devise');
+                        setTimeout(() => { $('#msg').html(""); }, 9000);
+                        resetButton();
+                        return;
+                    }
+                    if (taux.trim().length == 0) {
+                        $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le taux');
+                        setTimeout(() => { $('#msg').html(""); }, 9000);
+                        resetButton();
+                        return;
+                    }
+
+                    // ===== ENREGISTREMENT =====
+                    $.ajax({
+                        type: "POST",
+                        url: "/add_app_article",
+                        data: data,
+                        success: function(response) {
+                            resetButton();
+
+                            Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
+                            $("#prix_unitaire").val("");
+                            $("#quantite").val("");
+                            $("#taux").val("");
+                            $("#libelle").val("");
+                            $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Approvisionnement ajouté avec succès');
+                            $("#content_utilisateur").html(response);
+
+                            $.get("{{ url('/get_approvisionnement') }}", {}, function(r) {
+                                $("#content_sortie").html(r);
+                            });
+
+                            setTimeout(() => { $('#msg').html(""); }, 9000);
+
+                            applyApproFilters();
+                            $('#approCount').text($('#content_utilisateur tbody tr:visible').length);
+                        },
+                        error: function(xhr, status, error) {
+                            resetButton();
+                            // ✅ Utilisation de la modale d'erreur
+                            showAppErrorModal(xhr, "Erreur lors de l'enregistrement");
+                            console.error(error);
+                        }
+                    });
+                }
+            }).fail(function(xhr) {
+                resetButton();
+                showAppErrorModal(xhr, "Erreur lors de la vérification du seuil");
+            });
         });
 
+        // ===== Suppression ancienne modale =====
         $("#oui").click(function(e) {
             e.preventDefault();
             var id = $("#data_id").html();
@@ -1239,11 +1404,7 @@ select.form-control {
             }, function(refresh_editutilisateur) {
                 $("#content_utilisateur").html(refresh_editutilisateur);
                 $("#non").trigger("click");
-                saveApproFiltersToStorage();
-                setTimeout(function() {
-                    loadApproFiltersFromStorage();
-                    filterApprovisionnements();
-                }, 100);
+                applyApproFilters();
             });
         });
 
@@ -1290,98 +1451,183 @@ select.form-control {
             $("#numero_facture").html(response);
         });
 
-        // ========== FONCTIONS DE FILTRAGE AVEC DATE RANGE PICKER (IDENTIQUES AUX FACTURES) ==========
+        // =================================================================
+        // ========== MODALE D'ERREUR (BACKEND) ============================
+        // =================================================================
+        /**
+         * Affiche la modale d'erreur avec le message renvoyé par le backend.
+         * @param {Object} xhr      - L'objet XHR de jQuery
+         * @param {String} fallback - Message de secours si rien n'est renvoyé
+         */
+        function showAppErrorModal(xhr, fallback) {
+            var message = fallback || "Une erreur inconnue est survenue.";
+            var title   = "Échec de l'opération";
+
+            try {
+                // 1. Tenter de parser la réponse JSON
+                var resp = null;
+                if (xhr && xhr.responseJSON) {
+                    resp = xhr.responseJSON;
+                } else if (xhr && xhr.responseText) {
+                    try { resp = JSON.parse(xhr.responseText); } catch (e) { resp = null; }
+                }
+
+                if (resp) {
+                    // Cas 1 : { success: false, message: "..." }
+                    if (resp.message) {
+                        message = resp.message;
+                    }
+                    // Cas 2 : { errors: { champ: ["msg1", "msg2"] } } (validation)
+                    if (resp.errors && typeof resp.errors === 'object') {
+                        var errList = [];
+                        $.each(resp.errors, function (field, msgs) {
+                            if (Array.isArray(msgs)) {
+                                msgs.forEach(function (m) { errList.push('• ' + m); });
+                            } else {
+                                errList.push('• ' + msgs);
+                            }
+                        });
+                        if (errList.length) message = errList.join('\n');
+                    }
+                    // Cas 3 : { error: "..." }
+                    if (resp.error) {
+                        message = resp.error;
+                    }
+                    if (resp.title) {
+                        title = resp.title;
+                    }
+                }
+                // 2. Sinon afficher le texte brut (utile pour erreur 500 HTML)
+                else if (xhr && xhr.responseText) {
+                    var raw = String(xhr.responseText);
+                    // Extraire un éventuel message d'une page d'erreur Laravel
+                    var m = raw.match(/<title>(.*?)<\/title>/i);
+                    if (m && m[1]) {
+                        message = m[1].replace(/&amp;/g, '&');
+                    } else if (raw.length < 500) {
+                        message = raw;
+                    } else {
+                        message = "Erreur serveur (" + (xhr.status || '?') + " " + (xhr.statusText || '') + ")";
+                    }
+                }
+                // 3. Ajouter le code HTTP si présent
+                if (xhr && xhr.status && xhr.status >= 400 && !message.match(/\(\d{3}/)) {
+                    message += "\n\nCode HTTP : " + xhr.status + (xhr.statusText ? " — " + xhr.statusText : "");
+                }
+            } catch (err) {
+                console.error("showAppErrorModal erreur :", err);
+                message = fallback || "Une erreur est survenue, mais son message n'a pas pu être lu.";
+            }
+
+            // Sécurité : échapper le HTML
+            var safeTitle = $('<div>').text(title).html();
+            var safeMsg   = $('<div>').text(message).html();
+
+            $('#error_app_title').html(safeTitle);
+            $('#error_app_message').html(safeMsg);
+            $('#errorAppModal').modal('show');
+        }
+
+        // =================================================================
+        // ========== FONCTIONS DE FILTRAGE ================================
+        // =================================================================
 
         let approFilterTimeout;
 
-        function saveApproFiltersToStorage() {
-            const filters = {
-                numero: $('#filterNumero').val(),
-                user: $('#filterUser').val(),
-                montant: $('#filterMontant').val(),
-                dateRange: $('#filterDateRange').val()
+        function parseDMY(str) {
+            if (!str) return null;
+            const p = String(str).trim().split('/');
+            if (p.length === 3 && p[0].length === 2 && p[1].length === 2 && p[2].length === 4) {
+                return p[2] + '-' + p[1] + '-' + p[0];
+            }
+            return null;
+        }
+
+        function formatMontant(n) {
+            return (n || 0).toFixed(2)
+                .replace('.', ',')
+                .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+
+        function getCurrentApproFilters() {
+            return {
+                numero: $('#filterNumero').val() || '',
+                user:   $('#filterUser').val() || '',
+                montant: $('#filterMontant').val() || '',
+                dateRange: $('#filterDateRange').val() || ''
             };
-            localStorage.setItem('approFilters', JSON.stringify(filters));
+        }
+
+        function saveApproFiltersToStorage() {
+            localStorage.setItem('approFilters', JSON.stringify(getCurrentApproFilters()));
         }
 
         function loadApproFiltersFromStorage() {
-            const savedFilters = localStorage.getItem('approFilters');
-            if (savedFilters) {
-                const filters = JSON.parse(savedFilters);
-                $('#filterNumero').val(filters.numero || '');
-                $('#filterUser').val(filters.user || '');
-                $('#filterMontant').val(filters.montant || '');
-                $('#filterDateRange').val(filters.dateRange || '');
-                // Mettre à jour le daterangepicker si une valeur est présente
-                if (filters.dateRange) {
-                    const parts = filters.dateRange.split(' - ');
+            const saved = localStorage.getItem('approFilters');
+            if (!saved) return false;
+            try {
+                const f = JSON.parse(saved);
+                $('#filterNumero').val(f.numero || '');
+                $('#filterUser').val(f.user || '');
+                $('#filterMontant').val(f.montant || '');
+
+                const $dateInput = $('#filterDateRange');
+                $dateInput.val(f.dateRange || '');
+
+                const picker = $dateInput.data('daterangepicker');
+                if (picker && f.dateRange) {
+                    const parts = f.dateRange.split(' - ');
                     if (parts.length === 2) {
-                        const start = moment(parts[0], 'DD/MM/YYYY');
-                        const end = moment(parts[1], 'DD/MM/YYYY');
+                        const start = moment(parts[0], 'DD/MM/YYYY', true);
+                        const end   = moment(parts[1], 'DD/MM/YYYY', true);
                         if (start.isValid() && end.isValid()) {
-                            $('#filterDateRange').data('daterangepicker').setStartDate(start);
-                            $('#filterDateRange').data('daterangepicker').setEndDate(end);
+                            picker.setStartDate(start);
+                            picker.setEndDate(end);
                         }
                     }
                 }
                 return true;
+            } catch (e) {
+                console.error('Erreur loadApproFilters:', e);
+                return false;
             }
-            return false;
         }
 
         function filterApprovisionnements() {
-            const filterNumero = $('#filterNumero').val().toLowerCase();
-            const filterUser = $('#filterUser').val().toLowerCase();
+            const filterNumero = ($('#filterNumero').val() || '').toLowerCase().trim();
+            const filterUser   = ($('#filterUser').val()   || '').toLowerCase().trim();
             const filterMontant = parseFloat($('#filterMontant').val());
 
-            // Récupération de la plage de dates
-            var dateRange = $('#filterDateRange').val() || '';
-            var dateDebut = null, dateFin = null;
+            let dateDebut = null, dateFin = null;
+            const dateRange = $('#filterDateRange').val() || '';
             if (dateRange) {
-                var parts = dateRange.split(' - ');
+                const parts = dateRange.split(' - ');
                 if (parts.length === 2) {
-                    function parseDMY(str) {
-                        if (!str) return null;
-                        var p = str.split('/');
-                        if (p.length === 3) {
-                            var day = p[0];
-                            var month = p[1];
-                            var year = p[2];
-                            if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
-                                return year + '-' + month + '-' + day;
-                            }
-                        }
-                        return null;
-                    }
                     dateDebut = parseDMY(parts[0]);
-                    dateFin = parseDMY(parts[1]);
+                    dateFin   = parseDMY(parts[1]);
                 }
             }
 
             let visibleCount = 0;
             let totalUSD = 0, totalCDF = 0;
 
-            $('#content_utilisateur tbody tr').each(function() {
+            $('#content_utilisateur tbody tr').each(function () {
                 const $row = $(this);
                 let showRow = true;
 
-                const numeroValue = ($row.find('.numero-cell').data('numero') || '').toLowerCase();
-                const userValue = ($row.find('.user-cell').data('user') || '').toLowerCase();
+                const numeroValue  = String($row.find('.numero-cell').data('numero') || '').toLowerCase();
+                const userValue    = String($row.find('.user-cell').data('user')     || '').toLowerCase();
                 const montantValue = parseFloat($row.find('.montant-cell').data('montant') || 0);
-                // Utiliser data-date qui est en YYYY-MM-DD
-                const dateValue = $row.find('.date-cell').data('date') || '';
+
+                const rawDate   = String($row.find('.date-cell').data('date') || '');
+                const dateValue = rawDate.split(' ')[0];
 
                 if (filterNumero && !numeroValue.includes(filterNumero)) showRow = false;
                 if (showRow && filterUser && !userValue.includes(filterUser)) showRow = false;
                 if (showRow && !isNaN(filterMontant) && Math.abs(montantValue - filterMontant) > 0.009) showRow = false;
 
-                // Filtre par plage de dates
                 if (showRow && dateDebut && dateFin) {
-                    if (dateValue) {
-                        if (dateValue < dateDebut || dateValue > dateFin) {
-                            showRow = false;
-                        }
-                    } else {
+                    if (!dateValue || dateValue < dateDebut || dateValue > dateFin) {
                         showRow = false;
                     }
                 }
@@ -1397,47 +1643,34 @@ select.form-control {
             });
 
             $('#approCount').text(visibleCount);
-            $('#totalUsd').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-            $('#totalCdf').text(totalCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalUsd').text(formatMontant(totalUSD));
+            $('#totalCdf').text(formatMontant(totalCDF));
+        }
 
-            if (visibleCount === 0 && (filterNumero || filterUser || !isNaN(filterMontant) || dateRange)) {
-                $('#msg').html('<i class="zmdi zmdi-info"></i> Aucun approvisionnement ne correspond aux critères de recherche');
-                $('#msg').css('display', 'flex');
-                setTimeout(() => {
-                    $('#msg').html('');
-                    $('#msg').css('display', 'none');
-                }, 3000);
-            }
+        function applyApproFilters() {
+            loadApproFiltersFromStorage();
+            filterApprovisionnements();
         }
 
         function resetApproFilters() {
-            // Remettre la date par défaut (aujourd'hui) comme dans les factures
-            var today = moment();
-            var todayStr = today.format('DD/MM/YYYY');
-            $('#filterDateRange').val(todayStr + ' - ' + todayStr);
-            // Mettre à jour le picker
-            if ($('#filterDateRange').data('daterangepicker')) {
-                $('#filterDateRange').data('daterangepicker').setStartDate(today);
-                $('#filterDateRange').data('daterangepicker').setEndDate(today);
+            const today = moment();
+            const todayStr = today.format('DD/MM/YYYY');
+            const $dateInput = $('#filterDateRange');
+            $dateInput.val(todayStr + ' - ' + todayStr);
+            const picker = $dateInput.data('daterangepicker');
+            if (picker) {
+                picker.setStartDate(today);
+                picker.setEndDate(today);
             }
-
             $('#filterNumero').val('');
             $('#filterUser').val('');
             $('#filterMontant').val('');
 
             saveApproFiltersToStorage();
+            filterApprovisionnements();
 
-            // Réafficher toutes les lignes
-            $('#content_utilisateur tbody tr').show();
-            const totalCount = $('#content_utilisateur tbody tr').length;
-            $('#approCount').text(totalCount);
-
-            $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Tous les filtres ont été réinitialisés');
-            $('#msg').css('display', 'flex');
-            setTimeout(() => {
-                $('#msg').html('');
-                $('#msg').css('display', 'none');
-            }, 3000);
+            $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Tous les filtres ont été réinitialisés').css('display', 'flex');
+            setTimeout(() => { $('#msg').html('').css('display', 'none'); }, 3000);
         }
 
         function debouncedApproFilter() {
@@ -1448,11 +1681,10 @@ select.form-control {
             }, 300);
         }
 
-        // Initialisation des événements de filtrage et du date range picker
-        $(document).ready(function() {
-            // Initialisation du Date Range Picker avec la date du jour par défaut
-            var today = moment();
-            var todayStr = today.format('DD/MM/YYYY');
+        // ========== INITIALISATION ==========
+        $(document).ready(function () {
+            const today = moment();
+            const todayStr = today.format('DD/MM/YYYY');
             $('#filterDateRange').val(todayStr + ' - ' + todayStr);
 
             $('#filterDateRange').daterangepicker({
@@ -1469,75 +1701,110 @@ select.form-control {
                     customRangeLabel: 'Personnalisé',
                     weekLabel: 'S',
                     daysOfWeek: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
-                    monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+                    monthNames: ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
                 },
                 opens: 'left',
                 ranges: {
-                    'Aujourd\'hui': [moment(), moment()],
-                    'Hier': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                    '7 derniers jours': [moment().subtract(6, 'days'), moment()],
-                    '30 derniers jours': [moment().subtract(29, 'days'), moment()],
-                    'Ce mois-ci': [moment().startOf('month'), moment().endOf('month')],
-                    'Mois dernier': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-                    'Cette année': [moment().startOf('year'), moment().endOf('year')]
+                    'Aujourd\'hui':       [moment(), moment()],
+                    'Hier':               [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '7 derniers jours':   [moment().subtract(6, 'days'), moment()],
+                    '30 derniers jours':  [moment().subtract(29, 'days'), moment()],
+                    'Ce mois-ci':         [moment().startOf('month'), moment().endOf('month')],
+                    'Mois dernier':       [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                    'Cette année':        [moment().startOf('year'), moment().endOf('year')]
                 }
-            }, function(start, end, label) {
-                var startStr = start.format('DD/MM/YYYY');
-                var endStr = end.format('DD/MM/YYYY');
-                $('#filterDateRange').val(startStr + ' - ' + endStr);
+            }, function (start, end) {
+                $('#filterDateRange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
                 filterApprovisionnements();
                 saveApproFiltersToStorage();
             });
 
-            $('#filterDateRange').on('cancel.daterangepicker', function(ev, picker) {
+            $('#filterDateRange').on('cancel.daterangepicker', function () {
                 $(this).val('');
                 filterApprovisionnements();
                 saveApproFiltersToStorage();
             });
 
-            // Nombre total d'approvisionnements initial
-            const totalAppro = $('#content_utilisateur tbody tr').length;
-            $('#approCount').text(totalAppro);
-            // Initialiser les totaux
-            filterApprovisionnements(); // Cette fonction va calculer les totaux
-
-            // Charger les filtres sauvegardés (s'ils existent, écrase la valeur par défaut)
-            const hasSaved = loadApproFiltersFromStorage();
-            if (!hasSaved) {
-                // déjà initialisée avec aujourd'hui
-            }
-            // Appliquer les filtres (pour afficher uniquement la plage aujourd'hui par défaut)
+            loadApproFiltersFromStorage();
             filterApprovisionnements();
 
-            // Événements des autres filtres
-            $('#filterNumero, #filterUser, #filterMontant').on('input change', function() {
-                debouncedApproFilter();
-            });
+            if ($('#approCount').text() === '0') {
+                $('#approCount').text($('#content_utilisateur tbody tr').length);
+            }
 
-            // Réinitialisation
-            $('#resetFilters').click(function(e) {
+            $('#filterNumero, #filterUser, #filterMontant').on('input change', debouncedApproFilter);
+
+            $('#resetFilters').click(function (e) {
                 e.preventDefault();
                 resetApproFilters();
             });
+
+            // ===== Suppression avec détails =====
+            $(document).on('click', '.delete-app-btn', function (e) {
+                e.preventDefault();
+                $('#delete_app_numero').text($(this).data('numero'));
+                $('#delete_app_user').text($(this).data('user'));
+                $('#delete_app_montant').text($(this).data('montant'));
+                $('#delete_app_date').text($(this).data('date'));
+                $('#deleteAppModal').data('app-id', $(this).data('id')).modal('show');
+            });
+
+            $(document).on('click', '#confirm_delete_app', function (e) {
+                e.preventDefault();
+                const btn = $(this);
+                const appId = $('#deleteAppModal').data('app-id');
+                if (!appId) {
+                    // ✅ Utilisation de la modale d'erreur
+                    showAppErrorModal(null, "Identifiant d'approvisionnement manquant.");
+                    return;
+                }
+
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Suppression...');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url("/delete_app") }}',
+                    data: { _token: '{{ csrf_token() }}', id: appId },
+                    dataType: 'json',
+                    success: function (response) {
+                        // Cas où le backend renvoie 200 mais signale un échec
+                        if (response && response.success === false) {
+                            $('#deleteAppModal').modal('hide');
+                            // Affiche la modale d'erreur avec le message renvoyé
+                            showAppErrorModal({ responseJSON: response }, "La suppression a échoué.");
+                            return;
+                        }
+
+                        // ✅ Succès : recharger la liste
+                        $.get('{{ url("/get_all_app") }}', function (html) {
+                            $('#content_utilisateur').html(html);
+                            applyApproFilters();
+                            $('#approCount').text($('#content_utilisateur tbody tr:visible').length);
+                        }).fail(function (xhr) {
+                            $('#deleteAppModal').modal('hide');
+                            showAppErrorModal(xhr, "Erreur lors du rechargement du tableau.");
+                        });
+
+                        $('#deleteAppModal').modal('hide');
+                        $('#msg').html('<i class="zmdi zmdi-check-circle"></i> ' + (response.message || 'Approvisionnement supprimé avec succès')).css('display', 'flex');
+                        setTimeout(() => { $('#msg').html('').css('display', 'none'); }, 3000);
+                    },
+                    error: function (xhr, status, error) {
+                        // ✅ Récupération propre du message backend
+                        $('#deleteAppModal').modal('hide');
+                        showAppErrorModal(xhr, "Impossible de supprimer cet approvisionnement.");
+                        console.error('Erreur suppression:', error, xhr.responseText);
+                    },
+                    complete: function () {
+                        btn.prop('disabled', false).html('Oui, supprimer');
+                    }
+                });
+            });
         });
 
-        // Sauvegarde automatique avant de quitter
-        window.addEventListener('beforeunload', function() {
+        window.addEventListener('beforeunload', function () {
             saveApproFiltersToStorage();
-        });
-
-        // Réappliquer les filtres après chaque chargement AJAX (pour conserver l'état)
-        $(document).ajaxComplete(function(event, xhr, settings) {
-            if (settings.url && (settings.url.includes('refresh_') || settings.url.includes('add_app_article'))) {
-                setTimeout(() => {
-                    const totalAppro = $('#content_utilisateur tbody tr').length;
-                    $('#approCount').text(totalAppro);
-                    loadApproFiltersFromStorage();
-                    filterApprovisionnements();
-                }, 200);
-            }
         });
     </script>
 @endsection
 @endsection
-

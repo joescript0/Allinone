@@ -305,6 +305,7 @@ Route::get('/refresh_partager_fichier', [AjaxController::class , 'refresh_partag
 Route::get('/permission_fichier', [AjaxController::class , 'permission_fichier'])->name('permission_fichier');
 Route::get('/check_paie_facture', [AjaxController::class , 'check_paie_facture'])->name('check_paie_facture');
 Route::get('/get_all_facture', [AjaxController::class , 'get_all_facture'])->name('get_all_facture');
+Route::get('/get_all_app', [AjaxController::class , 'get_all_app'])->name('get_all_app');
 Route::get('/get_all_facture_suivi', [AjaxController::class , 'get_all_facture_suivi'])->name('get_all_facture_suivi');
 Route::get('/delete_facture_user_id', [AjaxController::class , 'delete_facture_user_id'])->name('delete_facture_user_id');
 Route::get('/get_all_categorie', [AjaxController::class , 'get_all_categorie'])->name('get_all_categorie');
@@ -316,6 +317,7 @@ Route::get('/get_all_articles', [AjaxController::class , 'get_all_articles'])->n
 Route::get('/get_commune_by_district', [AjaxController::class , 'get_commune_by_district'])->name('get_commune_by_district');
 Route::post('/save_paie_facture', [AjaxController::class , 'save_paie_facture'])->name('save_paie_facture');
 Route::post('/delete_facture', [AjaxController::class , 'delete_facture'])->name('delete_facture');
+Route::post('/delete_app', [AjaxController::class , 'delete_app'])->name('delete_app');
 Route::post('/process_payment', [AjaxController::class , 'process_payment'])->name('process_payment');
 Route::post('/transfer_article', [AjaxController::class , 'transfer_article'])->name('transfer_article');
 Route::post('/submit-filters', [AjaxController::class, 'submitFilters'])->name('submitFilters');

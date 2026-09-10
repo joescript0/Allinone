@@ -1944,6 +1944,21 @@ class AjaxController extends Controller
         return view('include.refresh_factureass', $data);
     }
 
+    public function get_all_app(Request $request)
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 2;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        $data["factures"] = Factureas::where(["etat" => 0])->get();
+        return view('include.refresh_factureas', $data);
+        if(Auth::user()->role == 0)
+        {
+            $data["factures"] = Factureas::where(["etat" => 0])->get();
+        }
+        return view('include.refresh_factureass', $data);
+    }
+
     public function get_all_facture_suivi(Request $request)
     {
         $groupe_user_id = Auth::user()->role;
@@ -15665,6 +15680,64 @@ class AjaxController extends Controller
 
                 // Restauration du stock : on ajoute la quantité achetée
                 $article->stock += $achat->quantite;
+                $article->save();
+            }
+
+            // Marquer la facture comme supprimée
+            $facture->etat = 1;
+            $facture->save();
+
+            DB::commit();
+
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Erreur : ' . $e->getMessage()], 500);
+        }
+    }
+
+
+    public function delete_app(Request $request)
+    {
+        $id = $request->id;
+        if (!$id) {
+            return response()->json(['error' => 'ID manquant'], 400);
+        }
+
+        // Récupération de la facture (uniquement non supprimée)
+        $facture = Factureas::where('id', $id)->where('etat', 0)->first();
+        if (!$facture) {
+            return response()->json(['error' => 'Facture introuvable ou déjà supprimée'], 404);
+        }
+
+        // Récupération des approvisionnements liés à cette facture
+        $approvisionnements = Approvisionnements::where('facture_id', $id)->get();
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($approvisionnements as $appro) {
+                $article_id = $appro->article_id;
+
+                // On touche uniquement la table articles
+                $article = Articles::find($article_id);
+
+                if (!$article) {
+                    throw new \Exception("Article introuvable (ID: $article_id)");
+                }
+
+                // ⚠️ Un approvisionnement AJOUTE du stock → à l'annulation on DÉDUIT
+                $nouveauStock = $article->stock - $appro->quantite;
+
+                // Sécurité : éviter un stock négatif
+                if ($nouveauStock < 0) {
+                    throw new \Exception(
+                        "Impossible de déduire {$appro->quantite} sur l'article '{$article->nom_article}' : stock actuel = {$article->stock} (résultat négatif)"
+                    );
+                }
+
+                $article->stock = $nouveauStock;
                 $article->save();
             }
 
