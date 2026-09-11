@@ -34,7 +34,6 @@ use Illuminate\Support\Facades\Auth;
    ET "APPROVISIONNEMENT" – ADAPTÉ AUX FACTURES
    ============================================================ */
 
-/* --- Reset des marges pour occuper tout l'écran --- */
 body {
     margin: 0;
     padding: 0;
@@ -59,7 +58,6 @@ body {
     padding-right: 0.75rem;
 }
 
-/* --- Variables (identiques aux autres pages) --- */
 :root {
     --bleu-nuit: #0a192f;
     --bleu-nuit-clair: #112240;
@@ -74,7 +72,6 @@ body {
     --border-radius-lg: 16px;
 }
 
-/* --- Cartes principales --- */
 #bloc_1,
 #bloc_2,
 #bloc_3 {
@@ -86,7 +83,6 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* --- En-têtes --- */
 h4 {
     font-weight: 700;
     border-left: 6px solid #e31b23;
@@ -107,7 +103,6 @@ h4 i.zmdi {
     color: transparent !important;
 }
 
-/* ===== BADGE DANS LE TITRE – MAINTENANT EN ROUGE ===== */
 h4 .badge-invoice {
     background: linear-gradient(135deg, #e31b23, #b91c1c);
     color: white;
@@ -137,7 +132,6 @@ h4 .badge-invoice {
     }
 }
 
-/* ========== TABLEAU : LIGNES AÉRÉES ET VISIBLES ========== */
 .table-responsive {
     overflow-x: auto;
     overflow-y: visible;
@@ -155,7 +149,6 @@ h4 .badge-invoice {
     table-layout: auto;
 }
 
-/* En-tête */
 .table thead th {
     background: #E7F5FE !important;
     color: #0a192f;
@@ -170,7 +163,6 @@ h4 .badge-invoice {
     word-break: break-word;
 }
 
-/* Lignes du tableau : padding augmenté, rayures et bordures nettes */
 .table tbody tr {
     transition: all 0.15s ease;
     border-bottom: 1px solid #e2e8f0;
@@ -205,7 +197,6 @@ h4 .badge-invoice {
     vertical-align: middle;
 }
 
-/* ========== STYLE UNIQUE POUR TOUS LES BOUTONS ========== */
 #bloc_1 button,
 #bloc_2 button,
 #bloc_3 button,
@@ -240,7 +231,6 @@ h4 .badge-invoice {
     line-height: 1.5;
 }
 
-/* Couleurs spécifiques pour chaque type de bouton */
 #liste,
 .btn-primary {
     background: #3B82F6 !important;
@@ -299,7 +289,6 @@ h4 .badge-invoice {
     box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
 }
 
-/* Boutons désactivés (add_r, save_r, print_r) */
 #add_r,
 #save_r,
 #print_r {
@@ -311,7 +300,6 @@ h4 .badge-invoice {
     box-shadow: none !important;
 }
 
-/* Bouton d'impression (spécifique à cette page) */
 #print {
     background: #3B82F6 !important;
     color: white !important;
@@ -322,7 +310,6 @@ h4 .badge-invoice {
     box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
 }
 
-/* ========== FILTRES ========== */
 .filters-container {
     display: flex;
     flex-wrap: wrap;
@@ -355,7 +342,6 @@ h4 .badge-invoice {
     height: 36px;
 }
 
-/* Badges (compteur et totaux) – désormais sur une ligne */
 .invoice-badges-container {
     display: flex;
     flex-wrap: wrap;
@@ -376,7 +362,6 @@ h4 .badge-invoice {
     color: white;
 }
 
-/* ===== BADGE POUR TOTAL USD ET CDF – #3B82F6 ===== */
 .invoice-count-badge.usd-badge {
     background: linear-gradient(135deg, #3B82F6, #2563eb);
 }
@@ -384,7 +369,6 @@ h4 .badge-invoice {
     background: linear-gradient(135deg, #3B82F6, #2563eb);
 }
 
-/* ===== BADGE PAYÉ USD / CDF – BLEU DE NUIT ===== */
 .invoice-count-badge.paye-usd {
     background: linear-gradient(135deg, #0a192f, #1e3a5f);
 }
@@ -392,7 +376,6 @@ h4 .badge-invoice {
     background: linear-gradient(135deg, #0a192f, #1e3a5f);
 }
 
-/* ===== BADGE CRÉDIT USD / CDF – ROUGE ===== */
 .invoice-count-badge.credit-usd {
     background: linear-gradient(135deg, #dc3545, #b02a37);
 }
@@ -400,7 +383,6 @@ h4 .badge-invoice {
     background: linear-gradient(135deg, #dc3545, #b02a37);
 }
 
-/* ===== BADGE BÉNÉFICE USD / CDF – VERT SUCCÈS ===== */
 .invoice-count-badge.benefice-usd {
     background: linear-gradient(135deg, #198754, #146c43);
 }
@@ -408,7 +390,6 @@ h4 .badge-invoice {
     background: linear-gradient(135deg, #198754, #146c43);
 }
 
-/* ========== FORMULAIRES : AJOUT ET MODIFICATION ========== */
 #form_add .row,
 #form_edit .row {
     display: flex;
@@ -483,7 +464,6 @@ select.form-control {
     background: #fff9ef !important;
 }
 
-/* ========== MESSAGES STYLISÉS ========== */
 #msg,
 #edit_msg {
     display: none !important;
@@ -548,7 +528,6 @@ select.form-control {
     }
 }
 
-/* ========== BOUTONS DE CONTRÔLE DANS LE TABLEAU ========== */
 .table tbody td a {
     display: inline-flex;
     align-items: center;
@@ -587,7 +566,14 @@ select.form-control {
     color: #1e5a7a;
 }
 
-/* ========== BARRE D'ACTIONS (EN TÊTE) ========== */
+.table tbody td a i.zmdi-settings {
+    color: #17a2b8 !important;
+    transition: all 0.2s ease;
+}
+.table tbody td a:hover i.zmdi-settings {
+    color: #0f6674 !important;
+}
+
 [style*="background-color: rgba(0, 0, 0, 0.1)"] {
     background: #eef3fc !important;
     border-radius: 60px;
@@ -599,7 +585,6 @@ select.form-control {
     justify-content: flex-start;
 }
 
-/* ========== MODALE PDF (PAIEMENT) ========== */
 .modal.fade#pdfModal .modal-dialog {
     max-width: 100%;
     width: 60%;
@@ -776,7 +761,6 @@ select.form-control {
     border-top: 1px solid #eef2f6;
 }
 
-/* ========== LAYOUT SPÉCIFIQUE POUR BLOC_2 ET BLOC_3 CÔTE À CÔTE ========== */
 #bloc_t {
     display: flex;
     flex-wrap: wrap;
@@ -806,7 +790,6 @@ select.form-control {
     }
 }
 
-/* ========== RESPONSIVE GLOBAL ========== */
 @media (max-width: 992px) {
     .content .container {
         padding: 0.5rem 1rem !important;
@@ -887,7 +870,6 @@ select.form-control {
         font-size: 0.75rem;
     }
 
-    /* Modale PDF responsive */
     .modal.fade#pdfModal .modal-dialog {
         width: 95%;
         margin: 1rem auto;
@@ -981,7 +963,6 @@ select.form-control {
     }
 }
 
-/* ===== NOUVEAU : HARMONISATION DE SELECT2 AVEC LE STYLE FORM-CONTROL ===== */
 .select2-container--bootstrap .select2-selection {
     height: 38px !important;
     border-radius: 14px !important;
@@ -1023,10 +1004,295 @@ select.form-control {
     color: #0a192f !important;
 }
 
-/* ===== NOUVEAU : LIMITATION DE HAUTEUR DU DROPDOWN SELECT2 ===== */
 .select2-container--bootstrap .select2-results__options {
     max-height: 200px !important;
     overflow-y: auto !important;
+}
+
+/* ============================================================
+   MODALE PARAMÈTRES FACTURE – STYLES COMPLETS
+   ============================================================ */
+.param-nav-tabs .nav-link {
+    border: none;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.82rem;
+    padding: 14px 16px;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    background: transparent;
+}
+.param-nav-tabs .nav-link i {
+    margin-right: 4px;
+}
+.param-nav-tabs .nav-link:hover {
+    color: #0a192f;
+    border-bottom-color: #cbd5e1;
+}
+.param-nav-tabs .nav-link.active {
+    color: #17a2b8;
+    border-bottom-color: #17a2b8;
+    background: transparent;
+}
+
+.param-section-title {
+    font-weight: 700;
+    color: #0a192f;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-left: 12px;
+    border-left: 4px solid #17a2b8;
+    margin-bottom: 14px;
+}
+
+.param-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.param-info-item {
+    background: white;
+    padding: 10px 14px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.param-info-label {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+.param-info-label i { color: #17a2b8; margin-right: 4px; }
+
+.param-info-value {
+    font-size: 0.88rem;
+    color: #0a192f;
+    font-weight: 700;
+}
+
+.param-finance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+.param-finance-card {
+    padding: 14px 16px;
+    border-radius: 14px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    transition: transform 0.2s;
+}
+.param-finance-card:hover { transform: translateY(-2px); }
+
+.param-finance-card.usd-card     { background: linear-gradient(135deg, #3B82F6, #2563eb); }
+.param-finance-card.paye-card    { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
+.param-finance-card.credit-card  { background: linear-gradient(135deg, #dc3545, #b02a37); }
+.param-finance-card.benefice-card{ background: linear-gradient(135deg, #198754, #146c43); }
+
+.param-statut-card {
+    padding: 16px 20px;
+    border-radius: 14px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    transition: transform 0.2s;
+}
+.param-statut-card:hover { transform: translateY(-2px); }
+.param-statut-card.paid    { background: linear-gradient(135deg, #198754, #146c43); }
+.param-statut-card.unpaid  { background: linear-gradient(135deg, #dc3545, #b02a37); }
+.param-statut-card.partiel { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.param-statut-card i {
+    font-size: 2rem;
+    opacity: 0.95;
+}
+.param-statut-card .param-statut-txt {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.param-statut-card .param-statut-title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    opacity: 0.9;
+    letter-spacing: 0.4px;
+}
+.param-statut-card .param-statut-value {
+    font-size: 1.3rem;
+    font-weight: 800;
+}
+.param-statut-card .param-statut-sub {
+    font-size: 0.78rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.param-action-box {
+    background: white;
+    padding: 14px 16px;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    height: 100%;
+}
+
+.param-action-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #0a192f;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+#paramFactureModal .modal-body::-webkit-scrollbar,
+#paramFactureModal .tab-content::-webkit-scrollbar {
+    width: 8px;
+}
+#paramFactureModal .modal-body::-webkit-scrollbar-thumb,
+#paramFactureModal .tab-content::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+#param_articles_table tbody tr:hover,
+#param_paiements_table tbody tr:hover {
+    background: #e6f0ff !important;
+}
+
+/* Inputs compacts dans le tableau articles */
+.param-inline-input {
+    width: 100% !important;
+    min-width: 90px;
+    height: 34px !important;
+    font-size: 0.8rem !important;
+    padding: 4px 8px !important;
+    border-radius: 8px !important;
+    text-align: right;
+    font-weight: 600;
+}
+.param-inline-input.frais-input {
+    border-color: #f59e0b !important;
+    background: #fffbeb !important;
+    color: #92400e;
+}
+.param-inline-input.reduction-input {
+    border-color: #dc2626 !important;
+    background: #fef2f2 !important;
+    color: #991b1b;
+}
+
+/* Style des montants double devise */
+.dual-currency b {
+    display: block;
+    font-size: 0.82rem;
+}
+.dual-currency small {
+    display: block;
+    font-size: 0.7rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* ============================================================
+   TOTAUX GÉNÉRAUX – STYLE CARTES (comme "Frais & Réductions")
+   ============================================================ */
+.param-totals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.param-total-item {
+    background: white;
+    padding: 12px 14px;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    border: 1px solid #eef2f6;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.param-total-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.param-total-label {
+    font-size: 0.65rem;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.param-total-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.param-total-value {
+    font-size: 0.92rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.param-total-sub {
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-top: 3px;
+    color: #64748b;
+    line-height: 1.2;
+}
+
+/* Couleurs par type de total */
+.param-total-item.total-qte    .param-total-value { color: #17a2b8; }
+.param-total-item.total-qte    .param-total-dot   { background: #17a2b8; }
+
+.param-total-item.total-pv     .param-total-value { color: #3B82F6; }
+.param-total-item.total-pv     .param-total-dot   { background: #3B82F6; }
+
+.param-total-item.total-gen    .param-total-value { color: #0a192f; }
+.param-total-item.total-gen    .param-total-dot   { background: #0a192f; }
+.param-total-item.total-gen    .param-total-sub   { color: #3B82F6; }
+
+.param-total-item.total-frais  .param-total-value { color: #f59e0b; }
+.param-total-item.total-frais  .param-total-dot   { background: #f59e0b; }
+.param-total-item.total-frais  .param-total-sub   { color: #d97706; }
+
+.param-total-item.total-red    .param-total-value { color: #dc2626; }
+.param-total-item.total-red    .param-total-dot   { background: #dc2626; }
+.param-total-item.total-red    .param-total-sub   { color: #b91c1c; }
+
+.param-total-item.total-benef  .param-total-value { color: #198754; }
+.param-total-item.total-benef  .param-total-dot   { background: #198754; }
+.param-total-item.total-benef  .param-total-sub   { color: #146c43; }
+
+@media (max-width: 768px) {
+    .param-finance-grid { grid-template-columns: repeat(2, 1fr); }
+    .param-info-grid    { grid-template-columns: 1fr; }
+    .param-nav-tabs .nav-link { padding: 10px 8px; font-size: 0.72rem; }
+    #paramFactureModal .modal-dialog { max-width: 100% !important; margin: 0.5rem; }
+    .param-statut-card { padding: 12px 14px; }
+    .param-statut-card i { font-size: 1.6rem; }
+    .param-statut-card .param-statut-value { font-size: 1.1rem; }
+    .param-totals-grid { grid-template-columns: repeat(2, 1fr); }
 }
     </style>
     <section class="content">
@@ -1077,7 +1343,6 @@ select.form-control {
                 </div>
 
                 <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
-                    <!-- TITRE AVEC BADGE INTÉGRÉ -->
                     <h4 style="color:rgba(0, 0, 0, 0.6);">
                         <i style="font-size: 40px;" class="zmdi zmdi-email-open text-info"></i> Liste
                         <span class="badge-invoice">
@@ -1085,7 +1350,6 @@ select.form-control {
                         </span>
                     </h4>
 
-                    <!-- SECTION FILTRES AVEC DATE RANGE PICKER -->
                     <div class="filters-container">
                         <div class="filter-group">
                             <label><i class="zmdi zmdi-label text-danger"></i> N° Facture</label>
@@ -1105,6 +1369,7 @@ select.form-control {
                                 <option value="all">Tous</option>
                                 <option value="paid">Payées</option>
                                 <option value="unpaid">Impayées</option>
+                                <option value="partiel">Partielles</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -1126,31 +1391,30 @@ select.form-control {
                         </div>
                     </div>
 
-                    <!-- Badges de totaux (sans le compteur de factures) -->
                     <div class="invoice-badges-container">
                         <span class="invoice-count-badge usd-badge">
-                            <i class="zmdi zmdi-money"></i> Total USD : <span id="totalUsd">0,00</span> $
+                            <i class="zmdi zmdi-money"></i> Total USD : <span id="totalUsd">0,00</span> USD
                         </span>
                         <span class="invoice-count-badge cdf-badge">
-                            <i class="zmdi zmdi-money-box"></i> Total CDF : <span id="totalCdf">0,00</span> Fc
+                            <i class="zmdi zmdi-money-box"></i> Total CDF : <span id="totalCdf">0,00</span> CDF
                         </span>
                         <span class="invoice-count-badge paye-usd">
-                            <i class="zmdi zmdi-money"></i> Payé USD : <span id="totalPaidUsd">0,00</span> $
+                            <i class="zmdi zmdi-money"></i> Payé USD : <span id="totalPaidUsd">0,00</span> USD
                         </span>
                         <span class="invoice-count-badge paye-cdf">
-                            <i class="zmdi zmdi-money-box"></i> Payé CDF : <span id="totalPaidCdf">0,00</span> Fc
+                            <i class="zmdi zmdi-money-box"></i> Payé CDF : <span id="totalPaidCdf">0,00</span> CDF
                         </span>
                         <span class="invoice-count-badge credit-usd">
-                            <i class="zmdi zmdi-time"></i> Crédit USD : <span id="totalCreditUsd">0,00</span> $
+                            <i class="zmdi zmdi-time"></i> Crédit USD : <span id="totalCreditUsd">0,00</span> USD
                         </span>
                         <span class="invoice-count-badge credit-cdf">
-                            <i class="zmdi zmdi-time"></i> Crédit CDF : <span id="totalCreditCdf">0,00</span> Fc
+                            <i class="zmdi zmdi-time"></i> Crédit CDF : <span id="totalCreditCdf">0,00</span> CDF
                         </span>
                         <span class="invoice-count-badge benefice-usd">
-                            <i class="zmdi zmdi-trending-up"></i> Bénéfice USD : <span id="totalBeneficeUsd">0,00</span> $
+                            <i class="zmdi zmdi-trending-up"></i> Bénéfice USD : <span id="totalBeneficeUsd">0,00</span> USD
                         </span>
                         <span class="invoice-count-badge benefice-cdf">
-                            <i class="zmdi zmdi-trending-up"></i> Bénéfice CDF : <span id="totalBeneficeCdf">0,00</span> Fc
+                            <i class="zmdi zmdi-trending-up"></i> Bénéfice CDF : <span id="totalBeneficeCdf">0,00</span> CDF
                         </span>
                     </div>
 
@@ -1177,18 +1441,31 @@ select.form-control {
                                         @foreach ($factures as $data)
                                             @php
                                                 $taux = $data->taux;
+                                                if ($taux <= 0) $taux = 1;
 
-                                                // Récupération des achats
                                                 $ent = Achats::where('facture_id', $data->id)->get();
 
-                                                // Calcul du total original (sans frais)
+                                                // ============================================================
+                                                // MONTANT DÛ RÉEL = Σ (total − reduction) par achat
+                                                // (réduction retranchée sur chaque achat, dans SA devise)
+                                                // Sert à déterminer si la facture est IMPAYÉE.
+                                                // ============================================================
                                                 $total_original = 0;
                                                 foreach ($ent as $e)
                                                 {
-                                                    $total_original += $e->total;
+                                                    $devise_achat_orig = $e->devise_achat ?? $data->devise;
+                                                    $reduction_orig = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
+                                                    $net_orig = $e->total - $reduction_orig;
+
+                                                    if ($devise_achat_orig == $data->devise) {
+                                                        $total_original += $net_orig;
+                                                    } elseif ($data->devise == 0) {
+                                                        $total_original += ($taux > 0) ? ($net_orig / $taux) : 0;
+                                                    } else {
+                                                        $total_original += $net_orig * $taux;
+                                                    }
                                                 }
 
-                                                // Récupération des paiements
                                                 $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
                                                 $montant_usd_paye = 0;
                                                 $montant_cdf_paye = 0;
@@ -1199,11 +1476,9 @@ select.form-control {
                                                         $montant_cdf_paye += $paiement->montant_recu * $taux;
                                                     } else {
                                                         $montant_cdf_paye += $paiement->montant_recu;
-                                                        $montant_usd_paye += $paiement->montant_recu / $taux;
+                                                        $montant_usd_paye += ($taux > 0) ? ($paiement->montant_recu / $taux) : 0;
                                                     }
                                                 }
-
-                                                // Conversion du total original en USD / CDF selon devise de la facture
                                                 if ($data->devise == 0)
                                                 {
                                                     $total_original_usd = $total_original;
@@ -1212,58 +1487,63 @@ select.form-control {
                                                 else
                                                 {
                                                     $total_original_cdf = $total_original;
-                                                    $total_original_usd = $total_original / $taux;
+                                                    $total_original_usd = ($taux > 0) ? ($total_original / $taux) : 0;
                                                 }
-
-                                                // Déterminer si la facture est impayée (sans tolérance)
                                                 $est_impayee = ($montant_usd_paye < $total_original_usd) || ($montant_cdf_paye < $total_original_cdf);
-
-                                                // 🔥 DÉLAI D'1 HEURE (3600 secondes) basé sur la date/heure actuelle
                                                 $date_creation_facture = strtotime($data->created_at);
-                                                $delai_1h = 3600; // 1 heure en secondes
+                                                $delai_1h = 3600;
                                                 $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
 
-                                                // Parcours final des achats pour construire le total (incluant les frais)
+                                                // ============================================================
+                                                // CALCUL DU TOTAL FINAL (avec frais crédit)
+                                                // Net achat = (total − réduction + frais_credit)
+                                                // Calculé dans la devise de CHAQUE achat, puis converti
+                                                // vers la devise de la facture.
+                                                // ============================================================
                                                 $total = 0;
                                                 $achat_total_usd = 0;
                                                 $achat_total_cdf = 0;
-
                                                 foreach ($ent as $e)
                                                 {
-                                                    // Montant de base
-                                                    $total += $e->total;
+                                                    $devise_achat = $e->devise_achat ?? $data->devise;
+                                                    $reduction_achat = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
 
-                                                    // Gestion des frais de crédit (5%)
+                                                    $frais_credit_achat = 0;
                                                     if ($e->frais_credit != 0 && $e->frais_credit !== null) {
-                                                        // Déjà enregistré, on l'ajoute
-                                                        $total += $e->frais_credit;
-                                                    } else
-                                                    {
-                                                        // Non enregistré : on vérifie les conditions
+                                                        $frais_credit_achat = $e->frais_credit;
+                                                    } else {
                                                         if ($est_impayee && $delai_depasse) {
-                                                            $frais = $e->total * 0.05;
-                                                            $total += $frais;
-                                                            $e->frais_credit = $frais;
+                                                            $frais_credit_achat = $e->total * 0.05;
+                                                            $e->frais_credit = $frais_credit_achat;
                                                             $e->save();
                                                         }
                                                     }
 
-                                                    // Calcul du coût d'achat pour le bénéfice
+                                                    // Net de CET achat dans SA devise
+                                                    $net_achat_devise = $e->total - $reduction_achat + $frais_credit_achat;
+
+                                                    // Conversion vers la devise de la facture
+                                                    if ($devise_achat == $data->devise) {
+                                                        $total += $net_achat_devise;
+                                                    } elseif ($data->devise == 0) {
+                                                        $total += ($taux > 0) ? ($net_achat_devise / $taux) : 0;
+                                                    } else {
+                                                        $total += $net_achat_devise * $taux;
+                                                    }
+
+                                                    // Bénéfice : prix d'achat converti par devise
                                                     $prix_achat = $e->prix_achat ?? 0;
                                                     $quantite = $e->quantite ?? 1;
                                                     $prix_achat_total = $prix_achat * $quantite;
-                                                    $devise_achat = $e->devise_achat ?? $data->devise;
-
                                                     if ($devise_achat == 0) {
                                                         $achat_total_usd += $prix_achat_total;
                                                         $achat_total_cdf += $prix_achat_total * $taux;
                                                     } else {
                                                         $achat_total_cdf += $prix_achat_total;
-                                                        $achat_total_usd += $prix_achat_total / $taux;
+                                                        $achat_total_usd += ($taux > 0) ? ($prix_achat_total / $taux) : 0;
                                                     }
                                                 }
 
-                                                // Conversion et affichage
                                                 if ($data->devise == 0)
                                                 {
                                                     $montant_usd = $total;
@@ -1271,15 +1551,13 @@ select.form-control {
                                                     $montant_affichage = number_format($total, 2, ',', ' ') . ' USD (' . number_format($montant_cdf, 2, ',', ' ') . ' CDF)';
                                                 } else {
                                                     $montant_cdf = $total;
-                                                    $montant_usd = $total / $taux;
+                                                    $montant_usd = ($taux > 0) ? ($total / $taux) : 0;
                                                     $montant_affichage = number_format($total, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
                                                 }
-
-                                                // Bénéfices
                                                 $benefice_usd = $montant_usd - $achat_total_usd;
                                                 $benefice_cdf = $montant_cdf - $achat_total_cdf;
 
-                                                // Crédit restant
+                                                // CRÉDIT = total final (avec réduction + frais) − paiements
                                                 $reste_usd = $montant_usd - $montant_usd_paye;
                                                 $reste_cdf = $montant_cdf - $montant_cdf_paye;
 
@@ -1287,8 +1565,96 @@ select.form-control {
                                                 $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
                                                 $statut_text = $reste_usd > 0 ? 'Impayé' : 'Payé';
                                                 $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
+
+                                                if ($reste_usd <= 0) {
+                                                    $statut_code = 'paid';
+                                                } elseif ($montant_usd_paye > 0) {
+                                                    $statut_code = 'partiel';
+                                                } else {
+                                                    $statut_code = 'unpaid';
+                                                }
+
+                                                $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
+
+                                                $articles_json = [];
+                                                foreach ($ent as $e) {
+                                                    $art = null;
+                                                    foreach (['article_id', 'entre_id', 'entree_id', 'produit_id', 'id_article'] as $field) {
+                                                        if (isset($e->$field) && $e->$field) {
+                                                            $art = $articles->firstWhere('id', $e->$field);
+                                                            if ($art) break;
+                                                        }
+                                                    }
+
+                                                    $nom_article_aff = $art->nom_article
+                                                                    ?? $e->nom_article
+                                                                    ?? $e->nom
+                                                                    ?? $art->name
+                                                                    ?? ('Article #' . $e->id);
+
+                                                    $pa = $e->prix_achat ?? 0;
+                                                    $qt = $e->quantite ?? 1;
+                                                    $prix_unit = $e->prix_vente
+                                                              ?? ($art->prix_detail ?? null)
+                                                              ?? ($e->total / max($qt, 1));
+
+                                                    $devise_achat_json = $e->devise_achat ?? $data->devise;
+                                                    $reduction_ligne   = $e->reduction ?? 0;
+
+                                                    $articles_json[] = [
+                                                        'id'               => $e->id,
+                                                        'nom'              => $nom_article_aff,
+                                                        'quantite'         => $qt,
+                                                        'prix_unitaire'    => $prix_unit,
+                                                        'prix_achat'       => $pa,
+                                                        'prix_achat_total' => $pa * $qt,
+                                                        'total'            => $e->total,
+                                                        'total_net'        => $e->total - $reduction_ligne,
+                                                        'frais_credit'     => $e->frais_credit ?? 0,
+                                                        'reduction'        => $reduction_ligne,
+                                                        'devise_achat'     => $devise_achat_json,
+                                                    ];
+                                                }
+
+                                                $paiements_json = [];
+                                                foreach ($paiements as $p) {
+                                                    $isUSD = ($p->devise_recu == 0);
+                                                    $paiements_json[] = [
+                                                        'id'               => $p->id,
+                                                        'date'             => date('d/m/Y à H:i', strtotime($p->created_at)),
+                                                        'payer'            => $p->payer,
+                                                        'montant_recu'     => $p->montant_recu,
+                                                        'devise_label'     => $isUSD ? 'USD' : 'CDF',
+                                                        'mode_de_paiement' => $p->mode_de_paiement,
+                                                        'mode_label'       => $modeLabels[$p->mode_de_paiement] ?? 'N/A',
+                                                        'taux'             => $p->taux,
+                                                        'reste'            => $p->reste,
+                                                        'montant_effectif' => $p->montant_effectif,
+                                                    ];
+                                                }
+
+                                                $frais_credit_total = 0;
+                                                foreach ($ent as $e) { $frais_credit_total += ($e->frais_credit ?? 0); }
+
+                                                $statut_html = $reste_usd > 0
+                                                    ? '<span class="text-danger"><i class="zmdi zmdi-close-circle"></i> Impayé</span>'
+                                                    : '<span class="text-success"><i class="zmdi zmdi-check-circle"></i> Payé</span>';
+
+                                                $mode_paiement_label = $modeLabels[$data->mode_de_paiement] ?? 'N/A';
                                             @endphp
                                             <tr id="row_{{ $data->id }}"
+                                                data-facture-id="{{ $data->id }}"
+                                                data-numero="{{ $data->numero }}"
+                                                data-client="{{ $client_name }}"
+                                                data-client-id="{{ $data->client_id }}"
+                                                data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}"
+                                                data-table="{{ $data->table_id == 0 ? 'Aucune' : (Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A') }}"
+                                                data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
+                                                data-devise="{{ $data->devise }}"
+                                                data-devise-label="{{ $data->devise == 0 ? 'USD' : 'CDF' }}"
+                                                data-taux="{{ $taux }}"
+                                                data-mode-paiement="{{ $mode_paiement_label }}"
+                                                data-statut-html="{{ $statut_html }}"
                                                 data-montant-usd="{{ $montant_usd }}"
                                                 data-montant-cdf="{{ $montant_cdf }}"
                                                 data-paye-usd="{{ $montant_usd_paye }}"
@@ -1296,7 +1662,11 @@ select.form-control {
                                                 data-credit-usd="{{ $reste_usd }}"
                                                 data-credit-cdf="{{ $reste_cdf }}"
                                                 data-benefice-usd="{{ $benefice_usd }}"
-                                                data-benefice-cdf="{{ $benefice_cdf }}">
+                                                data-benefice-cdf="{{ $benefice_cdf }}"
+                                                data-frais-credit-total="{{ $frais_credit_total }}"
+                                                data-pdf-url="{{ $data->lien ?? '' }}"
+                                                data-articles='@json($articles_json)'
+                                                data-paiements='@json($paiements_json)'>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell" data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
                                                     {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
@@ -1337,13 +1707,11 @@ select.form-control {
                                                         echo explode('-', $date_1[0])[2] . '/' . explode('-', $date_1[0])[1] . '/' . explode('-', $date_1[0])[0] . ' à ' . $date_1[1];
                                                     ?>
                                                 </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="statut-cell" data-statut="{{ $reste_usd > 0 ? 'unpaid' : 'paid' }}">
-                                                    @if ($reste_usd > 0)
-                                                        @if ($montant_usd_paye > 0)
-                                                            <i class="zmdi zmdi-time text-warning"></i> <span class="text-warning">Partiel</span>
-                                                        @else
-                                                            <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">Impayé</span>
-                                                        @endif
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="statut-cell" data-statut="{{ $statut_code }}">
+                                                    @if ($statut_code == 'partiel')
+                                                        <i class="zmdi zmdi-time text-warning"></i> <span class="text-warning">Partiel</span>
+                                                    @elseif ($statut_code == 'unpaid')
+                                                        <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">Impayé</span>
                                                     @else
                                                         @if ($data->mode_de_paiement == 1)
                                                             <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">CASH</span>
@@ -1386,7 +1754,15 @@ select.form-control {
                                                             <a id="detail_r{{ $i }}" href="#"><i class="zmdi zmdi-eye text-success"></i></a> &nbsp;
                                                         @endif
                                                     <?php } ?>
-                                                    {{-- Icône de suppression enrichie en données --}}
+
+                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
+                                                        <a href="#" class="param-facture-btn"
+                                                           data-id="{{ $data->id }}"
+                                                           title="Paramètres de la facture">
+                                                            <i class="zmdi zmdi-settings text-info"></i>
+                                                        </a>
+                                                    <?php } ?>
+
                                                     <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
                                                         <a href="#" class="delete-facture-btn"
                                                            data-id="{{ $data->id }}"
@@ -1467,9 +1843,7 @@ select.form-control {
                     </div>
                 </div>
 
-                <!-- LIGNE POUR BLOC_2 ET BLOC_3 CÔTE À CÔTE -->
                 <div id="bloc_t" class="row" style="width: 100%; margin: 0;">
-                    <!-- Bloc 2 à gauche -->
                     <div id="bloc_2" style="margin-top: 12px;display: none;" class="col-lg-5">
                         <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-plus-circle text-info"></i>
                             Ajouter un article</h4>
@@ -1494,7 +1868,6 @@ select.form-control {
                                             <option selected value="">Selectionnez un article</option>
                                             @foreach ($articles as $data)
                                                 @php
-                                                    // --- AJOUT : construction de l'affichage des prix ---
                                                     $devise = $data->devise ?? 0;
                                                     $prix_detail = $data->prix_detail ?? 0;
                                                     $prix_gros = $data->prix_gros ?? 0;
@@ -1506,7 +1879,6 @@ select.form-control {
                                                 @endphp
 
                                                 @if (($data->activite_id != 0) && ($data->stock > $data->seuil_minimum))
-                                                    {{-- Cas OK : activité définie et stock suffisant --}}
                                                     <option value="{{ $data->id }}">
                                                         🟢 {{ $data->nom_article }}
                                                         {{ (Mesures::where('id', $data->mesure_id)->first()['nom'] ?? 'N/A') }}
@@ -1587,8 +1959,8 @@ select.form-control {
                                             data-placeholder="Selectionnez une devise">
                                             <option selected class="form-control" value="">Selectionnez une devise
                                             </option>
-                                            <option class="form-control" value="0"> $</option>
-                                            <option class="form-control" value="1"> Fc</option>
+                                            <option class="form-control" value="0"> USD</option>
+                                            <option class="form-control" value="1"> CDF</option>
                                         </select>
                                     </div>
                                 </div>
@@ -1615,7 +1987,6 @@ select.form-control {
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
                                                 class="zmdi zmdi-accounts"></i> Clients </span></label>
-                                        <!-- ===== SELECT2 AVEC RECHERCHE ET THÈME BOOTSTRAP ===== -->
                                         <select id="client_id" name="client_id" class="form-control select2"
                                                 data-placeholder="Rechercher un client..." style="width: 100%;"
                                                 data-theme="bootstrap">
@@ -1685,7 +2056,6 @@ select.form-control {
                         <br>
                     </div>
 
-                    <!-- Bloc 3 à droite -->
                     <div id="bloc_3" style="margin-top: 12px;display: none;" class="col-lg-7">
                     </div>
                 </div>
@@ -1848,8 +2218,243 @@ select.form-control {
             </div>
         </div>
     </div>
+
+    {{-- MODALE PARAMÈTRES FACTURE --}}
+    <div class="modal fade" id="paramFactureModal" tabindex="-1" role="dialog" aria-labelledby="paramFactureLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1200px;">
+            <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden;">
+
+                <div class="modal-header" style="background: linear-gradient(135deg, #0a192f, #1e3a5f); color: white; border-bottom: none; padding: 1.1rem 1.5rem;">
+                    <h5 class="modal-title" id="paramFactureLabel" style="font-weight: 700;">
+                        <i class="zmdi zmdi-settings zmdi-hc-spin"></i>
+                        Paramètres de la facture : <span id="param_numero" class="text-warning">-</span>
+                    </h5>
+                    <div style="margin-left: auto; display: flex; gap: 8px; align-items: center;">
+                        <button type="button" id="param_refresh_btn"
+                                style="background: rgba(255,255,255,0.15); border: none; color: white; width: 34px; height: 34px; border-radius: 50%; cursor: pointer;"
+                                title="Actualiser">
+                            <i class="zmdi zmdi-refresh"></i>
+                        </button>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.9; margin: 0; padding: 0 0 0 8px;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="modal-body" style="background: #f8fafc; padding: 0; max-height: 78vh; overflow: hidden;">
+
+                    <ul class="nav nav-tabs param-nav-tabs" id="paramTabs" role="tablist" style="border-bottom: 1px solid #e2e8f0; background: white; padding: 0 1.5rem;">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="tab-info-tab" data-toggle="tab" href="#tab-info" role="tab">
+                                <i class="zmdi zmdi-info"></i> Informations
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="tab-articles-tab" data-toggle="tab" href="#tab-articles" role="tab">
+                                <i class="zmdi zmdi-shopping-cart"></i> Articles
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="tab-paiements-tab" data-toggle="tab" href="#tab-paiements" role="tab">
+                                <i class="zmdi zmdi-money"></i> Paiements
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" style="padding: 1.5rem; max-height: calc(78vh - 60px); overflow-y: auto;">
+
+                        <div class="tab-pane fade show active" id="tab-info" role="tabpanel">
+
+                            <h6 class="param-section-title">
+                                <i class="zmdi zmdi-check-circle text-info"></i> Statut de paiement
+                            </h6>
+                            <div id="param_statut_card_wrapper" style="margin-bottom: 22px;">
+                                <div class="param-statut-card paid" id="param_statut_card">
+                                    <i class="zmdi zmdi-check-circle" id="param_statut_icon"></i>
+                                    <div class="param-statut-txt">
+                                        <span class="param-statut-title">Statut actuel de la facture</span>
+                                        <span class="param-statut-value" id="param_statut_label">-</span>
+                                        <span class="param-statut-sub" id="param_statut_sub">-</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6 class="param-section-title">
+                                <i class="zmdi zmdi-info text-info"></i> Informations générales
+                            </h6>
+                            <div class="param-info-grid">
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-account"></i> Client / Libellé</span>
+                                    <span class="param-info-value" id="param_client">-</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-account-circle"></i> Utilisateur</span>
+                                    <span class="param-info-value" id="param_user">-</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-calendar"></i> Date</span>
+                                    <span class="param-info-value" id="param_date">-</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-table"></i> Table</span>
+                                    <span class="param-info-value" id="param_table">-</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-money"></i> Devise</span>
+                                    <span class="param-info-value" id="param_devise">-</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-chart"></i> Taux</span>
+                                    <span class="param-info-value" id="param_taux">-</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-money-box"></i> Mode paiement</span>
+                                    <span class="param-info-value" id="param_mode">-</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-account-box"></i> N° Client ID</span>
+                                    <span class="param-info-value" id="param_client_id">-</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-edit"></i> ID Facture</span>
+                                    <span class="param-info-value" id="param_facture_id">-</span>
+                                </div>
+                            </div>
+
+                            <h6 class="param-section-title" style="margin-top: 22px;">
+                                <i class="zmdi zmdi-balance-wallet text-info"></i> Résumé financier
+                            </h6>
+                            <div class="param-finance-grid">
+                                <div class="param-finance-card usd-card">
+                                    <div class="param-finance-label"><i class="zmdi zmdi-money"></i> Montant total</div>
+                                    <div class="param-finance-value" id="param_montant_usd">0.00 USD</div>
+                                    <div class="param-finance-sub" id="param_montant_cdf">0.00 CDF</div>
+                                </div>
+                                <div class="param-finance-card paye-card">
+                                    <div class="param-finance-label"><i class="zmdi zmdi-check"></i> Déjà payé</div>
+                                    <div class="param-finance-value" id="param_paye_usd">0.00 USD</div>
+                                    <div class="param-finance-sub" id="param_paye_cdf">0.00 CDF</div>
+                                </div>
+                                <div class="param-finance-card credit-card">
+                                    <div class="param-finance-label"><i class="zmdi zmdi-time"></i> Crédit restant</div>
+                                    <div class="param-finance-value" id="param_credit_usd">0.00 USD</div>
+                                    <div class="param-finance-sub" id="param_credit_cdf">0.00 CDF</div>
+                                </div>
+                                <div class="param-finance-card benefice-card">
+                                    <div class="param-finance-label"><i class="zmdi zmdi-trending-up"></i> Bénéfice</div>
+                                    <div class="param-finance-value" id="param_benefice_usd">0.00 USD</div>
+                                    <div class="param-finance-sub" id="param_benefice_cdf">0.00 CDF</div>
+                                </div>
+                            </div>
+
+                            <h6 class="param-section-title" style="margin-top: 22px;">
+                                <i class="zmdi zmdi-alert-circle text-info"></i> Frais & Réductions appliqués
+                            </h6>
+                            <div class="param-info-grid">
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-alert-circle"></i> Frais de crédit total</span>
+                                    <span class="param-info-value text-warning" id="param_frais_credit_show">0.00</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-minus-circle"></i> Réduction totale</span>
+                                    <span class="param-info-value text-danger" id="param_reduction_show">0.00</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-shopping-basket"></i> Montant brut</span>
+                                    <span class="param-info-value" id="param_brut_show">0.00</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-receipt"></i> Nombre d'articles</span>
+                                    <span class="param-info-value" id="param_nb_articles">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ONGLET ARTICLES – TOTAUX EN CARTES --}}
+                        <div class="tab-pane fade" id="tab-articles" role="tabpanel">
+                            <h6 class="param-section-title">
+                                <i class="zmdi zmdi-shopping-cart text-info"></i> Détails des articles
+                                <span style="font-size:0.72rem; text-transform:none; font-weight:500; color:#64748b; margin-left:8px;">
+                                    (Montants en USD et CDF — Frais crédit et Réduction sont modifiables)
+                                </span>
+                            </h6>
+                            <div class="table-responsive" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                                <table class="table table-sm mb-0" id="param_articles_table">
+                                    <thead style="background: #E7F5FE;">
+                                        <tr>
+                                            <th style="font-size: 0.72rem;">#</th>
+                                            <th style="font-size: 0.72rem;">Article</th>
+                                            <th style="font-size: 0.72rem;">Qté</th>
+                                            <th style="font-size: 0.72rem;">Prix vente</th>
+                                            <th style="font-size: 0.72rem;">Total</th>
+                                            <th style="font-size: 0.72rem;">Frais crédit</th>
+                                            <th style="font-size: 0.72rem;">Réduction</th>
+                                            <th style="font-size: 0.72rem;">Bénéfice</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="param_articles_body">
+                                        <tr><td colspan="8" class="text-center text-muted">Chargement...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {{-- ⭐ TOTAUX GÉNÉRAUX EN CARTES --}}
+                            <h6 class="param-section-title" style="margin-top: 22px;">
+                                <i class="zmdi zmdi-chart text-info"></i> Totaux généraux
+                            </h6>
+                            <div class="param-totals-grid" id="param_totals_grid">
+                                {{-- Les cartes seront injectées via JS --}}
+                            </div>
+
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button type="button" class="btn btn-info btn-sm" id="param_btn_save_lines"
+                                        style="border-radius: 40px; padding: 10px 26px;">
+                                    <i class="zmdi zmdi-save"></i> Enregistrer les modifications
+                                </button>
+                                <br><br>
+                                <span id="param_lines_msg" style="font-weight: 600; font-size: 0.85rem;"></span>
+                            </div>
+                        </div>
+
+                        {{-- ONGLET PAIEMENTS --}}
+                        <div class="tab-pane fade" id="tab-paiements" role="tabpanel">
+                            <h6 class="param-section-title">
+                                <i class="zmdi zmdi-money text-info"></i> Détail des tranches de paiement
+                            </h6>
+                            <div class="table-responsive" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                                <table class="table table-sm mb-0" id="param_paiements_table">
+                                    <thead style="background: #E7F5FE;">
+                                        <tr>
+                                            <th style="font-size: 0.72rem;">#</th>
+                                            <th style="font-size: 0.72rem;">Date</th>
+                                            <th style="font-size: 0.72rem;">Mode</th>
+                                            <th style="font-size: 0.72rem;">Devise</th>
+                                            <th style="font-size: 0.72rem;">Reçu</th>
+                                            <th style="font-size: 0.72rem;">Reste après</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="param_paiements_body">
+                                        <tr><td colspan="6" class="text-center text-muted">Chargement...</td></tr>
+                                    </tbody>
+                                    <tfoot id="param_paiements_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="background: white; border-top: 1px solid #eef2f6; padding: 1rem 1.5rem;">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                            style="border-radius: 40px; padding: 8px 22px;">
+                        <i class="zmdi zmdi-close"></i> Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @section('js-code')
-    {{-- Ajout des dépendances pour le Date Range Picker (comme dans rapport) --}}
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" />
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
@@ -1917,14 +2522,11 @@ select.form-control {
             $("#bloc_3").hide();
         });
 
-        // ========== BOUTON SAVE AVEC GESTION DU CHARGEMENT ==========
         $("#save").click(function(e) {
             e.preventDefault();
             var btn = $(this);
-            // Désactiver et afficher le spinner
             btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...');
 
-            // Fonction pour réinitialiser le bouton en cas d'erreur ou de validation échouée
             function resetButton() {
                 btn.prop('disabled', false).html('Enregister <i class="zmdi zmdi-save"></i>');
             }
@@ -1939,8 +2541,8 @@ select.form-control {
             var client = $("#client_id").val();
             var type_vente_id = $("#type_vente_id").val();
             var data = $("#form_add").serialize();
-
-            // Validations
+            var page = "<?= $ressource_id_1 ?>";
+            var formData = $("#form_add").serialize() + "&page=" + encodeURIComponent(page);
             if (numero_facture.trim().length == 0) {
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le numero d\'entré');
                 setTimeout(() => { $('#msg').html(""); }, 9000);
@@ -1978,7 +2580,6 @@ select.form-control {
                 return;
             }
 
-            // Appels AJAX pour récupérer prix et vérifier seuil
             $.get("{{ url('/get_prix_article') }}", {
                 article_id: $("#type_sortie").val(),
                 type_vente_id: $("#type_vente_id").val(),
@@ -2011,13 +2612,11 @@ select.form-control {
                             resetButton();
                             return;
                         } else {
-                            // Envoi de l'ajout
                             $.ajax({
                                 type: "POST",
                                 url: "/add_achat_article",
-                                data: data,
+                                data: formData,
                                 success: function(response) {
-                                    // Succès : réinitialiser le bouton
                                     resetButton();
                                     $("#quantite").val("");
                                     Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
@@ -2027,7 +2626,6 @@ select.form-control {
                                         $("#bloc_3").html(response);
                                     });
                                     setTimeout(() => { $('#msg').html(""); }, 9000);
-                                    // Sauvegarder et réappliquer les filtres
                                     saveFiltersToStorage();
                                     setTimeout(function() {
                                         loadFiltersFromStorage();
@@ -2125,7 +2723,6 @@ select.form-control {
             });
         });
 
-        // ========== FONCTIONS DE FILTRAGE AVEC DATE RANGE PICKER ==========
         let filterTimeout;
 
         function saveFiltersToStorage() {
@@ -2309,9 +2906,301 @@ select.form-control {
             }, 300);
         }
 
-        // ========== INITIALISATION ==========
+        // ============================================================
+        // HELPERS POUR LA MODALE PARAMÈTRES
+        // ============================================================
+        function formatMoney(val) {
+            if (val === null || val === undefined) return '0.00';
+            var n = parseFloat(val) || 0;
+            return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+
+        function safeParseJSON(val, fallback) {
+            fallback = fallback || [];
+            if (!val) return fallback;
+            if (typeof val === 'object') return val;
+            if (typeof val === 'string') {
+                var trimmed = val.trim();
+                if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined') return fallback;
+                try {
+                    var parsed = JSON.parse(trimmed);
+                    return parsed || fallback;
+                } catch (e) {
+                    console.error('❌ Erreur parsing JSON:', e, 'Valeur:', val);
+                    return fallback;
+                }
+            }
+            return fallback;
+        }
+
+        var currentParamFactureId = null;
+        var currentParamRow = null;
+
+        function openParamModalFromRow($row) {
+            currentParamRow = $row;
+            currentParamFactureId = $row.data('facture-id');
+
+            // === INFOS GÉNÉRALES ===
+            $('#param_numero').text($row.data('numero'));
+            $('#param_client').text($row.data('client'));
+            $('#param_user').text($row.data('user'));
+            $('#param_date').text($row.data('date'));
+            $('#param_table').text($row.data('table'));
+            $('#param_devise').text($row.data('devise-label'));
+            $('#param_taux').text($row.data('taux'));
+            $('#param_mode').text($row.data('mode-paiement'));
+            $('#param_client_id').text($row.data('client-id') || '-');
+            $('#param_facture_id').text($row.data('facture-id'));
+
+            // === STATUT DÉTAILLÉ ===
+            var deviseLabel = $row.data('devise-label');
+            var montantUSD = parseFloat($row.data('montant-usd')) || 0;
+            var montantCDF = parseFloat($row.data('montant-cdf')) || 0;
+            var payeUSD = parseFloat($row.data('paye-usd')) || 0;
+            var payeCDF = parseFloat($row.data('paye-cdf')) || 0;
+            var creditUSD = parseFloat($row.data('credit-usd')) || 0;
+            var creditCDF = parseFloat($row.data('credit-cdf')) || 0;
+
+            var statutKey, statutLabel, statutIcon, statutSub;
+            if (creditUSD <= 0) {
+                statutKey    = 'paid';
+                statutLabel  = 'PAYÉE';
+                statutIcon   = 'zmdi-check-circle';
+                statutSub    = 'Facture entièrement réglée — ' + formatMoney(montantUSD) + ' USD / ' + formatMoney(montantCDF) + ' CDF';
+            } else if (payeUSD > 0) {
+                statutKey    = 'partiel';
+                statutLabel  = 'PARTIELLE';
+                statutIcon   = 'zmdi-time';
+                statutSub    = 'Payé : ' + formatMoney(payeUSD) + ' USD / ' + formatMoney(payeCDF) + ' CDF  •  Reste : ' + formatMoney(creditUSD) + ' USD / ' + formatMoney(creditCDF) + ' CDF';
+            } else {
+                statutKey    = 'unpaid';
+                statutLabel  = 'IMPAYÉE';
+                statutIcon   = 'zmdi-close-circle';
+                statutSub    = 'Aucun paiement enregistré — Reste dû : ' + formatMoney(creditUSD) + ' USD / ' + formatMoney(creditCDF) + ' CDF';
+            }
+
+            $('#param_statut_card').removeClass('paid unpaid partiel').addClass(statutKey);
+            $('#param_statut_icon').attr('class', 'zmdi ' + statutIcon);
+            $('#param_statut_label').text(statutLabel);
+            $('#param_statut_sub').text(statutSub);
+
+            // === RÉSUMÉ FINANCIER ===
+            $('#param_montant_usd').text(formatMoney(montantUSD) + ' USD');
+            $('#param_montant_cdf').text(formatMoney(montantCDF) + ' CDF');
+            $('#param_paye_usd').text(formatMoney(payeUSD) + ' USD');
+            $('#param_paye_cdf').text(formatMoney(payeCDF) + ' CDF');
+            $('#param_credit_usd').text(formatMoney(creditUSD) + ' USD');
+            $('#param_credit_cdf').text(formatMoney(creditCDF) + ' CDF');
+            $('#param_benefice_usd').text(formatMoney($row.data('benefice-usd')) + ' USD');
+            $('#param_benefice_cdf').text(formatMoney($row.data('benefice-cdf')) + ' CDF');
+
+            // === ARTICLES – DOUBLE DEVISE AVEC DEVISE PROPRE À CHAQUE ACHAT ===
+            var articles = safeParseJSON($row.attr('data-articles'));
+            console.log('📦 Articles récupérés:', articles.length, articles);
+
+            var tauxFacture = parseFloat($row.data('taux')) || 0;
+            if (tauxFacture <= 0) tauxFacture = 1;
+
+            var deviseFacture = $row.data('devise-label');
+            var isFactureUSD = (deviseFacture === 'USD');
+
+            function formatBoth(val, deviseAchat) {
+                var v = parseFloat(val) || 0;
+                if (deviseAchat === undefined) deviseAchat = isFactureUSD ? 0 : 1;
+
+                var usd, cdf;
+                if (deviseAchat == 0) {
+                    usd = v;
+                    cdf = v * tauxFacture;
+                } else {
+                    cdf = v;
+                    usd = (tauxFacture > 0) ? (v / tauxFacture) : 0;
+                }
+                return '<div class="dual-currency"><b>' + formatMoney(usd) + ' USD</b><small>' + formatMoney(cdf) + ' CDF</small></div>';
+            }
+
+            function formatBothShort(val, deviseAchat) {
+                var v = parseFloat(val) || 0;
+                if (deviseAchat === undefined) deviseAchat = isFactureUSD ? 0 : 1;
+                if (deviseAchat == 0) {
+                    return formatMoney(v) + ' USD (' + formatMoney(v * tauxFacture) + ' CDF)';
+                } else {
+                    var usd = (tauxFacture > 0) ? (v / tauxFacture) : 0;
+                    return formatMoney(v) + ' CDF (' + formatMoney(usd) + ' USD)';
+                }
+            }
+
+            function splitBoth(val, deviseAchat) {
+                var v = parseFloat(val) || 0;
+                if (deviseAchat === undefined) deviseAchat = isFactureUSD ? 0 : 1;
+                if (deviseAchat == 0) {
+                    return { usd: v, cdf: v * tauxFacture };
+                } else {
+                    return { usd: (tauxFacture > 0) ? (v / tauxFacture) : 0, cdf: v };
+                }
+            }
+
+            var rowsHtml = '';
+            var totalQte = 0;
+            var totalPrixVente = 0;
+            var totalGeneral = 0, totalAchat = 0, totalBenef = 0, totalFrais = 0, totalReduction = 0;
+
+            if (articles.length > 0) {
+                articles.forEach(function(a, idx) {
+                    var deviseAchat = (a.devise_achat !== undefined && a.devise_achat !== null)
+                                        ? parseInt(a.devise_achat)
+                                        : (isFactureUSD ? 0 : 1);
+
+                    // Bénéfice : (total − réduction) − prix_achat_total  (chaque valeur dans la devise de l'achat)
+                    var totalBrutAchat = parseFloat(a.total) || 0;
+                    var reductionAchat = parseFloat(a.reduction) || 0;
+                    var totalNetAchat = totalBrutAchat - reductionAchat;
+                    var benef = totalNetAchat - (parseFloat(a.prix_achat_total) || 0);
+
+                    var sPV    = splitBoth(a.prix_unitaire, deviseAchat);
+                    var sGen   = splitBoth(a.total, deviseAchat);
+                    var sFra   = splitBoth(a.frais_credit, deviseAchat);
+                    var sRed   = splitBoth(a.reduction, deviseAchat);
+                    var sBen   = splitBoth(benef, deviseAchat);
+
+                    totalQte       += parseFloat(a.quantite) || 0;
+                    totalPrixVente += sPV.usd;
+                    totalGeneral   += sGen.usd;
+                    totalFrais     += sFra.usd;
+                    totalReduction += sRed.usd;
+                    totalBenef     += sBen.usd;
+
+                    var fraisVal = parseFloat(a.frais_credit) || 0;
+                    var redVal   = reductionAchat;
+
+                    rowsHtml += '<tr data-achat-id="' + a.id + '" data-devise-achat="' + deviseAchat + '">';
+                    rowsHtml += '<td>' + (idx + 1) + '</td>';
+                    rowsHtml += '<td><b>' + a.nom + '</b> <small class="text-muted">(' + (deviseAchat == 0 ? 'USD' : 'CDF') + ')</small></td>';
+                    rowsHtml += '<td>' + a.quantite + '</td>';
+                    rowsHtml += '<td>' + formatBoth(a.prix_unitaire, deviseAchat) + '</td>';
+                    rowsHtml += '<td>' + formatBoth(a.total, deviseAchat) + '</td>';
+                    rowsHtml += '<td><input type="number" step="0.01" min="0" class="form-control param-inline-input frais-input" value="' + fraisVal.toFixed(2) + '"></td>';
+                    rowsHtml += '<td><input type="number" step="0.01" min="0" class="form-control param-inline-input reduction-input" value="' + redVal.toFixed(2) + '"></td>';
+                    rowsHtml += '<td class="' + (benef >= 0 ? 'text-success' : 'text-danger') + '">' + formatBoth(benef, deviseAchat) + '</td>';
+                    rowsHtml += '</tr>';
+                });
+
+                function buildCard(cssClass, icon, label, value, sub) {
+                    var html = '<div class="param-total-item ' + cssClass + '">';
+                    html += '<div class="param-total-label">';
+                    html += '<span class="param-total-dot"></span>';
+                    html += '<i class="zmdi ' + icon + '"></i> ' + label;
+                    html += '</div>';
+                    html += '<div class="param-total-value">' + value + '</div>';
+                    if (sub) {
+                        html += '<div class="param-total-sub">' + sub + '</div>';
+                    }
+                    html += '</div>';
+                    return html;
+                }
+
+                function usdPair(usdValue) {
+                    return {
+                        usd: usdValue,
+                        cdf: usdValue * tauxFacture
+                    };
+                }
+
+                var tPV    = usdPair(totalPrixVente);
+                var tGen   = usdPair(totalGeneral);
+                var tFrais = usdPair(totalFrais);
+                var tRed   = usdPair(totalReduction);
+                var tBenef = usdPair(totalBenef);
+
+                var cardsHtml = '';
+                cardsHtml += buildCard('total-qte',   'zmdi-format-list-numbered', 'Total Qté',           totalQte, null);
+                cardsHtml += buildCard('total-pv',    'zmdi-money',                'Total Prix vente',
+                                        formatMoney(tPV.usd) + ' USD',
+                                        formatMoney(tPV.cdf) + ' CDF');
+                cardsHtml += buildCard('total-gen',   'zmdi-balance-wallet',       'Total Général',
+                                        formatMoney(tGen.usd) + ' USD',
+                                        formatMoney(tGen.cdf) + ' CDF');
+                cardsHtml += buildCard('total-frais', 'zmdi-alert-circle',         'Total Frais crédit',
+                                        formatMoney(tFrais.usd) + ' USD',
+                                        formatMoney(tFrais.cdf) + ' CDF');
+                cardsHtml += buildCard('total-red',   'zmdi-minus-circle',         'Total Réduction',
+                                        formatMoney(tRed.usd) + ' USD',
+                                        formatMoney(tRed.cdf) + ' CDF');
+                cardsHtml += buildCard('total-benef', 'zmdi-trending-up',          'Total Bénéfice',
+                                        formatMoney(tBenef.usd) + ' USD',
+                                        formatMoney(tBenef.cdf) + ' CDF');
+
+                $('#param_totals_grid').html(cardsHtml);
+            } else {
+                rowsHtml = '<tr><td colspan="8" class="text-center text-muted">Aucun article</td></tr>';
+                $('#param_totals_grid').html('');
+            }
+            $('#param_articles_body').html(rowsHtml);
+            $('#param_nb_articles').text(articles.length);
+
+            $('#param_frais_credit_show').text(formatBothShort(totalFrais, 0));
+            $('#param_reduction_show').text(formatBothShort(totalReduction, 0));
+            $('#param_brut_show').text(formatBothShort(montantUSD, 0));
+
+            $('#param_lines_msg').html('');
+
+            // === PAIEMENTS (DOUBLE DEVISE) ===
+            var paiements = safeParseJSON($row.attr('data-paiements'));
+            console.log('💳 Paiements récupérés:', paiements.length, paiements);
+
+            var paiHtml = '';
+            var totalRecuUSD = 0, totalRecuCDF = 0;
+            var totalResteUSD = 0, totalResteCDF = 0;
+
+            if (paiements.length > 0) {
+                paiements.forEach(function(p, idx) {
+                    var isUSD = (p.devise_label === 'USD');
+                    var montantRecu = parseFloat(p.montant_recu) || 0;
+                    var reste = parseFloat(p.reste) || 0;
+
+                    var recuUSD, recuCDF, resteUSD, resteCDF;
+                    if (isUSD) {
+                        recuUSD = montantRecu;
+                        recuCDF = montantRecu * tauxFacture;
+                        resteUSD = reste;
+                        resteCDF = reste * tauxFacture;
+                    } else {
+                        recuCDF = montantRecu;
+                        recuUSD = (tauxFacture > 0) ? (montantRecu / tauxFacture) : 0;
+                        resteCDF = reste;
+                        resteUSD = (tauxFacture > 0) ? (reste / tauxFacture) : 0;
+                    }
+
+                    totalRecuUSD  += recuUSD;
+                    totalRecuCDF  += recuCDF;
+                    totalResteUSD += resteUSD;
+                    totalResteCDF += resteCDF;
+
+                    paiHtml += '<tr>';
+                    paiHtml += '<td>' + (idx + 1) + '</td>';
+                    paiHtml += '<td style="font-size:0.78rem;">' + (p.date || '-') + '</td>';
+                    paiHtml += '<td><span class="badge badge-info">' + (p.mode_label || 'N/A') + '</span></td>';
+                    paiHtml += '<td><span class="badge badge-' + (isUSD ? 'primary' : 'warning') + '">' + (p.devise_label || '-') + '</span></td>';
+                    paiHtml += '<td><div class="dual-currency"><b class="text-primary">' + formatMoney(recuUSD) + ' USD</b><small class="text-primary">' + formatMoney(recuCDF) + ' CDF</small></div></td>';
+                    paiHtml += '<td><div class="dual-currency"><b class="text-danger">' + formatMoney(resteUSD) + ' USD</b><small class="text-danger">' + formatMoney(resteCDF) + ' CDF</small></div></td>';
+                    paiHtml += '</tr>';
+                });
+
+                $('#param_paiements_foot').html(
+                    '<tr>' +
+                        '<td colspan="4" class="text-right">TOTAUX (' + paiements.length + ' tranche' + (paiements.length > 1 ? 's' : '') + ') :</td>' +
+                        '<td class="text-primary">' + formatMoney(totalRecuUSD) + ' USD (' + formatMoney(totalRecuCDF) + ' CDF)</td>' +
+                        '<td class="text-danger">' + formatMoney(totalResteUSD) + ' USD (' + formatMoney(totalResteCDF) + ' CDF)</td>' +
+                    '</tr>'
+                );
+            } else {
+                paiHtml = '<tr><td colspan="6" class="text-center text-muted">Aucun paiement enregistré</td></tr>';
+                $('#param_paiements_foot').html('');
+            }
+            $('#param_paiements_body').html(paiHtml);
+        }
+
         $(document).ready(function() {
-            // ===== INITIALISATION DE SELECT2 POUR LE CLIENT =====
             $('#client_id').select2({
                 placeholder: "Rechercher un client...",
                 allowClear: true,
@@ -2366,10 +3255,7 @@ select.form-control {
             const totalInvoices = $('#content_utilisateur tbody tr').length;
             $('#invoiceCount').text(totalInvoices);
 
-            const hasSaved = loadFiltersFromStorage();
-            if (!hasSaved) {
-                // déjà initialisée
-            }
+            loadFiltersFromStorage();
             filterInvoices();
 
             $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant, #filterTable').on('input change', function() {
@@ -2381,7 +3267,7 @@ select.form-control {
                 resetAllFilters();
             });
 
-            // ========== GESTION DE LA SUPPRESSION DES FACTURES AVEC DÉTAILS ==========
+            // ========== SUPPRESSION FACTURE ==========
             $(document).on('click', '.delete-facture-btn', function(e) {
                 e.preventDefault();
                 var id = $(this).data('id');
@@ -2420,7 +3306,7 @@ select.form-control {
                         id: factureId
                     },
                     success: function(response) {
-                        $.get('{{ url("/get_all_facture") }}', function(html) {
+                        $.get('{{ url("/get_all_facture") }}', { page : "<?= $ressource_id_1 ?>" }, function(html) {
                             $('#content_utilisateur').html(html);
                             saveFiltersToStorage();
                             setTimeout(function() {
@@ -2448,13 +3334,127 @@ select.form-control {
                     }
                 });
             });
+
+            // ============================================================
+            // MODALE PARAMÈTRES FACTURE – OUVERTURE (DOM)
+            // ============================================================
+            $(document).on('click', '.param-facture-btn', function(e) {
+                e.preventDefault();
+                var $row = $(this).closest('tr');
+                $('#paramTabs a[href="#tab-info"]').tab('show');
+                $('#paramFactureModal').modal('show');
+                openParamModalFromRow($row);
+            });
+
+            // === BOUTON ACTUALISER ===
+            $(document).on('click', '#param_refresh_btn', function(e) {
+                e.preventDefault();
+                if (currentParamRow) {
+                    openParamModalFromRow(currentParamRow);
+                    var btn = $(this);
+                    btn.find('i').addClass('zmdi-hc-spin');
+                    setTimeout(function() { btn.find('i').removeClass('zmdi-hc-spin'); }, 1000);
+                }
+            });
+
+            // ============================================================
+            // SAUVEGARDE DES LIGNES (FRAIS CRÉDIT + RÉDUCTION)
+            // ============================================================
+            $(document).on('click', '#param_btn_save_lines', function(e) {
+                e.preventDefault();
+
+                if (!currentParamFactureId) {
+                    alert('Identifiant facture manquant');
+                    return;
+                }
+
+                var lignes = [];
+                var erreur = null;
+
+                $('#param_articles_body tr').each(function() {
+                    var $tr = $(this);
+                    var achatId = $tr.data('achat-id');
+                    if (!achatId) return;
+
+                    var frais = parseFloat($tr.find('.frais-input').val()) || 0;
+                    var reduction = parseFloat($tr.find('.reduction-input').val()) || 0;
+
+                    if (frais < 0 || reduction < 0) {
+                        erreur = 'Les valeurs doivent être positives';
+                        return false;
+                    }
+
+                    lignes.push({
+                        id: achatId,
+                        frais_credit: frais,
+                        reduction: reduction
+                    });
+                });
+
+                if (erreur) {
+                    $('#param_lines_msg').html('<i class="zmdi zmdi-close-circle text-danger"></i> ' + erreur);
+                    setTimeout(function() { $('#param_lines_msg').html(''); }, 4000);
+                    return;
+                }
+
+                if (lignes.length === 0) {
+                    $('#param_lines_msg').html('<i class="zmdi zmdi-info text-warning"></i> Aucune ligne à enregistrer');
+                    setTimeout(function() { $('#param_lines_msg').html(''); }, 3000);
+                    return;
+                }
+
+                var btn = $(this);
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Enregistrement...');
+                $('#param_lines_msg').html('<i class="zmdi zmdi-time text-info"></i> Enregistrement en cours...');
+
+                $.ajax({
+                    url: "{{ url('/apply_param_facture') }}",
+                    type: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        facture_id: currentParamFactureId,
+                        lignes: JSON.stringify(lignes)
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        btn.prop('disabled', false).html('<i class="zmdi zmdi-save"></i> Enregistrer les modifications');
+
+                        if (res.success) {
+                            $('#param_lines_msg').html('<i class="zmdi zmdi-check-circle text-success"></i> ' + res.message);
+
+                            $.get("{{ url('/get_all_facture') }}", { page : "<?= $ressource_id_1 ?>" }, function(html) {
+                                $('#content_utilisateur').html(html);
+                                saveFiltersToStorage();
+                                setTimeout(function() {
+                                    loadFiltersFromStorage();
+                                    filterInvoices();
+                                }, 100);
+                            });
+
+                            setTimeout(function() {
+                                var newRow = $('#content_utilisateur tr[data-facture-id="' + currentParamFactureId + '"]');
+                                if (newRow.length) {
+                                    openParamModalFromRow(newRow);
+                                }
+                            }, 800);
+                        } else {
+                            $('#param_lines_msg').html('<i class="zmdi zmdi-close-circle text-danger"></i> ' + (res.message || 'Erreur'));
+                        }
+                    },
+                    error: function(xhr) {
+                        btn.prop('disabled', false).html('<i class="zmdi zmdi-save"></i> Enregistrer les modifications');
+                        console.error(xhr);
+                        $('#param_lines_msg').html('<i class="zmdi zmdi-close-circle text-danger"></i> Erreur de connexion');
+                    }
+                });
+            });
         });
 
         window.addEventListener('beforeunload', function() {
             saveFiltersToStorage();
         });
 
-        // ===== GESTION DU PAIEMENT PDF (inchangée) =====
+        // ===== GESTION DU PAIEMENT PDF =====
         var currentPdfUrl = "";
         var cdf_montant_payer = $("#cdf_montant_payer").val();
         var usd_montant_payer = $("#usd_montant_payer").val();
@@ -2588,7 +3588,7 @@ select.form-control {
                         }
                     }
 
-                    await $.get("{{ url('/get_all_facture') }}", {}, function(response) {
+                    await $.get("{{ url('/get_all_facture') }}", { page : "<?= $ressource_id_1 ?>" }, function(response) {
                         $("#content_utilisateur").html(response);
                     });
 

@@ -2047,6 +2047,8 @@ select.form-control {
             var libelle = $("#libelle").val();
             var client = $("#client_id").val();
             var type_vente_id = $("#type_vente_id").val();
+            var page = "<?= $ressource_id_1 ?>";
+            var formData = $("#form_add").serialize() + "&page=" + encodeURIComponent(page);
             var data = $("#form_add").serialize();
 
             // 1️⃣ Vérification de la table
@@ -2129,7 +2131,7 @@ select.form-control {
                                                     $.ajax({
                                                         type: "POST",
                                                         url: "/add_achat_article",
-                                                        data: data,
+                                                        data: formData,
                                                         success: function(response) {
                                                             // Succès : réinitialiser le bouton
                                                             resetButton();
@@ -2553,7 +2555,7 @@ select.form-control {
                         id: factureId
                     },
                     success: function(response) {
-                        $.get('{{ url("/get_all_facture") }}', function(html) {
+                        $.get('{{ url("/get_all_facture") }}', { page : "<?= $ressource_id_1 ?>" } , function(html) {
                             $('#content_utilisateur').html(html);
                             saveFiltersToStorage();
                             setTimeout(function() {
@@ -2771,7 +2773,7 @@ select.form-control {
                     }
 
                     // Mettre à jour le tableau des factures
-                    await $.get("{{ url('/get_all_facture') }}", {}, function(response) {
+                    await $.get("{{ url('/get_all_facture') }}", { page : "<?= $ressource_id_1 ?>" }, function(response) {
                         $("#content_utilisateur").html(response);
                     });
 

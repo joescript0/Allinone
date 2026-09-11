@@ -342,6 +342,7 @@ Route::get('/refresh_liste_invites', [AjaxController::class, 'refresh_liste_invi
 Route::post('/confirm_invite', [AjaxController::class, 'confirm_invite'])->name('confirm_invite');
 Route::post('/confirm_entree', [AjaxController::class, 'confirm_entree'])->name('confirm_entree');
 Route::post('/transform_prospect', [AjaxController::class, 'transform_prospect'])->name('transform_prospect');
+Route::post('/apply_param_facture', [AjaxController::class, 'apply_param_facture'])->name('apply_param_facture');
 Route::get('/refresh_deleteinvite', [AjaxController::class, 'refresh_deleteinvite'])->name('refresh_deleteinvite');
 Route::get('/refresh_editinvite', [AjaxController::class, 'refresh_editinvite'])->name('refresh_editinvite');
 

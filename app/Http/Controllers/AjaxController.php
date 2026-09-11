@@ -1937,9 +1937,26 @@ class AjaxController extends Controller
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         $data["factures"] = Factureass::get();
         $data["factures"] = Factureass::where(["user_id" => Auth::user()->id, "etat" => 0])->get();
+        $data["articles"] = Articles::where(["supprimer" => 0])->get();
         if(Auth::user()->role == 0)
         {
             $data["factures"] = Factureass::where(["etat" => 0])->get();
+        }
+        if($request->page == 10)
+        {
+            $data["ressource_id_1"] = 10;
+        }
+        else if($request->page == 27)
+        {
+            $data["ressource_id_1"] = 27;
+        }
+        else if($request->page == 23)
+        {
+            $data["ressource_id_1"] = 23;
+        }
+        else if($request->page == 15)
+        {
+            $data["ressource_id_1"] = 15;
         }
         return view('include.refresh_factureass', $data);
     }
@@ -1951,6 +1968,7 @@ class AjaxController extends Controller
         $data["groupe_user_id"] = $groupe_user_id;
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         $data["factures"] = Factureas::where(["etat" => 0])->get();
+        $data["articles"] = Articles::where(["supprimer" => 0])->get();
         return view('include.refresh_factureas', $data);
         if(Auth::user()->role == 0)
         {
@@ -1962,16 +1980,17 @@ class AjaxController extends Controller
     public function get_all_facture_suivi(Request $request)
     {
         $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 2;
+        $data["ressource_id_1"] = 26;
         $data["groupe_user_id"] = $groupe_user_id;
         $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
         $data["factures"] = Factureass::get();
         $data["factures"] = Factureass::where(["etat" => 0])->get();
+        $data["articles"] = Articles::where(["supprimer" => 0])->get();
         if(Auth::user()->role == 0)
         {
             $data["factures"] = Factureass::where(["etat" => 0])->get();
         }
-        return view('include.refresh_factureass_suivie', $data);
+        return view('include.refresh_factureass_suivi', $data);
     }
 
     public function get_all_detail_achat_paie(Request $request)
@@ -1983,10 +2002,32 @@ class AjaxController extends Controller
             return response()->json(['error' => 'Facture non trouvée'], 404);
         }
 
-        // --- 1. Calcul du montant total dû (sans frais pour l'instant) ---
-        $achats = Achats::where('facture_id', $facture->id)->get();
-        $total_ht = $achats->sum('total');
+        // Sécurité taux
         $taux = $facture->taux;
+        if ($taux <= 0) $taux = 1;
+
+        // Récupération des achats
+        $achats = Achats::where('facture_id', $facture->id)->get();
+
+        /* ============================================================
+        ⭐ 1. CALCUL DU MONTANT DÛ RÉEL = Σ (total − réduction) par achat
+        Chaque réduction est dans la devise de l'achat,
+        convertie vers la devise de la facture.
+        ============================================================ */
+        $total_ht = 0;
+        foreach ($achats as $achat) {
+            $devise_achat_orig = $achat->devise_achat ?? $facture->devise;
+            $reduction_orig    = (isset($achat->reduction) && $achat->reduction > 0) ? $achat->reduction : 0;
+            $net_orig          = $achat->total - $reduction_orig;
+
+            if ($devise_achat_orig == $facture->devise) {
+                $total_ht += $net_orig;
+            } elseif ($facture->devise == 0) {
+                $total_ht += ($taux > 0) ? ($net_orig / $taux) : 0;
+            } else {
+                $total_ht += $net_orig * $taux;
+            }
+        }
 
         // --- 2. Calcul des paiements déjà effectués ---
         $paiements = detailpaiessachats::where('facture_id', $request->facture_id)->get();
@@ -1998,17 +2039,17 @@ class AjaxController extends Controller
                 $montant_cdf_2 += $paiement->montant_recu * $taux;
             } else { // paiement en CDF
                 $montant_cdf_2 += $paiement->montant_recu;
-                $montant_usd_2 += $paiement->montant_recu / $taux;
+                $montant_usd_2 += ($taux > 0) ? ($paiement->montant_recu / $taux) : 0;
             }
         }
 
-        // --- 3. Détermination de l'état impayé (sans tolérance) ---
+        // --- 3. Détermination de l'état impayé (basé sur le net après réduction) ---
         if ($facture->devise == 0) {
             $total_original_usd = $total_ht;
             $total_original_cdf = $total_ht * $taux;
         } else {
             $total_original_cdf = $total_ht;
-            $total_original_usd = $total_ht / $taux;
+            $total_original_usd = ($taux > 0) ? ($total_ht / $taux) : 0;
         }
         $est_impayee = ($montant_usd_2 < $total_original_usd) || ($montant_cdf_2 < $total_original_cdf);
 
@@ -2018,6 +2059,7 @@ class AjaxController extends Controller
         $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
 
         // --- 5. Application des frais de crédit (5%) si conditions remplies ---
+        // Les frais sont calculés sur le total BRUT de la ligne (comme dans la page SUIVI DE CREDIT)
         foreach ($achats as $achat) {
             if (($achat->frais_credit == 0 || $achat->frais_credit === null) && $est_impayee && $delai_depasse) {
                 $frais = $achat->total * 0.05;
@@ -2026,31 +2068,49 @@ class AjaxController extends Controller
             }
         }
 
-        // --- 6. Recalcul du total avec les frais ---
+        /* ============================================================
+        ⭐ 6. RECALCUL DU TOTAL FINAL
+        Net de chaque achat = total − réduction + frais_credit
+        (dans SA devise d'achat), puis converti vers la devise facture.
+        ============================================================ */
         $total_avec_frais = 0;
         foreach ($achats as $achat) {
-            $total_avec_frais += $achat->total + ($achat->frais_credit ?? 0);
+            $devise_achat      = $achat->devise_achat ?? $facture->devise;
+            $reduction_achat   = (isset($achat->reduction) && $achat->reduction > 0) ? $achat->reduction : 0;
+            $frais_achat       = $achat->frais_credit ?? 0;
+
+            // Net de CET achat dans SA devise
+            $net_achat_devise = $achat->total - $reduction_achat + $frais_achat;
+
+            // Conversion vers la devise de la facture
+            if ($devise_achat == $facture->devise) {
+                $total_avec_frais += $net_achat_devise;
+            } elseif ($facture->devise == 0) {
+                $total_avec_frais += ($taux > 0) ? ($net_achat_devise / $taux) : 0;
+            } else {
+                $total_avec_frais += $net_achat_devise * $taux;
+            }
         }
 
-        // --- 7. Montants totaux en USD et CDF (avec frais) ---
+        // --- 7. Montants totaux en USD et CDF (avec frais et réduction) ---
         if ($facture->devise == 0) {
             $montant_usd_1 = $total_avec_frais;
             $montant_cdf_1 = $total_avec_frais * $taux;
         } else {
             $montant_cdf_1 = $total_avec_frais;
-            $montant_usd_1 = $total_avec_frais / $taux;
+            $montant_usd_1 = ($taux > 0) ? ($total_avec_frais / $taux) : 0;
         }
 
         // --- 8. Soldes restants ---
         $usd_montant_total_a_payer = $montant_usd_1 - $montant_usd_2;
         $cdf_montant_total_a_payer = $montant_cdf_1 - $montant_cdf_2;
 
-        // --- 9. Retour des données (inchangé) ---
+        // --- 9. Retour des données ---
         return response()->json([
-            'montant_usd_1'          => round($montant_usd_1, 2),
-            'montant_cdf_1'          => round($montant_cdf_1, 2),
-            'montant_usd_2'          => round($montant_usd_2, 2),
-            'montant_cdf_2'          => round($montant_cdf_2, 2),
+            'montant_usd_1'             => round($montant_usd_1, 2),
+            'montant_cdf_1'             => round($montant_cdf_1, 2),
+            'montant_usd_2'             => round($montant_usd_2, 2),
+            'montant_cdf_2'             => round($montant_cdf_2, 2),
             'usd_montant_total_a_payer' => round($usd_montant_total_a_payer, 2),
             'cdf_montant_total_a_payer' => round($cdf_montant_total_a_payer, 2),
         ]);
@@ -2066,22 +2126,36 @@ class AjaxController extends Controller
             }
 
             $taux = $facture->taux;
+            if ($taux <= 0) $taux = 1;
+
             $achats = Achats::where('facture_id', $facture->id)->get();
 
             // ------------------------------------------------------------
             // 0. Application des frais de crédit si conditions remplies
             // ------------------------------------------------------------
-            // Calcul du total original (sans frais) pour déterminer l'état impayé
+            // ⭐ Calcul du total original = Σ (total − réduction) par achat,
+            //    dans SA devise d'achat, puis converti vers la devise facture.
+            //    → sert à déterminer correctement si la facture est IMPAYÉE.
             $total_original = 0;
             foreach ($achats as $a) {
-                $total_original += $a->total;
+                $devise_achat_orig = $a->devise_achat ?? $facture->devise;
+                $reduction_orig    = (isset($a->reduction) && $a->reduction > 0) ? $a->reduction : 0;
+                $net_orig          = $a->total - $reduction_orig;
+
+                if ($devise_achat_orig == $facture->devise) {
+                    $total_original += $net_orig;
+                } elseif ($facture->devise == 0) {
+                    $total_original += ($taux > 0) ? ($net_orig / $taux) : 0;
+                } else {
+                    $total_original += $net_orig * $taux;
+                }
             }
             if ($facture->devise == 0) {
                 $total_original_usd = $total_original;
                 $total_original_cdf = $total_original * $taux;
             } else {
                 $total_original_cdf = $total_original;
-                $total_original_usd = $total_original / $taux;
+                $total_original_usd = ($taux > 0) ? ($total_original / $taux) : 0;
             }
 
             // Récupération des paiements déjà effectués
@@ -2094,7 +2168,7 @@ class AjaxController extends Controller
                     $paye_cdf += $p->montant_recu * $taux;
                 } else {
                     $paye_cdf += $p->montant_recu;
-                    $paye_usd += $p->montant_recu / $taux;
+                    $paye_usd += ($taux > 0) ? ($p->montant_recu / $taux) : 0;
                 }
             }
             $est_impayee = ($paye_usd < $total_original_usd) || ($paye_cdf < $total_original_cdf);
@@ -2105,6 +2179,7 @@ class AjaxController extends Controller
             $delai_depasse = (time() - $date_creation) > $delai_1h;
 
             // Application des frais de crédit (5%) sur chaque achat si conditions remplies
+            // (frais calculés sur le total BRUT — inchangé)
             foreach ($achats as $achat) {
                 if (($achat->frais_credit == 0 || $achat->frais_credit === null) && $est_impayee && $delai_depasse) {
                     $frais = $achat->total * 0.05;
@@ -2114,11 +2189,24 @@ class AjaxController extends Controller
             }
 
             // ------------------------------------------------------------
-            // 1. Calcul du total dû (incluant les frais de crédit)
+            // 1. ⭐ Calcul du total dû = Σ (total − réduction + frais_credit) par achat
+            //    Chaque montant dans SA devise d'achat, puis converti.
             // ------------------------------------------------------------
             $total_du = 0;
             foreach ($achats as $a) {
-                $total_du += $a->total + ($a->frais_credit ?? 0);
+                $devise_achat    = $a->devise_achat ?? $facture->devise;
+                $reduction_achat = (isset($a->reduction) && $a->reduction > 0) ? $a->reduction : 0;
+                $frais_achat     = $a->frais_credit ?? 0;
+
+                $net_achat_devise = $a->total - $reduction_achat + $frais_achat;
+
+                if ($devise_achat == $facture->devise) {
+                    $total_du += $net_achat_devise;
+                } elseif ($facture->devise == 0) {
+                    $total_du += ($taux > 0) ? ($net_achat_devise / $taux) : 0;
+                } else {
+                    $total_du += $net_achat_devise * $taux;
+                }
             }
 
             if ($facture->devise == 0) {
@@ -2126,7 +2214,7 @@ class AjaxController extends Controller
                 $total_du_cdf = $total_du * $taux;
             } else {
                 $total_du_cdf = $total_du;
-                $total_du_usd = $total_du / $taux;
+                $total_du_usd = ($taux > 0) ? ($total_du / $taux) : 0;
             }
 
             // ------------------------------------------------------------
@@ -2140,7 +2228,7 @@ class AjaxController extends Controller
                     $total_paye_cdf += $p->montant_recu * $taux;
                 } else {
                     $total_paye_cdf += $p->montant_recu;
-                    $total_paye_usd += $p->montant_recu / $taux;
+                    $total_paye_usd += ($taux > 0) ? ($p->montant_recu / $taux) : 0;
                 }
             }
 
@@ -2212,8 +2300,10 @@ class AjaxController extends Controller
             foreach ($paiements_apres as $p) {
                 if ($p->devise_recu == 0) {
                     $total_paye_usd_apres += $p->montant_recu;
+                    $total_paye_cdf_apres += $p->montant_recu * $taux;
                 } else {
                     $total_paye_cdf_apres += $p->montant_recu;
+                    $total_paye_usd_apres += ($taux > 0) ? ($p->montant_recu / $taux) : 0;
                 }
             }
 
@@ -5341,16 +5431,34 @@ class AjaxController extends Controller
 
             // --- 8. Retour de la vue (inchangé) ---
             $groupe_user_id = Auth::user()->role;
-            $data["ressource_id_1"] = 2;
+            $data["ressource_id_1"] = 10;
             $data["groupe_user_id"] = $groupe_user_id;
             $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
             $data["factures"] = Factureass::where(["user_id" => Auth::user()->id, "etat" => 0])->get();
+            $data["articles"] = Articles::where(["supprimer" => 0])->get();
             if(Auth::user()->role == 0) {
                 $data["factures"] = Factureass::where(["etat" => 0])->get();
             }
 
             // AJOUT : tout s'est bien passé, on valide la transaction
             DB::commit();
+
+            if($request->page == 10)
+            {
+                $data["ressource_id_1"] = 10;
+            }
+            else if($request->page == 27)
+            {
+                $data["ressource_id_1"] = 27;
+            }
+            else if($request->page == 23)
+            {
+                $data["ressource_id_1"] = 23;
+            }
+            else if($request->page == 15)
+            {
+                $data["ressource_id_1"] = 15;
+            }
             return view('include.refresh_factureass', $data);
 
         } catch (\Exception $e) {
@@ -15753,5 +15861,50 @@ class AjaxController extends Controller
             DB::rollBack();
             return response()->json(['error' => 'Erreur : ' . $e->getMessage()], 500);
         }
+    }
+
+    public function apply_param_facture(Request $request)
+    {
+        $factureId = $request->facture_id;
+        $lignes = json_decode($request->lignes, true);
+
+        if (!$factureId) {
+            return response()->json(['success' => false, 'message' => 'Identifiant facture manquant']);
+        }
+
+        if (!is_array($lignes) || empty($lignes)) {
+            return response()->json(['success' => false, 'message' => 'Aucune ligne à enregistrer']);
+        }
+
+        $facture = Factureass::find($factureId);
+        if (!$facture) {
+            return response()->json(['success' => false, 'message' => 'Facture introuvable']);
+        }
+
+        $nb = 0;
+        $totalFrais = 0;
+        $totalReduction = 0;
+
+        foreach ($lignes as $ligne) {
+            if (!isset($ligne['id'])) continue;
+
+            $achat = Achats::find($ligne['id']);
+            if (!$achat) continue;
+            if ($achat->facture_id != $factureId) continue;
+
+            $achat->frais_credit = floatval($ligne['frais_credit'] ?? 0);
+            $achat->reduction    = floatval($ligne['reduction'] ?? 0);
+            $achat->save();
+
+            $totalFrais     += $achat->frais_credit;
+            $totalReduction += $achat->reduction;
+            $nb++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $nb . ' ligne(s) mise(s) à jour — Frais : ' . number_format($totalFrais, 2, ',', ' ')
+                         . ' | Réduction : ' . number_format($totalReduction, 2, ',', ' ')
+        ]);
     }
 }
