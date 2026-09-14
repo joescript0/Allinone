@@ -30,7 +30,7 @@
     $menu_11 = Desactiver();
     $menu_12 = Desactiver();
     $menu_13 = Activer();
-    $menu_14 = Desactiver(); // ici
+    $menu_14 = Activer(); // ici
     // Divine
     $menu_15 = Desactiver();
     $menu_16 = Desactiver();
@@ -67,6 +67,7 @@
     $menu_47 = Activer();
     $menu_48 = Activer();
     $menu_49 = Activer();
+    $menu_50 = Activer();
   }
   elseif($menueapp == "Divine")
   {
@@ -83,7 +84,7 @@
     $menu_11 = Desactiver();
     $menu_12 = Desactiver();
     $menu_13 = Desactiver();
-    $menu_14 = Desactiver();
+    $menu_14 = Activer();
 
     // Divine
     $menu_15 = Activer();
@@ -123,6 +124,7 @@
     $menu_47 = Activer();
     $menu_48 = Activer();
     $menu_49 = Activer();
+    $menu_50 = Activer();
   }
 ?>
 
@@ -519,6 +521,7 @@
       $data["ressource_id_32"] = 32;
       $data["ressource_id_33"] = 33;
       $data["ressource_id_34"] = 34;
+      $data["ressource_id_35"] = 34;
       $data["groupe_user_id"] = $groupe_user_id;
       ?>
       <ul class="navigation">
@@ -860,6 +863,21 @@
                 ?>
                 <?php if (((($display_33 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_33"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_33 ==  0) && (Auth::user()->role == 0))) { ?>
                     <li id="link_55"><a href="{{ route('mes_commissions') }}" id="text_55"> 🏆  Mes commissions</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+
+        @if ($menu_50 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_35"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_35 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_35"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) 
+                    {
+                        $display_35 = Writes::where(["ressource_id" => $data["ressource_id_35"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_35 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_35"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_35 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_56"><a href="{{ route('charger_facture') }}" id="text_56"> 🧾  Charger une facture</a></li>
                 <?php } ?>
             <?php } ?>
         @endif

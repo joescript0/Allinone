@@ -434,6 +434,13 @@ h4 .badge-invoice {
     background: linear-gradient(135deg, #198754, #146c43);
 }
 
+.invoice-count-badge.solde-usd {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+}
+.invoice-count-badge.solde-cdf {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
 #form_add .row,
 #form_edit .row {
     display: flex;
@@ -1339,6 +1346,7 @@ select.form-control {
                                 <option value="paid">Payées</option>
                                 <option value="unpaid">Impayées</option>
                                 <option value="partial">Partielles</option>
+                                <option value="soldee">Soldées (avec réduction)</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -1370,6 +1378,12 @@ select.form-control {
                         </span>
                         <span class="invoice-count-badge credit-cdf">
                             <i class="zmdi zmdi-time"></i> Crédit CDF : <span id="totalCreditCdf">0,00</span> Fc
+                        </span>
+                        <span class="invoice-count-badge solde-usd">
+                            <i class="zmdi zmdi-check-all"></i> Soldé USD : <span id="totalSoldeUsd">0,00</span> $
+                        </span>
+                        <span class="invoice-count-badge solde-cdf">
+                            <i class="zmdi zmdi-check-all"></i> Soldé CDF : <span id="totalSoldeCdf">0,00</span> Fc
                         </span>
                         <span class="invoice-count-badge benefice-usd">
                             <i class="zmdi zmdi-trending-up"></i> Bénéfice USD : <span id="totalBeneficeUsd">0,00</span> $
@@ -1532,6 +1546,17 @@ select.form-control {
                                                 }
                                                 $a_frais_credit = ($total_frais_credit_final > 0);
 
+                                                /* ============================================================
+                                                   ✅ DÉTECTION : la facture a-t-elle une réduction appliquée ?
+                                                   ============================================================ */
+                                                $has_reduction = false;
+                                                foreach ($ent as $e) {
+                                                    if (isset($e->reduction) && $e->reduction > 0) {
+                                                        $has_reduction = true;
+                                                        break;
+                                                    }
+                                                }
+
                                                 if ($data->devise == 0)
                                                 {
                                                     $montant_usd = $total;
@@ -1614,17 +1639,37 @@ select.form-control {
                                                 /* ===== DONNÉES POUR MODALE PARAMÈTRES ===== */
                                                 $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
 
+                                                // ============================================================
+                                                // ✅ CORRECTIF : récupération du VRAI nom de l'article
+                                                // via la collection $articles (déjà chargée pour le <select>)
+                                                // ============================================================
                                                 $articles_json = [];
                                                 foreach ($ent as $e) {
-                                                    $nom_article_aff = $e->nom_article
+
+                                                    /* ---- 1. Recherche de l'article associé (5 FK possibles) ---- */
+                                                    $art = null;
+                                                    foreach (['article_id', 'entre_id', 'entree_id', 'produit_id', 'id_article'] as $field) {
+                                                        if (isset($e->$field) && $e->$field) {
+                                                            $art = $articles->firstWhere('id', $e->$field);
+                                                            if ($art) break;
+                                                        }
+                                                    }
+
+                                                    /* ---- 2. Nom réel avec tous les fallbacks ---- */
+                                                    $nom_article_aff = $art->nom_article
+                                                                    ?? $e->nom_article
                                                                     ?? $e->nom
-                                                                    ?? $e->name
+                                                                    ?? $art->name
                                                                     ?? ('Article #' . $e->id);
 
+                                                    /* ---- 3. Autres champs ---- */
                                                     $pa = $e->prix_achat ?? 0;
                                                     $qt = $e->quantite ?? 1;
-                                                    $prix_unit = $e->prix_vente ?? ($qt > 0 ? ($e->total / $qt) : $e->total);
+                                                    $prix_unit = $e->prix_vente
+                                                              ?? ($art->prix_detail ?? null)
+                                                              ?? ($qt > 0 ? ($e->total / $qt) : $e->total);
 
+                                                    /* ---- 4. Devise propre à chaque achat ---- */
                                                     $devise_achat_json = $e->devise_achat ?? $data->devise;
                                                     $reduction_ligne   = $e->reduction ?? 0;
 
@@ -1675,6 +1720,7 @@ select.form-control {
 
                                             @if ($reste_usd > 0 || $total_frais_credit_final > 0)
                                             <tr id="row_{{ $data->id }}"
+                                                data-has-reduction="{{ $has_reduction ? '1' : '0' }}"
                                                 data-paie-date-ymd="{{ $date_paie_ymd }}"
                                                 data-montant-usd="{{ $montant_usd }}"
                                                 data-montant-cdf="{{ $montant_cdf }}"
@@ -1818,7 +1864,7 @@ select.form-control {
                                                         </a>
                                                     <?php } ?>
 
-                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
+                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($delete == 0) && (Auth::user()->role == 0))) { ?>
                                                         <a href="#" class="delete-facture-btn"
                                                            data-id="{{ $data->id }}"
                                                            data-numero="{{ $data->numero }}"
@@ -2909,6 +2955,7 @@ select.form-control {
             let totalPaidUSD = 0, totalPaidCDF = 0;
             let totalCreditUSD = 0, totalCreditCDF = 0;
             let totalBeneficeUSD = 0, totalBeneficeCDF = 0;
+            let totalSoldeUSD = 0, totalSoldeCDF = 0;
 
             $('#content_utilisateur tbody tr').each(function() {
                 const $row = $(this);
@@ -2930,6 +2977,8 @@ select.form-control {
                     if (filterStatut === 'paid' && statutValue !== 'paid') showRow = false;
                     if (filterStatut === 'unpaid' && statutValue !== 'unpaid') showRow = false;
                     if (filterStatut === 'partial' && statutValue !== 'partial') showRow = false;
+                    // ✅ Nouveau : filtre "Soldées" = factures ayant au moins une réduction
+                    if (filterStatut === 'soldee' && $row.data('has-reduction') != 1) showRow = false;
                 }
 
                 if (showRow && filterJour !== null && !isNaN(filterJour)) {
@@ -2980,6 +3029,12 @@ select.form-control {
                     totalCreditCDF += parseFloat($row.data('credit-cdf')) || 0;
                     totalBeneficeUSD += parseFloat($row.data('benefice-usd')) || 0;
                     totalBeneficeCDF += parseFloat($row.data('benefice-cdf')) || 0;
+
+                    // ✅ Cumul "Soldé" : factures ayant au moins une réduction
+                    if ($row.data('has-reduction') == 1) {
+                        totalSoldeUSD += parseFloat($row.data('montant-usd')) || 0;
+                        totalSoldeCDF += parseFloat($row.data('montant-cdf')) || 0;
+                    }
                 } else {
                     $row.hide();
                 }
@@ -2992,6 +3047,8 @@ select.form-control {
             $('#totalPaidCdf').text(totalPaidCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalCreditUsd').text(totalCreditUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalCreditCdf').text(totalCreditCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalSoldeUsd').text(totalSoldeUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalSoldeCdf').text(totalSoldeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalBeneficeUsd').text(totalBeneficeUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalBeneficeCdf').text(totalBeneficeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 
@@ -3141,7 +3198,6 @@ select.form-control {
             var deviseFacture = $row.data('devise-label');
             var isFactureUSD = (deviseFacture === 'USD');
 
-            // formatBoth : accepte devise propre à chaque achat
             function formatBoth(val, deviseAchat) {
                 var v = parseFloat(val) || 0;
                 if (deviseAchat === undefined || deviseAchat === null) deviseAchat = isFactureUSD ? 0 : 1;
@@ -3188,7 +3244,6 @@ select.form-control {
                                         ? parseInt(a.devise_achat)
                                         : (isFactureUSD ? 0 : 1);
 
-                    // BÉNÉFICE = (total − réduction) − prix_achat_total (tous dans devise achat)
                     var totalBrutAchat = parseFloat(a.total) || 0;
                     var reductionAchat = parseFloat(a.reduction) || 0;
                     var totalNetAchat  = totalBrutAchat - reductionAchat;

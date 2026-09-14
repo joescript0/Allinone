@@ -168,6 +168,17 @@ use Illuminate\Support\Facades\Auth;
                         }
                         $a_frais_credit = ($total_frais_credit_final > 0);
 
+                        /* ============================================================
+                            ✅ DÉTECTION : la facture a-t-elle une réduction appliquée ?
+                            ============================================================ */
+                        $has_reduction = false;
+                        foreach ($ent as $e) {
+                            if (isset($e->reduction) && $e->reduction > 0) {
+                                $has_reduction = true;
+                                break;
+                            }
+                        }
+
                         if ($data->devise == 0)
                         {
                             $montant_usd = $total;
@@ -250,17 +261,37 @@ use Illuminate\Support\Facades\Auth;
                         /* ===== DONNÉES POUR MODALE PARAMÈTRES ===== */
                         $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
 
+                        // ============================================================
+                        // ✅ CORRECTIF : récupération du VRAI nom de l'article
+                        // via la collection $articles (déjà chargée pour le <select>)
+                        // ============================================================
                         $articles_json = [];
                         foreach ($ent as $e) {
-                            $nom_article_aff = $e->nom_article
+
+                            /* ---- 1. Recherche de l'article associé (5 FK possibles) ---- */
+                            $art = null;
+                            foreach (['article_id', 'entre_id', 'entree_id', 'produit_id', 'id_article'] as $field) {
+                                if (isset($e->$field) && $e->$field) {
+                                    $art = $articles->firstWhere('id', $e->$field);
+                                    if ($art) break;
+                                }
+                            }
+
+                            /* ---- 2. Nom réel avec tous les fallbacks ---- */
+                            $nom_article_aff = $art->nom_article
+                                            ?? $e->nom_article
                                             ?? $e->nom
-                                            ?? $e->name
+                                            ?? $art->name
                                             ?? ('Article #' . $e->id);
 
+                            /* ---- 3. Autres champs ---- */
                             $pa = $e->prix_achat ?? 0;
                             $qt = $e->quantite ?? 1;
-                            $prix_unit = $e->prix_vente ?? ($qt > 0 ? ($e->total / $qt) : $e->total);
+                            $prix_unit = $e->prix_vente
+                                        ?? ($art->prix_detail ?? null)
+                                        ?? ($qt > 0 ? ($e->total / $qt) : $e->total);
 
+                            /* ---- 4. Devise propre à chaque achat ---- */
                             $devise_achat_json = $e->devise_achat ?? $data->devise;
                             $reduction_ligne   = $e->reduction ?? 0;
 
@@ -311,6 +342,7 @@ use Illuminate\Support\Facades\Auth;
 
                     @if ($reste_usd > 0 || $total_frais_credit_final > 0)
                     <tr id="row_{{ $data->id }}"
+                        data-has-reduction="{{ $has_reduction ? '1' : '0' }}"
                         data-paie-date-ymd="{{ $date_paie_ymd }}"
                         data-montant-usd="{{ $montant_usd }}"
                         data-montant-cdf="{{ $montant_cdf }}"
@@ -454,7 +486,7 @@ use Illuminate\Support\Facades\Auth;
                                 </a>
                             <?php } ?>
 
-                            <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
+                            <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($delete == 0) && (Auth::user()->role == 0))) { ?>
                                 <a href="#" class="delete-facture-btn"
                                     data-id="{{ $data->id }}"
                                     data-numero="{{ $data->numero }}"
@@ -530,5 +562,5 @@ use Illuminate\Support\Facades\Auth;
                 @endforeach
             </tbody>
         </table>
-    </div> 
+    </div>
 </div>

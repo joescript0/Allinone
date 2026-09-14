@@ -24,12 +24,23 @@ $cdf_montant_total_a_payer = 0;
 
 if ($facture) {
     $taux = $facture->taux ?? 1;
+    if ($taux <= 0) $taux = 1;
     $deviseFacture = $facture->devise; // 0 = USD, 1 = CDF
 
-    // --- 1. Calcul du total original (sans frais) ---
+    // --- 1. Calcul du total original (avec réduction par achat, dans SA devise) ---
     $total_original = 0;
     foreach ($achats as $a) {
-        $total_original += $a->total;
+        $devise_achat_orig = $a->devise_achat ?? $deviseFacture;
+        $reduction_orig    = (isset($a->reduction) && $a->reduction > 0) ? $a->reduction : 0;
+        $net_orig          = $a->total - $reduction_orig;
+
+        if ($devise_achat_orig == $deviseFacture) {
+            $total_original += $net_orig;
+        } elseif ($deviseFacture == 0) {
+            $total_original += ($taux > 0) ? ($net_orig / $taux) : 0;
+        } else {
+            $total_original += $net_orig * $taux;
+        }
     }
 
     // --- 2. Calcul des paiements déjà effectués ---
@@ -72,10 +83,22 @@ if ($facture) {
         }
     }
 
-    // --- 7. Recalculer le total incluant les frais de crédit ---
+    // --- 7. Recalculer le total incluant les frais de crédit et la réduction ---
     $total_avec_frais = 0;
     foreach ($achats as $achat) {
-        $total_avec_frais += $achat->total + ($achat->frais_credit ?? 0);
+        $devise_achat    = $achat->devise_achat ?? $deviseFacture;
+        $reduction_achat = (isset($achat->reduction) && $achat->reduction > 0) ? $achat->reduction : 0;
+        $frais_achat     = $achat->frais_credit ?? 0;
+
+        $net_achat_devise = $achat->total - $reduction_achat + $frais_achat;
+
+        if ($devise_achat == $deviseFacture) {
+            $total_avec_frais += $net_achat_devise;
+        } elseif ($deviseFacture == 0) {
+            $total_avec_frais += ($taux > 0) ? ($net_achat_devise / $taux) : 0;
+        } else {
+            $total_avec_frais += $net_achat_devise * $taux;
+        }
     }
 
     // --- 8. Montant total de la facture en USD et CDF (incluant les frais) ---
@@ -164,6 +187,7 @@ $nomClient = isset($data['client_nom']) ? $data['client_nom'] : "";
                     <th style="padding-top: 5px;padding-bottom: 5px;">QTE</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">MONTANT</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">FRAIS CRÉDIT</th>
+                    <th style="padding-top: 5px;padding-bottom: 5px;">RÉDUCTION</th>
                     <th style="padding-top: 5px;padding-bottom: 5px;">TOTAL AVEC FRAIS</th>
                 </tr>
             </thead>
@@ -172,7 +196,8 @@ $nomClient = isset($data['client_nom']) ? $data['client_nom'] : "";
                 @foreach ($achats as $data)
                     @php
                         $frais = $data->frais_credit ?? 0;
-                        $total_avec_frais_ligne = $data->total + $frais;
+                        $reduction = (isset($data->reduction) && $data->reduction > 0) ? $data->reduction : 0;
+                        $total_avec_frais_ligne = $data->total - $reduction + $frais;
                         $deviseSymbole = $data->devise == 0 ? 'USD' : 'CDF';
                     @endphp
                     <tr>
@@ -191,7 +216,10 @@ $nomClient = isset($data['client_nom']) ? $data['client_nom'] : "";
                         <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">
                             {{ number_format($frais, 2, ',', ' ') }} {{ $deviseSymbole }}
                         </td>
-                        <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px;">
+                        <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px; color: #dc3545; font-weight: bold;">
+                            {{ number_format($reduction, 2, ',', ' ') }} {{ $deviseSymbole }}
+                        </td>
+                        <td class="text-truncate" style="padding-top: 5px;padding-bottom: 5px; font-weight: bold;">
                             {{ number_format($total_avec_frais_ligne, 2, ',', ' ') }} {{ $deviseSymbole }}
                         </td>
                     </tr>

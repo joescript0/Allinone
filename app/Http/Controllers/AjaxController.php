@@ -19,6 +19,7 @@ use App\Models\Annees;
 use App\Models\Contentieurs;
 use App\Models\Contrevenants;
 use App\Models\Decisions;
+use App\Models\facturesnormalisees;
 use App\Models\Fichiers;
 use App\Models\Fichierss;
 use App\Models\Frais;
@@ -4368,6 +4369,72 @@ class AjaxController extends Controller
         return view('include.refresh_listesfactures', $data);
     }
 
+    public function add_charger_facture(Request $request)
+    {
+        try {
+            // ========== 1. VÉRIFIER LES DOUBLONS ==========
+            $existe = Facturesnormalisees::where('annee_id', $request->annee_id)
+                ->where('moi_id', $request->moi_id)
+                ->where('client_id', $request->client_id)
+                ->exists();
+
+            if ($existe) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Une facture existe déjà pour ce client sur cette période.',
+                ], 422);
+            }
+
+            // ========== 2. UPLOAD DU FICHIER ==========
+            $path = null;
+            $nomOriginal = null;
+            $cheminComplet = null;
+
+            $target_dir = "./storage/images/fichiers/";
+
+            // Créer le dossier s'il n'existe pas
+            if (!file_exists($target_dir)) {
+                mkdir($target_dir, 0777, true);
+            }
+
+            if (isset($_FILES["fichier"]) && $_FILES["fichier"]["error"] == 0) {
+
+                $nomOriginal = basename($_FILES["fichier"]["name"]);
+                $extension   = strtolower(pathinfo($nomOriginal, PATHINFO_EXTENSION));
+
+                // Nom unique pour éviter l'écrasement
+                $nomFinal = uniqid() . "_" . time() . "." . $extension;
+
+                // Chemin cible complet (physique)
+                $cheminComplet = $target_dir . $nomFinal;
+
+                if (move_uploaded_file($_FILES["fichier"]["tmp_name"], $cheminComplet)) {
+                    $path = $nomFinal; // Nom enregistré pour reconstruire l'URL
+                }
+            }
+
+            // ========== 3. ENREGISTREMENT EN BASE ==========
+            $facturesnormalisees = new facturesnormalisees();
+            $facturesnormalisees->annee_id          = $request->annee_id;
+            $facturesnormalisees->moi_id            = $request->moi_id;
+            $facturesnormalisees->client_id         = $request->client_id;
+            $facturesnormalisees->url               = $path;           // nom du fichier
+            $facturesnormalisees->lien              = $cheminComplet;  // ✅ chemin complet
+            $facturesnormalisees->fichier_original  = $nomOriginal;
+            $facturesnormalisees->etat              = 1;
+            $facturesnormalisees->user_id           = Auth::id();
+            $facturesnormalisees->save();
+
+            $data["facturesnormalisees"] = facturesnormalisees::where(["supprimer" => 0])->get();
+            return view('include.refresh_charger_facture', $data);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Erreur lors de l\'enregistrement : ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 
     public function add_rendez_vous(Request $request)
     {
@@ -5037,186 +5104,6 @@ class AjaxController extends Controller
         return view('include.refresh_factureas', $data);
     }
 
-    // public function add_achat_article(Request $request)
-    // {
-    //     date_default_timezone_set('Africa/Lubumbashi');
-    //     // --- 1. Récupération de l'article selon le stock lié à la table ---
-    //     $article_id = $request->type_sortie;
-    //     $table_id = $request->table_id;
-    //     $stock_id = 0;
-
-    //     if (!empty($table_id))
-    //     {
-    //         $table = Tables::where('id', $table_id)->first();
-    //         if ($table)
-    //         {
-    //             $pointdeventes = pointdeventes::where('id', $table->pointdeventes_id)->first();
-    //             $stock_id = $pointdeventes ? $pointdeventes->stock_id : 0;
-    //         }
-    //     }
-
-    //     if ($stock_id == 0)
-    //     {
-    //         $article = Articles::where('id', $article_id)->first();
-    //     } else {
-    //         $article = articlestocks::where([
-    //             'stock_id'   => $stock_id,
-    //             'article_id' => $article_id,
-    //         ])->first();
-    //     }
-
-    //     if (!$article) {
-    //         return back()->withErrors(['article' => 'Article introuvable pour ce stock.']);
-    //     }
-
-    //     // --- 2. Calcul des données communes ---
-    //     $dernierApprovisionnement = Approvisionnements::where('article_id', $article_id)->latest('id')->first();
-
-    //     $stock = $article->stock;
-    //     $devise_article = $article->devise;
-    //     $avoir_stock = $article->avoir_stock;
-
-    //     // Prix d'achat
-    //     if ($avoir_stock == 1) {
-    //         $prix_achat = $dernierApprovisionnement->prix_unitaire;
-    //         $devise_achat = $dernierApprovisionnement->devise;
-    //     } else {
-    //         $prix_achat = ($request->type_vente_id == 1) ? $article->prix_detail : $article->prix_gros;
-    //         $devise_achat = $article->devise;
-    //     }
-
-    //     // Prix de vente et taille lot
-    //     if ($request->type_vente_id == 1)
-    //     {
-    //         $taille_lot = $article->taille_piece;
-    //         $prix_unitaire = $article->prix_detail;
-    //     } else { // type_vente_id == 2
-    //         $taille_lot = $article->taille_lot;
-    //         $prix_unitaire = $article->prix_gros;
-    //     }
-
-    //     // --- 3. Gestion de la facture (création si nécessaire) ---
-    //     $facture_id = Session::get("facture_user_id");
-
-    //     if (!$facture_id)
-    //     {
-    //         // === C'est le "else" du if(Session::get("facture_user_id")) ===
-    //         // Création d'une nouvelle facture
-    //         $id = Factureass::get()->count() + 1;
-    //         $nb_annonce = str_pad($id, 4, '0', STR_PAD_LEFT);
-
-    //         // Taux general et tva des facture
-    //         $activite_id = Articles::where('id', $article_id)->first()["activite_id"];
-    //         $activites = Activites::where('id', $activite_id)->first();
-    //         $taux_general = $activites->taux;
-    //         $tva_general = $activites->tva;
-
-    //         $facture = new Factureass();
-    //         $facture->id = $id;
-    //         $facture->numero = $nb_annonce;
-    //         $facture->date_creation = date("d/m/Y");
-    //         $facture->devise = $devise_article;
-    //         $facture->taux = $taux_general;
-    //         $facture->libelle = $request->libelle;
-    //         $facture->tva = $tva_general;
-    //         $facture->user_id = Auth::user()->id;
-    //         $facture->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
-    //         $facture->table_id = (strlen(trim($request->table_id))) ? $request->table_id : 0;
-    //         $facture->save();
-
-
-    //         $data_client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
-    //         if ($data_client_id != 0) {
-    //             $client = Clients::find($data_client_id);
-    //             if ($client) {
-    //                 // Normaliser le téléphone : extraire uniquement les chiffres
-    //                 $phone = $client->phone;
-    //                 $digits = preg_replace('/\D/', '', $phone);
-
-    //                 // Vérifier que le nombre de chiffres est supérieur à 9
-    //                 if (strlen($digits) > 9) {
-    //                     $last9 = substr($digits, -9);
-    //                     $client->phone = '+243' . $last9;
-
-    //                     // Vérifier et envoyer SMS
-    //                     if ($client->sms_initial < 5) {
-    //                         // Appeler avec le préfixe 'tel:'
-    //                         $this->orange_api(1, 'tel:' . $client->phone);
-    //                         $client->sms_initial = $client->sms_initial + 1;
-    //                     }
-    //                     $client->save();
-    //                 }
-    //                 // Si le nombre de chiffres est <= 9, on peut décider de ne rien faire
-    //                 // ou de logger une erreur, selon votre besoin.
-    //             }
-    //         }
-
-    //         // Marquage de la table comme occupée (si elle existe)
-    //         if (!empty($table_id))
-    //         {
-    //             $table = Tables::find($table_id);
-    //             if ($table)
-    //             {
-    //                 $table->occupee = 1;
-    //                 $table->propre = 1;
-    //                 $table->save();
-    //             }
-    //         }
-
-    //         Session::put("facture_user_id", $id);
-    //         $facture_id = $id;
-    //     }
-
-    //     // --- 4. Création de l'achat ---
-    //     $achat = new Achats();
-    //     $achat->id = Achats::get()->count() + 1;
-    //     $achat->user_id = Auth::user()->id;
-    //     $achat->facture_id = $facture_id;
-    //     $achat->article_id = $article_id;
-    //     $achat->type = $request->action;
-    //     $achat->prix_unitaire = $prix_unitaire;
-    //     $achat->quantite = $request->quantite;
-    //     $achat->type_vente_id = $request->type_vente_id;
-    //     $achat->taille_lot = $taille_lot;
-    //     $achat->total = round($prix_unitaire * $request->quantite, 2);
-    //     $achat->devise = $devise_article;
-    //     $achat->taux = $request->taux;
-    //     $achat->libelle = $request->libelle;
-    //     $achat->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
-    //     $achat->date_creation = date("d/m/Y");
-    //     $achat->prix_achat = $prix_achat;
-    //     $achat->devise_achat = $devise_achat;
-
-    //     // Gestion de la preuve (fichier)
-    //     $preuve = "";
-    //     $nb_file = Fichierss::where(["numero_sortie" => Auth::user()->id])->count();
-    //     if ($nb_file != 0) {
-    //         $preuve = Fichierss::where('id', Auth::user()->id)->first()["lien"];
-    //     }
-    //     $achat->preuve_de_sortie = $preuve;
-    //     $achat->save();
-
-    //     // --- 5. Mise à jour du stock ---
-    //     $stock = $stock - $request->quantite;
-    //     $article->stock = round($stock);
-    //     $article->save();
-
-    //     // Nettoyage des fichiers temporaires
-    //     Fichierss::where('id', Auth::user()->id)->delete();
-
-    //     // --- 6. Retour de la vue ---
-    //     $groupe_user_id = Auth::user()->role;
-    //     $data["ressource_id_1"] = 2;
-    //     $data["groupe_user_id"] = $groupe_user_id;
-    //     $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
-    //     $data["factures"] = Factureass::where(["user_id" => Auth::user()->id, "etat" => 0])->get();
-    //     if(Auth::user()->role == 0)
-    //     {
-    //         $data["factures"] = Factureass::where(["etat" => 0])->get();
-    //     }
-    //     return view('include.refresh_factureass', $data);
-    // }
-
     public function add_achat_article(Request $request)
     {
         date_default_timezone_set('Africa/Lubumbashi');
@@ -5370,7 +5257,14 @@ class AjaxController extends Controller
             $achat->date_creation = date("d/m/Y");
             $achat->prix_achat = $prix_achat;
             $achat->devise_achat = $devise_achat;
-
+            if(strlen(trim($request->reduction)) == 0)
+            {
+                $achat->reduction = 0;
+            }
+            else
+            {
+                $achat->reduction = $request->reduction;
+            }
             // Preuve (inchangé)
             $preuve = "";
             $nb_file = Fichierss::where(["numero_sortie" => Auth::user()->id])->count();
@@ -5386,43 +5280,48 @@ class AjaxController extends Controller
             $article->save();
 
 
-
             $data_client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
             if ($data_client_id != 0)
             {
                 $client = Clients::find($data_client_id);
                 if ($client)
                 {
-                   $prospects = prospects::where(['client_id' => $data_client_id])->first();
-                   if ($prospects)
-                   {
-                       // --- 7. Création de la commission (inchangé) ---
-                       $prospects_user_id = $prospects->user_id;
-                       $prospects_client_id = $data_client_id;
-                       $prospects_article_id = $article_id;
-                       $prospects_montant = round($prix_unitaire * $request->quantite, 2);
-                       $taux_commission = 0.05; // 5%
-                       $prospects_commission = round($prospects_montant * $taux_commission, 2);
-                       $prospects_activite_id = Articles::where('id', $article_id)->first()["activite_id"];
-                       $prospects_activites = Activites::where('id', $prospects_activite_id)->first();
-                       $prospects_taux_general = $prospects_activites->taux;
-                       $prospects_devise = $devise_article;
-                       $prospects_date_creation = date("d/m/Y");
-                       $prospects_achat_id = $achat_id;
+                    $prospects = prospects::where(['client_id' => $data_client_id])->first();
+                    if ($prospects)
+                    {
+                        // --- 7. Création de la commission (inchangé) ---
+                        $prospects_user_id = $prospects->user_id;
+                        $prospects_client_id = $data_client_id;
+                        $prospects_article_id = $article_id;
+                        $prospects_montant = round($prix_unitaire * $request->quantite, 2);
+                        $taux_commission = 0.05; // 5%
+                        if(strlen(trim($request->reduction)) == 0)
+                        {
+                            $prospects_commission = round(($prospects_montant - 0) * $taux_commission, 2);
+                        }
+                        else
+                        {
+                            $prospects_commission = round(($prospects_montant - $request->reduction) * $taux_commission, 2);
+                        }
+                        $prospects_activite_id = Articles::where('id', $article_id)->first()["activite_id"];
+                        $prospects_activites = Activites::where('id', $prospects_activite_id)->first();
+                        $prospects_taux_general = $prospects_activites->taux;
+                        $prospects_devise = $devise_article;
+                        $prospects_date_creation = date("d/m/Y");
+                        $prospects_achat_id = $achat_id;
+                        $commisionsagents = new commisionsagents();
+                        $commisionsagents->user_id = $prospects_user_id;
+                        $commisionsagents->client_id = $prospects_client_id;
+                        $commisionsagents->article_id = $prospects_article_id;
+                        $commisionsagents->montant = $prospects_montant;
+                        $commisionsagents->commision = $prospects_commission;
+                        $commisionsagents->devise = $prospects_devise;
+                        $commisionsagents->date_creation = $prospects_date_creation;
+                        $commisionsagents->achat_id = $prospects_achat_id;
+                        $commisionsagents->taux = $prospects_taux_general;
 
-                       $commisionsagents = new commisionsagents();
-                       $commisionsagents->user_id = $prospects_user_id;
-                       $commisionsagents->client_id = $prospects_client_id;
-                       $commisionsagents->article_id = $prospects_article_id;
-                       $commisionsagents->montant = $prospects_montant;
-                       $commisionsagents->commision = $prospects_commission;
-                       $commisionsagents->devise = $prospects_devise;
-                       $commisionsagents->date_creation = $prospects_date_creation;
-                       $commisionsagents->achat_id = $prospects_achat_id;
-                       $commisionsagents->taux = $prospects_taux_general;
-
-                       $commisionsagents->save();
-                   }
+                        $commisionsagents->save();
+                    }
                 }
             }
 
@@ -5819,7 +5718,19 @@ class AjaxController extends Controller
             $article->mesure_id = $request->edit_mesure_id;
             $article->avoir_stock = $request->edit_avoir_stock;
             $article->save();
-        } else {
+
+            $articleStock = articlestocks::where('article_id', $request->id)->firstOrFail();
+            if($articleStock)
+            {
+                $articleStock->prix_detail = $request->edit_prix_detail;
+                $articleStock->prix_gros = $request->edit_prix_gros;
+                $articleStock->taille_lot = $request->edit_taille_lot;
+                $articleStock->devise = $request->edit_devise;
+                $articleStock->avoir_stock = $request->edit_avoir_stock;
+                $articleStock->save();
+            }
+        } else 
+        {
             // Mise à jour uniquement de certains champs dans articlestocks
             $articleStock = articlestocks::where('article_id', $request->id)->firstOrFail();
 
@@ -6224,6 +6135,13 @@ class AjaxController extends Controller
         $data["mois"] = Mois::get();
         $data["annee_id"] = $request->annee_id;
         return view('include.get_mois_2', $data);
+    }
+
+    public function get_mois_3(Request $request)
+    {
+        $data["mois"] = Mois::get();
+        $data["annee_id"] = $request->annee_id;
+        return view('include.get_mois_3', $data);
     }
 
     public function get_client_by_activite(Request $request)
@@ -10494,18 +10412,29 @@ class AjaxController extends Controller
         // ------------------------------------------------------------
         $paiements = detailpaiessachats::where('facture_id', $facture->id)->get();
         $taux = $facture->taux;
+        if ($taux <= 0) $taux = 1;
 
-        // Total original (sans frais) pour déterminer l'état impayé
+        // Total original (sans frais) AVEC réduction par achat, dans SA devise
         $total_original = 0;
         foreach ($achats as $a) {
-            $total_original += $a->total;
+            $devise_achat_orig = $a->devise_achat ?? $facture->devise;
+            $reduction_orig    = (isset($a->reduction) && $a->reduction > 0) ? $a->reduction : 0;
+            $net_orig          = $a->total - $reduction_orig;
+
+            if ($devise_achat_orig == $facture->devise) {
+                $total_original += $net_orig;
+            } elseif ($facture->devise == 0) {
+                $total_original += ($taux > 0) ? ($net_orig / $taux) : 0;
+            } else {
+                $total_original += $net_orig * $taux;
+            }
         }
         if ($facture->devise == 0) {
             $total_original_usd = $total_original;
             $total_original_cdf = $total_original * $taux;
         } else {
             $total_original_cdf = $total_original;
-            $total_original_usd = $total_original / $taux;
+            $total_original_usd = ($taux > 0) ? ($total_original / $taux) : 0;
         }
 
         // Paiements déjà effectués
@@ -10517,7 +10446,7 @@ class AjaxController extends Controller
                 $paye_cdf += $p->montant_recu * $taux;
             } else {
                 $paye_cdf += $p->montant_recu;
-                $paye_usd += $p->montant_recu / $taux;
+                $paye_usd += ($taux > 0) ? ($p->montant_recu / $taux) : 0;
             }
         }
         $est_impayee = ($paye_usd < $total_original_usd) || ($paye_cdf < $total_original_cdf);
@@ -10553,7 +10482,7 @@ class AjaxController extends Controller
 
         // ---------- Construction des lignes d'achats ----------
         $lignes = [];
-        $total_general = 0; // inclut les frais
+        $total_general = 0; // inclut les frais ET la réduction
         $nom_client_final = '';
         $devise_generale = '';
 
@@ -10562,7 +10491,10 @@ class AjaxController extends Controller
             if (!$article) continue;
 
             $frais = $achat->frais_credit ?? 0;
-            $total_general += $achat->total + $frais;
+            // ⭐ AJOUT : réduction par achat
+            $reduction = (isset($achat->reduction) && $achat->reduction > 0) ? $achat->reduction : 0;
+            // Total général = total − réduction + frais
+            $total_general += $achat->total - $reduction + $frais;
 
             if ($devise_generale === '') {
                 $devise_generale = ($achat->devise == 0) ? 'USD' : 'CDF';
@@ -10578,12 +10510,13 @@ class AjaxController extends Controller
                 'nom_article'   => $article->nom_article,
                 'quantite'      => $achat->quantite,
                 'prix_unitaire' => $achat->prix_unitaire,
-                'total_ligne'   => $achat->total,          // sans frais
+                'total_ligne'   => $achat->total,          // sans frais ni réduction
                 'frais_credit'  => $frais,
+                'reduction'     => $reduction,              // ⭐ AJOUT
             ];
         }
 
-        // ---------- Calcul du TTC et des totaux (basés sur total_general avec frais) ----------
+        // ---------- Calcul du TTC et des totaux (basés sur total_general avec frais et réduction) ----------
         $ttc = $total_general + ($total_general * $tva / 100);
         if ($devise_generale == 'USD') {
             $total_ttc_usd = $ttc;
@@ -10735,12 +10668,13 @@ class AjaxController extends Controller
         $pdf->Cell($largeur_utile, 6, iconv('UTF-8', 'Windows-1252', 'Original'), 0, 1, 'C');
         $pdf->Ln(3);
 
-        // --- Tableau des articles (5 colonnes) ---
-        $col_article = 20;
-        $col_qte = 8;
-        $col_pu = 12;
-        $col_montant = 13;
-        $col_frais = 13;
+        // --- Tableau des articles (6 colonnes - ajout RÉDUCTION) ---
+        $col_article   = 17;  // réduit de 20 → 17
+        $col_qte       = 7;   // réduit de 8 → 7
+        $col_pu        = 11;  // réduit de 12 → 11
+        $col_montant   = 11;  // réduit de 13 → 11
+        $col_frais     = 10;  // réduit de 13 → 10
+        $col_reduction = 10;  // ⭐ NOUVELLE COLONNE
 
         $pdf->SetLineWidth(0.6);
         $y1 = $pdf->GetY();
@@ -10753,7 +10687,8 @@ class AjaxController extends Controller
         $pdf->Cell($col_qte, 4, iconv('UTF-8', 'Windows-1252', 'QTE'), 0, 0, 'C');
         $pdf->Cell($col_pu, 4, iconv('UTF-8', 'Windows-1252', 'PRIX'), 0, 0, 'C');
         $pdf->Cell($col_montant, 4, iconv('UTF-8', 'Windows-1252', 'MONTANT'), 0, 0, 'C');
-        $pdf->Cell($col_frais, 4, iconv('UTF-8', 'Windows-1252', 'FRAIS(5%)'), 0, 1, 'C');
+        $pdf->Cell($col_frais, 4, iconv('UTF-8', 'Windows-1252', 'FRAIS(5%)'), 0, 0, 'C');
+        $pdf->Cell($col_reduction, 4, iconv('UTF-8', 'Windows-1252', 'RÉDUCT.'), 0, 1, 'C'); // ⭐ NOUVELLE
 
         $pdf->SetLineWidth(0.6);
         $y2 = $pdf->GetY();
@@ -10764,11 +10699,12 @@ class AjaxController extends Controller
         $pdf->SetFont('Arial', '', 6);
         foreach ($lignes as $ligne) {
             $nom = $ligne['nom_article'];
-            if (mb_strlen($nom) > 14) $nom = mb_substr($nom, 0, 12) . '..';
+            if (mb_strlen($nom) > 12) $nom = mb_substr($nom, 0, 10) . '..';
             $qte = $ligne['quantite'];
             $prix = number_format($ligne['prix_unitaire'], 2, ',', ' ');
             $montant = number_format($ligne['total_ligne'], 2, ',', ' ');
             $frais = number_format($ligne['frais_credit'], 2, ',', ' ');
+            $reduction = number_format($ligne['reduction'], 2, ',', ' '); // ⭐ AJOUT
 
             $pdf->Cell($col_article, 4, iconv('UTF-8', 'Windows-1252', $nom), 0, 0, 'L');
             $pdf->SetFont('Arial', 'B', 6);
@@ -10776,7 +10712,8 @@ class AjaxController extends Controller
             $pdf->SetFont('Arial', '', 6);
             $pdf->Cell($col_pu, 4, iconv('UTF-8', 'Windows-1252', $prix), 0, 0, 'C');
             $pdf->Cell($col_montant, 4, iconv('UTF-8', 'Windows-1252', $montant), 0, 0, 'R');
-            $pdf->Cell($col_frais, 4, iconv('UTF-8', 'Windows-1252', $frais), 0, 1, 'R');
+            $pdf->Cell($col_frais, 4, iconv('UTF-8', 'Windows-1252', $frais), 0, 0, 'R');
+            $pdf->Cell($col_reduction, 4, iconv('UTF-8', 'Windows-1252', $reduction), 0, 1, 'R'); // ⭐ AJOUT
         }
 
         $pdf->SetLineWidth(0.6);
@@ -10794,10 +10731,10 @@ class AjaxController extends Controller
             $pdf->SetFont('Arial', 'B', 6);
             $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', 'Date'), 0, 0, 'L');
             $pdf->Cell(18, 4, iconv('UTF-8', 'Windows-1252', 'Montant'), 0, 0, 'R');
-            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (USD)'), 0, 0, 'R'); // reste à payer
-            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (CDF)'), 0, 0, 'R'); // reste à payer
-            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (USD)'), 0, 0, 'R'); // monnaie à rendre
-            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (CDF)'), 0, 1, 'R'); // monnaie à rendre
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (USD)'), 0, 0, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'C (CDF)'), 0, 0, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (USD)'), 0, 0, 'R');
+            $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', 'R (CDF)'), 0, 1, 'R');
 
             $pdf->SetFont('Arial', '', 6);
 
@@ -10810,10 +10747,10 @@ class AjaxController extends Controller
                 $devise = ($p['devise_recu'] == 0) ? 'USD' : 'CDF';
                 $montant_str = number_format($p['montant'], 2, ',', ' ') . ' ' . $devise;
 
-                $reste_apres_usd_str = number_format($p['reste_apres_usd'], 2, ',', ' '); // C (USD)
-                $reste_apres_cdf_str = number_format($p['reste_apres_cdf'], 2, ',', ' '); // C (CDF)
-                $credit_usd_str = number_format($p['credit_usd'], 2, ',', ' ');           // R (USD)
-                $credit_cdf_str = number_format($p['credit_cdf'], 2, ',', ' ');           // R (CDF)
+                $reste_apres_usd_str = number_format($p['reste_apres_usd'], 2, ',', ' ');
+                $reste_apres_cdf_str = number_format($p['reste_apres_cdf'], 2, ',', ' ');
+                $credit_usd_str = number_format($p['credit_usd'], 2, ',', ' ');
+                $credit_cdf_str = number_format($p['credit_cdf'], 2, ',', ' ');
 
                 $pdf->Cell(8, 4, iconv('UTF-8', 'Windows-1252', $date_aff), 0, 0, 'L');
                 $pdf->Cell(18, 4, iconv('UTF-8', 'Windows-1252', $montant_str), 0, 0, 'R');
@@ -10833,12 +10770,9 @@ class AjaxController extends Controller
 
             // "Total payé" sur la même ligne que les montants
             $pdf->SetFont('Arial', 'B', 6);
-            // Libellé "Total payé" sur 26 mm (date + montant)
             $pdf->Cell(26, 4, iconv('UTF-8', 'Windows-1252', 'Total payé'), 0, 0, 'L');
-            // Montants dans les colonnes C (USD) et C (CDF)
             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', number_format($total_paye_usd, 2, ',', ' ')), 0, 0, 'R');
             $pdf->Cell(10, 4, iconv('UTF-8', 'Windows-1252', number_format($total_paye_cdf, 2, ',', ' ')), 0, 0, 'R');
-            // Colonnes R vides
             $pdf->Cell(20, 4, '', 0, 1, 'R');
             $pdf->Ln(1);
         } else {
@@ -10847,7 +10781,7 @@ class AjaxController extends Controller
             $pdf->Ln(1);
         }
 
-        // ---------- Montant HT (inclut les frais) ----------
+        // ---------- Montant HT (inclut les frais ET la réduction) ----------
         $pdf->SetFont('Arial', 'B', 7);
         $pdf->SetTextColor(0, 0, 0);
         $total_formate = number_format($total_general, 2, ',', ' ');
@@ -15626,7 +15560,7 @@ class AjaxController extends Controller
     {
         // 1. Récupération des deux paramètres possibles via la propriété dynamique
         $pointdeventes_id = $request->pointdeventes_id;
-        $table_id = $request->table_id;
+        $table_id         = $request->table_id;
 
         // 2. Détermination du point de vente et de son stock_id
         if ($pointdeventes_id) {
@@ -15635,7 +15569,7 @@ class AjaxController extends Controller
             $table = Tables::where('id', $table_id)->first();
             if ($table) {
                 $pointdeventes_id = $table->pointdeventes_id;
-                $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+                $pointdeventes    = pointdeventes::where('id', $pointdeventes_id)->first();
             } else {
                 $pointdeventes = null;
             }
@@ -15652,69 +15586,85 @@ class AjaxController extends Controller
         $html = '<option selected value="">Sélectionnez un article</option>';
 
         if ($stock_id == 0) {
-            // Cas sans stock : on ne vérifie que l'activité
+            // ============================================================
+            // CAS SANS STOCK : prix issus de la table Articles
+            // ============================================================
             $articles = Articles::where('supprimer', 0)->get();
+
             foreach ($articles as $article) {
-                $nomMesure = Mesures::where('id', $article->mesure_id)->first()['nom'] ?? 'N/A';
+                $nomMesure  = Mesures::where('id', $article->mesure_id)->first()['nom'] ?? 'N/A';
                 $nomSociete = Societes::where('id', $article->societe_id)->first()['nom'] ?? 'N/A';
                 $label = $article->nom_article . ' ' . $nomMesure . ' (' . $nomSociete . ')';
 
-                // --- AJOUT : affichage des prix ---
-                $devise = $article->devise ?? 0;
+                // --- Prix issus de l'article ---
+                $devise      = $article->devise      ?? 0;
                 $prix_detail = $article->prix_detail ?? 0;
-                $prix_gros = $article->prix_gros ?? 0;
+                $prix_gros   = $article->prix_gros   ?? 0;
+
                 if ($devise == 0) {
-                    $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(USD), <span class="text-success">G : </span> ' . number_format($prix_gros, 2, ',', ' ') . 'USD';
+                    $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(USD), '
+                            . '<span class="text-success">G : </span>' . number_format($prix_gros, 2, ',', ' ') . ' USD';
                 } else {
-                    $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(CDF), <span class="text-success">G : </span> ' . number_format($prix_gros, 2, ',', ' ') . '(CDF)';
+                    $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(CDF), '
+                            . '<span class="text-success">G : </span>' . number_format($prix_gros, 2, ',', ' ') . ' (CDF)';
                 }
                 // ---------------------------------
 
                 $disabled = ($article->activite_id == 0) ? 'disabled' : '';
-                $icon = ($article->activite_id != 0) ? '🟢' : '🔴';
-                $message = $disabled ? ' : Activité non définie' : '';
+                $icon     = ($article->activite_id != 0) ? '🟢' : '🔴';
+                $message  = $disabled ? ' : Activité non définie' : '';
 
                 $html .= '<option value="' . $article->id . '" ' . $disabled . '>'
                     . $icon . ' ' . e($label) . ' Prix : ' . $prixHtml . $message
                     . '</option>';
             }
         } else {
-            // Cas avec stock : on vérifie activité ET stock
+            // ============================================================
+            // CAS AVEC STOCK : prix prioritaires sur articlestocks,
+            // fallback sur Articles si non défini
+            // ============================================================
             $articlestocks = articlestocks::where(['supprimer' => 0, 'stock_id' => $stock_id])->get();
+
             foreach ($articlestocks as $articlestock) {
                 $article = Articles::find($articlestock->article_id);
                 if (!$article) {
                     continue;
                 }
-                $nomMesure = Mesures::where('id', $article->mesure_id)->first()['nom'] ?? 'N/A';
+
+                $nomMesure  = Mesures::where('id', $article->mesure_id)->first()['nom'] ?? 'N/A';
                 $nomSociete = Societes::where('id', $article->societe_id)->first()['nom'] ?? 'N/A';
                 $label = $article->nom_article . ' ' . $nomMesure . ' (' . $nomSociete . ')';
 
-                // --- AJOUT : affichage des prix ---
-                $devise = $article->devise ?? 0;
-                $prix_detail = $article->prix_detail ?? 0;
-                $prix_gros = $article->prix_gros ?? 0;
+                // --- Prix : priorité au stock, fallback sur l'article ---
+                $devise      = $articlestock->devise      ?? $article->devise      ?? 0;
+                $prix_detail = $articlestock->prix_detail ?? $article->prix_detail ?? 0;
+                $prix_gros   = $articlestock->prix_gros   ?? $article->prix_gros   ?? 0;
+
                 if ($devise == 0) {
-                    $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(USD), <span class="text-success">G : </span> ' . number_format($prix_gros, 2, ',', ' ') . 'USD';
+                    $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(USD), '
+                            . '<span class="text-success">G : </span>' . number_format($prix_gros, 2, ',', ' ') . ' USD';
                 } else {
-                    $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(CDF), <span class="text-success">G : </span> ' . number_format($prix_gros, 2, ',', ' ') . '(CDF)';
+                    $prixHtml = '<span class="text-success">D : </span>' . number_format($prix_detail, 2, ',', ' ') . '(CDF), '
+                            . '<span class="text-success">G : </span>' . number_format($prix_gros, 2, ',', ' ') . ' (CDF)';
                 }
-                // ---------------------------------
+                // ----------------------------------------------------------
 
                 $activiteOk = ($article->activite_id != 0);
-                $stockOk = ($articlestock->stock > $articlestock->seuil_minimum);
+                $stockOk    = ($articlestock->stock > 0);
 
                 $disabled = false;
                 $messages = [];
+
                 if (!$activiteOk) {
                     $messages[] = 'Activité non définie';
                 }
                 if (!$stockOk) {
                     $messages[] = 'Stock insuffisant';
                 }
+
                 if (!empty($messages)) {
                     $disabled = true;
-                    $message = ' : ' . implode(' et ', $messages);
+                    $message  = ' : ' . implode(' et ', $messages);
                 } else {
                     $message = '';
                 }

@@ -1879,7 +1879,7 @@ select.form-control {
                                                 @endphp
 
                                                 @if (($data->activite_id != 0) && ($data->stock > $data->seuil_minimum))
-                                                    <option value="{{ $data->id }}">
+                                                    <option value="{{ $data->id }}" data-devise="{{ $data->devise ?? 0 }}">
                                                         🟢 {{ $data->nom_article }}
                                                         {{ (Mesures::where('id', $data->mesure_id)->first()['nom'] ?? 'N/A') }}
                                                         ({{ Societes::where('id', $data->societe_id)->first()['nom'] ?? 'N/A' }})
@@ -1896,7 +1896,7 @@ select.form-control {
                                                         }
                                                         $message = implode(' et ', $erreurs);
                                                     @endphp
-                                                    <option disabled value="{{ $data->id }}">
+                                                    <option disabled value="{{ $data->id }}" data-devise="{{ $data->devise ?? 0 }}">
                                                         🔴 {{ $data->nom_article }}
                                                         {{ (Mesures::where('id', $data->mesure_id)->first()['nom'] ?? 'N/A') }}
                                                         ({{ Societes::where('id', $data->societe_id)->first()['nom'] ?? 'N/A' }})
@@ -1995,6 +1995,46 @@ select.form-control {
                                                 <option value="{{ $data->id }}">{{ $data->name }}</option>
                                             @endforeach
                                         </select>
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- AJOUT : Montant total + Réduction --}}
+                            <div style="margin-top: -8px;" class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="text-info" style="font-weight: bold;margin-top: 16px;">
+                                            <i class="zmdi zmdi-money"></i> Montant total <span id="montant_total_devise" style="color:#e31b23;">(USD)</span>
+                                        </label>
+                                        <input id="montant_total" name="montant_total" type="text"
+                                               class="form-control"
+                                               style="font-weight: bold; background: #e9ecef;"
+                                               placeholder="Calculé automatiquement" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="text-info" style="font-weight: bold;margin-top: 16px;">
+                                            <i class="zmdi zmdi-minus-circle"></i> Réduction <span id="reduction_devise" style="color:#e31b23;">(USD)</span>
+                                        </label>
+                                        <input id="reduction" name="reduction" type="text"
+                                               class="form-control input-mask"
+                                               data-mask="00000000000000000000000000000000000000"
+                                               value="0"
+                                               placeholder="Réduction (Ex : 500)">
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- AJOUT : Montant total réduit --}}
+                            <div style="margin-top: -8px;" class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="text-info" style="font-weight: bold;margin-top: 16px;">
+                                            <i class="zmdi zmdi-check-circle"></i> Montant total réduit <span id="montant_reduit_devise" style="color:#e31b23;">(USD)</span>
+                                        </label>
+                                        <input id="montant_reduit" name="montant_reduit" type="text"
+                                               class="form-control"
+                                               style="font-weight: bold; background: #d1fae5; color:#065f46;"
+                                               placeholder="Calculé automatiquement" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -2619,6 +2659,18 @@ select.form-control {
                                 success: function(response) {
                                     resetButton();
                                     $("#quantite").val("");
+                                    // AJOUT : reset complet
+                                    $("#type_sortie").val("").trigger("change");
+                                    $("#type_vente_id").val("").trigger("change");
+                                    $("#montant_total").val("");
+                                    $("#reduction").val("0");
+                                    $("#montant_reduit").val("");
+                                    $("#montant_total_devise").text("(USD)");
+                                    $("#reduction_devise").text("(USD)");
+                                    $("#montant_reduit_devise").text("(USD)");
+                                    $("#libelle").val("");
+                                    $("#client_id").val("").trigger("change");
+                                    // FIN AJOUT
                                     Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
                                     $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
                                     $("#content_utilisateur").html(response);
@@ -3199,6 +3251,69 @@ select.form-control {
             }
             $('#param_paiements_body').html(paiHtml);
         }
+
+        // ============================================================
+        // AJOUT : parsing/formatage + calcul automatique
+        // ============================================================
+        function parseFormattedNumber(str) {
+            if (str === null || str === undefined) return 0;
+            var cleaned = String(str).replace(/\s/g, '').replace(',', '.');
+            var n = parseFloat(cleaned);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function formatNumber(n) {
+            var v = parseFloat(n) || 0;
+            return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+
+        function calculerMontantReduit() {
+            var total = parseFormattedNumber($("#montant_total").val());
+            var reduction = parseFormattedNumber($("#reduction").val());
+            var reduit = total - reduction;
+            if (reduit < 0) reduit = 0;
+            $("#montant_reduit").val(formatNumber(reduit));
+        }
+
+        function calculerMontantTotal() {
+            var article_id     = $("#type_sortie").val();
+            var type_vente_id  = $("#type_vente_id").val();
+            var quantite       = parseInt($("#quantite").val()) || 0;
+
+            var $option = $("#type_sortie option:selected");
+            var deviseArticle = $option.data('devise');
+            var deviseLabel = (deviseArticle === 0 || deviseArticle === '0') ? 'USD'
+                            : (deviseArticle === 1 || deviseArticle === '1') ? 'CDF'
+                            : 'USD';
+            $("#montant_total_devise").text("(" + deviseLabel + ")");
+            $("#reduction_devise").text("(" + deviseLabel + ")");
+            $("#montant_reduit_devise").text("(" + deviseLabel + ")");
+
+            if (!article_id || !type_vente_id || quantite <= 0) {
+                $("#montant_total").val("");
+                $("#montant_reduit").val("");
+                return;
+            }
+
+            $.get("{{ url('/get_prix_article') }}", {
+                article_id: article_id,
+                type_vente_id: type_vente_id,
+            }, function(get_prix_article) {
+                var prix_unitaire = parseFloat(get_prix_article[0][0]) || 0;
+                var total = prix_unitaire * quantite;
+                $("#montant_total").val(formatNumber(total));
+                calculerMontantReduit();
+            }).fail(function() {
+                $("#montant_total").val("");
+                $("#montant_reduit").val("");
+            });
+        }
+
+        $(document).on('change', '#type_sortie',   calculerMontantTotal);
+        $(document).on('change', '#type_vente_id', calculerMontantTotal);
+        $(document).on('input keyup', '#quantite', calculerMontantTotal);
+        $(document).on('input keyup', '#reduction', calculerMontantReduit);
+        // ============================================================
 
         $(document).ready(function() {
             $('#client_id').select2({

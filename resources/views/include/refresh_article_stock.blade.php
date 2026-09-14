@@ -295,9 +295,9 @@ use App\Models\Ressources;
                                 <td class="prix-cell" data-prix="{{ $dataa->prix }}" data-devise="{{ $dataa->devise }}" style="padding-top:5px;padding-bottom:5px;">
                                     <?php
                                     if ($dataa->devise == 0) {
-                                        echo '<span class="text-success">D : </span>' . number_format($dataa->prix_detail, 2, ',', ' ') . '(USD), <span class="text-success">G : </span> ' . number_format($data->prix_gros, 2, ',', ' ') . 'USD';
+                                        echo '<span class="text-success">D : </span>' . number_format($dataa->prix_detail, 2, ',', ' ') . '(USD), <span class="text-success">G : </span> ' . number_format($dataa->prix_gros, 2, ',', ' ') . 'USD';
                                     } else {
-                                        echo '<span class="text-success">D : </span>' . number_format($dataa->prix_detail, 2, ',', ' ') . '(CDF), <span class="text-success">G : </span> ' . number_format($data->prix_gros, 2, ',', ' ') . '(CDF)';
+                                        echo '<span class="text-success">D : </span>' . number_format($dataa->prix_detail, 2, ',', ' ') . '(CDF), <span class="text-success">G : </span> ' . number_format($dataa->prix_gros, 2, ',', ' ') . '(CDF)';
                                     }
                                     ?>
                                 </td>

@@ -53,6 +53,7 @@ use App\Models\listesdesinvites;
 use App\Models\Stocks;
 use App\Models\Tables;
 use App\Models\Typeventes;
+use App\Models\facturesnormalisees;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -274,7 +275,7 @@ class HomeController extends Controller
             return redirect('/');
         }
     }
-    
+
     public function commissions()
     {
         $groupe_user_id = Auth::user()->role;
@@ -328,7 +329,7 @@ class HomeController extends Controller
             return redirect('/');
         }
     }
-    
+
     public function mes_commissions()
     {
         $groupe_user_id = Auth::user()->role;
@@ -382,7 +383,7 @@ class HomeController extends Controller
             return redirect('/');
         }
     }
-    
+
     public function mes_utilisateurs()
     {
         $groupe_user_id = Auth::user()->role;
@@ -728,7 +729,7 @@ class HomeController extends Controller
             return redirect('/');
         }
     }
-    
+
     public function mes_clients()
     {
         $groupe_user_id = Auth::user()->role;
@@ -1673,7 +1674,7 @@ class HomeController extends Controller
         $data["stocks"] = Stocks::where(["etat" => 1, "user_id" => Auth::user()->id, "supprimer" => 0])->get();
         return view('interfaces.gestion_stock', $data);
     }
-    
+
     public function mon_stock()
     {
         $groupe_user_id = Auth::user()->role;
@@ -1823,6 +1824,52 @@ class HomeController extends Controller
                 $data["annees"] = Annees::get();
                 $data["mois"] = Mois::get();
                 return view('interfaces.listesfactures', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+
+    public function charger_facture()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 35;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(((($display ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display ==  0) && (Auth::user()->role == 0)))
+            {
+                $data["utilisateurs"] = User::where(["etat" => 1])->get();
+                $data["fichier_documents"] = Fichier_documents::where(["etat" => 1])->get();
+                $data["type_documents"] = Type_documents::where(["etat" => 1])->get();
+                $data["verbalisateurs"] = Verbalisateurs::where(["etat" => 1])->get();
+                $data["contrevenants"] = Contrevenants::where(["etat" => 1])->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["invitations"] = Invitations::where(["etat" => 1])->get();
+                $data["decisions"] = Decisions::where(["etat" => 1])->get();
+                $data["activites"] = Activites::where(["etat" => 1])->get();
+                $data["listespaies"] = Listespaies::where(["supprimer" => 0])->get();
+                $data["listesfactures"] = Listesfactures::where(["supprimer" => 0])->get();
+                $data["facturesnormalisees"] = facturesnormalisees::where(["supprimer" => 0])->get();
+                $data["annees"] = Annees::get();
+                $data["mois"] = Mois::get();
+                $clients = Clients::where(["etat" => 1])->get();
+                $data["clients"] = $clients;
+                return view('interfaces.charger_facture', $data);
             }
             else
             {

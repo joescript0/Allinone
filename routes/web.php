@@ -32,6 +32,7 @@ Route::get('/check_remboursement_1', [AjaxController::class , 'check_rembourseme
 Route::post('/check_groupe', [AjaxController::class , 'check_groupe'])->name('check_groupe');
 Route::post('/add_listespaies', [AjaxController::class , 'add_listespaies'])->name('add_listespaies');
 Route::post('/add_listesfactures', [AjaxController::class , 'add_listesfactures'])->name('add_listesfactures');
+Route::post('/add_charger_facture', [AjaxController::class , 'add_charger_facture'])->name('add_charger_facture');
 Route::post('/check_contrevenant', [AjaxController::class , 'check_contrevenant'])->name('check_contrevenant');
 Route::post('/check_verbalisateur', [AjaxController::class , 'check_verbalisateur'])->name('check_verbalisateur');
 Route::post('/check_type_frais', [AjaxController::class , 'check_type_frais'])->name('check_type_frais');
@@ -291,6 +292,7 @@ Route::get('/get_contentieux', [AjaxController::class , 'get_contentieux'])->nam
 Route::get('/get_mois', [AjaxController::class , 'get_mois'])->name('get_mois');
 Route::get('/get_mois_1', [AjaxController::class , 'get_mois_1'])->name('get_mois_1');
 Route::get('/get_mois_2', [AjaxController::class , 'get_mois_2'])->name('get_mois_2');
+Route::get('/get_mois_3', [AjaxController::class , 'get_mois_3'])->name('get_mois_3');
 Route::get('/get_user_where_not_in_listespaies', [AjaxController::class , 'get_user_where_not_in_listespaies'])->name('get_user_where_not_in_listespaies');
 Route::get('/get_user_where_not_in_listesfactures', [AjaxController::class , 'get_user_where_not_in_listesfactures'])->name('get_user_where_not_in_listesfactures');
 Route::get('/get_mois_where_not_in_prestation', [AjaxController::class , 'get_mois_where_not_in_prestation'])->name('get_mois_where_not_in_prestation');
@@ -412,6 +414,7 @@ Route::get('/gestion_table', [App\Http\Controllers\HomeController::class, 'gesti
 Route::get('/gestion_stock', [App\Http\Controllers\HomeController::class, 'gestion_stock'])->name('gestion_stock');
 Route::get('/mon_stock', [App\Http\Controllers\HomeController::class, 'mon_stock'])->name('mon_stock');
 Route::get('/rendez_vous', [App\Http\Controllers\HomeController::class, 'rendez_vous'])->name('rendez_vous');
+Route::get('/charger_facture', [App\Http\Controllers\HomeController::class, 'charger_facture'])->name('charger_facture');
 Route::get('/scanner_rq_code', [App\Http\Controllers\OfficierController::class, 'scanner_rq_code'])->name('scanner_rq_code');
 Route::get('/paiement', [App\Http\Controllers\PaiementController::class, 'paiement'])->name('paiement');
 Route::get('/client_partager', [App\Http\Controllers\ClientController::class, 'client_partager'])->name('client_partager');

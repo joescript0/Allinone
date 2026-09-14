@@ -18,9 +18,11 @@ $tailleLot   = $articles->taille_lot;
 $devise      = $articles->devise;
 $avoirStock  = $articles->avoir_stock;
 
-if ($stock_id != 0) {
+if ($stock_id != 0) 
+{
     $stock = Articlestocks::where(['stock_id' => $stock_id, 'article_id' => $articles->id])->first();
-    if ($stock) {
+    if ($stock) 
+    {
         $prixDetail  = $stock->prix_detail;
         $prixGros    = $stock->prix_gros;
         $tailleLot   = $stock->taille_lot;

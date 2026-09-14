@@ -1439,6 +1439,7 @@ select.form-control {
                                         @foreach ($factures as $data)
                                             @php
                                                 $taux = $data->taux;
+                                                if ($taux <= 0) $taux = 1;
 
                                                 // 1. Récupération des achats
                                                 $ent = Achats::where('facture_id', $data->id)->get();
@@ -1545,17 +1546,39 @@ select.form-control {
 
                                                 $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
 
-                                                // Construction du JSON articles
+                                                // ============================================================
+                                                // ✅ CORRECTIF : Construction du JSON articles avec le VRAI NOM
+                                                //    (récupéré depuis la collection $articles via les FK possibles)
+                                                // ============================================================
                                                 $articles_json = [];
                                                 foreach ($ent as $e) {
-                                                    $nom_article_aff = $e->nom_article
+
+                                                    /* ---- 1. Recherche de l'article associé ---- */
+                                                    $art = null;
+                                                    foreach (['article_id', 'entre_id', 'entree_id', 'produit_id', 'id_article'] as $field) {
+                                                        if (isset($e->$field) && $e->$field) {
+                                                            $art = $articles->firstWhere('id', $e->$field);
+                                                            if ($art) break;
+                                                        }
+                                                    }
+
+                                                    /* ---- 2. Nom réel (avec tous les fallbacks) ---- */
+                                                    $nom_article_aff = $art->nom_article
+                                                                    ?? $e->nom_article
                                                                     ?? $e->nom
-                                                                    ?? $e->name
+                                                                    ?? $art->name
                                                                     ?? ('Article #' . $e->id);
 
+                                                    /* ---- 3. Autres champs ---- */
                                                     $pa = $e->prix_achat ?? 0;
                                                     $qt = $e->quantite ?? 1;
-                                                    $prix_unit = $e->prix_vente ?? ($qt > 0 ? ($e->total / $qt) : $e->total);
+                                                    $prix_unit = $e->prix_vente
+                                                              ?? ($art->prix_detail ?? null)
+                                                              ?? ($qt > 0 ? ($e->total / $qt) : $e->total);
+
+                                                    /* ---- 4. Devise propre à chaque achat ---- */
+                                                    $devise_achat_json = $e->devise_achat ?? $data->devise;
+                                                    $reduction_ligne   = $e->reduction ?? 0;
 
                                                     $articles_json[] = [
                                                         'id'               => $e->id,
@@ -1565,8 +1588,10 @@ select.form-control {
                                                         'prix_achat'       => $pa,
                                                         'prix_achat_total' => $pa * $qt,
                                                         'total'            => $e->total,
+                                                        'total_net'        => $e->total - $reduction_ligne,
                                                         'frais_credit'     => $e->frais_credit ?? 0,
-                                                        'reduction'        => $e->reduction ?? 0,
+                                                        'reduction'        => $reduction_ligne,
+                                                        'devise_achat'     => $devise_achat_json,
                                                     ];
                                                 }
 
@@ -1727,7 +1752,7 @@ select.form-control {
                                                     {{-- ===== FIN AJOUT ===== --}}
 
                                                     <!-- AJOUT : ICÔNE DE SUPPRESSION AVEC MODALE DE CONFIRMATION -->
-                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
+                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($delete == 0) && (Auth::user()->role == 0))) { ?>
                                                         <a href="#" class="delete-facture-btn"
                                                            data-id="{{ $data->id }}"
                                                            data-numero="{{ $data->numero }}"
@@ -1951,6 +1976,46 @@ select.form-control {
                                                 <option value="{{ $data->id }}">{{ $data->name }}</option>
                                             @endforeach
                                         </select>
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- AJOUT : Montant total + Réduction --}}
+                            <div style="margin-top: -8px;" class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="text-info" style="font-weight: bold;margin-top: 16px;">
+                                            <i class="zmdi zmdi-money"></i> Montant total <span id="montant_total_devise" style="color:#e31b23;">(USD)</span>
+                                        </label>
+                                        <input id="montant_total" name="montant_total" type="text"
+                                               class="form-control"
+                                               style="font-weight: bold; background: #e9ecef;"
+                                               placeholder="Calculé automatiquement" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="text-info" style="font-weight: bold;margin-top: 16px;">
+                                            <i class="zmdi zmdi-minus-circle"></i> Réduction <span id="reduction_devise" style="color:#e31b23;">(USD)</span>
+                                        </label>
+                                        <input id="reduction" name="reduction" type="text"
+                                               class="form-control input-mask"
+                                               data-mask="00000000000000000000000000000000000000"
+                                               value="0"
+                                               placeholder="Réduction (Ex : 500)">
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- AJOUT : Montant total réduit --}}
+                            <div style="margin-top: -8px;" class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="text-info" style="font-weight: bold;margin-top: 16px;">
+                                            <i class="zmdi zmdi-check-circle"></i> Montant total réduit <span id="montant_reduit_devise" style="color:#e31b23;">(USD)</span>
+                                        </label>
+                                        <input id="montant_reduit" name="montant_reduit" type="text"
+                                               class="form-control"
+                                               style="font-weight: bold; background: #d1fae5; color:#065f46;"
+                                               placeholder="Calculé automatiquement" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -2489,6 +2554,7 @@ select.form-control {
         function loadArticlesForPointVente(pdvId) {
             if (!pdvId || pdvId.trim() === '') {
                 $("#type_sortie").html('<option value="">Selectionnez un article</option>');
+                calculerMontantTotal();
                 return;
             }
             $.get("{{ url('/get_articles_select') }}", { pointdeventes_id : pdvId })
@@ -2619,6 +2685,18 @@ select.form-control {
                                                             // Succès : réinitialiser le bouton
                                                             resetButton();
                                                             $("#quantite").val("");
+                                                            // AJOUT : reset des champs Montant total / Réduction / Réduit
+                                                            $("#type_sortie").val("").trigger("change");
+                                                            $("#type_vente_id").val("").trigger("change");
+                                                            $("#montant_total").val("");
+                                                            $("#reduction").val("0");
+                                                            $("#montant_reduit").val("");
+                                                            $("#montant_total_devise").text("(USD)");
+                                                            $("#reduction_devise").text("(USD)");
+                                                            $("#montant_reduit_devise").text("(USD)");
+                                                            $("#libelle").val("");
+                                                            $("#client_id").val("").trigger("change");
+                                                            // FIN AJOUT
                                                             Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
                                                             $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
                                                             $("#content_utilisateur").html(response);
@@ -3006,7 +3084,7 @@ select.form-control {
             $('#param_benefice_usd').text(formatMoney($row.data('benefice-usd')) + ' USD');
             $('#param_benefice_cdf').text(formatMoney($row.data('benefice-cdf')) + ' CDF');
 
-            // === ARTICLES – DOUBLE DEVISE SANS PRIX ACHAT ===
+            // === ARTICLES – DOUBLE DEVISE ===
             var articles = safeParseJSON($row.attr('data-articles'));
             console.log('📦 Articles récupérés:', articles.length, articles);
 
@@ -3016,10 +3094,12 @@ select.form-control {
             var deviseFacture = $row.data('devise-label');
             var isFactureUSD = (deviseFacture === 'USD');
 
-            function formatBoth(val) {
+            function formatBoth(val, deviseAchat) {
                 var v = parseFloat(val) || 0;
+                if (deviseAchat === undefined) deviseAchat = isFactureUSD ? 0 : 1;
+
                 var usd, cdf;
-                if (isFactureUSD) {
+                if (deviseAchat == 0) {
                     usd = v;
                     cdf = v * tauxFacture;
                 } else {
@@ -3029,9 +3109,10 @@ select.form-control {
                 return '<div class="dual-currency"><b>' + formatMoney(usd) + ' USD</b><small>' + formatMoney(cdf) + ' CDF</small></div>';
             }
 
-            function formatBothShort(val) {
+            function formatBothShort(val, deviseAchat) {
                 var v = parseFloat(val) || 0;
-                if (isFactureUSD) {
+                if (deviseAchat === undefined) deviseAchat = isFactureUSD ? 0 : 1;
+                if (deviseAchat == 0) {
                     return formatMoney(v) + ' USD (' + formatMoney(v * tauxFacture) + ' CDF)';
                 } else {
                     var usd = (tauxFacture > 0) ? (v / tauxFacture) : 0;
@@ -3039,9 +3120,10 @@ select.form-control {
                 }
             }
 
-            function splitBoth(val) {
+            function splitBoth(val, deviseAchat) {
                 var v = parseFloat(val) || 0;
-                if (isFactureUSD) {
+                if (deviseAchat === undefined) deviseAchat = isFactureUSD ? 0 : 1;
+                if (deviseAchat == 0) {
                     return { usd: v, cdf: v * tauxFacture };
                 } else {
                     return { usd: (tauxFacture > 0) ? (v / tauxFacture) : 0, cdf: v };
@@ -3055,31 +3137,43 @@ select.form-control {
 
             if (articles.length > 0) {
                 articles.forEach(function(a, idx) {
-                    var benef = (parseFloat(a.total) || 0) - (parseFloat(a.prix_achat_total) || 0);
+                    var deviseAchat = (a.devise_achat !== undefined && a.devise_achat !== null)
+                                        ? parseInt(a.devise_achat)
+                                        : (isFactureUSD ? 0 : 1);
+
+                    var totalBrutAchat = parseFloat(a.total) || 0;
+                    var reductionAchat = parseFloat(a.reduction) || 0;
+                    var totalNetAchat = totalBrutAchat - reductionAchat;
+                    var benef = totalNetAchat - (parseFloat(a.prix_achat_total) || 0);
+
+                    var sPV    = splitBoth(a.prix_unitaire, deviseAchat);
+                    var sGen   = splitBoth(a.total, deviseAchat);
+                    var sFra   = splitBoth(a.frais_credit, deviseAchat);
+                    var sRed   = splitBoth(a.reduction, deviseAchat);
+                    var sBen   = splitBoth(benef, deviseAchat);
+
                     totalQte       += parseFloat(a.quantite) || 0;
-                    totalPrixVente += parseFloat(a.prix_unitaire) || 0;
-                    totalGeneral   += parseFloat(a.total) || 0;
-                    totalAchat     += parseFloat(a.prix_achat_total) || 0;
-                    totalFrais     += parseFloat(a.frais_credit) || 0;
-                    totalReduction += parseFloat(a.reduction) || 0;
-                    totalBenef     += benef;
+                    totalPrixVente += sPV.usd;
+                    totalGeneral   += sGen.usd;
+                    totalFrais     += sFra.usd;
+                    totalReduction += sRed.usd;
+                    totalBenef     += sBen.usd;
 
                     var fraisVal = parseFloat(a.frais_credit) || 0;
-                    var redVal   = parseFloat(a.reduction) || 0;
+                    var redVal   = reductionAchat;
 
-                    rowsHtml += '<tr data-achat-id="' + a.id + '">';
+                    rowsHtml += '<tr data-achat-id="' + a.id + '" data-devise-achat="' + deviseAchat + '">';
                     rowsHtml += '<td>' + (idx + 1) + '</td>';
-                    rowsHtml += '<td><b>' + a.nom + '</b></td>';
+                    rowsHtml += '<td><b>' + a.nom + '</b> <small class="text-muted">(' + (deviseAchat == 0 ? 'USD' : 'CDF') + ')</small></td>';
                     rowsHtml += '<td>' + a.quantite + '</td>';
-                    rowsHtml += '<td>' + formatBoth(a.prix_unitaire) + '</td>';
-                    rowsHtml += '<td>' + formatBoth(a.total) + '</td>';
+                    rowsHtml += '<td>' + formatBoth(a.prix_unitaire, deviseAchat) + '</td>';
+                    rowsHtml += '<td>' + formatBoth(a.total, deviseAchat) + '</td>';
                     rowsHtml += '<td><input type="number" step="0.01" min="0" class="form-control param-inline-input frais-input" value="' + fraisVal.toFixed(2) + '"></td>';
                     rowsHtml += '<td><input type="number" step="0.01" min="0" class="form-control param-inline-input reduction-input" value="' + redVal.toFixed(2) + '"></td>';
-                    rowsHtml += '<td class="' + (benef >= 0 ? 'text-success' : 'text-danger') + '">' + formatBoth(benef) + '</td>';
+                    rowsHtml += '<td class="' + (benef >= 0 ? 'text-success' : 'text-danger') + '">' + formatBoth(benef, deviseAchat) + '</td>';
                     rowsHtml += '</tr>';
                 });
 
-                // ⭐ TOTAUX GÉNÉRAUX EN CARTES
                 function buildCard(cssClass, icon, label, value, sub) {
                     var html = '<div class="param-total-item ' + cssClass + '">';
                     html += '<div class="param-total-label">';
@@ -3094,11 +3188,18 @@ select.form-control {
                     return html;
                 }
 
-                var tPV    = splitBoth(totalPrixVente);
-                var tGen   = splitBoth(totalGeneral);
-                var tFrais = splitBoth(totalFrais);
-                var tRed   = splitBoth(totalReduction);
-                var tBenef = splitBoth(totalBenef);
+                function usdPair(usdValue) {
+                    return {
+                        usd: usdValue,
+                        cdf: usdValue * tauxFacture
+                    };
+                }
+
+                var tPV    = usdPair(totalPrixVente);
+                var tGen   = usdPair(totalGeneral);
+                var tFrais = usdPair(totalFrais);
+                var tRed   = usdPair(totalReduction);
+                var tBenef = usdPair(totalBenef);
 
                 var cardsHtml = '';
                 cardsHtml += buildCard('total-qte',   'zmdi-format-list-numbered', 'Total Qté',           totalQte, null);
@@ -3126,9 +3227,9 @@ select.form-control {
             $('#param_articles_body').html(rowsHtml);
             $('#param_nb_articles').text(articles.length);
 
-            $('#param_frais_credit_show').text(formatBothShort(totalFrais));
-            $('#param_reduction_show').text(formatBothShort(totalReduction));
-            $('#param_brut_show').text(formatBothShort(montantUSD));
+            $('#param_frais_credit_show').text(formatBothShort(totalFrais, 0));
+            $('#param_reduction_show').text(formatBothShort(totalReduction, 0));
+            $('#param_brut_show').text(formatBothShort(montantUSD, 0));
 
             $('#param_lines_msg').html('');
 
@@ -3187,6 +3288,72 @@ select.form-control {
             }
             $('#param_paiements_body').html(paiHtml);
         }
+
+        // ============================================================
+        // AJOUT : parsing/formatage + calcul automatique
+        // ============================================================
+        function parseFormattedNumber(str) {
+            if (str === null || str === undefined) return 0;
+            var cleaned = String(str).replace(/\s/g, '').replace(',', '.');
+            var n = parseFloat(cleaned);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function formatNumber(n) {
+            var v = parseFloat(n) || 0;
+            return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+
+        function calculerMontantReduit() {
+            var total = parseFormattedNumber($("#montant_total").val());
+            var reduction = parseFormattedNumber($("#reduction").val());
+            var reduit = total - reduction;
+            if (reduit < 0) reduit = 0;
+            $("#montant_reduit").val(formatNumber(reduit));
+        }
+
+        function calculerMontantTotal() {
+            var article_id     = $("#type_sortie").val();
+            var type_vente_id  = $("#type_vente_id").val();
+            var quantite       = parseInt($("#quantite").val()) || 0;
+            var pointdeventes_id = $("#pointdeventes_id").val();
+
+            var $option = $("#type_sortie option:selected");
+            var deviseArticle = $option.data('devise');
+            var deviseLabel = (deviseArticle === 0 || deviseArticle === '0') ? 'USD'
+                            : (deviseArticle === 1 || deviseArticle === '1') ? 'CDF'
+                            : 'USD';
+            $("#montant_total_devise").text("(" + deviseLabel + ")");
+            $("#reduction_devise").text("(" + deviseLabel + ")");
+            $("#montant_reduit_devise").text("(" + deviseLabel + ")");
+
+            if (!article_id || !type_vente_id || quantite <= 0 || !pointdeventes_id) {
+                $("#montant_total").val("");
+                $("#montant_reduit").val("");
+                return;
+            }
+
+            $.get("{{ url('/get_prix_article') }}", {
+                article_id: article_id,
+                type_vente_id: type_vente_id,
+                pointdeventes_id: pointdeventes_id
+            }, function(get_prix_article) {
+                var prix_unitaire = parseFloat(get_prix_article[0][0]) || 0;
+                var total = prix_unitaire * quantite;
+                $("#montant_total").val(formatNumber(total));
+                calculerMontantReduit();
+            }).fail(function() {
+                $("#montant_total").val("");
+                $("#montant_reduit").val("");
+            });
+        }
+
+        $(document).on('change', '#type_sortie',   calculerMontantTotal);
+        $(document).on('change', '#type_vente_id', calculerMontantTotal);
+        $(document).on('input keyup', '#quantite', calculerMontantTotal);
+        $(document).on('input keyup', '#reduction', calculerMontantReduit);
+        $(document).on('change', '#pointdeventes_id', calculerMontantTotal);
+        // ============================================================
 
         // ========== INITIALISATION ==========
         $(document).ready(function() {
