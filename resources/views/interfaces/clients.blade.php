@@ -1118,6 +1118,11 @@ select.form-control {
             </div>
             <div id="bloc_2" style="margin-top: 12px;display: none;margin-bottom: 100px;" class="col-lg-12">
                 <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-accounts-add text-info"></i> Ajouter</h4>
+                @php
+                    // Récupération du taux par défaut à partir de l'activité par défaut (id = 1)
+                    $_activite_default = Activites::where('id', 1)->first();
+                    $_taux_default = $_activite_default->taux ?? 0;
+                @endphp
                 <form id="form_add" action="#" method="post">
                     @csrf
                     <div class="row">
@@ -1207,6 +1212,25 @@ select.form-control {
                                     <option class="form-control" value="0">Africtech</option>
                                     <option class="form-control" value="1">Fqsmm</option>
                                     <option class="form-control" value="2">Beforward</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== NOUVEAUX CHAMPS : TAUX ET TYPE DE FACTURE ===== -->
+                    <div style="margin-top: -20px;" class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-money"></i> Taux </span></label>
+                                <input type="text" id="taux" name="taux" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control" placeholder="Taux" value="{{ $_taux_default }}">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-info"></i> Type de facture </span></label>
+                                <select id="type_facture" name="type_facture" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control">
+                                    <option class="form-control" value="0">Normal</option>
+                                    <option class="form-control" value="1">Normalisée</option>
                                 </select>
                             </div>
                         </div>

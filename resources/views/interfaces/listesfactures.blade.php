@@ -1223,37 +1223,26 @@ $("#save").click(function(e) {
                         $('#msg').html("");
                     }, 9000);
                 } else {
-                    $.get("{{ url('/check_solde_encours_2') }}", {}, function(resp_solde) {
-                        var rr = resp_solde.split("__________");
-                        if (rr[0] != 0) {
-                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> La facture de ' + rr[1] + ' est activé.');
-                            $('#msg').css('color', "#ff6b68");
+                    $("#save").attr("disabled", true);
+                    $.ajax({
+                        type: "POST",
+                        url: "/add_listesfactures",
+                        data: data,
+                        success: function(response) {
+                            $("#save").attr("disabled", false);
+                            $.get("{{ url('/get_mois_2') }}", {
+                                annee_id: annee_id
+                            }, function(response) {
+                                $("#moi_id").html(response);
+                            });
+                            $('#msg').html(
+                                '<i class="zmdi zmdi-check-circle"></i> Liste de facture ajoutée avec succès'
+                            );
+                            $('#msg').css("color", '#32c787');
+                            $("#content_groupe").html(response);
                             setTimeout(() => {
                                 $('#msg').html("");
                             }, 9000);
-                        } else {
-                            $("#save").attr("disabled", true);
-                            $.ajax({
-                                type: "POST",
-                                url: "/add_listesfactures",
-                                data: data,
-                                success: function(response) {
-                                    $("#save").attr("disabled", false);
-                                    $.get("{{ url('/get_mois_2') }}", {
-                                        annee_id: annee_id
-                                    }, function(response) {
-                                        $("#moi_id").html(response);
-                                    });
-                                    $('#msg').html(
-                                        '<i class="zmdi zmdi-check-circle"></i> Liste de facture ajoutée avec succès'
-                                    );
-                                    $('#msg').css("color", '#32c787');
-                                    $("#content_groupe").html(response);
-                                    setTimeout(() => {
-                                        $('#msg').html("");
-                                    }, 9000);
-                                }
-                            });
                         }
                     });
                 }

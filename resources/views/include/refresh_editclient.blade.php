@@ -190,6 +190,36 @@
         </div>
     </div>
 
+    <!-- ===== NOUVEAUX CHAMPS : TAUX ET TYPE DE FACTURE ===== -->
+    <div style="margin-top: -20px;" class="row">
+        <div class="col-6">
+            <div class="form-group">
+                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-money"></i>
+                    Taux </span></label>
+                <input type="text" id="edit_taux" name="edit_taux"
+                    style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);"
+                    class="form-control" placeholder="Taux" value="<?= $clients->taux ?? '' ?>">
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="form-group">
+                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-info"></i>
+                    Type de facture </span></label>
+                <select id="edit_type_facture" name="edit_type_facture"
+                    style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);"
+                    class="form-control">
+                    @if (($clients->type_facture ?? 0) == 0)
+                        <option selected class="form-control" value="0">Normal</option>
+                        <option class="form-control" value="1">Normalisée</option>
+                    @else
+                        <option class="form-control" value="0">Normal</option>
+                        <option selected class="form-control" value="1">Normalisée</option>
+                    @endif
+                </select>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== CHAMPS LATITUDE / LONGITUDE ===== -->
     <div style="margin-top: -20px;" class="row">
         <div class="col-6">
@@ -266,6 +296,24 @@
 
 <script src="{{ asset('assets/vendors/jquery-mask-plugin/jquery.mask.min.js') }}"></script>
 <script>
+    // ============================================================
+    // Mise à jour automatique du taux selon l'activité sélectionnée
+    // ============================================================
+    var __tauxActivitesEdit = @json($activites->pluck('taux', 'id'));
+
+    function majTauxSelonActiviteEdit() {
+        var actId = $('#edit_activite_id').val();
+        if (actId !== undefined && __tauxActivitesEdit[actId] !== undefined) {
+            $('#edit_taux').val(__tauxActivitesEdit[actId]);
+        }
+    }
+
+    // Mise à jour du taux lors du changement d'activité
+    $(document).off('change.tauxEdit', '#edit_activite_id').on('change.tauxEdit', '#edit_activite_id', function() {
+        majTauxSelonActiviteEdit();
+        showEditMsg('success', '<i class="zmdi zmdi-check-circle"></i> Taux mis à jour selon l\'activité', 3000);
+    });
+
     // ============================================================
     // Gestion des messages d'édition
     // ============================================================

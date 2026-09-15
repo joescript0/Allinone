@@ -44,6 +44,7 @@ Route::post('/check_societe', [AjaxController::class , 'check_societe'])->name('
 Route::get('/check_solde', [AjaxController::class , 'check_solde'])->name('check_solde');
 Route::get('/check_solde_1', [AjaxController::class , 'check_solde_1'])->name('check_solde_1');
 Route::get('/check_solde_2', [AjaxController::class , 'check_solde_2'])->name('check_solde_2');
+Route::get('/check_solde_3', [AjaxController::class , 'check_solde_3'])->name('check_solde_3');
 Route::get('/print_facture', [AjaxController::class , 'print_facture'])->name('print_facture');
 Route::get('/get_credit', [AjaxController::class , 'get_credit'])->name('get_credit');
 Route::get('/get_image_utilisateur', [AjaxController::class , 'get_image_utilisateur'])->name('get_image_utilisateur');
@@ -184,6 +185,7 @@ Route::get('/refresh_editposte', [AjaxController::class , 'refresh_editposte'])-
 Route::get('/refresh_editecole', [AjaxController::class , 'refresh_editecole'])->name('refresh_editecole');
 Route::get('/refresh_editeleve', [AjaxController::class , 'refresh_editeleve'])->name('refresh_editeleve');
 Route::get('/refresh_editclient', [AjaxController::class , 'refresh_editclient'])->name('refresh_editclient');
+Route::get('/refresh_editfacturesnormalisees', [AjaxController::class , 'refresh_editfacturesnormalisees'])->name('refresh_editfacturesnormalisees');
 Route::get('/refresh_editprospect', [AjaxController::class , 'refresh_editprospect'])->name('refresh_editprospect');
 Route::get('/refresh_editprospectsuivi', [AjaxController::class , 'refresh_editprospectsuivi'])->name('refresh_editprospectsuivi');
 Route::get('/refresh_editarticle', [AjaxController::class , 'refresh_editarticle'])->name('refresh_editarticle');
@@ -204,6 +206,7 @@ Route::get('/refresh_deleteposte', [AjaxController::class , 'refresh_deleteposte
 Route::get('/refresh_deleteecole', [AjaxController::class , 'refresh_deleteecole'])->name('refresh_deleteecole');
 Route::get('/refresh_deleteeleve', [AjaxController::class , 'refresh_deleteeleve'])->name('refresh_deleteeleve');
 Route::get('/refresh_deleteclient', [AjaxController::class , 'refresh_deleteclient'])->name('refresh_deleteclient');
+Route::get('/refresh_deletefacturesnormalisees', [AjaxController::class , 'refresh_deletefacturesnormalisees'])->name('refresh_deletefacturesnormalisees');
 Route::get('/refresh_deleteprospect', [AjaxController::class , 'refresh_deleteprospect'])->name('refresh_deleteprospect');
 Route::get('/delete_operation', [AjaxController::class , 'delete_operation'])->name('delete_operation');
 Route::get('/delete_operation_2', [AjaxController::class , 'delete_operation_2'])->name('delete_operation_2');
@@ -339,12 +342,14 @@ Route::get('/get_tables_select', [AjaxController::class, 'get_tables_select'])->
 Route::get('/get_articles_select', [AjaxController::class, 'get_articles_select'])->name('get_articles_select');
 Route::get('/nettoyer_table', [AjaxController::class, 'nettoyer_table'])->name('nettoyer_table');
 Route::get('/get_all_table_d', [AjaxController::class, 'get_all_table_d'])->name('get_all_table_d');
+Route::get('/check_solde_edit',      [AjaxController::class, 'check_solde_edit'])->name('check_solde_edit');
 Route::get('/get_all_detail_achat_paie', [AjaxController::class, 'get_all_detail_achat_paie'])->name('get_all_detail_achat_paie');
 Route::get('/refresh_liste_invites', [AjaxController::class, 'refresh_liste_invites'])->name('refresh_liste_invites');
 Route::post('/confirm_invite', [AjaxController::class, 'confirm_invite'])->name('confirm_invite');
 Route::post('/confirm_entree', [AjaxController::class, 'confirm_entree'])->name('confirm_entree');
 Route::post('/transform_prospect', [AjaxController::class, 'transform_prospect'])->name('transform_prospect');
 Route::post('/apply_param_facture', [AjaxController::class, 'apply_param_facture'])->name('apply_param_facture');
+Route::post('/edit_charger_facture', [AjaxController::class, 'edit_charger_facture'])->name('edit_charger_facture');
 Route::get('/refresh_deleteinvite', [AjaxController::class, 'refresh_deleteinvite'])->name('refresh_deleteinvite');
 Route::get('/refresh_editinvite', [AjaxController::class, 'refresh_editinvite'])->name('refresh_editinvite');
 

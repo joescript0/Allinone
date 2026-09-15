@@ -2358,6 +2358,12 @@ class AjaxController extends Controller
         return response()->json([[$soldes->count()]]);
     }
 
+    public function check_solde_3(Request $request)
+    {
+        $soldes = facturesnormalisees::where(["annee_id" => $request->annee_id, "moi_id" => $request->moi_id, "client_id" => $request->client_id])->get();
+        return response()->json([[$soldes->count()]]);
+    }
+
     public function check_seuil_maximum(Request $request)
     {
         $achats = Achats::where(["article_id" => $request->article_id])->get();
@@ -2495,8 +2501,8 @@ class AjaxController extends Controller
         }
         else
         {
-            $moi_id = Soldes::where(["etat" => 1])->first()["moi_id"];
-            $annee_id = Soldes::where(["etat" => 1])->first()["annee_id"];
+            $moi_id = Listespaies::where(["etat" => 1])->first()["moi_id"];
+            $annee_id = Listespaies::where(["etat" => 1])->first()["annee_id"];
             // return response()->json([[$soldes->count() .'__________' . Mois::where(["id" => $moi_id])->first()["nom"] . Mois::where(["id" => $moi_id])->first()["nom"] . ' ' . Annees::where(["id" => $annee_id])->first()["annees"]]]);
             echo $soldes->count() .'__________' . Mois::where(["id" => $moi_id])->first()["nom"] . ' ' . Annees::where(["id" => $annee_id])->first()["annees"];
         }
@@ -2512,8 +2518,25 @@ class AjaxController extends Controller
         }
         else
         {
-            $moi_id = Soldes::where(["etat" => 1])->first()["moi_id"];
-            $annee_id = Soldes::where(["etat" => 1])->first()["annee_id"];
+            $moi_id = Listesfactures::where(["etat" => 1])->first()["moi_id"];
+            $annee_id = Listesfactures::where(["etat" => 1])->first()["annee_id"];
+            // return response()->json([[$soldes->count() .'__________' . Mois::where(["id" => $moi_id])->first()["nom"] . Mois::where(["id" => $moi_id])->first()["nom"] . ' ' . Annees::where(["id" => $annee_id])->first()["annees"]]]);
+            echo $soldes->count() .'__________' . Mois::where(["id" => $moi_id])->first()["nom"] . ' ' . Annees::where(["id" => $annee_id])->first()["annees"];
+        }
+    }
+
+    public function check_solde_encours_3(Request $request)
+    {
+        $soldes = facturesnormalisees::where(["etat" => 1])->get();
+        if($soldes->count() == 0)
+        {
+            // return response()->json([[$soldes->count() .'__________' . "Aucun"]]);
+            echo $soldes->count() .'__________' . "Aucun";
+        }
+        else
+        {
+            $moi_id = Listesfactures::where(["etat" => 1])->first()["moi_id"];
+            $annee_id = Listesfactures::where(["etat" => 1])->first()["annee_id"];
             // return response()->json([[$soldes->count() .'__________' . Mois::where(["id" => $moi_id])->first()["nom"] . Mois::where(["id" => $moi_id])->first()["nom"] . ' ' . Annees::where(["id" => $annee_id])->first()["annees"]]]);
             echo $soldes->count() .'__________' . Mois::where(["id" => $moi_id])->first()["nom"] . ' ' . Annees::where(["id" => $annee_id])->first()["annees"];
         }
@@ -3546,6 +3569,7 @@ class AjaxController extends Controller
         $clients->password = Hash::make("12345");
         $clients->mdp = "12345";
         $clients->phone = $request->phone;
+        $clients->type_facture = $request->type_facture;
         $clients->etat = 1;
         $clients->recherche = "";
         $clients->image = 'storage/images/user/profil_defaut.png';
@@ -4414,7 +4438,9 @@ class AjaxController extends Controller
             }
 
             // ========== 3. ENREGISTREMENT EN BASE ==========
+            $id = facturesnormalisees::get()->count() + 1;
             $facturesnormalisees = new facturesnormalisees();
+            $facturesnormalisees->id                = $id;
             $facturesnormalisees->annee_id          = $request->annee_id;
             $facturesnormalisees->moi_id            = $request->moi_id;
             $facturesnormalisees->client_id         = $request->client_id;
@@ -4426,12 +4452,92 @@ class AjaxController extends Controller
             $facturesnormalisees->save();
 
             $data["facturesnormalisees"] = facturesnormalisees::where(["supprimer" => 0])->get();
+            $clients = Clients::where(["etat" => 1])->get();
+            $data["clients"] = $clients;
             return view('include.refresh_charger_facture', $data);
 
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Erreur lors de l\'enregistrement : ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function edit_charger_facture(Request $request)
+    {
+        try {
+            // ========== 1. VÉRIFIER LES DOUBLONS (hors facture courante) ==========
+            $existe = Facturesnormalisees::where('annee_id', $request->edit_annee_id)
+                ->where('moi_id', $request->edit_moi_id)
+                ->where('client_id', $request->edit_client_id)
+                ->where('id', '!=', $request->edit_fact_id)
+                ->exists();
+
+            if ($existe) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Une facture existe déjà pour ce client sur cette période.',
+                ], 422);
+            }
+
+            // ========== 2. RÉCUPÉRATION DE LA FACTURE ==========
+            $facturesnormalisees = Facturesnormalisees::findOrFail($request->edit_fact_id);
+
+            // ========== 3. UPLOAD DU NOUVEAU FICHIER (si fourni) ==========
+            $path          = $facturesnormalisees->url;
+            $cheminComplet = $facturesnormalisees->lien;
+            $nomOriginal   = $facturesnormalisees->fichier_original;
+
+            $target_dir = "./storage/images/fichiers/";
+
+            // Créer le dossier s'il n'existe pas
+            if (!file_exists($target_dir)) {
+                mkdir($target_dir, 0777, true);
+            }
+
+            if (isset($_FILES["edit_fichier"]) && $_FILES["edit_fichier"]["error"] == 0) {
+
+                // Supprimer l'ancien fichier s'il existe
+                if (!empty($facturesnormalisees->lien) && file_exists($facturesnormalisees->lien)) {
+                    @unlink($facturesnormalisees->lien);
+                }
+
+                $nomOriginalNew = basename($_FILES["edit_fichier"]["name"]);
+                $extension      = strtolower(pathinfo($nomOriginalNew, PATHINFO_EXTENSION));
+
+                // Nom unique pour éviter l'écrasement
+                $nomFinal = uniqid() . "_" . time() . "." . $extension;
+
+                // Chemin cible complet (physique)
+                $cheminCompletNew = $target_dir . $nomFinal;
+
+                if (move_uploaded_file($_FILES["edit_fichier"]["tmp_name"], $cheminCompletNew)) {
+                    $path          = $nomFinal;
+                    $cheminComplet = $cheminCompletNew;
+                    $nomOriginal   = $nomOriginalNew;
+                }
+            }
+
+            // ========== 4. MISE À JOUR EN BASE ==========
+            $facturesnormalisees->annee_id         = $request->edit_annee_id;
+            $facturesnormalisees->moi_id           = $request->edit_moi_id;
+            $facturesnormalisees->client_id        = $request->edit_client_id;
+            $facturesnormalisees->url              = $path;
+            $facturesnormalisees->lien             = $cheminComplet;
+            $facturesnormalisees->fichier_original = $nomOriginal;
+            $facturesnormalisees->save();
+
+            // ========== 5. RETOUR DE LA LISTE RAFRAÎCHIE ==========
+            $data["facturesnormalisees"] = Facturesnormalisees::where(["supprimer" => 0])->get();
+            $data["clients"]             = Clients::where(["etat" => 1])->get();
+
+            return view('include.refresh_charger_facture', $data);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Erreur lors de la modification : ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -5729,7 +5835,7 @@ class AjaxController extends Controller
                 $articleStock->avoir_stock = $request->edit_avoir_stock;
                 $articleStock->save();
             }
-        } else 
+        } else
         {
             // Mise à jour uniquement de certains champs dans articlestocks
             $articleStock = articlestocks::where('article_id', $request->id)->firstOrFail();
@@ -6434,6 +6540,8 @@ class AjaxController extends Controller
         }
         $clients->activite_id = $request->edit_activite_id;
         $clients->type = $request->edit_type_client;
+        $clients->type_facture = $request->edit_type_facture;
+        $clients->taux = $request->edit_taux;
         $clients->save();
         $groupe_user_id = Auth::user()->role;
         $data["ressource_id_1"] = 14;
@@ -6764,6 +6872,24 @@ class AjaxController extends Controller
         return view('include.refresh_client', $data);
     }
 
+    public function refresh_deletefacturesnormalisees(Request $request)
+    {
+        $client = facturesnormalisees::where('id', $request->id)->first();
+        $client->supprimer = 1;
+        $client->save();
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 37;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        $clients = Clients::where(["etat" => 1])->get();
+        $data["clients"] = $clients;
+        $data["facturesnormalisees"] = facturesnormalisees::where(["supprimer" => 0])->get();
+        return view('include.refresh_charger_facture', $data);
+    }
+
     public function refresh_deleteprospect(Request $request)
     {
         $client = prospects::where('id', $request->id)->first();
@@ -6965,6 +7091,18 @@ class AjaxController extends Controller
         $data["page"] = $request->page;
         $data["activites"] = Activites::where(["etat" => 1])->get();
         return view('include.refresh_editclient', $data);
+    }
+
+    public function refresh_editfacturesnormalisees(Request $request)
+    {
+        $data["facturesnormalisees"] = facturesnormalisees::where('id', $request->facturesnormalise_id)->first();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        $data["annees"] = Annees::get();
+        $data["mois"] = Mois::get();
+        $clients = Clients::where(["etat" => 1])->get();
+        $data["clients"] = $clients;
+        return view('include.refresh_editfacturesnormalisees', $data);
     }
 
     public function refresh_editprospect(Request $request)
@@ -11860,7 +11998,23 @@ class AjaxController extends Controller
 
                 if (file_exists($filePath))
                 {
-                    $mail->addAttachment($filePath);
+                    if($clients["type_facture"] == 0)
+                    {
+                         $mail->addAttachment($filePath);
+                    }
+                    else
+                    {
+                        // Chemin complet des factures normalisées
+                        $facture_norm = facturesnormalisees::where([
+                            "annee_id" => $listesfactures["annee_id"],
+                            "moi_id"       => $listesfactures["moi_id"],
+                            "client_id"       => $clients["id"],
+                        ])->first();
+
+                        $nom_fichier2 = $facture_norm ? (($facture_norm["lien"]) ?? $nom_fichier) : $nom_fichier;
+                        $filePath2    = $nom_fichier2 ? $nom_fichier2 : $filePath;
+                        $mail->addAttachment(($filePath2 && file_exists($filePath2)) ? $filePath2 : $filePath);
+                    }
                 }
 
                 // --- Envoi ---
@@ -12327,14 +12481,30 @@ class AjaxController extends Controller
         $nom_fichier = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $nom_fichier);
 
         // Sauvegarde
-        $pdf->Output('F', "./public/$nom_fichier");
+        $pdf->Output('F', public_path($nom_fichier));
         $send_w = $_paiementsfactures->send_w;
         $send_w_plus = $send_w + 1;
         $_paiementsfactures->send_w = $send_w_plus;
         $_paiementsfactures->save();
-        $filePath = asset("/public/$nom_fichier");
 
-        echo 1 .'_____________________' . $send_w_plus  .'_____________________' . $clients["phone"] .'_____________________' . $clients["name"] . '_____________________' . $filePath . '_____________________' . 'FACTURE ' . strtoupper(Mois::where(["id" => $listesfactures["moi_id"]])->first()["nom"]) . ' ' . Annees::where(["id" => $listesfactures["annee_id"]])->first()["annees"]  .' '. $clients["name"] .'_____________________' . $nom_fichier .'_____________________' . 'FACTURE ' . strtoupper(Mois::where(["id" => $listesfactures["moi_id"]])->first()["nom"]) . ' ' . Annees::where(["id" => $listesfactures["annee_id"]])->first()["annees"]  .' '. $clients["name"];
+        if($clients["type_facture"] == 0)
+        {
+            $filePath = asset($nom_fichier);
+            echo 1 .'_____________________' . $send_w_plus  .'_____________________' . $clients["phone"] .'_____________________' . $clients["name"] . '_____________________' . $filePath . '_____________________' . 'FACTURE ' . strtoupper(Mois::where(["id" => $listesfactures["moi_id"]])->first()["nom"]) . ' ' . Annees::where(["id" => $listesfactures["annee_id"]])->first()["annees"]  .' '. $clients["name"] .'_____________________' . $nom_fichier .'_____________________' . 'FACTURE ' . strtoupper(Mois::where(["id" => $listesfactures["moi_id"]])->first()["nom"]) . ' ' . Annees::where(["id" => $listesfactures["annee_id"]])->first()["annees"]  .' '. $clients["name"];
+        }
+        else
+        {
+            // Chemin complet des factures normalisées
+            $facture_norm = facturesnormalisees::where([
+                "annee_id" => $listesfactures["annee_id"],
+                "moi_id"       => $listesfactures["moi_id"],
+                "client_id"       => $clients["id"],
+            ])->first();
+
+            $nom_fichier2 = $facture_norm ? (asset($facture_norm["lien"]) ?? asset($nom_fichier)) : asset($nom_fichier);
+            $filePath2    = $nom_fichier2 ? ("$nom_fichier2") : ($nom_fichier);
+            echo 1 .'_____________________' . $send_w_plus  .'_____________________' . $clients["phone"] .'_____________________' . $clients["name"] . '_____________________' . $filePath2 . '_____________________' . 'FACTURE ' . strtoupper(Mois::where(["id" => $listesfactures["moi_id"]])->first()["nom"]) . ' ' . Annees::where(["id" => $listesfactures["annee_id"]])->first()["annees"]  .' '. $clients["name"] .'_____________________' . $nom_fichier .'_____________________' . 'FACTURE ' . strtoupper(Mois::where(["id" => $listesfactures["moi_id"]])->first()["nom"]) . ' ' . Annees::where(["id" => $listesfactures["annee_id"]])->first()["annees"]  .' '. $clients["name"];
+        }
     }
 
     public function refresh_editcontentieux(Request $request)
@@ -15856,5 +16026,19 @@ class AjaxController extends Controller
             'message' => $nb . ' ligne(s) mise(s) à jour — Frais : ' . number_format($totalFrais, 2, ',', ' ')
                          . ' | Réduction : ' . number_format($totalReduction, 2, ',', ' ')
         ]);
+    }
+
+    public function check_solde_edit(Request $request)
+    {
+        $query = Facturesnormalisees::where('annee_id', $request->edit_annee_id)
+            ->where('moi_id',   $request->edit_moi_id)
+            ->where('client_id', $request->edit_client_id);
+
+        // Exclure la facture en cours de modification
+        if ($request->filled('edit_fact_id')) {
+            $query->where('id', '!=', $request->edit_fact_id);
+        }
+
+        return $query->count(); // 0 = pas de doublon, > 0 = doublon
     }
 }

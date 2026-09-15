@@ -39,7 +39,7 @@
     $menu_19 = Activer();
     $menu_20 = Activer();
     $menu_21 = Activer();
-    $menu_22 = Desactiver();
+    $menu_22 = Activer();
     $menu_23 = Activer();
     $menu_24 = Activer();
     $menu_25 = Activer();
@@ -110,7 +110,7 @@
     $menu_33 = Activer();
     $menu_34 = Desactiver();
     $menu_35 = Desactiver();
-    $menu_36 = Activer();
+    $menu_36 = Desactiver();
     $menu_37 = Desactiver();
     $menu_38 = Desactiver();
     $menu_39 = Desactiver();
@@ -521,7 +521,7 @@
       $data["ressource_id_32"] = 32;
       $data["ressource_id_33"] = 33;
       $data["ressource_id_34"] = 34;
-      $data["ressource_id_35"] = 34;
+      $data["ressource_id_35"] = 35;
       $data["groupe_user_id"] = $groupe_user_id;
       ?>
       <ul class="navigation">
@@ -807,7 +807,7 @@
                 <?php } ?>
             <?php } ?>
         @endif
-        
+
         @if ($menu_46 == 1)
             <?php if ((Writes::where(["ressource_id" => $data["ressource_id_31"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                 <?php
@@ -821,12 +821,12 @@
                 <?php } ?>
             <?php } ?>
         @endif
-        
+
         @if ($menu_47 == 1)
             <?php if ((Writes::where(["ressource_id" => $data["ressource_id_34"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                 <?php
                     $display_34 = 0;
-                    if ((Writes::where(["ressource_id" => $data["ressource_id_34"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) 
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_34"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
                     {
                         $display_34 = Writes::where(["ressource_id" => $data["ressource_id_34"], "groupe_id" => $groupe_user_id])->get()[0]->display;
                     }
@@ -836,12 +836,12 @@
                 <?php } ?>
             <?php } ?>
         @endif
-        
+
         @if ($menu_48 == 1)
             <?php if ((Writes::where(["ressource_id" => $data["ressource_id_32"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                 <?php
                     $display_32 = 0;
-                    if ((Writes::where(["ressource_id" => $data["ressource_id_32"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) 
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_32"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
                     {
                         $display_32 = Writes::where(["ressource_id" => $data["ressource_id_32"], "groupe_id" => $groupe_user_id])->get()[0]->display;
                     }
@@ -851,12 +851,12 @@
                 <?php } ?>
             <?php } ?>
         @endif
-        
+
         @if ($menu_49 == 1)
             <?php if ((Writes::where(["ressource_id" => $data["ressource_id_33"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                 <?php
                     $display_33 = 0;
-                    if ((Writes::where(["ressource_id" => $data["ressource_id_33"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) 
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_33"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
                     {
                         $display_33 = Writes::where(["ressource_id" => $data["ressource_id_33"], "groupe_id" => $groupe_user_id])->get()[0]->display;
                     }
@@ -871,7 +871,7 @@
             <?php if ((Writes::where(["ressource_id" => $data["ressource_id_35"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                 <?php
                     $display_35 = 0;
-                    if ((Writes::where(["ressource_id" => $data["ressource_id_35"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) 
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_35"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
                     {
                         $display_35 = Writes::where(["ressource_id" => $data["ressource_id_35"], "groupe_id" => $groupe_user_id])->get()[0]->display;
                     }

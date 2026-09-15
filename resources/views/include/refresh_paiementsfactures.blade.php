@@ -72,6 +72,21 @@ use App\Models\Clients;
         background-position: right 14px center;
     }
 
+    /* ===== CONTOUR PERSONNALISÉ POUR CERTAINS CHAMPS ===== */
+    .champ-contour {
+        border: 2px solid #e31b23 !important;
+        border-radius: 12px !important;
+        padding: 8px 12px !important;
+        box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.12) !important;
+        transition: box-shadow 0.2s, border-color 0.2s;
+    }
+
+    .champ-contour:focus {
+        border-color: #0a192f !important;
+        box-shadow: 0 0 0 4px rgba(10, 25, 47, 0.18) !important;
+        outline: none !important;
+    }
+
     .client-count-badge {
         background: linear-gradient(135deg, #e31b23, #b91c1c);
         color: white;
@@ -384,8 +399,9 @@ use App\Models\Clients;
         <label><i class="zmdi zmdi-money text-danger"></i> Statut paiement</label>
         <select id="filterStatut" class="form-control">
             <option value="all">Tous</option>
-            <option value="paid">Payé</option>
-            <option value="unpaid">Impayé</option>
+            <option value="paid">Payées</option>
+            <option value="partial">Partielles</option>
+            <option value="unpaid">Impayées</option>
         </select>
     </div>
     <!-- Plage de dates -->
@@ -401,40 +417,71 @@ use App\Models\Clients;
     </div>
 </div>
 
-<!-- Badge compteur + totaux USD / CDF (avec conversion) -->
+<!-- Badge compteur + totaux Attendu (info) / Payé (success) / Reste (danger) -->
 <div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 15px; flex-wrap: wrap;">
-    <span class="client-count-badge">
+    <span class="client-count-badge" style="background: linear-gradient(135deg, #0a192f, #112240);">
         <i class="zmdi zmdi-view-list"></i> Total clients : <span id="clientCount">0</span>
     </span>
-    <span class="client-count-badge" style="background: linear-gradient(135deg, #0f4c5f, #1e6f5c);">
-        <i class="zmdi zmdi-money"></i> Total USD : <span id="totalUsdClients">0,00</span> $
+    <span class="client-count-badge" style="background: linear-gradient(135deg, #0dcaf0, #0aa2c0);">
+        <i class="zmdi zmdi-money"></i> Attendu :
+        <span id="totalUsdClients">0,00</span> USD /
+        <span id="totalCdfClients">0,00</span> CDF
     </span>
-    <span class="client-count-badge" style="background: linear-gradient(135deg, #0d6efd, #0a58ca);">
-        <i class="zmdi zmdi-money-box"></i> Total CDF : <span id="totalCdfClients">0,00</span> Fc
+    <span class="client-count-badge" style="background: linear-gradient(135deg, #198754, #146c43);">
+        <i class="zmdi zmdi-check-circle"></i> Payé :
+        <span id="totalUsdPaid">0,00</span> USD /
+        <span id="totalCdfPaid">0,00</span> CDF
+    </span>
+    <span class="client-count-badge" style="background: linear-gradient(135deg, #dc3545, #b02a37);">
+        <i class="zmdi zmdi-alert-circle"></i> Reste :
+        <span id="totalUsdReste">0,00</span> USD /
+        <span id="totalCdfReste">0,00</span> CDF
     </span>
 </div>
 
 <?php
-// Calcul des totaux globaux (avec conversion)
-$total_usd_global = 0;
-$total_cdf_global = 0;
+// Calcul des totaux globaux (attendu + reçu + reste, avec conversion)
+$total_usd_attendu = 0;
+$total_cdf_attendu = 0;
+$total_usd_recu = 0;
+$total_cdf_recu = 0;
+
 foreach ($paiementsfactures as $f) {
     $client = Clients::find($f->client_id);
     if (!$client) continue;
     if (($client->activite_id == $activite_id && $client->user_id == Auth::user()->id) || Auth::user()->role == 0) {
-        if ($f->paye == 1) { // seulement les payés
+
+        // ---- Montant attendu (montant) ----
+        if ($f->devise == 0) {
+            $total_usd_attendu += $f->montant;
+            $total_cdf_attendu += $f->montant * $f->taux;
+        } else {
+            $total_usd_attendu += $f->montant / $f->taux;
+            $total_cdf_attendu += $f->montant;
+        }
+
+        // ---- Montant reçu (payé) ----
+        if ($f->paye == 1) {
             if ($f->devise == 0) {
-                $total_usd_global += $f->paie;
-                $total_cdf_global += $f->paie * $f->taux;
+                $total_usd_recu += $f->paie;
+                $total_cdf_recu += $f->paie * $f->taux;
             } else {
-                $total_usd_global += $f->paie / $f->taux;
-                $total_cdf_global += $f->paie;
+                $total_usd_recu += $f->paie / $f->taux;
+                $total_cdf_recu += $f->paie;
             }
         }
     }
 }
-$total_usd_formatted = number_format($total_usd_global, 2, ',', ' ');
-$total_cdf_formatted = number_format($total_cdf_global, 2, ',', ' ');
+
+$total_usd_reste = $total_usd_attendu - $total_usd_recu;
+$total_cdf_reste = $total_cdf_attendu - $total_cdf_recu;
+
+$total_usd_attendu_formatted = number_format($total_usd_attendu, 2, ',', ' ');
+$total_cdf_attendu_formatted = number_format($total_cdf_attendu, 2, ',', ' ');
+$total_usd_recu_formatted    = number_format($total_usd_recu, 2, ',', ' ');
+$total_cdf_recu_formatted    = number_format($total_cdf_recu, 2, ',', ' ');
+$total_usd_reste_formatted   = number_format($total_usd_reste, 2, ',', ' ');
+$total_cdf_reste_formatted   = number_format($total_cdf_reste, 2, ',', ' ');
 ?>
 
 <div id="content_frais" class="row">
@@ -474,15 +521,25 @@ $total_cdf_formatted = number_format($total_cdf_global, 2, ',', ' ');
                                     $formattedPhone = '';
                                     $phoneRaw = '';
                                 }
+
+                                // Déterminer le statut de paiement (3 cas)
+                                if ($data->paie == 0) {
+                                    $statut_paie = 'unpaid';
+                                } elseif ($data->paie < $data->montant) {
+                                    $statut_paie = 'partial';
+                                } else {
+                                    $statut_paie = 'paid';
+                                }
                             @endphp
                             <tr id="row_{{ $data->id }}" class="client-row"
                                 data-paie="{{ $data->paie }}"
+                                data-montant="{{ $data->montant }}"
                                 data-devise="{{ $data->devise }}"
                                 data-taux="{{ $data->taux }}"
                                 data-nom="{{ $nom }}"
                                 data-email="{{ $email }}"
                                 data-phone="{{ $phoneRaw }}"
-                                data-statut="{{ $data->montant != $data->paie ? 'unpaid' : 'paid' }}"
+                                data-statut="{{ $statut_paie }}"
                                 data-date="{{ date('Y-m-d', strtotime($data->created_at)) }}">
                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">
                                     <?= $i ?>
@@ -503,8 +560,18 @@ $total_cdf_formatted = number_format($total_cdf_global, 2, ',', ' ');
                                 <!-- Colonne Paiement -->
                                 <th style="padding-top: 5px;padding-bottom: 5px;text-align: right;"
                                     class="paiement-cell">
-                                    @if ($data->montant != $data->paie)
+                                    @if ($data->paie == 0)
                                         <span class="text-danger" style="font-weight: bold">
+                                            @if ($data->devise == 0)
+                                                {{ number_format($data->paie, 0, ',', ' ') }}USD /
+                                                {{ number_format($data->montant, 0, ',', ' ') }}USD
+                                            @else
+                                                {{ number_format($data->paie, 0, ',', ' ') }}CDF /
+                                                {{ number_format($data->montant, 0, ',', ' ') }}CDF
+                                            @endif
+                                        </span>
+                                    @elseif ($data->paie < $data->montant)
+                                        <span class="text-warning" style="font-weight: bold">
                                             @if ($data->devise == 0)
                                                 {{ number_format($data->paie, 0, ',', ' ') }}USD /
                                                 {{ number_format($data->montant, 0, ',', ' ') }}USD
@@ -867,31 +934,45 @@ $total_cdf_formatted = number_format($total_cdf_global, 2, ',', ' ');
         }
 
         // =================================================================
-        // 4. MISE À JOUR DES TOTAUX (USD et CDF avec conversion)
+        // 4. MISE À JOUR DES TOTAUX (Attendu / Payé / Reste — USD et CDF)
         // =================================================================
         function updateTotalPaid() {
-            var totalUSD = 0;
-            var totalCDF = 0;
+            var totalUSD = 0, totalCDF = 0;
+            var totalUSDPaid = 0, totalCDFPaid = 0;
 
             $('#clientsTableBody tr.client-row:visible').each(function() {
                 var $row = $(this);
-                var statutValue = $row.data('statut');
-                if (statutValue === 'paid') {
-                    var paie = parseFloat($row.data('paie')) || 0;
-                    var devise = parseInt($row.data('devise')) || 0;
-                    var taux = parseFloat($row.data('taux')) || 1;
-                    if (devise === 0) {
-                        totalUSD += paie;
-                        totalCDF += paie * taux;
-                    } else {
-                        totalUSD += paie / taux;
-                        totalCDF += paie;
-                    }
+                var paie    = parseFloat($row.data('paie'))    || 0;
+                var montant = parseFloat($row.data('montant')) || 0;
+                var devise  = parseInt($row.data('devise'))    || 0;
+                var taux    = parseFloat($row.data('taux'))    || 1;
+
+                if (devise === 0) {
+                    // Attendu
+                    totalUSD += montant;
+                    totalCDF += montant * taux;
+                    // Payé
+                    totalUSDPaid += paie;
+                    totalCDFPaid += paie * taux;
+                } else {
+                    // Attendu
+                    totalUSD += montant / taux;
+                    totalCDF += montant;
+                    // Payé
+                    totalUSDPaid += paie / taux;
+                    totalCDFPaid += paie;
                 }
             });
 
+            var totalUSDReste = totalUSD - totalUSDPaid;
+            var totalCDFReste = totalCDF - totalCDFPaid;
+
             $('#totalUsdClients').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalCdfClients').text(totalCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalUsdPaid').text(totalUSDPaid.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalCdfPaid').text(totalCDFPaid.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalUsdReste').text(totalUSDReste.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            $('#totalCdfReste').text(totalCDFReste.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
         }
 
         // =================================================================
@@ -1024,8 +1105,12 @@ $total_cdf_formatted = number_format($total_cdf_global, 2, ',', ' ');
         // =================================================================
 
         // Initialisation des badges avec les valeurs PHP calculées
-        $('#totalUsdClients').text('<?= $total_usd_formatted ?>');
-        $('#totalCdfClients').text('<?= $total_cdf_formatted ?>');
+        $('#totalUsdClients').text('<?= $total_usd_attendu_formatted ?>');
+        $('#totalCdfClients').text('<?= $total_cdf_attendu_formatted ?>');
+        $('#totalUsdPaid').text('<?= $total_usd_recu_formatted ?>');
+        $('#totalCdfPaid').text('<?= $total_cdf_recu_formatted ?>');
+        $('#totalUsdReste').text('<?= $total_usd_reste_formatted ?>');
+        $('#totalCdfReste').text('<?= $total_cdf_reste_formatted ?>');
 
         var totalClients = $('#clientsTableBody tr.client-row').length;
         $('#clientCount').text(totalClients);

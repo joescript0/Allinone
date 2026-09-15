@@ -210,8 +210,61 @@ h4 i.zmdi {
     box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
 }
 #resetFilters { background: #64748b !important; color: white !important; }
+#resetFilters:hover {
+    transform: translateY(-2px);
+    background: #475569 !important;
+    box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
+}
 #importer { background: var(--rouge-gradient) !important; color: white !important; }
 #exporter, .btn-dark { background: #1e293b !important; color: white !important; }
+
+/* ========== FILTRES + BADGE ========== */
+.filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    background: white;
+    padding: 0.8rem 1.2rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-light);
+    align-items: flex-end;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--bleu-nuit);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.filter-group .form-control {
+    height: 36px;
+}
+
+.invoice-count-badge {
+    border-radius: 50px;
+    padding: 4px 14px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    color: white;
+    background: linear-gradient(135deg, #e31b23, #b91c1c);
+    box-shadow: var(--shadow-light);
+    margin-left: 10px;
+}
 
 /* ========== FORMULAIRES ========== */
 #form_add .row, #form_edit .row { display: flex; flex-wrap: wrap; }
@@ -582,11 +635,58 @@ textarea.form-control:focus {
     gap: 6px;
 }
 
+/* ---- bandeau de détails dans la modale d'aperçu ---- */
+#modal_view_file #view_file_details {
+    flex-shrink: 0;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #eff6ff, #e0f2fe);
+    border-bottom: 1px solid #dbeafe;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    font-size: 0.82rem;
+    color: #0a192f;
+    font-weight: 600;
+}
+#modal_view_file #view_file_details .detail-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+#modal_view_file #view_file_details .detail-item i {
+    color: #e31b23;
+    font-size: 1.05rem;
+}
+
+/* ---- détails dans la modale de suppression ---- */
+#suppression #element {
+    text-align: center;
+}
+#suppression #element .del-title {
+    font-weight: 700;
+    color: #0a192f;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+}
+#suppression #element .del-line {
+    font-size: 0.82rem;
+    color: #475569;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+#suppression #element .del-line i {
+    color: #e31b23;
+}
+
 @media (max-width: 768px) {
     #pdf_preview_frame { height: 400px; }
     #pdf_preview_header .pdf-title { font-size: 0.8rem; }
     #modal_view_file .modal-dialog { max-width: 98%; }
     #modal_view_file .modal-content { height: 85vh; }
+    #modal_view_file #view_file_details { font-size: 0.75rem; padding: 8px 12px; }
 }
 
 /* ========== RESPONSIVE ========== */
@@ -611,6 +711,23 @@ textarea.form-control:focus {
     .form-control, input.form-control, select.form-control, textarea.form-control {
         height: 34px !important;
         font-size: 0.75rem;
+    }
+    .filters-container {
+        flex-direction: column;
+        gap: 8px;
+        padding: 0.6rem 0.8rem;
+    }
+    .filter-group {
+        width: 100%;
+        min-width: 100%;
+    }
+    .filter-group .form-control {
+        height: 34px !important;
+    }
+    .invoice-count-badge {
+        font-size: 0.7rem;
+        padding: 3px 10px;
+        margin-left: 0;
     }
 }
 @media (max-width: 480px) {
@@ -668,15 +785,48 @@ textarea.form-control:focus {
                         class="zmdi zmdi-chevron-right"></i> &nbsp; Chargement de facture</h6>
             </div>
             <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
-                <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-money text-info"></i>
-                    Liste</h4>
+                <h4 style="color:rgba(0, 0, 0, 0.6);">
+                    <i style="font-size: 40px;" class="zmdi zmdi-money text-info"></i>
+                    Liste
+                    <span class="invoice-count-badge">
+                        <i class="zmdi zmdi-view-list" style="color:white;"></i>
+                        Factures : <span id="invoiceCount">0</span>
+                    </span>
+                </h4>
+
+                {{-- ================= FILTRES ================= --}}
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-account text-danger"></i> Client</label>
+                        <input type="text" id="filterClient" class="form-control" placeholder="Rechercher par client...">
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-calendar text-danger"></i> Mois</label>
+                        <input type="text" id="filterMois" class="form-control" placeholder="Rechercher par mois...">
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-calendar-note text-danger"></i> Année</label>
+                        <input type="text" id="filterAnnee" class="form-control" placeholder="Rechercher par année...">
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-collection-pdf text-danger"></i> Fichier</label>
+                        <input type="text" id="filterFichier" class="form-control" placeholder="Rechercher par fichier...">
+                    </div>
+                    <div class="filter-group" style="flex: 0 0 auto;">
+                        <button id="resetFilters" class="btn btn-secondary btn-sm">
+                            <i class="zmdi zmdi-refresh"></i> Réinitialiser
+                        </button>
+                    </div>
+                </div>
+
                 <div id="content_groupe" class="row">
                     <div class="col-12">
                         <div class="table-responsive">
-                            <table class="table table-bordered mb-0">
+                            <table class="table table-bordered mb-0" id="facturesTable">
                                 <thead>
                                     <tr>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">N°</th>
+                                        <th style="padding-top: 5px;padding-bottom: 5px;">Client</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Mois</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Fichier</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
@@ -685,13 +835,32 @@ textarea.form-control:focus {
                                 <tbody>
                                     {{ !($i = 1) }}
                                     @foreach ($facturesnormalisees as $data)
-                                    <tr>
+                                    @php
+                                        /* === Récupération du nom du client pour cette ligne === */
+                                        $clientNom = '';
+                                        if (!empty($data->client_id)) {
+                                            foreach ($clients as $c) {
+                                                if ($c->id == $data->client_id) { $clientNom = $c->name; break; }
+                                            }
+                                        }
+                                        /* === Récupération du libellé mois/année === */
+                                        $moisNom  = Mois::where(['id' => $data->moi_id])->first()['nom'] ?? '';
+                                        $anneeNom = Annees::where(['id' => $data->annee_id])->first()['annees'] ?? '';
+                                    @endphp
+                                    <tr class="facture-row"
+                                        data-client="{{ strtolower($clientNom) }}"
+                                        data-mois="{{ strtolower($moisNom) }}"
+                                        data-annee="{{ strtolower($anneeNom) }}"
+                                        data-fichier="{{ strtolower($data->fichier_original) }}">
                                         <td style="padding-top: 5px;padding-bottom: 5px;">
                                             {{ $i }}</td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;">
-                                            {{ Mois::where(['id' => $data->moi_id])->first()['nom'] }}
-                                            {{ Annees::where(['id' => $data->annee_id])->first()['annees'] }}</td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;">
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="client-cell">
+                                            {{ $clientNom !== '' ? $clientNom : '—' }}
+                                        </td>
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="mois-cell">
+                                            {{ $moisNom }}
+                                            {{ $anneeNom }}</td>
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="fichier-cell">
                                             <i class="zmdi zmdi-collection-pdf text-danger"></i>
                                             {{ $data->fichier_original }}
                                         </td>
@@ -701,9 +870,9 @@ textarea.form-control:focus {
                                                 <i class="zmdi zmdi-eye text-info"></i>
                                             </a>
                                             &nbsp;&nbsp;
-                                            {{-- ===== ICÔNE 2 : MODIFIER (STYLE) ===== --}}
+                                            {{-- ===== ICÔNE 2 : VOIR LE Modifier (OEIL) ===== --}}
                                             <a id="edit_<?= $i ?>" href="#" title="Modifier">
-                                                <i class="zmdi zmdi-settings text-success"></i>
+                                                <i class="zmdi zmdi-edit text-success"></i>
                                             </a>
                                             &nbsp;&nbsp;
                                             {{-- ===== ICÔNE 3 : SUPPRIMER (ROUGE) ===== --}}
@@ -712,15 +881,26 @@ textarea.form-control:focus {
                                             </a>
 
                                             <script>
-                                            /* ===== VOIR LE FICHIER DANS LA MODALE ===== */
+                                            /* ===== VOIR LE FICHIER DANS LA MODALE (avec détails) ===== */
                                             $("#view_<?= $i ?>").click(function(e) {
                                                 e.preventDefault();
                                                 var fileUrl = "{{ asset($data->lien) }}";
                                                 var fileName = "{{ $data->fichier_original }}";
+                                                var moisNom = "<?= $moisNom ?>";
+                                                var anneeNom = "<?= $anneeNom ?>";
+                                                var clientNom = "<?= $clientNom ?>";
 
                                                 $("#modal_view_file .file-name").html(
                                                     '<i class="zmdi zmdi-collection-pdf"></i> ' + fileName
                                                 );
+
+                                                /* ==== Entête détails de la ligne ==== */
+                                                $("#view_file_details").html(
+                                                    '<span class="detail-item"><i class="zmdi zmdi-calendar"></i> Mois : ' + (moisNom || '—') + ' ' + (anneeNom || '') + '</span>' +
+                                                    '<span class="detail-item"><i class="zmdi zmdi-account"></i> Client : ' + (clientNom || '—') + '</span>' +
+                                                    '<span class="detail-item"><i class="zmdi zmdi-collection-pdf"></i> Fichier : ' + (fileName || '—') + '</span>'
+                                                );
+
                                                 $("#modal_view_file iframe").attr("src", fileUrl);
                                                 $("#modal_view_file").modal("show");
                                             });
@@ -728,15 +908,23 @@ textarea.form-control:focus {
                                             /* ===== MODIFIER ===== */
                                             $("#edit_<?= $i ?>").click(function(e) {
                                                 e.preventDefault();
-                                                // TODO : implémenter la modification
-                                                console.log("Modifier la facture #<?= $data->id ?>");
+                                                $.get("{{ url('/refresh_editfacturesnormalisees') }}", {
+                                                    facturesnormalise_id: <?= $data->id ?>,
+                                                }, function(refresh_editutilisateur) {
+                                                    $("#bloc_1").hide();
+                                                    $("#bloc_2").hide();
+                                                    $("#bloc_3").show();
+                                                    $("#bloc_3").html(refresh_editutilisateur);
+                                                });
                                             });
 
-                                            /* ===== SUPPRIMER ===== */
+                                            /* ===== SUPPRIMER (avec détails) ===== */
                                             $("#delete_<?= $i ?>").click(function(e) {
                                                 e.preventDefault();
                                                 $("#element").html(
-                                                    "{{ Mois::where(['id' => $data->moi_id])->first()['nom'] }} {{ Annees::where(['id' => $data->annee_id])->first()['annees'] }}"
+                                                    '<div class="del-title"><?= $moisNom ?> <?= $anneeNom ?></div>' +
+                                                    '<div class="del-line"><i class="zmdi zmdi-account"></i> Client : <?= $clientNom !== '' ? $clientNom : '—' ?></div>' +
+                                                    '<div class="del-line"><i class="zmdi zmdi-collection-pdf"></i> <?= $data->fichier_original ?></div>'
                                                 );
                                                 $("#data_id").html("<?= $data->id ?>");
                                                 $("#btn_sup").trigger("click");
@@ -882,12 +1070,11 @@ textarea.form-control:focus {
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title pull-left text-center" style="font-weight: bold;font-size: 16px;">Voulez-vous
-                    supprimez cette liste de facture ? </h5>
+                    supprimez cette facture ? </h5>
             </div>
             <div class="modal-body">
-                <p id="element" style="text-align: center;">
-
-                </p>
+                {{-- #element contient désormais les détails (mois/année, client, fichier) --}}
+                <div id="element"></div>
             </div>
             <div style="font-weight: bold;text-align: center;">
                 <p class="text-center" style="font-weight: bold;text-align: center;">
@@ -916,8 +1103,16 @@ textarea.form-control:focus {
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
+            {{-- ====== petit bandeau avec les détails de la ligne ====== --}}
+            <div id="view_file_details"></div>
             <div class="modal-body">
                 <iframe id="view_file_frame" src="" frameborder="0"></iframe>
+            </div>
+            {{-- ====== pied de modale avec bouton Fermer ====== --}}
+            <div class="modal-footer" style="justify-content: flex-end;">
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">
+                    Fermer <i class="zmdi zmdi-close-circle"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -1003,6 +1198,7 @@ $("#pdf_preview_close").on("click", function () {
 $('#modal_view_file').on('hidden.bs.modal', function () {
     $("#modal_view_file iframe").attr("src", "");
     $("#modal_view_file .file-name").html("");
+    $("#view_file_details").html(""); // on vide aussi l'entête détails
 });
 
 /* ============================================================
@@ -1113,62 +1309,56 @@ $("#save").click(function (e) {
 
     setLoading(true);
 
-    $.get("{{ url('/check_solde_2') }}", {
+    $.get("{{ url('/check_solde_3') }}", {
         annee_id: annee_id,
-        moi_id: moi_id
+        moi_id: moi_id,
+        client_id: client_id
     }, function (rep) {
         if (rep != 0) {
             setLoading(false);
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Cette liste de facture existe');
+            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Cette facture existe');
             $('#msg').css('color', "#ff6b68");
             setTimeout(function () { $('#msg').html(""); }, 9000);
         } else {
-            $.get("{{ url('/check_solde_encours_2') }}", {}, function (resp_solde) {
-                var rr = resp_solde.split("__________");
-                if (rr[0] != 0) {
+            var formData = new FormData($("#form_add")[0]);
+            formData.append('client_id', client_id);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            $.ajax({
+                type: "POST",
+                url: "/add_charger_facture",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
                     setLoading(false);
-                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> La facture de ' + rr[1] + ' est activé.');
+                    $.get("{{ url('/get_mois_3') }}", {
+                        annee_id: annee_id
+                    }, function (response2) {
+                        $("#moi_id").html(response2);
+                    });
+                    $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Facture ajoutée avec succès');
+                    $('#msg').css("color", '#32c787');
+                    $("#content_groupe").html(response);
+
+                    $("#form_add")[0].reset();
+                    $("#pdf_preview_container").removeClass("show");
+                    $("#pdf_preview_frame").attr("src", "");
+                    if (currentPdfObjectUrl) {
+                        URL.revokeObjectURL(currentPdfObjectUrl);
+                        currentPdfObjectUrl = null;
+                    }
+
+                    setTimeout(function () { $('#msg').html(""); }, 9000);
+
+                    // Recalcul du compteur après ajout
+                    filterFactures();
+                },
+                error: function (xhr) {
+                    setLoading(false);
+                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de l\'enregistrement');
                     $('#msg').css('color', "#ff6b68");
                     setTimeout(function () { $('#msg').html(""); }, 9000);
-                } else {
-                    var formData = new FormData($("#form_add")[0]);
-                    formData.append('client_id', client_id);
-                    formData.append('_token', '{{ csrf_token() }}');
-
-                    $.ajax({
-                        type: "POST",
-                        url: "/add_charger_facture",
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function (response) {
-                            setLoading(false);
-                            $.get("{{ url('/get_mois_3') }}", {
-                                annee_id: annee_id
-                            }, function (response2) {
-                                $("#moi_id").html(response2);
-                            });
-                            $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Liste de facture ajoutée avec succès');
-                            $('#msg').css("color", '#32c787');
-                            $("#content_groupe").html(response);
-
-                            $("#form_add")[0].reset();
-                            $("#pdf_preview_container").removeClass("show");
-                            $("#pdf_preview_frame").attr("src", "");
-                            if (currentPdfObjectUrl) {
-                                URL.revokeObjectURL(currentPdfObjectUrl);
-                                currentPdfObjectUrl = null;
-                            }
-
-                            setTimeout(function () { $('#msg').html(""); }, 9000);
-                        },
-                        error: function (xhr) {
-                            setLoading(false);
-                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Erreur lors de l\'enregistrement');
-                            $('#msg').css('color', "#ff6b68");
-                            setTimeout(function () { $('#msg').html(""); }, 9000);
-                        }
-                    });
                 }
             });
         }
@@ -1186,11 +1376,13 @@ $("#save").click(function (e) {
 $("#oui").click(function (e) {
     e.preventDefault();
     var id = $("#data_id").html();
-    $.get("{{ url('/refresh_delete_listesfactures') }}", {
+    $.get("{{ url('/refresh_deletefacturesnormalisees') }}", {
         id: id,
     }, function (refresh_editverbalisateur) {
         $("#content_groupe").html(refresh_editverbalisateur);
         $("#non").trigger("click");
+        // Recalcul du compteur après suppression
+        setTimeout(function() { filterFactures(); }, 100);
     });
 });
 
@@ -1215,6 +1407,57 @@ if (annee_id.trim().length == 0) {
         $("#moi_id").html(response);
     });
 }
+
+/* ============================================================
+   FILTRES DU TABLEAU DES FACTURES CHARGÉES
+   ============================================================ */
+let factFilterTimeout;
+
+function filterFactures() {
+    const fClient  = ($('#filterClient').val() || '').toLowerCase().trim();
+    const fMois    = ($('#filterMois').val() || '').toLowerCase().trim();
+    const fAnnee   = ($('#filterAnnee').val() || '').toLowerCase().trim();
+    const fFichier = ($('#filterFichier').val() || '').toLowerCase().trim();
+
+    let visibleCount = 0;
+
+    $('#facturesTable tbody tr.facture-row').each(function () {
+        const $row = $(this);
+        let show = true;
+
+        if (fClient  && !String($row.data('client')).includes(fClient))   show = false;
+        if (show && fMois   && !String($row.data('mois')).includes(fMois))     show = false;
+        if (show && fAnnee  && !String($row.data('annee')).includes(fAnnee))   show = false;
+        if (show && fFichier && !String($row.data('fichier')).includes(fFichier)) show = false;
+
+        if (show) {
+            $row.show();
+            visibleCount++;
+        } else {
+            $row.hide();
+        }
+    });
+
+    $('#invoiceCount').text(visibleCount);
+}
+
+function debouncedFilterFactures() {
+    clearTimeout(factFilterTimeout);
+    factFilterTimeout = setTimeout(filterFactures, 250);
+}
+
+$(document).on('input change', '#filterClient, #filterMois, #filterAnnee, #filterFichier', debouncedFilterFactures);
+
+$(document).on('click', '#resetFilters', function (e) {
+    e.preventDefault();
+    $('#filterClient, #filterMois, #filterAnnee, #filterFichier').val('');
+    filterFactures();
+});
+
+// Initialisation du compteur au chargement
+$(document).ready(function () {
+    filterFactures();
+});
 </script>
 @endsection
 @endsection
