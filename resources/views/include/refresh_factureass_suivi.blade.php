@@ -44,9 +44,9 @@ use Illuminate\Support\Facades\Auth;
                         $total_frais_credit = 0;
 
                         /* ============================================================
-                            MONTANT DÛ RÉEL = Σ (total − réduction) par achat
-                            (réduction retranchée par achat, dans SA devise)
-                            ============================================================ */
+                           MONTANT DÛ RÉEL = Σ (total − réduction) par achat
+                           (réduction retranchée par achat, dans SA devise)
+                           ============================================================ */
                         $total_original = 0;
                         foreach ($ent as $e)
                         {
@@ -113,9 +113,24 @@ use Illuminate\Support\Facades\Auth;
                         $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
 
                         /* ============================================================
-                            TOTAL FINAL = Σ (total − réduction + frais_credit) par achat
-                            (chaque montant dans SA devise, puis converti)
-                            ============================================================ */
+                           ✅ NOUVEAU : RATIO IMPAYÉ DE LA FACTURE
+                           Les frais de crédit ne s'appliquent QUE sur la portion
+                           réellement non payée de la facture.
+                           ============================================================ */
+                        $ratio_impaye_facture = 1; // 100% impayé par défaut
+                        if ($total_original_usd > 0) {
+                            $reste_global_usd = $total_original_usd - $montant_usd_paye;
+                            if ($reste_global_usd < 0) $reste_global_usd = 0;
+                            $ratio_impaye_facture = $reste_global_usd / $total_original_usd;
+                        }
+
+                        /* ============================================================
+                           TOTAL FINAL = Σ (total − réduction + frais_credit) par achat
+                           ✅ RÉDUCTION APPLIQUÉE PARTOUT :
+                              - base des frais crédit : (total − réduction)
+                              - frais crédit uniquement sur la portion impayée
+                              - net final = (total − réduction) + frais crédit
+                           ============================================================ */
                         $total = 0;
                         $achat_total_usd = 0;
                         $achat_total_cdf = 0;
@@ -125,19 +140,26 @@ use Illuminate\Support\Facades\Auth;
                             $devise_achat = $e->devise_achat ?? $data->devise;
                             $reduction_achat = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
 
+                            // 1) NET APRÈS RÉDUCTION (base de tout)
+                            $net_apres_reduction = $e->total - $reduction_achat;
+                            if ($net_apres_reduction < 0) $net_apres_reduction = 0;
+
+                            // 2) FRAIS DE CRÉDIT : 5% du NET IMPAYÉ de la ligne
+                            //    - calculés APRÈS réduction
+                            //    - uniquement sur la portion impayée (ratio_impaye_facture)
                             $frais_credit_achat = 0;
                             if ($e->frais_credit != 0 && $e->frais_credit !== null) {
                                 $frais_credit_achat = $e->frais_credit;
                             } else {
-                                if ($est_impayee && $delai_depasse) {
-                                    $frais_credit_achat = $e->total * 0.05;
+                                if ($est_impayee && $delai_depasse && $ratio_impaye_facture > 0) {
+                                    $frais_credit_achat = $net_apres_reduction * 0.05 * $ratio_impaye_facture;
                                     $e->frais_credit = $frais_credit_achat;
                                     $e->save();
                                 }
                             }
 
-                            // Net de CET achat = total − réduction + frais (devise achat)
-                            $net_achat_devise = $e->total - $reduction_achat + $frais_credit_achat;
+                            // 3) NET FINAL DE LA LIGNE = NET APRÈS RÉDUCTION + FRAIS
+                            $net_achat_devise = $net_apres_reduction + $frais_credit_achat;
 
                             if ($devise_achat == $data->devise) {
                                 $total += $net_achat_devise;
@@ -169,8 +191,8 @@ use Illuminate\Support\Facades\Auth;
                         $a_frais_credit = ($total_frais_credit_final > 0);
 
                         /* ============================================================
-                            ✅ DÉTECTION : la facture a-t-elle une réduction appliquée ?
-                            ============================================================ */
+                           ✅ DÉTECTION : la facture a-t-elle une réduction appliquée ?
+                           ============================================================ */
                         $has_reduction = false;
                         foreach ($ent as $e) {
                             if (isset($e->reduction) && $e->reduction > 0) {
@@ -288,8 +310,8 @@ use Illuminate\Support\Facades\Auth;
                             $pa = $e->prix_achat ?? 0;
                             $qt = $e->quantite ?? 1;
                             $prix_unit = $e->prix_vente
-                                        ?? ($art->prix_detail ?? null)
-                                        ?? ($qt > 0 ? ($e->total / $qt) : $e->total);
+                                      ?? ($art->prix_detail ?? null)
+                                      ?? ($qt > 0 ? ($e->total / $qt) : $e->total);
 
                             /* ---- 4. Devise propre à chaque achat ---- */
                             $devise_achat_json = $e->devise_achat ?? $data->devise;
@@ -388,18 +410,18 @@ use Illuminate\Support\Facades\Auth;
                             <div class="paye-cell-content">
                                 <span>{{ $paye_affichage }}</span>
                                 <span class="badge-delay {{ $delay_badge_type }} badge-tranches"
-                                        data-tranches="{{ $tranches_json }}"
-                                        data-numero="{{ $data->numero }}"
-                                        data-client="{{ $client_name }}"
-                                        data-total="{{ $montant_affichage }}"
-                                        data-paye="{{ $paye_affichage }}"
-                                        data-reste="{{ $reste_affichage }}"
-                                        data-nb-tranches="{{ $nb_tranches }}"
-                                        data-date-debut="{{ $data->created_at }}"
-                                        data-date-fin="{{ $dernier_paiement ? $dernier_paiement->created_at : date('Y-m-d H:i:s') }}"
-                                        data-jours-retard="{{ $nb_jours_retard }}"
-                                        data-statut="{{ $statut_data }}"
-                                        title="Cliquez pour voir les détails des tranches">
+                                      data-tranches="{{ $tranches_json }}"
+                                      data-numero="{{ $data->numero }}"
+                                      data-client="{{ $client_name }}"
+                                      data-total="{{ $montant_affichage }}"
+                                      data-paye="{{ $paye_affichage }}"
+                                      data-reste="{{ $reste_affichage }}"
+                                      data-nb-tranches="{{ $nb_tranches }}"
+                                      data-date-debut="{{ $data->created_at }}"
+                                      data-date-fin="{{ $dernier_paiement ? $dernier_paiement->created_at : date('Y-m-d H:i:s') }}"
+                                      data-jours-retard="{{ $nb_jours_retard }}"
+                                      data-statut="{{ $statut_data }}"
+                                      title="Cliquez pour voir les détails des tranches">
                                     <i class="zmdi zmdi-layers"></i> {{ $nb_tranches }}
                                 </span>
                             </div>
@@ -480,21 +502,21 @@ use Illuminate\Support\Facades\Auth;
 
                             <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($delete == 0) && (Auth::user()->role == 0))) { ?>
                                 <a href="#" class="param-facture-btn"
-                                    data-id="{{ $data->id }}"
-                                    title="Paramètres de la facture">
+                                   data-id="{{ $data->id }}"
+                                   title="Paramètres de la facture">
                                     <i class="zmdi zmdi-settings text-info"></i>
                                 </a>
                             <?php } ?>
 
                             <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($delete == 0) && (Auth::user()->role == 0))) { ?>
                                 <a href="#" class="delete-facture-btn"
-                                    data-id="{{ $data->id }}"
-                                    data-numero="{{ $data->numero }}"
-                                    data-client="{{ $client_name }}"
-                                    data-montant="{{ $montant_affichage }}"
-                                    data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
-                                    data-statut="{{ $statut_text }}"
-                                    title="Supprimer cette facture">
+                                   data-id="{{ $data->id }}"
+                                   data-numero="{{ $data->numero }}"
+                                   data-client="{{ $client_name }}"
+                                   data-montant="{{ $montant_affichage }}"
+                                   data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
+                                   data-statut="{{ $statut_text }}"
+                                   title="Supprimer cette facture">
                                     <i class="zmdi zmdi-delete text-danger"></i>
                                 </a>
                             <?php } ?>

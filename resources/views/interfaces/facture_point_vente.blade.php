@@ -1444,10 +1444,24 @@ select.form-control {
                                                 // 1. Récupération des achats
                                                 $ent = Achats::where('facture_id', $data->id)->get();
 
-                                                // 2. Calcul du total original (sans frais)
+                                                // ============================================================
+                                                // ✅ 2. TOTAL ORIGINAL NET = Σ (total − réduction) par achat
+                                                //    (base servant au calcul du ratio impayé)
+                                                // ============================================================
                                                 $total_original = 0;
                                                 foreach ($ent as $e) {
-                                                    $total_original += $e->total;
+                                                    $devise_achat_orig = $e->devise_achat ?? $data->devise;
+                                                    $reduction_orig = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
+                                                    $net_orig = $e->total - $reduction_orig;
+                                                    if ($net_orig < 0) $net_orig = 0;
+
+                                                    if ($devise_achat_orig == $data->devise) {
+                                                        $total_original += $net_orig;
+                                                    } elseif ($data->devise == 0) {
+                                                        $total_original += ($taux > 0) ? ($net_orig / $taux) : 0;
+                                                    } else {
+                                                        $total_original += $net_orig * $taux;
+                                                    }
                                                 }
 
                                                 // 3. Récupération des paiements déjà effectués
@@ -1476,26 +1490,48 @@ select.form-control {
                                                 // 5. Déterminer si la facture est impayée (sans tolérance)
                                                 $est_impayee = ($montant_usd_paye < $total_original_usd) || ($montant_cdf_paye < $total_original_cdf);
 
+                                                // ============================================================
+                                                // ✅ 5b. RATIO IMPAYÉ DE LA FACTURE
+                                                //     Les frais de crédit ne s'appliquent QUE sur la portion
+                                                //     réellement non payée de la facture.
+                                                // ============================================================
+                                                $ratio_impaye_facture = 1; // 100% impayé par défaut
+                                                if ($total_original_usd > 0) {
+                                                    $reste_global_usd = $total_original_usd - $montant_usd_paye;
+                                                    if ($reste_global_usd < 0) $reste_global_usd = 0;
+                                                    $ratio_impaye_facture = $reste_global_usd / $total_original_usd;
+                                                }
+
                                                 // 6. Vérifier le délai d'1 heure depuis la création de la facture
                                                 $date_creation_facture = strtotime($data->created_at);
                                                 $delai_1h = 3600; // 1 heure en secondes
                                                 $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
 
-                                                // 7. Application des frais de crédit (5%) sur chaque achat si conditions remplies
+                                                // ============================================================
+                                                // ✅ 7. FRAIS DE CRÉDIT (5%) sur le NET IMPAYÉ de chaque achat
+                                                //    - calculés APRÈS réduction
+                                                //    - uniquement sur la portion impayée (ratio_impaye_facture)
+                                                // ============================================================
                                                 foreach ($ent as $e) {
-                                                    if (($e->frais_credit == 0 || $e->frais_credit === null) && $est_impayee && $delai_depasse) {
-                                                        $frais = $e->total * 0.05;
+                                                    if (($e->frais_credit == 0 || $e->frais_credit === null) && $est_impayee && $delai_depasse && $ratio_impaye_facture > 0) {
+                                                        $reduction_ligne = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
+                                                        $net_apres_reduction = $e->total - $reduction_ligne;
+                                                        if ($net_apres_reduction < 0) $net_apres_reduction = 0;
+
+                                                        $frais = $net_apres_reduction * 0.05 * $ratio_impaye_facture;
                                                         $e->frais_credit = $frais;
                                                         $e->save();
                                                     }
                                                 }
 
                                                 // 8. Recalcul du total avec frais et des coûts d'achat
+                                                // ✅ CORRECTION : la réduction est déduite du total
                                                 $total = 0;
                                                 $achat_total_usd = 0;
                                                 $achat_total_cdf = 0;
                                                 foreach ($ent as $e) {
-                                                    $total += $e->total + ($e->frais_credit ?? 0);
+                                                    $total += $e->total + ($e->frais_credit ?? 0) - ($e->reduction ?? 0);
+
                                                     // Coût d'achat (prix unitaire × quantité)
                                                     $prix_achat = $e->prix_achat ?? 0;
                                                     $quantite = $e->quantite ?? 1;
@@ -1521,11 +1557,11 @@ select.form-control {
                                                     $montant_affichage = number_format($total, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
                                                 }
 
-                                                // 10. Bénéfices (avec frais)
+                                                // 10. Bénéfices (avec frais et réduction)
                                                 $benefice_usd = $montant_usd - $achat_total_usd;
                                                 $benefice_cdf = $montant_cdf - $achat_total_cdf;
 
-                                                // 11. Crédit restant (avec frais)
+                                                // 11. Crédit restant (avec frais et réduction)
                                                 $reste_usd = $montant_usd - $montant_usd_paye;
                                                 $reste_cdf = $montant_cdf - $montant_cdf_paye;
 
@@ -1547,8 +1583,7 @@ select.form-control {
                                                 $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
 
                                                 // ============================================================
-                                                // ✅ CORRECTIF : Construction du JSON articles avec le VRAI NOM
-                                                //    (récupéré depuis la collection $articles via les FK possibles)
+                                                // ✅ Construction du JSON articles avec le VRAI NOM
                                                 // ============================================================
                                                 $articles_json = [];
                                                 foreach ($ent as $e) {

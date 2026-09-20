@@ -1456,6 +1456,7 @@ select.form-control {
                                                     $devise_achat_orig = $e->devise_achat ?? $data->devise;
                                                     $reduction_orig = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
                                                     $net_orig = $e->total - $reduction_orig;
+                                                    if ($net_orig < 0) $net_orig = 0;
 
                                                     if ($devise_achat_orig == $data->devise) {
                                                         $total_original += $net_orig;
@@ -1495,10 +1496,23 @@ select.form-control {
                                                 $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
 
                                                 // ============================================================
+                                                // ✅ NOUVEAU : RATIO IMPAYÉ DE LA FACTURE
+                                                // Les frais de crédit ne s'appliquent QUE sur la portion
+                                                // réellement non payée de la facture.
+                                                // ============================================================
+                                                $ratio_impaye_facture = 1; // 100% impayé par défaut
+                                                if ($total_original_usd > 0) {
+                                                    $reste_global_usd = $total_original_usd - $montant_usd_paye;
+                                                    if ($reste_global_usd < 0) $reste_global_usd = 0;
+                                                    $ratio_impaye_facture = $reste_global_usd / $total_original_usd;
+                                                }
+
+                                                // ============================================================
                                                 // CALCUL DU TOTAL FINAL (avec frais crédit)
-                                                // Net achat = (total − réduction + frais_credit)
-                                                // Calculé dans la devise de CHAQUE achat, puis converti
-                                                // vers la devise de la facture.
+                                                // ✅ RÉDUCTION APPLIQUÉE PARTOUT :
+                                                //    - base des frais crédit : (total − réduction)
+                                                //    - frais crédit uniquement sur la portion impayée
+                                                //    - net final = (total − réduction) + frais crédit
                                                 // ============================================================
                                                 $total = 0;
                                                 $achat_total_usd = 0;
@@ -1508,19 +1522,27 @@ select.form-control {
                                                     $devise_achat = $e->devise_achat ?? $data->devise;
                                                     $reduction_achat = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
 
+                                                    // 1) NET APRÈS RÉDUCTION (base de tout)
+                                                    $net_apres_reduction = $e->total - $reduction_achat;
+                                                    if ($net_apres_reduction < 0) $net_apres_reduction = 0;
+
+                                                    // 2) FRAIS DE CRÉDIT : 5% du NET IMPAYÉ de la ligne
+                                                    //    - calculés APRÈS réduction
+                                                    //    - uniquement sur la portion impayée (ratio_impaye_facture)
                                                     $frais_credit_achat = 0;
                                                     if ($e->frais_credit != 0 && $e->frais_credit !== null) {
+                                                        // Frais déjà figés en base → on les respecte
                                                         $frais_credit_achat = $e->frais_credit;
                                                     } else {
-                                                        if ($est_impayee && $delai_depasse) {
-                                                            $frais_credit_achat = $e->total * 0.05;
+                                                        if ($est_impayee && $delai_depasse && $ratio_impaye_facture > 0) {
+                                                            $frais_credit_achat = $net_apres_reduction * 0.05 * $ratio_impaye_facture;
                                                             $e->frais_credit = $frais_credit_achat;
                                                             $e->save();
                                                         }
                                                     }
 
-                                                    // Net de CET achat dans SA devise
-                                                    $net_achat_devise = $e->total - $reduction_achat + $frais_credit_achat;
+                                                    // 3) NET FINAL DE LA LIGNE = NET APRÈS RÉDUCTION + FRAIS
+                                                    $net_achat_devise = $net_apres_reduction + $frais_credit_achat;
 
                                                     // Conversion vers la devise de la facture
                                                     if ($devise_achat == $data->devise) {
