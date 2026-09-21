@@ -15,12 +15,42 @@
         ->orderBy('nom_article', 'asc')
         ->get();
 
-    // ✅ Liste des stocks non supprimés pour les filtres Source et Destination
-    $stocks_list = DB::table('stocks')
-        ->where('supprimer', 0)
-        ->orderBy('nom', 'asc')
-        ->get();
+    // ✅ On prépare un tableau de stock_ids accessible plus bas (pour filtrer aussi les filtres Source/Destination)
+    $stock_ids_autorises = null; // null = pas de restriction (admin)
 
+    if (Auth::user()->role != 0) {
+        // 1️⃣ Récupérer les PDV affectés à l'utilisateur
+        $pointdeventes_ids = DB::table('affectationspointventes')
+                                ->where('user_id', Auth::id())
+                                ->pluck('pointdeventes_id')
+                                ->toArray();
+
+        // 2️⃣ Récupérer uniquement les stocks liés à ces PDV (destination)
+        $stock_ids_autorises = Pointdeventes::whereIn('id', $pointdeventes_ids)
+                                  ->where('supprimer', 0)
+                                  ->whereNotNull('stock_id')
+                                  ->pluck('stock_id')
+                                  ->unique()
+                                  ->values()
+                                  ->toArray();
+    }
+
+    // ✅ Liste des stocks pour les filtres Source et Destination
+    //    → un non-admin ne voit que les stocks de ses PDV
+    $stocks_query = DB::table('stocks')->where('supprimer', 0);
+
+    if ($stock_ids_autorises !== null) {
+        if (empty($stock_ids_autorises)) {
+            // Aucun PDV affecté → liste vide
+            $stocks_query->whereRaw('1 = 0');
+        } else {
+            $stocks_query->whereIn('id', $stock_ids_autorises);
+        }
+    }
+
+    $stocks_list = $stocks_query->orderBy('nom', 'asc')->get();
+
+    // ✅ Requête principale des transferts
     $query = DB::table('transfertstocks')
         ->join('articles', 'transfertstocks.article_id', '=', 'articles.id')
         ->leftJoin('stocks as s1', 'transfertstocks.stock_1', '=', 's1.id')
@@ -34,26 +64,16 @@
         ->where('transfertstocks.supprimer', 0)
         ->where('articles.supprimer', 0);
 
-    if (Auth::user()->role != 0) {
-        $pointdeventes_ids = DB::table('affectationspointventes')
-                                ->where('user_id', Auth::id())
-                                ->pluck('pointdeventes_id')
-                                ->toArray();
-
-        $stock_ids = Pointdeventes::whereIn('id', $pointdeventes_ids)
-                                  ->where('supprimer', 0)
-                                  ->pluck('stock_id')
-                                  ->unique()
-                                  ->toArray();
-
-        if (!in_array(0, $stock_ids)) {
-            $stock_ids[] = 0;
+    // ✅ Restriction par rôle
+    if ($stock_ids_autorises !== null) {
+        if (empty($stock_ids_autorises)) {
+            // Aucun PDV affecté → aucun transfert visible
+            $query->whereRaw('1 = 0');
+        } else {
+            // ✅ On affiche uniquement les transferts dont la DESTINATION (stock_2)
+            //    est liée à l'un des points de vente de l'utilisateur
+            $query->whereIn('transfertstocks.stock_2', $stock_ids_autorises);
         }
-
-        $query->where(function($q) use ($stock_ids) {
-            $q->whereIn('transfertstocks.stock_1', $stock_ids)
-              ->orWhereIn('transfertstocks.stock_2', $stock_ids);
-        });
     }
 
     $transferts = $query->orderBy('transfertstocks.id', 'asc')->get();
@@ -377,7 +397,6 @@ h4 i.zmdi {
     outline: none !important;
 }
 
-/* ✅ Style Select2 unifié pour les 3 filtres (Article, Source, Destination) */
 .filter-group .select2-container { width: 100% !important; }
 .filter-group .select2-container--default .select2-selection--single {
     height: 38px !important;
@@ -692,7 +711,6 @@ h4 i.zmdi {
     gap: 5px;
 }
 
-/* ===== FILTRES DANS LE MODAL ===== */
 .detail-achats-filters {
     display: flex;
     flex-wrap: wrap;
@@ -1593,7 +1611,6 @@ $("#oui").click(function (e) {
    ============================================================ */
 $(document).ready(function () {
 
-    // ✅ Config Select2 unifiée
     var select2Config = {
         allowClear: true,
         width: '100%',
@@ -1603,17 +1620,14 @@ $(document).ready(function () {
         }
     };
 
-    // ✅ Article
     $('#filterArticle').select2($.extend({}, select2Config, {
         placeholder: 'Tous les articles'
     }));
 
-    // ✅ Source
     $('#filterSource').select2($.extend({}, select2Config, {
         placeholder: 'Toutes les sources'
     }));
 
-    // ✅ Destination
     $('#filterDestination').select2($.extend({}, select2Config, {
         placeholder: 'Toutes les destinations'
     }));
@@ -1750,9 +1764,8 @@ function initModalAchatsFilters() {
     var $body = $('#detail_content');
     var $dateInput = $body.find('.daf-date');
 
-    if ($dateInput.length === 0) return; // pas de vente liée
+    if ($dateInput.length === 0) return;
 
-    // Nettoyer un ancien daterangepicker éventuel
     if ($dateInput.data('daterangepicker')) {
         $dateInput.data('daterangepicker').remove();
     }
@@ -1860,7 +1873,6 @@ function applyModalAchatsFilter() {
         if (show) { $r.show(); visible++; } else { $r.hide(); }
     });
 
-    // Mettre à jour le badge "X vente(s)"
     $body.find('.detail-achats-header .badge-count').html(
         '<i class="zmdi zmdi-view-list"></i> ' + visible + ' vente(s)'
     );
