@@ -1888,7 +1888,7 @@ class HomeController extends Controller
     public function mouv_stock()
     {
         $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 35;
+        $data["ressource_id_1"] = 36;
         $data["groupe_user_id"] = $groupe_user_id;
         if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
         {
@@ -1935,7 +1935,7 @@ class HomeController extends Controller
     public function mes_mouv_stock()
     {
         $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 35;
+        $data["ressource_id_1"] = 357;
         $data["groupe_user_id"] = $groupe_user_id;
         if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
         {
