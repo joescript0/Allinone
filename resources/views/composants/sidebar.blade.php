@@ -68,6 +68,8 @@
     $menu_48 = Activer();
     $menu_49 = Activer();
     $menu_50 = Activer();
+    $menu_51 = Activer();
+    $menu_52 = Desactiver();
   }
   elseif($menueapp == "Divine")
   {
@@ -125,6 +127,8 @@
     $menu_48 = Activer();
     $menu_49 = Activer();
     $menu_50 = Activer();
+    $menu_51 = Activer();
+    $menu_52 = Desactiver();
   }
 ?>
 
@@ -522,6 +526,8 @@
       $data["ressource_id_33"] = 33;
       $data["ressource_id_34"] = 34;
       $data["ressource_id_35"] = 35;
+      $data["ressource_id_36"] = 36;
+      $data["ressource_id_37"] = 37;
       $data["groupe_user_id"] = $groupe_user_id;
       ?>
       <ul class="navigation">
@@ -878,6 +884,36 @@
                 ?>
                 <?php if (((($display_35 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_35"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_35 ==  0) && (Auth::user()->role == 0))) { ?>
                     <li id="link_56"><a href="{{ route('charger_facture') }}" id="text_56"> 🧾  Charger une facture</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+
+        @if ($menu_51 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_36"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_36 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_36"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+                    {
+                        $display_36 = Writes::where(["ressource_id" => $data["ressource_id_36"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_36 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_36"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_36 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_57"><a href="{{ route('mouv_stock') }}" id="text_57"> 📊  Mouv. stock</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+
+        @if ($menu_52 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_37"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_37 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_37"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+                    {
+                        $display_37 = Writes::where(["ressource_id" => $data["ressource_id_37"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_37 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_37"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_37 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_58"><a href="{{ route('mes_mouv_stock') }}" id="text_58"> 🕓  Mes mouv. stock</a></li>
                 <?php } ?>
             <?php } ?>
         @endif

@@ -427,6 +427,8 @@ Route::get('/menu', [App\Http\Controllers\SiteController::class, 'menu'])->name(
 Route::get('/serveur_se', [App\Http\Controllers\HomeController::class, 'serveur_se'])->name('serveur_se');
 Route::get('/debarrasseur_se', [App\Http\Controllers\HomeController::class, 'debarrasseur_se'])->name('debarrasseur_se');
 Route::get('/listesdesinvites', [App\Http\Controllers\HomeController::class, 'listesdesinvites'])->name('listesdesinvites');
+Route::get('/mes_mouv_stock', [App\Http\Controllers\HomeController::class, 'mes_mouv_stock'])->name('mes_mouv_stock');
+Route::get('/mouv_stock', [App\Http\Controllers\HomeController::class, 'mouv_stock'])->name('mouv_stock');
 Route::get('/invitation_numerique', [App\Http\Controllers\InvitationnumController::class, 'invitation_numerique'])->name('invitation_numerique');
 Route::get('/invitation_formulaire', [App\Http\Controllers\InvitationnumController::class, 'invitation_formulaire'])->name('invitation_formulaire');
 Route::get('/invitation_programme', [App\Http\Controllers\InvitationnumController::class, 'invitation_programme'])->name('invitation_programme');

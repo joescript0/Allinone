@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Models\Entres;
 use App\Models\Factures;
 use App\Models\commisionsagents;
+use App\Models\transfertstocks;
 use App\Models\Postes;
 use App\Models\Lieux;
 use App\Models\Factureas;
@@ -1870,6 +1871,100 @@ class HomeController extends Controller
                 $clients = Clients::where(["etat" => 1])->get();
                 $data["clients"] = $clients;
                 return view('interfaces.charger_facture', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+
+    public function mouv_stock()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 35;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(((($display ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display ==  0) && (Auth::user()->role == 0)))
+            {
+                $data["utilisateurs"] = User::where(["etat" => 1])->get();
+                $data["fichier_documents"] = Fichier_documents::where(["etat" => 1])->get();
+                $data["type_documents"] = Type_documents::where(["etat" => 1])->get();
+                $data["verbalisateurs"] = Verbalisateurs::where(["etat" => 1])->get();
+                $data["contrevenants"] = Contrevenants::where(["etat" => 1])->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["invitations"] = Invitations::where(["etat" => 1])->get();
+                $data["decisions"] = Decisions::where(["etat" => 1])->get();
+                $data["activites"] = Activites::where(["etat" => 1])->get();
+                $data["listespaies"] = Listespaies::where(["supprimer" => 0])->get();
+                $data["listesfactures"] = Listesfactures::where(["supprimer" => 0])->get();
+                $data["transfertstocks"] = transfertstocks::where(["supprimer" => 0])->get();
+                $data["facturesnormalisees"] = facturesnormalisees::where(["supprimer" => 0])->get();
+                $data["annees"] = Annees::get();
+                $data["mois"] = Mois::get();
+                $clients = Clients::where(["etat" => 1])->get();
+                $data["clients"] = $clients;
+                return view('interfaces.mouv_stock', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+
+    public function mes_mouv_stock()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 35;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(((($display ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display ==  0) && (Auth::user()->role == 0)))
+            {
+                $data["utilisateurs"] = User::where(["etat" => 1])->get();
+                $data["fichier_documents"] = Fichier_documents::where(["etat" => 1])->get();
+                $data["type_documents"] = Type_documents::where(["etat" => 1])->get();
+                $data["verbalisateurs"] = Verbalisateurs::where(["etat" => 1])->get();
+                $data["contrevenants"] = Contrevenants::where(["etat" => 1])->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["invitations"] = Invitations::where(["etat" => 1])->get();
+                $data["decisions"] = Decisions::where(["etat" => 1])->get();
+                $data["activites"] = Activites::where(["etat" => 1])->get();
+                $data["listespaies"] = Listespaies::where(["supprimer" => 0])->get();
+                $data["listesfactures"] = Listesfactures::where(["supprimer" => 0])->get();
+                $data["transfertstocks"] = transfertstocks::where(["supprimer" => 0])->get();
+                $data["facturesnormalisees"] = facturesnormalisees::where(["supprimer" => 0])->get();
+                $data["annees"] = Annees::get();
+                $data["mois"] = Mois::get();
+                $clients = Clients::where(["etat" => 1])->get();
+                $data["clients"] = $clients;
+                return view('interfaces.mes_mouv_stock', $data);
             }
             else
             {
