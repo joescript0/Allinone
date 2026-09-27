@@ -42,11 +42,6 @@ use Illuminate\Support\Facades\Auth;
 
                         $ent = Achats::where('facture_id', $data->id)->get();
 
-                        // ============================================================
-                        // MONTANT DÛ RÉEL = Σ (total − reduction) par achat
-                        // (réduction retranchée sur chaque achat, dans SA devise)
-                        // Sert à déterminer si la facture est IMPAYÉE.
-                        // ============================================================
                         $total_original = 0;
                         foreach ($ent as $e)
                         {
@@ -92,25 +87,13 @@ use Illuminate\Support\Facades\Auth;
                         $delai_1h = 3600;
                         $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
 
-                        // ============================================================
-                        // ✅ NOUVEAU : RATIO IMPAYÉ DE LA FACTURE
-                        // Les frais de crédit ne s'appliquent QUE sur la portion
-                        // réellement non payée de la facture.
-                        // ============================================================
-                        $ratio_impaye_facture = 1; // 100% impayé par défaut
+                        $ratio_impaye_facture = 1;
                         if ($total_original_usd > 0) {
                             $reste_global_usd = $total_original_usd - $montant_usd_paye;
                             if ($reste_global_usd < 0) $reste_global_usd = 0;
                             $ratio_impaye_facture = $reste_global_usd / $total_original_usd;
                         }
 
-                        // ============================================================
-                        // CALCUL DU TOTAL FINAL (avec frais crédit)
-                        // ✅ RÉDUCTION APPLIQUÉE PARTOUT :
-                        //    - base des frais crédit : (total − réduction)
-                        //    - frais crédit uniquement sur la portion impayée
-                        //    - net final = (total − réduction) + frais crédit
-                        // ============================================================
                         $total = 0;
                         $achat_total_usd = 0;
                         $achat_total_cdf = 0;
@@ -119,16 +102,11 @@ use Illuminate\Support\Facades\Auth;
                             $devise_achat = $e->devise_achat ?? $data->devise;
                             $reduction_achat = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
 
-                            // 1) NET APRÈS RÉDUCTION (base de tout)
                             $net_apres_reduction = $e->total - $reduction_achat;
                             if ($net_apres_reduction < 0) $net_apres_reduction = 0;
 
-                            // 2) FRAIS DE CRÉDIT : 5% du NET IMPAYÉ de la ligne
-                            //    - calculés APRÈS réduction
-                            //    - uniquement sur la portion impayée (ratio_impaye_facture)
                             $frais_credit_achat = 0;
                             if ($e->frais_credit != 0 && $e->frais_credit !== null) {
-                                // Frais déjà figés en base → on les respecte
                                 $frais_credit_achat = $e->frais_credit;
                             } else {
                                 if ($est_impayee && $delai_depasse && $ratio_impaye_facture > 0) {
@@ -138,10 +116,8 @@ use Illuminate\Support\Facades\Auth;
                                 }
                             }
 
-                            // 3) NET FINAL DE LA LIGNE = NET APRÈS RÉDUCTION + FRAIS
                             $net_achat_devise = $net_apres_reduction + $frais_credit_achat;
 
-                            // Conversion vers la devise de la facture
                             if ($devise_achat == $data->devise) {
                                 $total += $net_achat_devise;
                             } elseif ($data->devise == 0) {
@@ -150,7 +126,6 @@ use Illuminate\Support\Facades\Auth;
                                 $total += $net_achat_devise * $taux;
                             }
 
-                            // Bénéfice : prix d'achat converti par devise
                             $prix_achat = $e->prix_achat ?? 0;
                             $quantite = $e->quantite ?? 1;
                             $prix_achat_total = $prix_achat * $quantite;
@@ -176,7 +151,6 @@ use Illuminate\Support\Facades\Auth;
                         $benefice_usd = $montant_usd - $achat_total_usd;
                         $benefice_cdf = $montant_cdf - $achat_total_cdf;
 
-                        // CRÉDIT = total final (avec réduction + frais) − paiements
                         $reste_usd = $montant_usd - $montant_usd_paye;
                         $reste_cdf = $montant_cdf - $montant_cdf_paye;
 
@@ -242,6 +216,7 @@ use Illuminate\Support\Facades\Auth;
                                 'id'               => $p->id,
                                 'date'             => date('d/m/Y à H:i', strtotime($p->created_at)),
                                 'payer'            => $p->payer,
+                                'payer_nom'        => User::where('id', $data->user_id)->first()['name'] ?? 'N/A',
                                 'montant_recu'     => $p->montant_recu,
                                 'devise_label'     => $isUSD ? 'USD' : 'CDF',
                                 'mode_de_paiement' => $p->mode_de_paiement,
@@ -374,7 +349,7 @@ use Illuminate\Support\Facades\Auth;
                                 @endif
                             <?php } ?>
 
-                            <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
+                            <?php if ((($edit == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
                                 <a href="#" class="param-facture-btn"
                                    data-id="{{ $data->id }}"
                                    title="Paramètres de la facture">

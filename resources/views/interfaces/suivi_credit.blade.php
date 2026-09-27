@@ -29,6 +29,10 @@ use Illuminate\Support\Facades\Auth;
     @include('composants.sidebar')
     @include('composants.chat')
     <style>
+        /* ============================================================
+   DESIGN PREMIUM – UNIFIÉ AVEC LA PAGE "FACTURES"
+   ============================================================ */
+
 body {
     margin: 0;
     padding: 0;
@@ -43,15 +47,8 @@ body {
     background: #f8fafc;
 }
 
-.content .container .row {
-    margin-left: 0;
-    margin-right: 0;
-}
-
-.content .container [class*="col-"] {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-}
+.content .container .row { margin-left: 0; margin-right: 0; }
+.content .container [class*="col-"] { padding-left: 0.75rem; padding-right: 0.75rem; }
 
 :root {
     --bleu-nuit: #0a192f;
@@ -67,9 +64,7 @@ body {
     --border-radius-lg: 16px;
 }
 
-#bloc_1,
-#bloc_2,
-#bloc_3 {
+#bloc_1, #bloc_2, #bloc_3 {
     background: rgba(255, 255, 255, 0.96);
     border-radius: var(--border-radius-xl);
     box-shadow: var(--shadow-premium);
@@ -114,390 +109,204 @@ h4 .badge-invoice {
 
 @media (max-width: 480px) {
     h4 .badge-invoice {
-        font-size: 0.65rem;
-        padding: 2px 10px;
-        margin-left: 0;
-        white-space: normal;
-        word-break: break-word;
+        font-size: 0.65rem; padding: 2px 10px; margin-left: 0;
+        white-space: normal; word-break: break-word;
     }
-    h4 {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-    }
+    h4 { flex-direction: column; align-items: flex-start; gap: 4px; }
 }
 
 .table-responsive {
-    overflow-x: auto;
-    overflow-y: visible;
+    overflow-x: auto; overflow-y: visible;
     border-radius: var(--border-radius-lg);
+    -webkit-overflow-scrolling: touch;
 }
 
 .table {
-    width: 100%;
-    min-width: 800px;
-    background: white;
-    border-collapse: collapse;
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-light);
-    table-layout: auto;
+    width: 100%; min-width: 800px; background: white;
+    border-collapse: collapse; border-radius: var(--border-radius-lg);
+    overflow: hidden; box-shadow: var(--shadow-light); table-layout: auto;
 }
 
 .table thead th {
-    background: #E7F5FE !important;
-    color: #0a192f;
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 14px 12px !important;
-    border-bottom: 2px solid #cbd5e1 !important;
-    border-right: 1px solid #d0e2f2;
-    white-space: normal;
-    word-break: break-word;
+    background: #E7F5FE !important; color: #0a192f;
+    font-weight: 700; font-size: 0.85rem; text-transform: uppercase;
+    letter-spacing: 0.06em; padding: 14px 12px !important;
+    border-bottom: 2px solid #cbd5e1 !important; border-right: 1px solid #d0e2f2;
+    white-space: normal; word-break: break-word;
 }
 
-.table tbody tr {
-    transition: all 0.15s ease;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.table tbody tr:nth-child(even) {
-    background-color: #f8fafc;
-}
-
-.table tbody tr:nth-child(odd) {
-    background-color: #ffffff;
-}
-
-.table tbody tr:hover {
-    background: #e6f0ff !important;
-    cursor: default;
-}
+.table tbody tr { transition: all 0.15s ease; border-bottom: 1px solid #e2e8f0; }
+.table tbody tr:nth-child(even) { background-color: #f8fafc; }
+.table tbody tr:nth-child(odd)  { background-color: #ffffff; }
+.table tbody tr:hover { background: #e6f0ff !important; cursor: default; }
 
 .table tbody td {
-    padding: 10px 12px !important;
-    vertical-align: middle !important;
-    font-weight: 500;
-    font-size: 0.85rem;
-    color: #1e2a3e;
-    word-break: break-word;
-    border-bottom: 1px solid #eef2f6;
-    line-height: 1.4;
+    padding: 10px 12px !important; vertical-align: middle !important;
+    font-weight: 500; font-size: 0.85rem; color: #1e2a3e;
+    word-break: break-word; border-bottom: 1px solid #eef2f6; line-height: 1.4;
 }
 
-.table tbody td:last-child {
-    text-align: center;
-    vertical-align: middle;
-}
+.table tbody td:last-child { text-align: center; vertical-align: middle; }
 
 .badge-delay {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    min-width: 34px;
-    height: 20px;
-    padding: 0 8px;
-    border-radius: 20px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #ffffff;
-    margin-left: 6px;
-    vertical-align: middle;
-    letter-spacing: 0.3px;
-    white-space: nowrap;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 3px; min-width: 34px; height: 20px; padding: 0 8px;
+    border-radius: 20px; font-size: 0.7rem; font-weight: 700;
+    color: #ffffff; margin-left: 6px; vertical-align: middle;
+    letter-spacing: 0.3px; white-space: nowrap;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
 }
-.badge-delay.success {
-    background: linear-gradient(135deg, #10b981, #059669);
-}
-.badge-delay.warning {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-}
-.badge-delay.danger {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-}
-.badge-delay i.zmdi {
-    font-size: 0.75rem;
-    color: #ffffff;
-}
+.badge-delay.success { background: linear-gradient(135deg, #10b981, #059669); }
+.badge-delay.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.badge-delay.danger  { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.badge-delay i.zmdi  { font-size: 0.75rem; color: #ffffff; }
 
-.badge-tranches {
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-.badge-tranches:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
+.badge-tranches { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.badge-tranches:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
 
 .paye-cell-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    flex-wrap: wrap;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; flex-wrap: wrap;
 }
 
-#bloc_1 button,
-#bloc_2 button,
-#bloc_3 button,
-.filters-container button,
-#liste,
-#add,
-#add_r,
-#save,
-#save_r,
-#annuler,
-#edit_save,
-#edit_annuler,
-#resetFilters,
-.btn-primary,
-.btn-info,
-.btn-danger,
-.btn-secondary {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 6px 16px !important;
-    font-weight: 600;
-    font-size: 0.85rem;
-    border-radius: 40px !important;
-    transition: all 0.25s ease;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    box-shadow: var(--shadow-light);
-    white-space: nowrap;
-    line-height: 1.5;
+#bloc_1 button, #bloc_2 button, #bloc_3 button,
+.filters-container button, #liste, #rappel, #rapport,
+#add, #add_r, #save, #save_r, #annuler, #edit_save, #edit_annuler,
+#resetFilters, .btn-primary, .btn-info, .btn-danger, .btn-success, .btn-secondary {
+    display: inline-flex !important; align-items: center; justify-content: center;
+    gap: 8px; padding: 6px 16px !important; font-weight: 600; font-size: 0.85rem;
+    border-radius: 40px !important; transition: all 0.25s ease;
+    border: none; cursor: pointer; text-decoration: none;
+    box-shadow: var(--shadow-light); white-space: nowrap; line-height: 1.5;
 }
 
-#liste,
-.btn-primary {
-    background: #3B82F6 !important;
-    color: white !important;
-}
-#liste:hover,
-.btn-primary:hover {
+#liste, #rappel, #rapport { min-width: 130px; justify-content: center; }
+
+#liste, .btn-primary { background: #3B82F6 !important; color: white !important; }
+#liste:hover, .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
     background: #2563eb !important;
 }
 
-#add,
-.btn-info {
-    background: var(--bleu-nuit-gradient) !important;
+#rappel, .btn-success {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
     color: white !important;
 }
-#add:hover,
-.btn-info:hover {
+#rappel:hover, .btn-success:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.35);
+    color: white !important;
 }
 
-#save,
-#edit_save {
-    background: var(--bleu-secondaire-gradient) !important;
-    color: white;
-}
-#save:hover,
-#edit_save:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3);
-}
-
-#annuler,
-#edit_annuler,
-.btn-danger {
-    background: var(--rouge-gradient) !important;
-    color: white;
-}
-#annuler:hover,
-#edit_annuler:hover,
-.btn-danger:hover {
+#rapport { background: var(--rouge-gradient) !important; color: white !important; }
+#rapport:hover {
     transform: translateY(-2px);
     background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
     box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
 }
 
-#resetFilters {
-    background: #64748b !important;
-    color: white !important;
+#add, .btn-info { background: var(--bleu-nuit-gradient) !important; color: white !important; }
+#add:hover, .btn-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
 }
+
+#save, #edit_save { background: var(--bleu-secondaire-gradient) !important; color: white; }
+#save:hover, #edit_save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3);
+}
+
+#annuler, #edit_annuler, .btn-danger { background: var(--rouge-gradient) !important; color: white; }
+#annuler:hover, #edit_annuler:hover, .btn-danger:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
+}
+
+#resetFilters { background: #64748b !important; color: white !important; }
 #resetFilters:hover {
     transform: translateY(-2px);
     background: #475569 !important;
     box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
 }
 
-#add_r,
-#save_r,
-#print_r {
-    background: #cbd5e1 !important;
-    color: #475569 !important;
-    cursor: not-allowed !important;
-    opacity: 0.7;
-    transform: none !important;
-    box-shadow: none !important;
+#add_r, #save_r, #print_r {
+    background: #cbd5e1 !important; color: #475569 !important;
+    cursor: not-allowed !important; opacity: 0.7;
+    transform: none !important; box-shadow: none !important;
 }
 
-#print {
-    background: #3B82F6 !important;
-    color: white !important;
-}
+#print { background: #3B82F6 !important; color: white !important; }
 #print:hover {
-    background: #2563eb !important;
-    transform: translateY(-2px);
+    background: #2563eb !important; transform: translateY(-2px);
     box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
 }
 
 .filters-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 16px;
-    background: white;
-    padding: 0.8rem 1.2rem;
+    display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+    background: white; padding: 0.8rem 1.2rem;
     border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-light);
-    align-items: flex-end;
+    box-shadow: var(--shadow-light); align-items: flex-end;
 }
 
-.filter-group {
-    flex: 1;
-    min-width: 150px;
-}
+.filter-group { flex: 1; min-width: 150px; }
 
 .filter-group label {
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: var(--bleu-nuit);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    font-weight: 600; margin-bottom: 4px; color: var(--bleu-nuit);
+    font-size: 0.7rem; text-transform: uppercase;
+    display: flex; align-items: center; gap: 5px;
 }
 
-.filter-group .form-control {
-    height: 36px;
-}
+.filter-group .form-control { height: 36px; }
 
 .invoice-badges-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 8px 12px;
-    margin-bottom: 15px;
+    display: flex; flex-wrap: wrap; justify-content: flex-end;
+    gap: 8px 12px; margin-bottom: 15px;
 }
 
 .invoice-count-badge {
-    border-radius: 50px;
-    padding: 4px 12px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    color: white;
+    border-radius: 50px; padding: 4px 12px; font-size: 0.75rem;
+    font-weight: bold; display: inline-flex; align-items: center;
+    gap: 6px; white-space: nowrap; color: white;
 }
 
-.invoice-count-badge.usd-badge {
-    background: linear-gradient(135deg, #3B82F6, #2563eb);
-}
-.invoice-count-badge.cdf-badge {
-    background: linear-gradient(135deg, #3B82F6, #2563eb);
-}
+.invoice-count-badge.usd-badge      { background: linear-gradient(135deg, #3B82F6, #2563eb); }
+.invoice-count-badge.cdf-badge      { background: linear-gradient(135deg, #3B82F6, #2563eb); }
+.invoice-count-badge.paye-usd       { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
+.invoice-count-badge.paye-cdf       { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
+.invoice-count-badge.credit-usd     { background: linear-gradient(135deg, #dc3545, #b02a37); }
+.invoice-count-badge.credit-cdf     { background: linear-gradient(135deg, #dc3545, #b02a37); }
+.invoice-count-badge.benefice-usd   { background: linear-gradient(135deg, #198754, #146c43); }
+.invoice-count-badge.benefice-cdf   { background: linear-gradient(135deg, #198754, #146c43); }
+.invoice-count-badge.solde-usd      { background: linear-gradient(135deg, #f97316, #ea580c); }
+.invoice-count-badge.solde-cdf      { background: linear-gradient(135deg, #f97316, #ea580c); }
 
-.invoice-count-badge.paye-usd {
-    background: linear-gradient(135deg, #0a192f, #1e3a5f);
-}
-.invoice-count-badge.paye-cdf {
-    background: linear-gradient(135deg, #0a192f, #1e3a5f);
-}
+#form_add .row, #form_edit .row { display: flex; flex-wrap: wrap; }
+#form_add .col-6, #form_edit .col-6 { margin-bottom: 0.8rem; }
 
-.invoice-count-badge.credit-usd {
-    background: linear-gradient(135deg, #dc3545, #b02a37);
-}
-.invoice-count-badge.credit-cdf {
-    background: linear-gradient(135deg, #dc3545, #b02a37);
-}
-
-.invoice-count-badge.benefice-usd {
-    background: linear-gradient(135deg, #198754, #146c43);
-}
-.invoice-count-badge.benefice-cdf {
-    background: linear-gradient(135deg, #198754, #146c43);
-}
-
-.invoice-count-badge.solde-usd {
-    background: linear-gradient(135deg, #f97316, #ea580c);
-}
-.invoice-count-badge.solde-cdf {
-    background: linear-gradient(135deg, #f97316, #ea580c);
-}
-
-#form_add .row,
-#form_edit .row {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-#form_add .col-6,
-#form_edit .col-6 {
-    margin-bottom: 0.8rem;
-}
-
-.form-group {
-    width: 100%;
-    margin-bottom: 0;
-}
-
+.form-group { width: 100%; margin-bottom: 0; }
 .form-group label {
-    display: block;
-    font-weight: 700;
-    color: var(--bleu-nuit);
-    margin-bottom: 4px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
+    display: block; font-weight: 700; color: var(--bleu-nuit);
+    margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase;
     letter-spacing: 0.4px;
 }
+.form-group label i { color: #e31b23; margin-right: 6px; }
 
-.form-group label i {
-    color: #e31b23;
-    margin-right: 6px;
-}
-
-.form-control,
-input.form-control,
-select.form-control,
-textarea.form-control,
-.input-mask {
-    width: 100% !important;
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    padding: 8px 12px !important;
-    font-weight: 500;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-    box-sizing: border-box;
-    height: 38px !important;
+.form-control, input.form-control, select.form-control,
+textarea.form-control, .input-mask {
+    width: 100% !important; background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important; border-radius: 14px !important;
+    padding: 8px 12px !important; font-weight: 500; font-size: 0.85rem;
+    transition: all 0.2s; box-sizing: border-box; height: 38px !important;
     line-height: 1.4;
 }
 
-textarea.form-control {
-    resize: vertical;
-    height: 38px !important;
-}
+textarea.form-control { resize: vertical; height: 38px !important; }
 
-.form-control:focus,
-select.form-control:focus,
-textarea.form-control:focus {
+.form-control:focus, select.form-control:focus, textarea.form-control:focus {
     border-color: var(--bleu-nuit) !important;
     box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
     transform: translateY(-1px);
@@ -506,173 +315,77 @@ textarea.form-control:focus {
 select.form-control {
     appearance: none;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-    background-repeat: no-repeat;
-    background-position: right 14px center;
+    background-repeat: no-repeat; background-position: right 14px center;
 }
 
-.input-mask {
-    font-family: monospace;
-    background: #fff9ef !important;
+.input-mask { font-family: monospace; background: #fff9ef !important; }
+
+#msg, #edit_msg {
+    display: none !important; visibility: hidden !important;
+    opacity: 0 !important; margin: 0 !important; padding: 0 !important;
+    border: 0 !important; background: transparent !important;
+    box-shadow: none !important; min-height: 0 !important;
+    height: 0 !important; overflow: hidden !important;
 }
 
-#msg,
-#edit_msg {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    min-height: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
+#msg:not(:empty), #edit_msg:not(:empty) {
+    display: inline-flex !important; visibility: visible !important;
+    opacity: 1 !important; height: auto !important;
+    margin-top: 16px !important; padding: 10px 18px !important;
+    background: white !important; border-radius: 50px !important;
+    box-shadow: var(--shadow-light) !important; gap: 10px;
+    font-weight: 600; font-size: 0.8rem; animation: slideInMsg 0.3s ease-out;
 }
 
-#msg:not(:empty),
-#edit_msg:not(:empty) {
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    height: auto !important;
-    margin-top: 16px !important;
-    padding: 10px 18px !important;
-    background: white !important;
-    border-radius: 50px !important;
-    box-shadow: var(--shadow-light) !important;
-    gap: 10px;
-    font-weight: 600;
-    font-size: 0.8rem;
-    animation: slideInMsg 0.3s ease-out;
-}
-
-#msg:not(:empty):has(i.zmdi-check-circle),
-#edit_msg:not(:empty):has(i.zmdi-check-circle) {
-    background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
-    color: #065f46;
-    border-left: 4px solid #10b981;
-}
-
-#msg:not(:empty):has(i.zmdi-close-circle),
-#edit_msg:not(:empty):has(i.zmdi-close-circle) {
-    background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
-    color: #991b1b;
-    border-left: 4px solid #ef4444;
-}
-
-#msg:not(:empty):has(i.zmdi-info),
-#edit_msg:not(:empty):has(i.zmdi-info) {
-    background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important;
-    color: #1e3a8a;
-    border-left: 4px solid #3b82f6;
-}
+#msg:not(:empty):has(i.zmdi-check-circle)  { background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important; color: #065f46; border-left: 4px solid #10b981; }
+#msg:not(:empty):has(i.zmdi-close-circle)  { background: linear-gradient(95deg, #fee2e2, #fecaca) !important; color: #991b1b; border-left: 4px solid #ef4444; }
+#msg:not(:empty):has(i.zmdi-info)          { background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important; color: #1e3a8a; border-left: 4px solid #3b82f6; }
 
 @keyframes slideInMsg {
     from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .table tbody td a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50% !important;
-    background: #f1f5f9;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    margin: 0 2px;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 50% !important;
+    background: #f1f5f9; transition: all 0.2s ease;
+    text-decoration: none; margin: 0 2px;
 }
-.table tbody td a i.zmdi {
-    font-size: 1.1rem;
-    margin: 0;
-}
-.table tbody td a i.zmdi-eye,
-.table tbody td a i.zmdi-money { color: #2c7da0; }
+.table tbody td a i.zmdi { font-size: 1.1rem; margin: 0; }
+.table tbody td a i.zmdi-eye, .table tbody td a i.zmdi-money { color: #2c7da0; }
 .table tbody td a i.zmdi-delete { color: #ef4444; }
-.table tbody td a:hover {
-    background: #e0f2fe;
-    transform: translateY(-2px);
-}
+.table tbody td a:hover { background: #e0f2fe; transform: translateY(-2px); }
 .table tbody td a:hover i.zmdi-delete { color: #b91c1c; }
-.table tbody td a:hover i.zmdi-eye,
-.table tbody td a:hover i.zmdi-money { color: #1e5a7a; }
-
-.table tbody td a i.zmdi-settings {
-    color: #17a2b8 !important;
-    transition: all 0.2s ease;
-}
-.table tbody td a:hover i.zmdi-settings {
-    color: #0f6674 !important;
-}
+.table tbody td a:hover i.zmdi-eye, .table tbody td a:hover i.zmdi-money { color: #1e5a7a; }
+.table tbody td a i.zmdi-settings { color: #17a2b8 !important; transition: all 0.2s ease; }
+.table tbody td a:hover i.zmdi-settings { color: #0f6674 !important; }
 
 [style*="background-color: rgba(0, 0, 0, 0.1)"] {
-    background: #eef3fc !important;
-    border-radius: 60px;
-    padding: 10px 24px !important;
-    margin-bottom: 20px;
-    display: flex !important;
-    flex-wrap: wrap;
-    gap: 12px;
+    background: #eef3fc !important; border-radius: 60px;
+    padding: 10px 24px !important; margin-bottom: 20px;
+    display: flex !important; flex-wrap: wrap; gap: 12px;
     justify-content: flex-start;
 }
 
-.modal.fade#pdfModal .modal-dialog {
-    max-width: 100%;
-    width: 60%;
-    margin: 1.75rem auto;
-}
-.modal.fade#pdfModal .modal-content {
-    border-radius: 20px;
-    border: none;
-    box-shadow: var(--shadow-premium);
-    overflow: hidden;
-}
-.modal.fade#pdfModal .modal-header {
-    background: var(--bleu-nuit-gradient) !important;
-    border-bottom: none;
-    padding: 1.2rem 1.5rem;
-}
-.modal.fade#pdfModal .modal-header .modal-title {
-    font-weight: 700;
-    font-size: 1.2rem;
-    color: white;
-}
-.modal.fade#pdfModal .modal-header .close {
-    color: white;
-    opacity: 0.8;
-    text-shadow: none;
-}
+/* ============================================================
+   MODALE PDF
+   ============================================================ */
+.modal.fade#pdfModal .modal-dialog { max-width: 100%; width: 60%; margin: 1.75rem auto; }
+.modal.fade#pdfModal .modal-content { border-radius: 20px; border: none; box-shadow: var(--shadow-premium); overflow: hidden; }
+.modal.fade#pdfModal .modal-header { background: var(--bleu-nuit-gradient) !important; border-bottom: none; padding: 1.2rem 1.5rem; }
+.modal.fade#pdfModal .modal-header .modal-title { font-weight: 700; font-size: 1.2rem; color: white; }
+.modal.fade#pdfModal .modal-header .close { color: white; opacity: 0.8; text-shadow: none; }
 .modal.fade#pdfModal .modal-header .close:hover { opacity: 1; }
-.modal.fade#pdfModal .modal-body {
-    padding: 0;
-    background: #f8fafc;
-}
-.modal.fade#pdfModal .modal-footer {
-    background: white;
-    border-top: 1px solid #eef2f6;
-    padding: 1.2rem 1.5rem;
-}
-.modal.fade#pdfModal #pdfIframe {
-    width: 100%;
-    height: 50vh;
-    border: none;
-    background: white;
-}
+.modal.fade#pdfModal .modal-body { padding: 0; background: #f8fafc; }
+.modal.fade#pdfModal .modal-footer { background: white; border-top: 1px solid #eef2f6; padding: 1.2rem 1.5rem; }
+.modal.fade#pdfModal #pdfIframe { width: 100%; height: 50vh; border: none; background: white; }
 .modal.fade#pdfModal #montant_recu,
 .modal.fade#pdfModal #devise_recu {
-    width: 100%;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 40px !important;
-    padding: 10px 14px;
-    font-weight: 500;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-    height: 44px;
-    box-sizing: border-box;
+    width: 100%; background: #ffffff; border: 1px solid #e2e8f0;
+    border-radius: 40px !important; padding: 10px 14px;
+    font-weight: 500; font-size: 0.85rem;
+    transition: all 0.2s; height: 44px; box-sizing: border-box;
 }
 .modal.fade#pdfModal #montant_recu:focus,
 .modal.fade#pdfModal #devise_recu:focus {
@@ -683,241 +396,132 @@ select.form-control {
 .modal.fade#pdfModal #devise_recu {
     appearance: none;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-    background-repeat: no-repeat;
-    background-position: right 14px center;
+    background-repeat: no-repeat; background-position: right 14px center;
     cursor: pointer;
 }
 .modal.fade#pdfModal #btn_payer {
     background: linear-gradient(135deg, #10b981, #059669) !important;
-    border: none;
-    border-radius: 40px !important;
-    padding: 10px 24px;
-    font-weight: 700;
-    font-size: 0.85rem;
-    transition: all 0.2s ease;
-    width: 100%;
-    color: white;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    border: none; border-radius: 40px !important;
+    padding: 10px 24px; font-weight: 700; font-size: 0.85rem;
+    transition: all 0.2s ease; width: 100%; color: white;
+    cursor: pointer; display: inline-flex;
+    align-items: center; justify-content: center; gap: 8px;
 }
 .modal.fade#pdfModal #btn_payer:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3);
 }
 .modal.fade#pdfModal #msg_facture {
-    display: inline-block !important;
-    font-weight: 600;
-    font-size: 0.85rem;
-    padding: 10px 18px;
-    border-radius: 50px;
-    background: #f1f5f9;
-    color: #1e2a3e;
-    margin-top: 12px;
-    margin-bottom: 0;
-    text-align: center;
-    animation: fadeInMsg 0.3s ease-out;
+    display: inline-block !important; font-weight: 600; font-size: 0.85rem;
+    padding: 10px 18px; border-radius: 50px; background: #f1f5f9;
+    color: #1e2a3e; margin-top: 12px; margin-bottom: 0;
+    text-align: center; animation: fadeInMsg 0.3s ease-out;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    max-width: 100%;
-    word-wrap: break-word;
-    line-height: 1.5;
+    max-width: 100%; word-wrap: break-word; line-height: 1.5;
 }
 .modal.fade#pdfModal #msg_facture:has(i.zmdi-close-circle),
 .modal.fade#pdfModal #msg_facture[style*="color: #dc3545"] {
     background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
-    color: #991b1b !important;
-    border-left: 4px solid #dc2626 !important;
+    color: #991b1b !important; border-left: 4px solid #dc2626 !important;
 }
 .modal.fade#pdfModal #msg_facture:has(i.zmdi-check-circle),
 .modal.fade#pdfModal #msg_facture[style*="color: #28a745"] {
     background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
-    color: #065f46 !important;
-    border-left: 4px solid #10b981 !important;
+    color: #065f46 !important; border-left: 4px solid #10b981 !important;
 }
 .modal.fade#pdfModal #msg_facture:has(i.zmdi-alert),
 .modal.fade#pdfModal #msg_facture[style*="color: #ffc107"] {
     background: linear-gradient(95deg, #fed7aa, #ffedcc) !important;
-    color: #9b4d00 !important;
-    border-left: 4px solid #f59e0b !important;
+    color: #9b4d00 !important; border-left: 4px solid #f59e0b !important;
 }
 @keyframes fadeInMsg {
     from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 .modal.fade#pdfModal .btn-secondary {
-    background: #64748b;
-    border: none;
-    border-radius: 40px;
-    padding: 8px 20px;
-    font-weight: 600;
-    font-size: 0.8rem;
-    transition: all 0.2s ease;
-    color: white;
+    background: #64748b; border: none; border-radius: 40px;
+    padding: 8px 20px; font-weight: 600; font-size: 0.8rem;
+    transition: all 0.2s ease; color: white;
 }
-.modal.fade#pdfModal .btn-secondary:hover {
-    background: #475569;
-    transform: translateY(-2px);
-}
-.modal.fade#pdfModal hr {
-    margin: 15px 0;
-    border: 0;
-    border-top: 1px solid #eef2f6;
-}
+.modal.fade#pdfModal .btn-secondary:hover { background: #475569; transform: translateY(-2px); }
+.modal.fade#pdfModal hr { margin: 15px 0; border: 0; border-top: 1px solid #eef2f6; }
 
+/* ============================================================
+   MODALE TRANCHES
+   ============================================================ */
 #tranchesModal .modal-content {
-    border-radius: var(--border-radius-xl);
-    border: none;
+    border-radius: var(--border-radius-xl); border: none;
     box-shadow: var(--shadow-premium);
 }
 #tranchesModal .modal-header {
-    background: var(--bleu-nuit-gradient);
-    color: white;
+    background: var(--bleu-nuit-gradient); color: white;
     border-top-left-radius: var(--border-radius-xl);
     border-top-right-radius: var(--border-radius-xl);
-    border-bottom: none;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
+    border-bottom: none; display: flex; flex-wrap: wrap;
+    align-items: center; gap: 8px;
 }
 #tranchesModal .modal-header .close {
-    color: white;
-    opacity: 0.8;
-    text-shadow: none;
-    margin-left: auto;
+    color: white; opacity: 0.8; text-shadow: none; margin-left: auto;
 }
-#tranchesModal .modal-header .close:hover {
-    opacity: 1;
-}
+#tranchesModal .modal-header .close:hover { opacity: 1; }
 #tranchesModal .modal-title {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    font-size: 1.05rem;
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 8px; font-size: 1.05rem;
 }
 #tranchesModal .badge-info-header {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 20px; font-size: 0.72rem;
+    font-weight: 700; letter-spacing: 0.3px; white-space: nowrap;
 }
-#tranchesModal .badge-info-header.tranches {
-    background: rgba(255, 255, 255, 0.22);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-}
-#tranchesModal .badge-info-header.duree-success {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #ffffff;
-}
-#tranchesModal .badge-info-header.duree-warning {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: #ffffff;
-}
-#tranchesModal .badge-info-header.duree-danger {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: #ffffff;
-}
-#tranchesModal .badge-info-header.statut-paid {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-}
-#tranchesModal .badge-info-header.statut-unpaid {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-}
-#tranchesModal .badge-info-header.statut-partial {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-}
-#tranchesModal .modal-body {
-    background: #f8fafc;
-    padding: 1.5rem;
-}
+#tranchesModal .badge-info-header.tranches { background: rgba(255, 255, 255, 0.22); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.35); }
+#tranchesModal .badge-info-header.duree-success { background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; }
+#tranchesModal .badge-info-header.duree-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; }
+#tranchesModal .badge-info-header.duree-danger  { background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; }
+#tranchesModal .badge-info-header.statut-paid    { background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.35); }
+#tranchesModal .badge-info-header.statut-unpaid  { background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.35); }
+#tranchesModal .badge-info-header.statut-partial { background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.35); }
+#tranchesModal .modal-body { background: #f8fafc; padding: 1.5rem; }
 #tranchesModal .modal-footer {
-    background: white;
-    border-top: 1px solid #eef2f6;
+    background: white; border-top: 1px solid #eef2f6;
     border-bottom-left-radius: var(--border-radius-xl);
     border-bottom-right-radius: var(--border-radius-xl);
 }
 #tranchesModal .table thead th {
-    background: #E7F5FE !important;
-    color: var(--bleu-nuit);
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
+    background: #E7F5FE !important; color: var(--bleu-nuit);
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
     padding: 10px 8px !important;
     border-bottom: 2px solid #cbd5e1 !important;
 }
 #tranchesModal .table tbody td {
-    font-size: 0.8rem;
-    padding: 8px 8px !important;
-    vertical-align: middle;
-    color: #1e2a3e;
+    font-size: 0.8rem; padding: 8px 8px !important;
+    vertical-align: middle; color: #1e2a3e;
 }
 #tranchesModal .badge-devise {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: white;
-    display: inline-block;
-    min-width: 40px;
-    text-align: center;
+    padding: 4px 10px; border-radius: 20px; font-size: 0.7rem;
+    font-weight: 700; color: white; display: inline-block;
+    min-width: 40px; text-align: center;
 }
-#tranchesModal .badge-devise.usd {
-    background: linear-gradient(135deg, #3B82F6, #2563eb);
-}
-#tranchesModal .badge-devise.cdf {
-    background: linear-gradient(135deg, #0a192f, #1e3a5f);
-}
+#tranchesModal .badge-devise.usd { background: linear-gradient(135deg, #3B82F6, #2563eb); }
+#tranchesModal .badge-devise.cdf { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
 #tranchesModal .date-range-item {
-    background: white;
-    padding: 12px 15px;
-    border-radius: 12px;
-    box-shadow: var(--shadow-light);
-    border-left: 4px solid var(--bleu-nuit);
+    background: white; padding: 12px 15px; border-radius: 12px;
+    box-shadow: var(--shadow-light); border-left: 4px solid var(--bleu-nuit);
     height: 100%;
 }
 #tranchesModal .date-range-item .label {
-    font-weight: 600;
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #64748b;
-    display: block;
-    margin-bottom: 4px;
+    font-weight: 600; font-size: 0.68rem; text-transform: uppercase;
+    letter-spacing: 0.5px; color: #64748b; display: block; margin-bottom: 4px;
 }
 #tranchesModal .date-range-item .value {
-    font-weight: 700;
-    color: var(--bleu-nuit);
-    font-size: 0.88rem;
+    font-weight: 700; color: var(--bleu-nuit); font-size: 0.88rem;
 }
 
 #bloc_t {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: stretch;
-    gap: 20px;
-    width: 100%;
-    margin: 0;
+    display: flex; flex-wrap: wrap; align-items: stretch;
+    gap: 20px; width: 100%; margin: 0;
 }
-#bloc_2,
-#bloc_3 {
-    flex: 1 1 calc(50% - 20px);
-    min-width: 280px;
-    margin: 0 !important;
+#bloc_2, #bloc_3 {
+    flex: 1 1 calc(50% - 20px); min-width: 280px; margin: 0 !important;
 }
 
 @media (max-width: 768px) {
@@ -933,8 +537,16 @@ select.form-control {
 @media (max-width: 768px) {
     .content .container { padding: 0.4rem 0.6rem !important; }
     #bloc_1, #bloc_2, #bloc_3 { padding: 0.8rem !important; }
-    #liste, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters,
-    .btn-primary, .btn-info, .btn-danger { padding: 4px 12px !important; font-size: 0.7rem; }
+
+    #liste, #rappel, #rapport, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters,
+    .btn-primary, .btn-info, .btn-danger, .btn-success {
+        padding: 4px 12px !important; font-size: 0.7rem;
+    }
+
+    #liste, #rappel, #rapport {
+        min-width: 90px; flex: 1 1 auto; justify-content: center;
+    }
+
     .filters-container { flex-direction: column; gap: 8px; padding: 0.6rem 0.8rem; margin-bottom: 12px; }
     .filter-group { width: 100%; min-width: 100%; }
     .filter-group .form-control { height: 34px !important; }
@@ -978,7 +590,12 @@ select.form-control {
     #bloc_1, #bloc_2, #bloc_3 { padding: 0.6rem !important; }
     h4 { font-size: 1.1rem; margin-bottom: 12px; }
     h4 i { font-size: 24px !important; }
-    #liste, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters { padding: 3px 8px !important; font-size: 0.65rem; }
+    #liste, #rappel, #rapport, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters {
+        padding: 3px 8px !important; font-size: 0.65rem;
+    }
+    #liste, #rappel, #rapport {
+        min-width: 70px; flex: 1 1 auto; justify-content: center;
+    }
     .table thead th { font-size: 0.62rem; padding: 8px 4px !important; }
     .table tbody td { padding: 6px 8px !important; font-size: 0.7rem; line-height: 1.2; }
     .modal.fade#pdfModal .modal-header { padding: 0.8rem 1rem; }
@@ -994,270 +611,576 @@ select.form-control {
    MODALE PARAMÈTRES FACTURE – STYLES COMPLETS
    ============================================================ */
 .param-nav-tabs .nav-link {
-    border: none;
-    color: #64748b;
-    font-weight: 600;
-    font-size: 0.82rem;
-    padding: 14px 16px;
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s;
+    border: none; color: #64748b; font-weight: 600;
+    font-size: 0.82rem; padding: 14px 16px;
+    border-bottom: 3px solid transparent; transition: all 0.2s;
     background: transparent;
 }
-.param-nav-tabs .nav-link i {
-    margin-right: 4px;
-}
-.param-nav-tabs .nav-link:hover {
-    color: #0a192f;
-    border-bottom-color: #cbd5e1;
-}
-.param-nav-tabs .nav-link.active {
-    color: #17a2b8;
-    border-bottom-color: #17a2b8;
-    background: transparent;
-}
+.param-nav-tabs .nav-link i { margin-right: 4px; }
+.param-nav-tabs .nav-link:hover { color: #0a192f; border-bottom-color: #cbd5e1; }
+.param-nav-tabs .nav-link.active { color: #17a2b8; border-bottom-color: #17a2b8; background: transparent; }
 
 .param-section-title {
-    font-weight: 700;
-    color: #0a192f;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding-left: 12px;
-    border-left: 4px solid #17a2b8;
+    font-weight: 700; color: #0a192f; font-size: 0.9rem;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding-left: 12px; border-left: 4px solid #17a2b8;
     margin-bottom: 14px;
 }
 
-.param-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px;
-}
-
+.param-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
 .param-info-item {
-    background: white;
-    padding: 10px 14px;
-    border-radius: 12px;
+    background: white; padding: 10px 14px; border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
+    display: flex; flex-direction: column; gap: 3px;
 }
-
 .param-info-label {
-    font-size: 0.7rem;
-    color: #64748b;
-    text-transform: uppercase;
-    font-weight: 600;
-    letter-spacing: 0.3px;
+    font-size: 0.7rem; color: #64748b; text-transform: uppercase;
+    font-weight: 600; letter-spacing: 0.3px;
 }
 .param-info-label i { color: #17a2b8; margin-right: 4px; }
+.param-info-value { font-size: 0.88rem; color: #0a192f; font-weight: 700; }
 
-.param-info-value {
-    font-size: 0.88rem;
-    color: #0a192f;
-    font-weight: 700;
-}
-
-.param-finance-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 10px;
-}
-
+.param-finance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
 .param-finance-card {
-    padding: 14px 16px;
-    border-radius: 14px;
-    color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    transition: transform 0.2s;
+    padding: 14px 16px; border-radius: 14px; color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12); transition: transform 0.2s;
 }
 .param-finance-card:hover { transform: translateY(-2px); }
-
-.param-finance-card.usd-card     { background: linear-gradient(135deg, #3B82F6, #2563eb); }
-.param-finance-card.paye-card    { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
-.param-finance-card.credit-card  { background: linear-gradient(135deg, #dc3545, #b02a37); }
-.param-finance-card.benefice-card{ background: linear-gradient(135deg, #198754, #146c43); }
+.param-finance-card.usd-card      { background: linear-gradient(135deg, #3B82F6, #2563eb); }
+.param-finance-card.paye-card     { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
+.param-finance-card.credit-card   { background: linear-gradient(135deg, #dc3545, #b02a37); }
+.param-finance-card.benefice-card { background: linear-gradient(135deg, #198754, #146c43); }
 
 .param-statut-card {
-    padding: 16px 20px;
-    border-radius: 14px;
-    color: white;
+    padding: 16px 20px; border-radius: 14px; color: white;
     box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 700;
-    transition: transform 0.2s;
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 700; transition: transform 0.2s;
 }
 .param-statut-card:hover { transform: translateY(-2px); }
 .param-statut-card.paid    { background: linear-gradient(135deg, #198754, #146c43); }
 .param-statut-card.unpaid  { background: linear-gradient(135deg, #dc3545, #b02a37); }
 .param-statut-card.partiel { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.param-statut-card i {
-    font-size: 2rem;
-    opacity: 0.95;
-}
-.param-statut-card .param-statut-txt {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-.param-statut-card .param-statut-title {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    opacity: 0.9;
-    letter-spacing: 0.4px;
-}
-.param-statut-card .param-statut-value {
-    font-size: 1.3rem;
-    font-weight: 800;
-}
-.param-statut-card .param-statut-sub {
-    font-size: 0.78rem;
-    opacity: 0.9;
-    font-weight: 500;
-}
+.param-statut-card i { font-size: 2rem; opacity: 0.95; }
+.param-statut-card .param-statut-txt { display: flex; flex-direction: column; gap: 2px; }
+.param-statut-card .param-statut-title { font-size: 0.72rem; text-transform: uppercase; opacity: 0.9; letter-spacing: 0.4px; }
+.param-statut-card .param-statut-value { font-size: 1.3rem; font-weight: 800; }
+.param-statut-card .param-statut-sub { font-size: 0.78rem; opacity: 0.9; font-weight: 500; }
 
 .param-action-box {
-    background: white;
-    padding: 14px 16px;
-    border-radius: 14px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    height: 100%;
+    background: white; padding: 14px 16px; border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); height: 100%;
 }
-
 .param-action-label {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #0a192f;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: block;
-    margin-bottom: 8px;
+    font-size: 0.78rem; font-weight: 700; color: #0a192f;
+    text-transform: uppercase; letter-spacing: 0.3px;
+    display: block; margin-bottom: 8px;
 }
 
 #paramFactureModal .modal-body::-webkit-scrollbar,
-#paramFactureModal .tab-content::-webkit-scrollbar {
-    width: 8px;
-}
+#paramFactureModal .tab-content::-webkit-scrollbar { width: 8px; }
 #paramFactureModal .modal-body::-webkit-scrollbar-thumb,
-#paramFactureModal .tab-content::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
-}
+#paramFactureModal .tab-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
 #param_articles_table tbody tr:hover,
-#param_paiements_table tbody tr:hover {
-    background: #e6f0ff !important;
-}
+#param_paiements_table tbody tr:hover { background: #e6f0ff !important; }
 
 .param-inline-input {
-    width: 100% !important;
-    min-width: 90px;
-    height: 34px !important;
-    font-size: 0.8rem !important;
-    padding: 4px 8px !important;
-    border-radius: 8px !important;
-    text-align: right;
-    font-weight: 600;
+    width: 100% !important; min-width: 90px;
+    height: 34px !important; font-size: 0.8rem !important;
+    padding: 4px 8px !important; border-radius: 8px !important;
+    text-align: right; font-weight: 600;
 }
-.param-inline-input.frais-input {
-    border-color: #f59e0b !important;
-    background: #fffbeb !important;
-    color: #92400e;
-}
-.param-inline-input.reduction-input {
-    border-color: #dc2626 !important;
-    background: #fef2f2 !important;
-    color: #991b1b;
-}
+.param-inline-input.frais-input { border-color: #f59e0b !important; background: #fffbeb !important; color: #92400e; }
+.param-inline-input.reduction-input { border-color: #dc2626 !important; background: #fef2f2 !important; color: #991b1b; }
 
-.dual-currency b {
-    display: block;
-    font-size: 0.82rem;
-}
-.dual-currency small {
-    display: block;
-    font-size: 0.7rem;
-    color: #64748b;
-    font-weight: 500;
-}
+.dual-currency b { display: block; font-size: 0.82rem; }
+.dual-currency small { display: block; font-size: 0.7rem; color: #64748b; font-weight: 500; }
 
-.param-totals-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-    margin-top: 10px;
-}
-
+.param-totals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 10px; }
 .param-total-item {
-    background: white;
-    padding: 12px 14px;
-    border-radius: 10px;
+    background: white; padding: 12px 14px; border-radius: 10px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
     border: 1px solid #eef2f6;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.param-total-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
+.param-total-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
 .param-total-label {
-    font-size: 0.65rem;
-    color: #64748b;
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 0.4px;
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    font-size: 0.65rem; color: #64748b; text-transform: uppercase;
+    font-weight: 700; letter-spacing: 0.4px;
+    margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+}
+.param-total-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.param-total-value { font-size: 0.92rem; font-weight: 800; line-height: 1.2; }
+.param-total-sub { font-size: 0.72rem; font-weight: 600; margin-top: 3px; color: #64748b; line-height: 1.2; }
+
+.param-total-item.total-qte   .param-total-value { color: #17a2b8; } .param-total-item.total-qte   .param-total-dot { background: #17a2b8; }
+.param-total-item.total-pv    .param-total-value { color: #3B82F6; } .param-total-item.total-pv    .param-total-dot { background: #3B82F6; }
+.param-total-item.total-gen   .param-total-value { color: #0a192f; } .param-total-item.total-gen   .param-total-dot { background: #0a192f; }
+.param-total-item.total-gen   .param-total-sub   { color: #3B82F6; }
+.param-total-item.total-frais .param-total-value { color: #f59e0b; } .param-total-item.total-frais .param-total-dot { background: #f59e0b; }
+.param-total-item.total-frais .param-total-sub   { color: #d97706; }
+.param-total-item.total-red   .param-total-value { color: #dc2626; } .param-total-item.total-red   .param-total-dot { background: #dc2626; }
+.param-total-item.total-red   .param-total-sub   { color: #b91c1c; }
+.param-total-item.total-benef .param-total-value { color: #198754; } .param-total-item.total-benef .param-total-dot { background: #198754; }
+.param-total-item.total-benef .param-total-sub   { color: #146c43; }
+
+/* ============================================================
+   MODALE RAPPEL CRÉDIT
+   ============================================================ */
+#rappelModal .modal-content {
+    border-radius: 20px; border: none;
+    box-shadow: 0 20px 35px -12px rgba(0,0,0,0.25);
+    overflow: hidden;
+}
+#rappelModal .modal-header {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white; border-bottom: none; padding: 1.1rem 1.5rem;
+}
+#rappelModal .modal-header .close { color: white; opacity: 0.9; text-shadow: none; }
+#rappelModal .modal-header .modal-title {
+    font-weight: 700; display: flex; align-items: center;
+    gap: 10px; flex-wrap: wrap;
+}
+#rappelModal .badge-invoice { background: rgba(255,255,255,0.25) !important; color: white !important; }
+#rappelModal .modal-body {
+    background: #f8fafc; padding: 1.2rem 1.5rem;
+    max-height: 78vh; overflow-y: auto;
+}
+#rappelModal .modal-footer {
+    background: white; border-top: 1px solid #eef2f6;
+    padding: 1rem 1.5rem; display: flex;
+    justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
 }
 
-.param-total-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-    flex-shrink: 0;
+.rappel-filters {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-bottom: 14px; padding: 12px 14px;
+    background: white; border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    align-items: flex-end;
+}
+.rappel-filters .filter-group { flex: 1; min-width: 140px; }
+.rappel-filters .filter-group label {
+    font-weight: 600; margin-bottom: 4px; color: #0a192f;
+    font-size: 0.68rem; text-transform: uppercase;
+    display: flex; align-items: center; gap: 5px;
+}
+.rappel-filters .filter-group label i { color: #10b981; }
+.rappel-filters .filter-group .form-control {
+    height: 34px; font-size: 0.8rem; border-radius: 10px;
+    border: 1px solid #e2e8f0; width: 100%; padding: 6px 10px;
+}
+.rappel-filters .filter-group .form-control:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+    outline: none;
+}
+.rappel-reset-btn {
+    background: #64748b; color: white; border: none;
+    border-radius: 40px; padding: 7px 16px;
+    font-weight: 600; font-size: 0.78rem;
+    cursor: pointer; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.rappel-reset-btn:hover { background: #475569; transform: translateY(-1px); }
+
+#rappel_table_wrapper {
+    background: white; border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow: hidden; margin-bottom: 16px;
+}
+#rappel_table {
+    width: 100%; margin: 0; border-collapse: collapse;
+    font-size: 0.82rem;
+}
+#rappel_table thead th {
+    background: #E7F5FE; color: #0a192f;
+    font-weight: 700; font-size: 0.72rem;
+    text-transform: uppercase; padding: 10px 8px;
+    border-bottom: 2px solid #cbd5e1;
+    white-space: nowrap; text-align: left;
+}
+#rappel_table tbody td {
+    padding: 8px; border-bottom: 1px solid #eef2f6;
+    vertical-align: middle; color: #1e2a3e;
+}
+#rappel_table tbody tr:hover { background: #ecfdf5; }
+#rappel_table input[type="checkbox"] {
+    width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;
+}
+#rappel_table .rappel-jours {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px;
+    font-weight: 700; font-size: 0.72rem; color: white;
+}
+#rappel_table .rappel-jours.success { background: linear-gradient(135deg, #10b981, #059669); }
+#rappel_table .rappel-jours.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+#rappel_table .rappel-jours.danger  { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+.rappel-message-box {
+    background: white; border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 14px 16px; margin-bottom: 14px;
+}
+.rappel-message-box label {
+    font-weight: 700; color: #0a192f; font-size: 0.8rem;
+    text-transform: uppercase; display: block; margin-bottom: 8px;
+}
+.rappel-message-box textarea {
+    width: 100%; min-height: 110px;
+    border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 10px 12px; font-size: 0.85rem;
+    resize: vertical; font-family: inherit;
+}
+.rappel-message-box textarea:focus {
+    outline: none; border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+.rappel-count-selected {
+    font-weight: 700; color: #10b981; font-size: 0.85rem;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.rappel-empty {
+    text-align: center; padding: 30px 20px;
+    color: #94a3b8; font-size: 0.85rem;
+}
+.rappel-empty i { font-size: 2.5rem; display: block; margin-bottom: 8px; color: #cbd5e1; }
+#rappel_send_btn {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important; border: none;
+    border-radius: 40px !important; padding: 8px 26px !important;
+    font-weight: 700; font-size: 0.85rem;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    cursor: pointer;
+}
+#rappel_send_btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #059669, #047857) !important;
+}
+#rappel_send_btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none !important; }
+
+#rappel_msg_zone {
+    display: none; margin-top: 12px;
+    padding: 10px 16px; border-radius: 12px;
+    font-weight: 600; font-size: 0.82rem;
+    align-items: center; gap: 8px;
+    animation: slideInMsg 0.3s ease-out;
+}
+#rappel_msg_zone.show { display: flex; }
+#rappel_msg_zone.info {
+    background: linear-gradient(95deg, #dbeafe, #bfdbfe);
+    color: #1e3a8a; border-left: 4px solid #3b82f6;
+}
+#rappel_msg_zone.success {
+    background: linear-gradient(95deg, #d1fae5, #a7f3d0);
+    color: #065f46; border-left: 4px solid #10b981;
+}
+#rappel_msg_zone.error {
+    background: linear-gradient(95deg, #fee2e2, #fecaca);
+    color: #991b1b; border-left: 4px solid #ef4444;
 }
 
-.param-total-value {
-    font-size: 0.92rem;
-    font-weight: 800;
-    line-height: 1.2;
+/* ============================================================
+   ✅ MODALE RAPPORT DES MONTANTS REÇUS
+   ============================================================ */
+#rapportModal .modal-header {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+}
+#rapportModal #rapport_date_range {
+    width: 100%;
+    height: 38px;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 8px 12px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    background: #fff;
+}
+#rapportModal #rapport_date_range:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    outline: none;
+}
+/* ✅ Nouveaux filtres utilisateur + client */
+#rapportModal #rapport_user_filter,
+#rapportModal #rapport_client_filter {
+    width: 100%;
+    height: 38px;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 8px 12px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    background: #fff;
+}
+#rapportModal #rapport_user_filter:focus,
+#rapportModal #rapport_client_filter:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    outline: none;
+}
+#rapportModal #rapport_user_filter:disabled {
+    background: #f1f5f9 !important;
+    cursor: not-allowed;
+    opacity: 0.85;
+}
+#rapport_table thead th {
+    background: #FEE2E2 !important;
+    color: #7f1d1d;
+    border-bottom: 2px solid #fca5a5 !important;
+}
+#rapport_table tbody tr:hover {
+    background: #fef2f2 !important;
+}
+#rapport_table tfoot td {
+    background: #f1f5f9;
+    border-top: 2px solid #cbd5e1 !important;
+    font-size: 0.82rem;
 }
 
-.param-total-sub {
-    font-size: 0.72rem;
-    font-weight: 600;
-    margin-top: 3px;
-    color: #64748b;
-    line-height: 1.2;
+/* ============================================================
+   ✅ TOUTES LES MODALES : comportement IDENTIQUE à la page FACTURES
+   ============================================================ */
+.modal-dialog {
+    display: flex !important;
+    align-items: center !important;
+    min-height: calc(100vh - 3.5rem) !important;
+    margin: 1.75rem auto !important;
+}
+.modal-content {
+    max-height: calc(100vh - 3.5rem) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+.modal-header { flex-shrink: 0 !important; }
+.modal-body {
+    overflow-y: auto;
+    flex: 1 1 auto;
+    -webkit-overflow-scrolling: touch;
+}
+.modal-footer { flex-shrink: 0 !important; }
+
+@media (max-width: 768px) {
+    .modal-dialog {
+        min-height: calc(100vh - 1rem) !important;
+        margin: 0.5rem auto !important;
+    }
+    .modal-content { max-height: calc(100vh - 1rem) !important; }
+
+    #deleteFactureModal .modal-content > div:last-child,
+    #suppression .modal-content > div:last-child,
+    #pret .modal-content > div:last-child,
+    #c_frais .modal-content > div:last-child {
+        flex-shrink: 0 !important;
+        padding: 12px !important;
+        background: white;
+        border-top: 1px solid #eef2f6;
+    }
+
+    /* --- RAPPEL --- */
+    #rappelModal .modal-dialog {
+        max-width: 96% !important;
+        width: 96% !important;
+        margin: 1rem auto !important;
+        height: auto !important;
+        max-height: calc(100vh - 2rem);
+    }
+    #rappelModal .modal-content {
+        border-radius: 16px !important;
+        max-height: calc(100vh - 2rem);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    #rappelModal .modal-header {
+        padding: 0.85rem 1rem !important;
+        flex-shrink: 0;
+        border-radius: 16px 16px 0 0 !important;
+    }
+    #rappelModal .modal-header .modal-title { font-size: 0.9rem; gap: 6px; }
+    #rappelModal .modal-header .badge-invoice { font-size: 0.62rem; padding: 2px 8px; }
+    #rappelModal .modal-body {
+        padding: 0.9rem !important;
+        flex: 1 1 auto;
+        overflow-y: auto;
+        max-height: none !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    #rappelModal .modal-footer {
+        padding: 0.7rem 1rem !important;
+        flex-shrink: 0;
+        border-radius: 0 0 16px 16px !important;
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 6px;
+    }
+    #rappelModal .modal-footer > * {
+        width: 100%; justify-content: center; text-align: center;
+    }
+
+    .rappel-filters {
+        flex-direction: column !important;
+        gap: 8px !important;
+        padding: 10px 12px !important;
+    }
+    .rappel-filters .filter-group {
+        width: 100% !important;
+        min-width: 0 !important;
+        flex: none !important;
+    }
+    .rappel-filters .filter-group label { font-size: 0.62rem; }
+    .rappel-filters .filter-group .form-control { height: 38px !important; font-size: 0.8rem; }
+    .rappel-reset-btn { width: 100%; justify-content: center; height: 38px; }
+
+    #rappel_table_wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 12px;
+    }
+    #rappel_table { min-width: 560px; font-size: 0.75rem; }
+    #rappel_table thead th { font-size: 0.66rem !important; padding: 7px 5px !important; }
+    #rappel_table tbody td { font-size: 0.72rem !important; padding: 7px 5px !important; }
+    #rappel_table .rappel-jours { font-size: 0.65rem; padding: 2px 8px; }
+
+    .rappel-message-box { padding: 11px 12px !important; }
+    .rappel-message-box label { font-size: 0.7rem; }
+    .rappel-message-box textarea { min-height: 75px; font-size: 0.8rem; }
+    #rappel_send_btn { width: 100%; justify-content: center; height: 42px; }
+
+    /* --- RAPPORT --- */
+    #rapportModal .modal-dialog {
+        max-width: 96% !important;
+        width: 96% !important;
+        margin: 1rem auto !important;
+        height: auto !important;
+        max-height: calc(100vh - 2rem);
+    }
+    #rapportModal .modal-content {
+        border-radius: 16px !important;
+        max-height: calc(100vh - 2rem);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    #rapportModal .modal-header {
+        padding: 0.85rem 1rem !important;
+        flex-shrink: 0;
+        border-radius: 16px 16px 0 0 !important;
+    }
+    #rapportModal .modal-header .modal-title { font-size: 0.95rem; }
+    #rapportModal .modal-body {
+        padding: 0.9rem !important;
+        flex: 1 1 auto;
+        overflow-y: auto;
+        max-height: none !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    #rapportModal .modal-footer {
+        padding: 0.7rem 1rem !important;
+        flex-shrink: 0;
+        border-radius: 0 0 16px 16px !important;
+    }
+    #rapportModal .modal-footer button { width: 100%; height: 42px; }
+
+    #rapportModal .rapport-filter-section {
+        flex-direction: column !important;
+        gap: 8px !important;
+        align-items: stretch !important;
+    }
+    #rapportModal #rapport_date_range,
+    #rapportModal #rapport_user_filter,
+    #rapportModal #rapport_client_filter {
+        height: 42px;
+        font-size: 0.85rem;
+        padding: 10px 12px;
+    }
+
+    #rapportModal .rapport-filter-buttons {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+        width: 100% !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+    }
+    #rapportModal #rapport_apply_btn,
+    #rapportModal #rapport_reset_btn {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: 90px !important;
+        height: auto !important;
+        padding: 4px 12px !important;
+        font-size: 0.7rem !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important;
+        border-radius: 40px !important;
+        gap: 8px !important;
+    }
+    #rapportModal #rapport_apply_btn i,
+    #rapportModal #rapport_reset_btn i { font-size: inherit !important; }
+
+    #rapport_summary_badges {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 6px 8px !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+    }
+    #rapport_summary_badges .invoice-count-badge {
+        font-size: 0.65rem !important;
+        padding: 3px 10px !important;
+        width: auto !important;
+        height: auto !important;
+        border-radius: 50px !important;
+        font-weight: bold !important;
+        gap: 6px !important;
+        white-space: nowrap !important;
+    }
+    #rapport_summary_badges .usd-badge,
+    #rapport_summary_badges .cdf-badge {
+        flex: 1 1 calc(50% - 4px) !important;
+        min-width: 0 !important;
+        justify-content: center !important;
+    }
+    #rapport_summary_badges .paye-usd {
+        flex: 0 0 auto !important;
+        width: auto !important;
+    }
+
+    #rapportModal .table-responsive {
+        -webkit-overflow-scrolling: touch;
+        border-radius: 10px;
+        overflow-x: auto;
+    }
+    #rapport_table { min-width: 720px; font-size: 0.75rem; }
+    #rapport_table thead th { font-size: 0.66rem !important; padding: 7px 5px !important; }
+    #rapport_table tbody td,
+    #rapport_table tfoot td { padding: 7px 5px !important; font-size: 0.72rem !important; }
 }
 
-.param-total-item.total-qte    .param-total-value { color: #17a2b8; }
-.param-total-item.total-qte    .param-total-dot   { background: #17a2b8; }
+@media (max-width: 480px) {
+    #rapportModal #rapport_apply_btn,
+    #rapportModal #rapport_reset_btn {
+        min-width: 70px !important;
+        padding: 3px 8px !important;
+        font-size: 0.65rem !important;
+    }
+    #rapport_summary_badges .invoice-count-badge {
+        font-size: 0.6rem !important;
+        padding: 3px 8px !important;
+    }
+}
 
-.param-total-item.total-pv     .param-total-value { color: #3B82F6; }
-.param-total-item .total-pv     .param-total-dot   { background: #3B82F6; }
-
-.param-total-item.total-gen    .param-total-value { color: #0a192f; }
-.param-total-item.total-gen    .param-total-dot   { background: #0a192f; }
-.param-total-item.total-gen    .param-total-sub   { color: #3B82F6; }
-
-.param-total-item.total-frais  .param-total-value { color: #f59e0b; }
-.param-total-item.total-frais  .param-total-dot   { background: #f59e0b; }
-.param-total-item.total-frais  .param-total-sub   { color: #d97706; }
-
-.param-total-item.total-red    .param-total-value { color: #dc2626; }
-.param-total-item.total-red    .param-total-dot   { background: #dc2626; }
-.param-total-item.total-red    .param-total-sub   { color: #b91c1c; }
-
-.param-total-item.total-benef  .param-total-value { color: #198754; }
-.param-total-item.total-benef  .param-total-dot   { background: #198754; }
-.param-total-item.total-benef  .param-total-sub   { color: #146c43; }
+.daterangepicker { z-index: 10050 !important; }
+body.modal-open { overflow: hidden; }
     </style>
     <section class="content">
         <div class="container">
@@ -1266,32 +1189,16 @@ select.form-control {
                     <div style="background-color: rgba(0, 0, 0, 0.1);padding-top: 10px;padding-bottom: 10px;">
                         <div class="container">
                             <div class="row">
-                                <div class="col-12">
+                                <div class="col-12" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                                     <a class="btn-primary btn-sm" id="liste" href="">
                                         <i class="zmdi zmdi-email-open"></i> Liste
                                     </a>
-                                    &nbsp;
-                                    <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
-                                    <?php
-                                    $add = 0;
-                                    if (
-                                        Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])
-                                            ->get()
-                                            ->count() != 0
-                                    ) {
-                                        $add = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->add;
-                                    }
-                                    ?>
-                                    <?php if ((($add == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($add == 0) && (Auth::user()->role == 0))) { ?>
-                                        {{-- <a style="display: none;" class="btn-primary btn-sm" id="add" href="">
-                                            <i class="zmdi zmdi-email"></i> Ajouter
-                                        </a> --}}
-                                    <?php } else { ?>
-                                        {{-- <a style="display: none;" class="btn-primary btn-sm" id="add_r" href="">
-                                            <i class="zmdi zmdi-accounts-add"></i> Ajouter
-                                        </a> --}}
-                                    <?php } ?>
-                                    <?php } ?>
+                                    <a class="btn-success btn-sm" id="rappel" href="#">
+                                        <i class="zmdi zmdi-alarm"></i> Rappel
+                                    </a>
+                                    <a class="btn-danger btn-sm" id="rapport" href="#">
+                                        <i class="zmdi zmdi-chart"></i> Rapport
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -1421,10 +1328,6 @@ select.form-control {
                                                 $ent = Achats::where('facture_id', $data->id)->get();
                                                 $total_frais_credit = 0;
 
-                                                /* ============================================================
-                                                   MONTANT DÛ RÉEL = Σ (total − réduction) par achat
-                                                   (réduction retranchée par achat, dans SA devise)
-                                                   ============================================================ */
                                                 $total_original = 0;
                                                 foreach ($ent as $e)
                                                 {
@@ -1490,25 +1393,13 @@ select.form-control {
                                                 $delai_1h = 3600;
                                                 $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
 
-                                                /* ============================================================
-                                                   ✅ NOUVEAU : RATIO IMPAYÉ DE LA FACTURE
-                                                   Les frais de crédit ne s'appliquent QUE sur la portion
-                                                   réellement non payée de la facture.
-                                                   ============================================================ */
-                                                $ratio_impaye_facture = 1; // 100% impayé par défaut
+                                                $ratio_impaye_facture = 1;
                                                 if ($total_original_usd > 0) {
                                                     $reste_global_usd = $total_original_usd - $montant_usd_paye;
                                                     if ($reste_global_usd < 0) $reste_global_usd = 0;
                                                     $ratio_impaye_facture = $reste_global_usd / $total_original_usd;
                                                 }
 
-                                                /* ============================================================
-                                                   TOTAL FINAL = Σ (total − réduction + frais_credit) par achat
-                                                   ✅ RÉDUCTION APPLIQUÉE PARTOUT :
-                                                      - base des frais crédit : (total − réduction)
-                                                      - frais crédit uniquement sur la portion impayée
-                                                      - net final = (total − réduction) + frais crédit
-                                                   ============================================================ */
                                                 $total = 0;
                                                 $achat_total_usd = 0;
                                                 $achat_total_cdf = 0;
@@ -1518,13 +1409,9 @@ select.form-control {
                                                     $devise_achat = $e->devise_achat ?? $data->devise;
                                                     $reduction_achat = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
 
-                                                    // 1) NET APRÈS RÉDUCTION (base de tout)
                                                     $net_apres_reduction = $e->total - $reduction_achat;
                                                     if ($net_apres_reduction < 0) $net_apres_reduction = 0;
 
-                                                    // 2) FRAIS DE CRÉDIT : 5% du NET IMPAYÉ de la ligne
-                                                    //    - calculés APRÈS réduction
-                                                    //    - uniquement sur la portion impayée (ratio_impaye_facture)
                                                     $frais_credit_achat = 0;
                                                     if ($e->frais_credit != 0 && $e->frais_credit !== null) {
                                                         $frais_credit_achat = $e->frais_credit;
@@ -1536,7 +1423,6 @@ select.form-control {
                                                         }
                                                     }
 
-                                                    // 3) NET FINAL DE LA LIGNE = NET APRÈS RÉDUCTION + FRAIS
                                                     $net_achat_devise = $net_apres_reduction + $frais_credit_achat;
 
                                                     if ($devise_achat == $data->devise) {
@@ -1568,9 +1454,6 @@ select.form-control {
                                                 }
                                                 $a_frais_credit = ($total_frais_credit_final > 0);
 
-                                                /* ============================================================
-                                                   ✅ DÉTECTION : la facture a-t-elle une réduction appliquée ?
-                                                   ============================================================ */
                                                 $has_reduction = false;
                                                 foreach ($ent as $e) {
                                                     if (isset($e->reduction) && $e->reduction > 0) {
@@ -1622,12 +1505,9 @@ select.form-control {
                                                 }
 
                                                 $nb_jours_retard = (int) ((strtotime($date_comparaison) - strtotime($date_creation_date)) / 86400);
-                                                if ($nb_jours_retard < 0) {
-                                                    $nb_jours_retard = 0;
-                                                }
+                                                if ($nb_jours_retard < 0) { $nb_jours_retard = 0; }
 
                                                 $show_delay_badge = false;
-
                                                 if (!$dernier_paiement) {
                                                     $show_delay_badge = true;
                                                 } elseif ($est_partiel) {
@@ -1658,17 +1538,10 @@ select.form-control {
                                                 }
                                                 $tranches_json = json_encode($tranches_details, JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_TAG | JSON_HEX_AMP);
 
-                                                /* ===== DONNÉES POUR MODALE PARAMÈTRES ===== */
                                                 $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
 
-                                                // ============================================================
-                                                // ✅ CORRECTIF : récupération du VRAI nom de l'article
-                                                // via la collection $articles (déjà chargée pour le <select>)
-                                                // ============================================================
                                                 $articles_json = [];
                                                 foreach ($ent as $e) {
-
-                                                    /* ---- 1. Recherche de l'article associé (5 FK possibles) ---- */
                                                     $art = null;
                                                     foreach (['article_id', 'entre_id', 'entree_id', 'produit_id', 'id_article'] as $field) {
                                                         if (isset($e->$field) && $e->$field) {
@@ -1677,21 +1550,18 @@ select.form-control {
                                                         }
                                                     }
 
-                                                    /* ---- 2. Nom réel avec tous les fallbacks ---- */
                                                     $nom_article_aff = $art->nom_article
                                                                     ?? $e->nom_article
                                                                     ?? $e->nom
                                                                     ?? $art->name
                                                                     ?? ('Article #' . $e->id);
 
-                                                    /* ---- 3. Autres champs ---- */
                                                     $pa = $e->prix_achat ?? 0;
                                                     $qt = $e->quantite ?? 1;
                                                     $prix_unit = $e->prix_vente
                                                               ?? ($art->prix_detail ?? null)
                                                               ?? ($qt > 0 ? ($e->total / $qt) : $e->total);
 
-                                                    /* ---- 4. Devise propre à chaque achat ---- */
                                                     $devise_achat_json = $e->devise_achat ?? $data->devise;
                                                     $reduction_ligne   = $e->reduction ?? 0;
 
@@ -1717,6 +1587,7 @@ select.form-control {
                                                         'id'               => $p->id,
                                                         'date'             => date('d/m/Y à H:i', strtotime($p->created_at)),
                                                         'payer'            => $p->payer,
+                                                        'payer_nom'        => User::where('id', $data->user_id)->first()['name'] ?? 'N/A',
                                                         'montant_recu'     => $p->montant_recu,
                                                         'devise_label'     => $isUSD ? 'USD' : 'CDF',
                                                         'mode_de_paiement' => $p->mode_de_paiement,
@@ -1850,16 +1721,10 @@ select.form-control {
                                                 <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                                                     <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                                                     <?php
-                                                    $edit = 0;
-                                                    $delete = 0;
-                                                    $display = 0;
-                                                    if (
-                                                        Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])
-                                                            ->get()
-                                                            ->count() != 0
-                                                    ) {
-                                                        $edit = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->edit;
-                                                        $delete = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->delete;
+                                                    $edit = 0; $delete = 0; $display = 0;
+                                                    if (Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()->count() != 0) {
+                                                        $edit    = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->edit;
+                                                        $delete  = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->delete;
                                                         $display = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->display;
                                                     }
                                                     ?>
@@ -1878,7 +1743,7 @@ select.form-control {
                                                         @endif
                                                     <?php } ?>
 
-                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($delete == 0) && (Auth::user()->role == 0))) { ?>
+                                                    <?php if ((($edit == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($delete == 0) && (Auth::user()->role == 0))) { ?>
                                                         <a href="#" class="param-facture-btn"
                                                            data-id="{{ $data->id }}"
                                                            title="Paramètres de la facture">
@@ -2123,17 +1988,11 @@ select.form-control {
                                 <div class="col-12">
                                     <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                                     <?php
-                                    $edit = 0;
-                                    $delete = 0;
-                                    $add = 0;
-                                    if (
-                                        Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])
-                                            ->get()
-                                            ->count() != 0
-                                    ) {
-                                        $edit = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->edit;
+                                    $edit = 0; $delete = 0; $add = 0;
+                                    if (Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()->count() != 0) {
+                                        $edit   = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->edit;
                                         $delete = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->delete;
-                                        $add = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->add;
+                                        $add    = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->add;
                                     }
                                     ?>
                                     <?php } ?>
@@ -2334,8 +2193,7 @@ select.form-control {
                                     <th>Reste</th>
                                 </tr>
                             </thead>
-                            <tbody id="modal_tranches_body">
-                            </tbody>
+                            <tbody id="modal_tranches_body"></tbody>
                         </table>
                     </div>
                 </div>
@@ -2448,7 +2306,6 @@ select.form-control {
                     <div class="tab-content" style="padding: 1.5rem; max-height: calc(78vh - 60px); overflow-y: auto;">
 
                         <div class="tab-pane fade show active" id="tab-info" role="tabpanel">
-
                             <h6 class="param-section-title">
                                 <i class="zmdi zmdi-check-circle text-info"></i> Statut de paiement
                             </h6>
@@ -2584,8 +2441,7 @@ select.form-control {
                             <h6 class="param-section-title" style="margin-top: 22px;">
                                 <i class="zmdi zmdi-chart text-info"></i> Totaux généraux
                             </h6>
-                            <div class="param-totals-grid" id="param_totals_grid">
-                            </div>
+                            <div class="param-totals-grid" id="param_totals_grid"></div>
 
                             <div style="text-align: center; margin-top: 20px;">
                                 <button type="button" class="btn btn-info btn-sm" id="param_btn_save_lines"
@@ -2634,6 +2490,226 @@ select.form-control {
         </div>
     </div>
 
+    {{-- ========== MODALE RAPPEL CRÉDIT ========== --}}
+    <div class="modal fade" id="rappelModal" tabindex="-1" role="dialog" aria-labelledby="rappelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 980px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rappelModalLabel">
+                        <i class="zmdi zmdi-alarm"></i> Rappel des crédits clients
+                        <span class="badge-invoice">
+                            <i class="zmdi zmdi-view-list" style="color: white;"></i>
+                            <span id="rappel_total_count">0</span> crédit(s)
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="rappel-filters">
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-label"></i> N° Facture</label>
+                            <input type="text" id="rappel_filterNumero" class="form-control" placeholder="Numéro...">
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-accounts"></i> Client / Libellé</label>
+                            <input type="text" id="rappel_filterClient" class="form-control" placeholder="Client ou libellé...">
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-account"></i> Utilisateur</label>
+                            <input type="text" id="rappel_filterUser" class="form-control" placeholder="Utilisateur...">
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-calendar"></i> Période</label>
+                            <input type="text" id="rappel_filterDateRange" class="form-control" placeholder="Période (ou Tout)">
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-calendar-check"></i> Période de paie</label>
+                            <input type="text" id="rappel_filterDatePaieRange" class="form-control" placeholder="Période de paie">
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-chart"></i> Montant</label>
+                            <input type="number" id="rappel_filterMontant" class="form-control" placeholder="Montant exact" step="0.01">
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-balance-wallet"></i> Statut de paiement</label>
+                            <select id="rappel_filterStatut" class="form-control">
+                                <option value="">Toutes</option>
+                                <option value="paid">Payées</option>
+                                <option value="unpaid">Impayées</option>
+                                <option value="partial">Partielles</option>
+                                <option value="soldee">Soldées (avec réduction)</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label><i class="zmdi zmdi-alarm"></i> Nombre de jours</label>
+                            <input type="number" id="rappel_filterJour" class="form-control" placeholder="Ex : 1, 2..." min="0" step="1">
+                        </div>
+                        <div class="filter-group" style="flex: 0 0 auto; min-width: auto;">
+                            <button type="button" id="rappel_resetFilters" class="rappel-reset-btn">
+                                <i class="zmdi zmdi-refresh"></i> Réinitialiser
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="rappel_table_wrapper">
+                        <div style="max-height: 320px; overflow-y: auto;">
+                            <table id="rappel_table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px; text-align: center;">
+                                            <input type="checkbox" id="rappel_check_all" title="Tout sélectionner">
+                                        </th>
+                                        <th>N° Facture</th>
+                                        <th>Client</th>
+                                        <th>Crédit restant</th>
+                                        <th>Retard</th>
+                                        <th>Date facture</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rappel_table_body">
+                                    <tr><td colspan="6" class="rappel-empty">
+                                        <i class="zmdi zmdi-info-outline"></i> Chargement...
+                                    </td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="rappel-message-box">
+                        <label><i class="zmdi zmdi-comment-text" style="color: #10b981;"></i> Message à envoyer</label>
+                        <textarea id="rappel_message" placeholder="Completez le texte à envoyer"></textarea>
+                    </div>
+
+                    <div style="height:40px;" id="rappel_msg_zone"></div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <span class="rappel-count-selected">
+                        <i class="zmdi zmdi-check-square"></i> <span id="rappel_selected_count">0</span> sélectionné(s)
+                    </span>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                                style="border-radius: 40px; padding: 8px 22px;">
+                            <i class="zmdi zmdi-close"></i> Fermer
+                        </button>
+                        <button type="button" id="rappel_send_btn" class="btn btn-success">
+                            <i class="zmdi zmdi-mail-send"></i> Envoyer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ========== MODALE RAPPORT DES MONTANTS REÇUS ========== --}}
+    <div class="modal fade" id="rapportModal" tabindex="-1" role="dialog" aria-labelledby="rapportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1100px;">
+            <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);">
+
+                <div class="modal-header" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-bottom: none; padding: 1.1rem 1.5rem;">
+                    <h5 class="modal-title" id="rapportModalLabel" style="font-weight: 700;">
+                        <i class="zmdi zmdi-chart"></i> Rapport des montants reçus
+                    </h5>
+                    <div style="margin-left: auto; display: flex; gap: 8px; align-items: center;">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.9; margin: 0; padding: 0 0 0 8px;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="modal-body" style="background: #f8fafc; padding: 1.5rem; max-height: 75vh; overflow-y: auto;">
+
+                    <div class="rapport-filter-section" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom: 15px;">
+                        <div style="flex:1; min-width: 200px;">
+                            <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
+                                <i class="zmdi zmdi-calendar text-danger"></i> Période du rapport
+                            </label>
+                            <input type="text" id="rapport_date_range" class="form-control" placeholder="Sélectionner une période">
+                        </div>
+                        <div style="flex:1; min-width: 200px;">
+                            <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
+                                <i class="zmdi zmdi-account text-danger"></i> Utilisateur
+                            </label>
+                            <select id="rapport_user_filter" class="form-control">
+                                <option value="all">Tous les utilisateurs</option>
+                            </select>
+                        </div>
+                        <div style="flex:1; min-width: 200px;">
+                            <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
+                                <i class="zmdi zmdi-accounts text-danger"></i> Client / Libellé
+                            </label>
+                            <input type="text" id="rapport_client_filter" class="form-control" placeholder="Rechercher un client ou libellé...">
+                        </div>
+                        <div class="rapport-filter-buttons" style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+                            <button id="rapport_apply_btn" class="btn-primary btn-sm" style="border-radius:40px;">
+                                <i class="zmdi zmdi-refresh"></i> Appliquer
+                            </button>
+                            <button id="rapport_reset_btn" class="btn-danger btn-sm" style="border-radius:40px;">
+                                <i class="zmdi zmdi-refresh-sync"></i> Réinitialiser
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="rapport_summary_badges" style="display:flex; flex-wrap:wrap; gap:8px 12px; margin-bottom: 15px;">
+                        <span class="invoice-count-badge usd-badge">
+                            <i class="zmdi zmdi-money"></i> Total USD reçu : <span id="rapport_total_usd">0,00</span> $
+                        </span>
+                        <span class="invoice-count-badge cdf-badge">
+                            <i class="zmdi zmdi-money-box"></i> Total CDF reçu : <span id="rapport_total_cdf">0,00</span> Fc
+                        </span>
+                        <span class="invoice-count-badge paye-usd">
+                            <i class="zmdi zmdi-receipt"></i> Transactions : <span id="rapport_nb">0</span>
+                        </span>
+                    </div>
+
+                    <div style="font-weight:700; color:#0a192f; font-size:0.85rem; margin-bottom:10px;">
+                        <i class="zmdi zmdi-info text-danger"></i> Période : <span id="rapport_periode_label" style="color:#dc2626;">Toutes les dates</span>
+                        &nbsp;•&nbsp;
+                        <i class="zmdi zmdi-account text-danger"></i> Utilisateur : <span id="rapport_user_label" style="color:#dc2626;">Tous</span>
+                        &nbsp;•&nbsp;
+                        <i class="zmdi zmdi-accounts text-danger"></i> Client : <span id="rapport_client_label" style="color:#dc2626;">Tous</span>
+                    </div>
+
+                    <div class="table-responsive" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background:white;">
+                        <table class="table table-sm mb-0" id="rapport_table">
+                            <thead style="background: #FEE2E2;">
+                                <tr>
+                                    <th style="font-size:0.72rem;">#</th>
+                                    <th style="font-size:0.72rem;">Date</th>
+                                    <th style="font-size:0.72rem;">N° Facture</th>
+                                    <th style="font-size:0.72rem;">Date facture</th>
+                                    <th style="font-size:0.72rem;">Client / Libellé</th>
+                                    <th style="font-size:0.72rem;">Utilisateur</th>
+                                    <th style="font-size:0.72rem;">Mode</th>
+                                    <th style="font-size:0.72rem;">Devise</th>
+                                    <th style="font-size:0.72rem; text-align:right;">Montant reçu</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rapport_body">
+                                <tr><td colspan="9" class="text-center text-muted">Chargement...</td></tr>
+                            </tbody>
+                            <tfoot id="rapport_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
+                        </table>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer" style="background: white; border-top: 1px solid #eef2f6; padding: 1rem 1.5rem;">
+                    <button type="button" class="btn-secondary btn-sm" data-dismiss="modal"
+                            style="border-radius: 40px; padding: 8px 22px; background:#64748b; color:white;">
+                        <i class="zmdi zmdi-close"></i> Fermer
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 @section('js-code')
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" />
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
@@ -2652,6 +2728,16 @@ select.form-control {
     <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
     <script>
         $("#link_47").addClass("active");
+
+        var USER_ROLE = {{ Auth::user()->role ?? 1 }};
+        var CURRENT_USER_NAME = "{{ addslashes(Auth::user()->name ?? '') }}";
+
+        // 🔹 Liste de TOUS les utilisateurs actifs (etat = 1)
+        var ALL_ACTIVE_USERS = [
+            @foreach(\App\Models\User::where('etat', 1)->orderBy('name')->get() as $u)
+                "{{ addslashes($u->name) }}",
+            @endforeach
+        ];
 
         $("#upload").click(function(e) {
             e.preventDefault();
@@ -3121,9 +3207,6 @@ select.form-control {
             }, 300);
         }
 
-        // ============================================================
-        // HELPERS POUR LA MODALE PARAMÈTRES
-        // ============================================================
         function formatMoney(val) {
             if (val === null || val === undefined) return '0.00';
             var n = parseFloat(val) || 0;
@@ -3155,7 +3238,6 @@ select.form-control {
             currentParamRow = $row;
             currentParamFactureId = $row.data('facture-id');
 
-            // === INFOS GÉNÉRALES ===
             $('#param_numero').text($row.data('numero'));
             $('#param_client').text($row.data('client'));
             $('#param_user').text($row.data('user'));
@@ -3167,7 +3249,6 @@ select.form-control {
             $('#param_client_id').text($row.data('client-id') || '-');
             $('#param_facture_id').text($row.data('facture-id'));
 
-            // === STATUT DÉTAILLÉ ===
             var montantUSD = parseFloat($row.data('montant-usd')) || 0;
             var montantCDF = parseFloat($row.data('montant-cdf')) || 0;
             var payeUSD = parseFloat($row.data('paye-usd')) || 0;
@@ -3198,7 +3279,6 @@ select.form-control {
             $('#param_statut_label').text(statutLabel);
             $('#param_statut_sub').text(statutSub);
 
-            // === RÉSUMÉ FINANCIER ===
             $('#param_montant_usd').text(formatMoney(montantUSD) + ' USD');
             $('#param_montant_cdf').text(formatMoney(montantCDF) + ' CDF');
             $('#param_paye_usd').text(formatMoney(payeUSD) + ' USD');
@@ -3208,10 +3288,7 @@ select.form-control {
             $('#param_benefice_usd').text(formatMoney($row.data('benefice-usd')) + ' USD');
             $('#param_benefice_cdf').text(formatMoney($row.data('benefice-cdf')) + ' CDF');
 
-            // === ARTICLES ===
             var articles = safeParseJSON($row.attr('data-articles'));
-            console.log('📦 Articles récupérés:', articles.length, articles);
-
             var tauxFacture = parseFloat($row.data('taux')) || 0;
             if (tauxFacture <= 0) tauxFacture = 1;
 
@@ -3223,11 +3300,9 @@ select.form-control {
                 if (deviseAchat === undefined || deviseAchat === null) deviseAchat = isFactureUSD ? 0 : 1;
                 var usd, cdf;
                 if (deviseAchat == 0) {
-                    usd = v;
-                    cdf = v * tauxFacture;
+                    usd = v; cdf = v * tauxFacture;
                 } else {
-                    cdf = v;
-                    usd = (tauxFacture > 0) ? (v / tauxFacture) : 0;
+                    cdf = v; usd = (tauxFacture > 0) ? (v / tauxFacture) : 0;
                 }
                 return '<div class="dual-currency"><b>' + formatMoney(usd) + ' USD</b><small>' + formatMoney(cdf) + ' CDF</small></div>';
             }
@@ -3304,9 +3379,7 @@ select.form-control {
                     html += '<i class="zmdi ' + icon + '"></i> ' + label;
                     html += '</div>';
                     html += '<div class="param-total-value">' + value + '</div>';
-                    if (sub) {
-                        html += '<div class="param-total-sub">' + sub + '</div>';
-                    }
+                    if (sub) { html += '<div class="param-total-sub">' + sub + '</div>'; }
                     html += '</div>';
                     return html;
                 }
@@ -3349,9 +3422,7 @@ select.form-control {
 
             $('#param_lines_msg').html('');
 
-            // === PAIEMENTS ===
             var paiements = safeParseJSON($row.attr('data-paiements'));
-            console.log('💳 Paiements récupérés:', paiements.length, paiements);
 
             var paiHtml = '';
             var totalRecuUSD = 0, totalRecuCDF = 0;
@@ -3365,10 +3436,8 @@ select.form-control {
 
                     var recuUSD, recuCDF, resteUSD, resteCDF;
                     if (isUSD) {
-                        recuUSD = montantRecu;
-                        recuCDF = montantRecu * tauxFacture;
-                        resteUSD = reste;
-                        resteCDF = reste * tauxFacture;
+                        recuUSD = montantRecu; recuCDF = montantRecu * tauxFacture;
+                        resteUSD = reste; resteCDF = reste * tauxFacture;
                     } else {
                         recuCDF = montantRecu;
                         recuUSD = (tauxFacture > 0) ? (montantRecu / tauxFacture) : 0;
@@ -3409,13 +3478,9 @@ select.form-control {
             $('#filterDateRange').daterangepicker({
                 autoUpdateInput: false,
                 locale: {
-                    format: 'DD/MM/YYYY',
-                    separator: ' - ',
-                    applyLabel: 'Appliquer',
-                    cancelLabel: 'Annuler',
-                    fromLabel: 'Du',
-                    toLabel: 'Au',
-                    customRangeLabel: 'Personnalisé',
+                    format: 'DD/MM/YYYY', separator: ' - ',
+                    applyLabel: 'Appliquer', cancelLabel: 'Annuler',
+                    fromLabel: 'Du', toLabel: 'Au', customRangeLabel: 'Personnalisé',
                     weekLabel: 'S',
                     daysOfWeek: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
                     monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
@@ -3450,13 +3515,9 @@ select.form-control {
             $('#filterDatePaieRange').daterangepicker({
                 autoUpdateInput: false,
                 locale: {
-                    format: 'DD/MM/YYYY',
-                    separator: ' - ',
-                    applyLabel: 'Appliquer',
-                    cancelLabel: 'Annuler',
-                    fromLabel: 'Du',
-                    toLabel: 'Au',
-                    customRangeLabel: 'Personnalisé',
+                    format: 'DD/MM/YYYY', separator: ' - ',
+                    applyLabel: 'Appliquer', cancelLabel: 'Annuler',
+                    fromLabel: 'Du', toLabel: 'Au', customRangeLabel: 'Personnalisé',
                     weekLabel: 'S',
                     daysOfWeek: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
                     monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
@@ -3641,9 +3702,7 @@ select.form-control {
                             }
                         }
                         return dateStr;
-                    } catch (err) {
-                        return dateStr;
-                    }
+                    } catch (err) { return dateStr; }
                 }
 
                 $('#modal_date_debut').text(formatDateFr(dateDebut));
@@ -3672,16 +3731,12 @@ select.form-control {
                     }
                 } catch (err) {
                     console.error("Erreur de parsing JSON:", err);
-                    console.error("Contenu brut reçu:", tranchesJson);
                     tbody.append('<tr><td colspan="7" class="text-center text-danger" style="padding: 20px;">Erreur lors du chargement des détails.</td></tr>');
                 }
 
                 $('#tranchesModal').modal('show');
             });
 
-            // ============================================================
-            // MODALE PARAMÈTRES FACTURE – OUVERTURE
-            // ============================================================
             $(document).on('click', '.param-facture-btn', function(e) {
                 e.preventDefault();
                 var $row = $(this).closest('tr');
@@ -3700,11 +3755,14 @@ select.form-control {
                 }
             });
 
-            // ============================================================
-            // SAUVEGARDE DES LIGNES (FRAIS CRÉDIT + RÉDUCTION)
-            // ============================================================
             $(document).on('click', '#param_btn_save_lines', function(e) {
                 e.preventDefault();
+
+                if (USER_ROLE != 0) {
+                    $('#param_lines_msg').html('<i class="zmdi zmdi-close-circle text-danger" style="font-size: 16px;"></i> <span style="font-size: 16px; font-weight: bold;" class="text-danger">Seul un administrateur est autorisé à modifier ces informations.</span>');
+                    setTimeout(function() { $('#param_lines_msg').html(''); }, 4000);
+                    return;
+                }
 
                 if (!currentParamFactureId) {
                     alert('Identifiant facture manquant');
@@ -3727,11 +3785,7 @@ select.form-control {
                         return false;
                     }
 
-                    lignes.push({
-                        id: achatId,
-                        frais_credit: frais,
-                        reduction: reduction
-                    });
+                    lignes.push({ id: achatId, frais_credit: frais, reduction: reduction });
                 });
 
                 if (erreur) {
@@ -3790,6 +3844,651 @@ select.form-control {
                         $('#param_lines_msg').html('<i class="zmdi zmdi-close-circle text-danger"></i> Erreur de connexion');
                     }
                 });
+            });
+
+            function showRappelMsg(type, icon, text) {
+                var $zone = $('#rappel_msg_zone');
+                $zone.removeClass('show info success error').addClass('show ' + type);
+                $zone.html('<i class="zmdi ' + icon + '"></i> <span>' + text + '</span>');
+                clearTimeout(window.__rappelMsgTimeout);
+                window.__rappelMsgTimeout = setTimeout(function() {
+                    $zone.removeClass('show');
+                }, 6000);
+            }
+
+            function formatMoneyRappel(v) {
+                return (parseFloat(v) || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            }
+
+            $('#rappel_filterDateRange').daterangepicker({
+                autoUpdateInput: false,
+                locale: {
+                    format: 'DD/MM/YYYY', separator: ' - ',
+                    applyLabel: 'Appliquer', cancelLabel: 'Annuler',
+                    fromLabel: 'Du', toLabel: 'Au', customRangeLabel: 'Personnalisé',
+                    daysOfWeek: ['Di','Lu','Ma','Me','Je','Ve','Sa'],
+                    monthNames: ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+                },
+                opens: 'left',
+                ranges: {
+                    'Tout':              [moment('2000-01-01'), moment('2100-12-31')],
+                    'Aujourd\'hui':      [moment(), moment()],
+                    'Hier':              [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '7 derniers jours':  [moment().subtract(6, 'days'), moment()],
+                    '30 derniers jours': [moment().subtract(29, 'days'), moment()],
+                    'Ce mois-ci':        [moment().startOf('month'), moment().endOf('month')],
+                    'Mois dernier':      [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                    'Cette année':       [moment().startOf('year'), moment().endOf('year')]
+                }
+            }, function(start, end, label) {
+                if (label === 'Tout') $('#rappel_filterDateRange').val('');
+                else $('#rappel_filterDateRange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+                renderRappelTable();
+            });
+            $('#rappel_filterDateRange').on('cancel.daterangepicker', function() {
+                $(this).val('');
+                renderRappelTable();
+            });
+
+            $('#rappel_filterDatePaieRange').daterangepicker({
+                autoUpdateInput: false,
+                locale: {
+                    format: 'DD/MM/YYYY', separator: ' - ',
+                    applyLabel: 'Appliquer', cancelLabel: 'Annuler',
+                    fromLabel: 'Du', toLabel: 'Au', customRangeLabel: 'Personnalisé',
+                    daysOfWeek: ['Di','Lu','Ma','Me','Je','Ve','Sa'],
+                    monthNames: ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+                },
+                opens: 'left',
+                ranges: {
+                    'Tout':              [moment('2000-01-01'), moment('2100-12-31')],
+                    'Aujourd\'hui':      [moment(), moment()],
+                    'Hier':              [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '7 derniers jours':  [moment().subtract(6, 'days'), moment()],
+                    '30 derniers jours': [moment().subtract(29, 'days'), moment()],
+                    'Ce mois-ci':        [moment().startOf('month'), moment().endOf('month')],
+                    'Mois dernier':      [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                    'Cette année':       [moment().startOf('year'), moment().endOf('year')]
+                }
+            }, function(start, end, label) {
+                if (label === 'Tout') $('#rappel_filterDatePaieRange').val('');
+                else $('#rappel_filterDatePaieRange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+                renderRappelTable();
+            });
+            $('#rappel_filterDatePaieRange').on('cancel.daterangepicker', function() {
+                $(this).val('');
+                renderRappelTable();
+            });
+
+            function getRappelAllRows() {
+                var rows = [];
+                $('#content_utilisateur tbody tr').each(function() {
+                    var $r = $(this);
+                    var creditUsd = parseFloat($r.data('credit-usd')) || 0;
+                    if (creditUsd <= 0) return;
+
+                    rows.push({
+                        id: $r.data('facture-id'),
+                        numero: String($r.data('numero') || ''),
+                        client: String($r.data('client') || ''),
+                        user: String($r.data('user') || ''),
+                        montantUsd: parseFloat($r.data('montant-usd')) || 0,
+                        creditUsd: creditUsd,
+                        creditCdf: parseFloat($r.data('credit-cdf')) || 0,
+                        devise: $r.data('devise-label'),
+                        statut: String($r.find('.statut-cell').data('statut') || ''),
+                        hasReduction: String($r.data('has-reduction') || '0'),
+                        jours: parseInt($r.data('jours-retard')) || 0,
+                        date: String($r.data('date') || ''),
+                        dateYmd: String(($r.find('.date-cell').data('date') || '')).substring(0, 10),
+                        paieYmd: String($r.attr('data-paie-date-ymd') || '')
+                    });
+                });
+                return rows;
+            }
+
+            function rappelParseDateRange(val) {
+                if (!val) return { start: null, end: null };
+                var parts = val.split(' - ');
+                if (parts.length !== 2) return { start: null, end: null };
+                function p(s) {
+                    var x = s.split('/');
+                    if (x.length === 3 && x[0].length === 2 && x[1].length === 2 && x[2].length === 4) {
+                        return x[2] + '-' + x[1] + '-' + x[0];
+                    }
+                    return null;
+                }
+                return { start: p(parts[0]), end: p(parts[1]) };
+            }
+
+            function getRappelFilters() {
+                var fNumero = $('#rappel_filterNumero').val().toLowerCase();
+                var fClient = $('#rappel_filterClient').val().toLowerCase();
+                var fUser = $('#rappel_filterUser').val().toLowerCase();
+                var fMontantRaw = $('#rappel_filterMontant').val();
+                var fMontant = (fMontantRaw !== '' && fMontantRaw !== null) ? parseFloat(fMontantRaw) : NaN;
+                var fStatut = $('#rappel_filterStatut').val();
+                var fJourRaw = $('#rappel_filterJour').val();
+                var fJour = (fJourRaw !== '' && fJourRaw !== null) ? parseInt(fJourRaw, 10) : null;
+
+                var dr1 = rappelParseDateRange($('#rappel_filterDateRange').val());
+                var dr2 = rappelParseDateRange($('#rappel_filterDatePaieRange').val());
+
+                return {
+                    numero: $('#rappel_filterNumero').val() || '',
+                    client: $('#rappel_filterClient').val() || '',
+                    user: $('#rappel_filterUser').val() || '',
+                    montant: (fMontantRaw !== '' && fMontantRaw !== null) ? fMontantRaw : '',
+                    statut: fStatut || '',
+                    jour: (fJourRaw !== '' && fJourRaw !== null) ? fJourRaw : '',
+                    date_debut: dr1.start || '',
+                    date_fin: dr1.end || '',
+                    date_paie_debut: dr2.start || '',
+                    date_paie_fin: dr2.end || '',
+                    _raw_numero: fNumero,
+                    _raw_client: fClient,
+                    _raw_user: fUser,
+                    _raw_montant: fMontant,
+                    _raw_statut: fStatut,
+                    _raw_jour: fJour
+                };
+            }
+
+            function rappelApplyFilters(rows, f) {
+                return rows.filter(function(r) {
+                    if (f._raw_numero && r.numero.toLowerCase().indexOf(f._raw_numero) === -1) return false;
+                    if (f._raw_client && r.client.toLowerCase().indexOf(f._raw_client) === -1) return false;
+                    if (f._raw_user && r.user.toLowerCase().indexOf(f._raw_user) === -1) return false;
+                    if (!isNaN(f._raw_montant) && Math.abs(r.montantUsd - f._raw_montant) > 0.009) return false;
+
+                    if (f._raw_statut && f._raw_statut !== '') {
+                        if (f._raw_statut === 'paid' && r.statut !== 'paid') return false;
+                        if (f._raw_statut === 'unpaid' && r.statut !== 'unpaid') return false;
+                        if (f._raw_statut === 'partial' && r.statut !== 'partial') return false;
+                        if (f._raw_statut === 'soldee' && r.hasReduction !== '1') return false;
+                    }
+
+                    if (f._raw_jour !== null && !isNaN(f._raw_jour)) {
+                        if (r.jours !== f._raw_jour) return false;
+                    }
+
+                    if (f.date_debut && f.date_fin) {
+                        if (!r.dateYmd || r.dateYmd < f.date_debut || r.dateYmd > f.date_fin) return false;
+                    }
+
+                    if (f.date_paie_debut && f.date_paie_fin) {
+                        if (!r.paieYmd) return false;
+                        if (r.paieYmd < f.date_paie_debut || r.paieYmd > f.date_paie_fin) return false;
+                    }
+
+                    return true;
+                });
+            }
+
+            function renderRappelTable() {
+                var all = getRappelAllRows();
+                var f = getRappelFilters();
+                var filtered = rappelApplyFilters(all, f);
+
+                $('#rappel_total_count').text(filtered.length);
+
+                var html = '';
+                if (filtered.length === 0) {
+                    html = '<tr><td colspan="6" class="rappel-empty"><i class="zmdi zmdi-info-outline"></i> Aucun crédit ne correspond aux filtres</td></tr>';
+                } else {
+                    filtered.forEach(function(r) {
+                        var cls = r.jours <= 6 ? 'success' : (r.jours <= 15 ? 'warning' : 'danger');
+                        html += '<tr data-facture-id="' + r.id + '">';
+                        html += '<td style="text-align:center;"><input type="checkbox" class="rappel-row-check"></td>';
+                        html += '<td><b>' + r.numero + '</b></td>';
+                        html += '<td>' + r.client + '</td>';
+                        html += '<td class="text-danger"><b>' + formatMoneyRappel(r.creditUsd) + ' USD</b><br><small>' + formatMoneyRappel(r.creditCdf) + ' CDF</small></td>';
+                        html += '<td><span class="rappel-jours ' + cls + '"><i class="zmdi zmdi-time"></i> ' + r.jours + 'j</span></td>';
+                        html += '<td style="font-size:0.75rem;">' + r.date + '</td>';
+                        html += '</tr>';
+                    });
+                }
+                $('#rappel_table_body').html(html);
+                $('#rappel_check_all').prop('checked', false);
+                updateRappelSelectedCount();
+            }
+
+            function updateRappelSelectedCount() {
+                var n = $('#rappel_table_body .rappel-row-check:checked').length;
+                $('#rappel_selected_count').text(n);
+            }
+
+            $('#rappel').on('click', function(e) {
+                e.preventDefault();
+                $('#rappel_filterNumero').val('');
+                $('#rappel_filterClient').val('');
+                $('#rappel_filterUser').val('');
+                $('#rappel_filterMontant').val('');
+                $('#rappel_filterStatut').val('');
+                $('#rappel_filterJour').val('');
+                $('#rappel_filterDateRange').val('');
+                $('#rappel_filterDatePaieRange').val('');
+                $('#rappel_message').val('');
+                $('#rappel_msg_zone').removeClass('show');
+                renderRappelTable();
+                $('#rappelModal').modal('show');
+            });
+
+            $(document).on('input change', '#rappel_filterNumero, #rappel_filterClient, #rappel_filterUser, #rappel_filterMontant, #rappel_filterJour, #rappel_filterStatut', function() {
+                renderRappelTable();
+            });
+
+            $(document).on('click', '#rappel_resetFilters', function() {
+                $('#rappel_filterNumero').val('');
+                $('#rappel_filterClient').val('');
+                $('#rappel_filterUser').val('');
+                $('#rappel_filterMontant').val('');
+                $('#rappel_filterStatut').val('');
+                $('#rappel_filterJour').val('');
+                $('#rappel_filterDateRange').val('');
+                $('#rappel_filterDatePaieRange').val('');
+                if ($('#rappel_filterDateRange').data('daterangepicker')) {
+                    $('#rappel_filterDateRange').data('daterangepicker').setStartDate(moment());
+                    $('#rappel_filterDateRange').data('daterangepicker').setEndDate(moment());
+                }
+                if ($('#rappel_filterDatePaieRange').data('daterangepicker')) {
+                    $('#rappel_filterDatePaieRange').data('daterangepicker').setStartDate(moment());
+                    $('#rappel_filterDatePaieRange').data('daterangepicker').setEndDate(moment());
+                }
+                renderRappelTable();
+            });
+
+            $(document).on('change', '#rappel_check_all', function() {
+                var checked = $(this).prop('checked');
+                $('#rappel_table_body .rappel-row-check').prop('checked', checked);
+                updateRappelSelectedCount();
+            });
+
+            $(document).on('change', '.rappel-row-check', function() {
+                updateRappelSelectedCount();
+            });
+
+            $(document).on('click', '#rappel_send_btn', function() {
+                var message = $('#rappel_message').val().trim();
+                if (!message) {
+                    showRappelMsg('error', 'zmdi-close-circle', 'Veuillez saisir un message.');
+                    return;
+                }
+
+                var filters = getRappelFilters();
+                var all = getRappelAllRows();
+                var filtered = rappelApplyFilters(all, filters);
+
+                if (filtered.length === 0) {
+                    showRappelMsg('error', 'zmdi-close-circle', 'Aucun crédit pour ces filtres.');
+                    return;
+                }
+
+                var checkedIds = [];
+                $('#rappel_table_body .rappel-row-check:checked').each(function() {
+                    checkedIds.push($(this).closest('tr').data('facture-id'));
+                });
+
+                var targets = filtered;
+                var mode = 'all';
+                if (checkedIds.length > 0) {
+                    targets = filtered.filter(function(r) { return checkedIds.indexOf(r.id) !== -1; });
+                    mode = 'selected';
+                }
+
+                if (targets.length === 0) {
+                    showRappelMsg('error', 'zmdi-close-circle', 'Aucun client à qui envoyer.');
+                    return;
+                }
+
+                var messages = targets.map(function(r) {
+                    return { facture_id: r.id, client: r.client, message: message };
+                });
+
+                var $btn = $(this);
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Envoi...');
+                showRappelMsg('info', 'zmdi-time', 'Envoi en cours...');
+
+                $.ajax({
+                    url: "{{ url('/send_rappel_credit') }}",
+                    type: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        mode: mode,
+                        message: message,
+                        messages: JSON.stringify(messages),
+                        filters: JSON.stringify({
+                            numero: filters.numero,
+                            client: filters.client,
+                            user: filters.user,
+                            montant: filters.montant,
+                            statut: filters.statut,
+                            jour: filters.jour,
+                            date_debut: filters.date_debut,
+                            date_fin: filters.date_fin,
+                            date_paie_debut: filters.date_paie_debut,
+                            date_paie_fin: filters.date_paie_fin
+                        })
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        $btn.prop('disabled', false).html('<i class="zmdi zmdi-mail-send"></i> Envoyer');
+                        if (res && res.success) {
+                            showRappelMsg('success', 'zmdi-check-circle', res.message || (messages.length + ' rappel(s) envoyé(s) avec succès'));
+                            setTimeout(function() {
+                                $('#rappelModal').modal('hide');
+                                $('#rappel_msg_zone').removeClass('show');
+                            }, 2500);
+                        } else {
+                            showRappelMsg('error', 'zmdi-close-circle', 'Erreur : ' + (res && res.message ? res.message : 'inconnue'));
+                        }
+                    },
+                    error: function(xhr) {
+                        $btn.prop('disabled', false).html('<i class="zmdi zmdi-mail-send"></i> Envoyer');
+                        console.error(xhr);
+                        showRappelMsg('error', 'zmdi-close-circle', 'Erreur lors de l\'envoi. Vérifiez la route /send_rappel_credit.');
+                    }
+                });
+            });
+
+            /* ============================================================
+               RAPPORT DES MONTANTS REÇUS
+               ============================================================ */
+            function parseDMY_to_ISO(str) {
+                if (!str) return null;
+                var p = String(str).trim().split('/');
+                if (p.length === 3 && p[0].length === 2 && p[1].length === 2 && p[2].length === 4) {
+                    return p[2] + '-' + p[1] + '-' + p[0];
+                }
+                return null;
+            }
+
+            function parsePaymentDateToISO(dateStr) {
+                if (!dateStr) return null;
+                var datePart = String(dateStr).split(' à ')[0].trim();
+                return parseDMY_to_ISO(datePart);
+            }
+
+            function formatRapportMoney(v) {
+                var n = parseFloat(v) || 0;
+                return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            }
+
+            // 🔹 Peuple la liste des utilisateurs du filtre du rapport
+            function populateRapportUsers() {
+                var $sel = $('#rapport_user_filter');
+                $sel.empty();
+
+                if (USER_ROLE == 0) {
+                    $sel.append('<option value="all">Tous les utilisateurs</option>');
+                    ALL_ACTIVE_USERS.forEach(function (u) {
+                        $sel.append('<option value="' + u + '">' + u + '</option>');
+                    });
+                    $sel.prop('disabled', false);
+                } else {
+                    var nom = CURRENT_USER_NAME || 'Utilisateur';
+                    $sel.append('<option value="' + nom + '" selected>' + nom + '</option>');
+                    $sel.val(nom);
+                    $sel.prop('disabled', true);
+                }
+            }
+
+            function buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
+                var totalUSD = 0, totalCDF = 0, nbTransactions = 0;
+                var html = '';
+                var lignes = [];
+
+                var effectiveUserFilter = (USER_ROLE == 0)
+                    ? (userFilter || 'all')
+                    : CURRENT_USER_NAME;
+                var effectiveClientFilter = (clientFilter || '').trim().toLowerCase();
+
+                $('#content_utilisateur tbody tr').each(function () {
+                    var $row = $(this);
+                    var factureId = $row.data('facture-id');
+                    if (!factureId) return;
+
+                    var numero = $row.data('numero') || '-';
+                    var client = $row.data('client') || '-';
+                    var user_nom = $row.data('user') || 'N/A';
+                    var dateFacture = $row.data('date') || '-';
+                    var tauxFacture = parseFloat($row.data('taux')) || 1;
+                    if (tauxFacture <= 0) tauxFacture = 1;
+
+                    if (effectiveUserFilter && effectiveUserFilter !== 'all' && user_nom !== effectiveUserFilter) return;
+                    if (effectiveClientFilter && !String(client).toLowerCase().includes(effectiveClientFilter)) return;
+
+                    var paiements = safeParseJSON($row.attr('data-paiements'));
+
+                    paiements.forEach(function (p) {
+                        var payISO = parsePaymentDateToISO(p.date);
+
+                        if (dateDebutISO && dateFinISO) {
+                            if (!payISO) return;
+                            if (payISO < dateDebutISO || payISO > dateFinISO) return;
+                        }
+
+                        var montant = parseFloat(p.montant_recu) || 0;
+                        var devise  = p.devise_label || 'USD';
+                        var tauxP   = parseFloat(p.taux) || tauxFacture;
+                        if (tauxP <= 0) tauxP = 1;
+
+                        var montantUSD, montantCDF;
+                        if (devise === 'USD') {
+                            montantUSD = montant;
+                            montantCDF = montant * tauxP;
+                            totalUSD += montantUSD;
+                            totalCDF += montantCDF;
+                        } else {
+                            montantCDF = montant;
+                            montantUSD = (tauxP > 0) ? (montant / tauxP) : 0;
+                            totalUSD += montantUSD;
+                            totalCDF += montantCDF;
+                        }
+
+                        nbTransactions++;
+                        lignes.push({
+                            date: p.date || '-',
+                            numero: numero,
+                            date_facture: dateFacture,
+                            client: client,
+                            user_nom: user_nom,
+                            mode: p.mode_label || 'N/A',
+                            devise: devise,
+                            montant: montant,
+                            montant_usd: montantUSD,
+                            montant_cdf: montantCDF,
+                            iso: payISO || ''
+                        });
+                    });
+                });
+
+                lignes.sort(function (a, b) {
+                    if (a.iso < b.iso) return -1;
+                    if (a.iso > b.iso) return 1;
+                    return 0;
+                });
+
+                if (lignes.length === 0) {
+                    html = '<tr><td colspan="9" class="text-center text-muted">Aucun paiement trouvé dans cette période</td></tr>';
+                } else {
+                    lignes.forEach(function (l, idx) {
+                        var badgeDevise = l.devise === 'USD' ? 'primary' : 'warning';
+                        html += '<tr>';
+                        html += '<td>' + (idx + 1) + '</td>';
+                        html += '<td style="font-size:0.78rem;">' + l.date + '</td>';
+                        html += '<td><b>' + l.numero + '</b></td>';
+                        html += '<td style="font-size:0.78rem;">' + l.date_facture + '</td>';
+                        html += '<td>' + l.client + '</td>';
+                        html += '<td><span class="badge badge-secondary"><i class="zmdi zmdi-account"></i> ' + l.user_nom + '</span></td>';
+                        html += '<td><span class="badge badge-info">' + l.mode + '</span></td>';
+                        html += '<td><span class="badge badge-' + badgeDevise + '">' + l.devise + '</span></td>';
+                        html += '<td style="text-align:right;">';
+                        html += '<div class="dual-currency">';
+                        html += '<b class="text-primary">' + formatRapportMoney(l.montant_usd) + ' USD</b>';
+                        html += '<small class="text-warning">' + formatRapportMoney(l.montant_cdf) + ' CDF</small>';
+                        html += '</div>';
+                        html += '</td>';
+                        html += '</tr>';
+                    });
+                }
+
+                $('#rapport_body').html(html);
+
+                var footHtml = '<tr>';
+                footHtml += '<td colspan="8" class="text-right">TOTAL REÇU (' + nbTransactions + ' transaction' + (nbTransactions > 1 ? 's' : '') + ') :</td>';
+                footHtml += '<td style="text-align:right;">';
+                footHtml += '<span class="text-primary">' + formatRapportMoney(totalUSD) + ' USD</span><br>';
+                footHtml += '<span class="text-warning">' + formatRapportMoney(totalCDF) + ' CDF</span>';
+                footHtml += '</td>';
+                footHtml += '</tr>';
+                $('#rapport_foot').html(footHtml);
+
+                $('#rapport_total_usd').text(formatRapportMoney(totalUSD));
+                $('#rapport_total_cdf').text(formatRapportMoney(totalCDF));
+                $('#rapport_nb').text(nbTransactions);
+
+                if (USER_ROLE == 0) {
+                    $('#rapport_user_label').text(effectiveUserFilter === 'all' ? 'Tous' : effectiveUserFilter);
+                } else {
+                    $('#rapport_user_label').text(CURRENT_USER_NAME + ' (vous)');
+                }
+                $('#rapport_client_label').text(effectiveClientFilter ? clientFilter : 'Tous');
+            }
+
+            $(document).on('focus', '#rapport_date_range', function () {
+                if (!$(this).data('daterangepicker')) {
+                    $(this).daterangepicker({
+                        autoUpdateInput: false,
+                        locale: {
+                            format: 'DD/MM/YYYY', separator: ' - ',
+                            applyLabel: 'Appliquer', cancelLabel: 'Annuler',
+                            fromLabel: 'Du', toLabel: 'Au', customRangeLabel: 'Personnalisé',
+                            weekLabel: 'S',
+                            daysOfWeek: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
+                            monthNames: ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+                        },
+                        opens: 'left',
+                        drops: 'down',
+                        ranges: {
+                            'Aujourd\'hui': [moment(), moment()],
+                            'Hier': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                            '7 derniers jours': [moment().subtract(6, 'days'), moment()],
+                            '30 derniers jours': [moment().subtract(29, 'days'), moment()],
+                            'Ce mois-ci': [moment().startOf('month'), moment().endOf('month')],
+                            'Mois dernier': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                            'Cette année': [moment().startOf('year'), moment().endOf('year')]
+                        }
+                    }, function (start, end) {
+                        var val = start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY');
+                        $('#rapport_date_range').val(val);
+                        var dateDebutISO = parseDMY_to_ISO(start.format('DD/MM/YYYY'));
+                        var dateFinISO   = parseDMY_to_ISO(end.format('DD/MM/YYYY'));
+                        $('#rapport_periode_label').text(val);
+
+                        var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                        var clientFilter = $('#rapport_client_filter').val() || '';
+                        buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+                    });
+                }
+            });
+
+            $("#rapport").click(function (e) {
+                e.preventDefault();
+
+                populateRapportUsers();
+
+                var filterRange = $('#filterDateRange').val() || '';
+                $('#rapport_date_range').val(filterRange);
+
+                var dateDebutISO = null, dateFinISO = null;
+                if (filterRange) {
+                    var parts = filterRange.split(' - ');
+                    if (parts.length === 2) {
+                        dateDebutISO = parseDMY_to_ISO(parts[0]);
+                        dateFinISO   = parseDMY_to_ISO(parts[1]);
+                    }
+                }
+
+                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                var clientFilter = $('#rapport_client_filter').val() || '';
+
+                $('#rapport_periode_label').text(filterRange || 'Toutes les dates');
+                buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+
+                $('#rapportModal').modal('show');
+            });
+
+            $(document).on('click', '#rapport_apply_btn', function (e) {
+                e.preventDefault();
+                var range = $('#rapport_date_range').val() || '';
+                var dateDebutISO = null, dateFinISO = null;
+                if (range) {
+                    var parts = range.split(' - ');
+                    if (parts.length === 2) {
+                        dateDebutISO = parseDMY_to_ISO(parts[0]);
+                        dateFinISO   = parseDMY_to_ISO(parts[1]);
+                    }
+                }
+                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                var clientFilter = $('#rapport_client_filter').val() || '';
+                $('#rapport_periode_label').text(range || 'Toutes les dates');
+                buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+            });
+
+            $(document).on('change', '#rapport_user_filter', function () {
+                var range = $('#rapport_date_range').val() || '';
+                var dateDebutISO = null, dateFinISO = null;
+                if (range) {
+                    var parts = range.split(' - ');
+                    if (parts.length === 2) {
+                        dateDebutISO = parseDMY_to_ISO(parts[0]);
+                        dateFinISO   = parseDMY_to_ISO(parts[1]);
+                    }
+                }
+                var userFilter = $(this).val() || 'all';
+                var clientFilter = $('#rapport_client_filter').val() || '';
+                buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+            });
+
+            var rapportClientTimeout;
+            $(document).on('input', '#rapport_client_filter', function () {
+                clearTimeout(rapportClientTimeout);
+                rapportClientTimeout = setTimeout(function () {
+                    var range = $('#rapport_date_range').val() || '';
+                    var dateDebutISO = null, dateFinISO = null;
+                    if (range) {
+                        var parts = range.split(' - ');
+                        if (parts.length === 2) {
+                            dateDebutISO = parseDMY_to_ISO(parts[0]);
+                            dateFinISO   = parseDMY_to_ISO(parts[1]);
+                        }
+                    }
+                    var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                    var clientFilter = $('#rapport_client_filter').val() || '';
+                    buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+                }, 300);
+            });
+
+            $(document).on('click', '#rapport_reset_btn', function (e) {
+                e.preventDefault();
+
+                $('#rapport_date_range').val('');
+                $('#rapport_client_filter').val('');
+
+                if ($('#rapport_date_range').data('daterangepicker')) {
+                    $('#rapport_date_range').data('daterangepicker').setStartDate(moment().subtract(1, 'year'));
+                    $('#rapport_date_range').data('daterangepicker').setEndDate(moment());
+                }
+
+                if (USER_ROLE == 0) {
+                    $('#rapport_user_filter').val('all');
+                } else {
+                    $('#rapport_user_filter').val(CURRENT_USER_NAME);
+                }
+
+                $('#rapport_periode_label').text('Toutes les dates');
+                buildRapport(null, null, USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME, '');
             });
         });
 

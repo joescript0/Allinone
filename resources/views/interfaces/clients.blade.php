@@ -176,6 +176,7 @@ h4 i.zmdi {
 #bloc_3 button,
 #bloc_4 button,
 #liste,
+#communiquer,
 #add,
 #add_r,
 #save,
@@ -222,6 +223,19 @@ h4 i.zmdi {
     background: #2563eb !important;
 }
 
+#communiquer,
+.btn-success {
+    background: var(--vert-gradient) !important;
+    color: white !important;
+}
+#communiquer:hover,
+.btn-success:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.35);
+    color: white !important;
+}
+
 #add,
 .btn-info {
     background: var(--bleu-nuit-gradient) !important;
@@ -256,16 +270,6 @@ h4 i.zmdi {
     transform: translateY(-2px);
     background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
     box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
-}
-
-.btn-success {
-    background: var(--vert-gradient) !important;
-    color: white !important;
-}
-.btn-success:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, #059669, #047857) !important;
-    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.3);
 }
 
 #resetFilters {
@@ -675,6 +679,349 @@ select.form-control {
     background: #e9ecef;
 }
 
+/* ============================================================
+   MODALE COMMUNIQUER CLIENT
+   ============================================================ */
+#communiquerModal .modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 20px 35px -12px rgba(0,0,0,0.25);
+    overflow: hidden;
+}
+#communiquerModal .modal-header {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border-bottom: none;
+    padding: 1.1rem 1.5rem;
+}
+#communiquerModal .modal-header .close {
+    color: white;
+    opacity: 0.9;
+    text-shadow: none;
+}
+#communiquerModal .modal-header .modal-title {
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+#communiquerModal .badge-invoice {
+    background: rgba(255,255,255,0.25);
+    color: white;
+    border-radius: 50px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    font-weight: bold;
+}
+#communiquerModal .modal-body {
+    background: #f8fafc;
+    padding: 1.2rem 1.5rem;
+    max-height: 78vh;
+    overflow-y: auto;
+}
+#communiquerModal .modal-footer {
+    background: white;
+    border-top: 1px solid #eef2f6;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Filtres internes de la modale communiquer — identiques à la page principale */
+.communiquer-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    align-items: flex-end;
+}
+.communiquer-filters .filter-group {
+    flex: 1;
+    min-width: 140px;
+}
+.communiquer-filters .filter-group label {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #0a192f;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.communiquer-filters .filter-group label i {
+    color: #10b981;
+}
+.communiquer-filters .filter-group .form-control {
+    height: 34px;
+    font-size: 0.8rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    width: 100%;
+    padding: 6px 10px;
+    background: #fff;
+    appearance: none;
+}
+.communiquer-filters .filter-group select.form-control {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%2310b981" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+}
+.communiquer-filters .filter-group .form-control:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+    outline: none;
+}
+.communiquer-reset-btn {
+    background: #64748b;
+    color: white;
+    border: none;
+    border-radius: 40px;
+    padding: 7px 16px;
+    font-weight: 600;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.communiquer-reset-btn:hover {
+    background: #475569;
+    transform: translateY(-1px);
+}
+
+/* ============================================================
+   TABLEAU DE LA MODALE COMMUNIQUER — STYLE IDENTIQUE AU TABLEAU PRINCIPAL
+   ============================================================ */
+#communiquer_table_wrapper {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-light);
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+/* Le conteneur scrollable garde le style */
+#communiquer_table_wrapper > div {
+    background: white;
+}
+
+#communiquer_table {
+    width: 100%;
+    min-width: 800px;
+    margin: 0;
+    background: white;
+    border-collapse: collapse;
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: none;
+    table-layout: auto;
+    border: 1px solid #e2e8f0;
+}
+
+/* En-tête : identique au tableau principal + petites lignes verticales */
+#communiquer_table thead th {
+    background: #E7F5FE !important;
+    color: #0a192f !important;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 14px 12px !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    border-right: 1px solid #d0e2f2;
+    white-space: normal;
+    word-break: break-word;
+    text-align: left;
+    vertical-align: middle;
+}
+#communiquer_table thead th:last-child {
+    border-right: none;
+}
+
+/* Alternance de lignes identique au tableau principal */
+#communiquer_table tbody tr {
+    transition: all 0.15s ease;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+#communiquer_table tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+#communiquer_table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+#communiquer_table tbody tr:hover {
+    background: #e6f0ff !important;
+    cursor: default;
+}
+
+/* Cellules : identiques au tableau principal + petites lignes verticales */
+#communiquer_table tbody td {
+    padding: 10px 12px !important;
+    vertical-align: middle !important;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: #1e2a3e;
+    word-break: break-word;
+    border-bottom: 1px solid #eef2f6;
+    border-right: 1px solid #eef2f6;
+    line-height: 1.4;
+    text-align: left;
+}
+#communiquer_table tbody td:last-child {
+    border-right: none;
+}
+
+/* Case à cocher centrée dans sa cellule */
+#communiquer_table tbody td:first-child {
+    text-align: center;
+}
+
+#communiquer_table tbody td:first-child input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #10b981;
+}
+
+/* Case "tout cocher" dans l'en-tête centrée */
+#communiquer_table thead th:first-child {
+    text-align: center;
+}
+
+#communiquer_table thead th:first-child input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #10b981;
+}
+
+/* Scrollbar horizontale pour garder l'alignement avec le tableau principal */
+#communiquer_table_wrapper .table-scroll-x {
+    overflow-x: auto;
+}
+
+.communiquer-message-box {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+}
+.communiquer-message-box label {
+    font-weight: 700;
+    color: #0a192f;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 8px;
+}
+.communiquer-message-box textarea {
+    width: 100%;
+    min-height: 110px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    resize: vertical;
+    font-family: inherit;
+}
+.communiquer-message-box textarea:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+.communiquer-count-selected {
+    font-weight: 700;
+    color: #10b981;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.communiquer-empty {
+    text-align: center;
+    padding: 30px 20px;
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+.communiquer-empty i {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 8px;
+    color: #cbd5e1;
+}
+#communiquer_send_btn {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+    border: none;
+    border-radius: 40px !important;
+    padding: 8px 26px !important;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    cursor: pointer;
+}
+#communiquer_send_btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #059669, #047857) !important;
+}
+#communiquer_send_btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Zone de messages dans la modale communiquer */
+#communiquer_msg_zone {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.82rem;
+    align-items: center;
+    gap: 8px;
+    animation: slideInMsg 0.3s ease-out;
+}
+#communiquer_msg_zone.show { display: flex; }
+#communiquer_msg_zone.info {
+    background: linear-gradient(95deg, #dbeafe, #bfdbfe);
+    color: #1e3a8a;
+    border-left: 4px solid #3b82f6;
+}
+#communiquer_msg_zone.success {
+    background: linear-gradient(95deg, #d1fae5, #a7f3d0);
+    color: #065f46;
+    border-left: 4px solid #10b981;
+}
+#communiquer_msg_zone.error {
+    background: linear-gradient(95deg, #fee2e2, #fecaca);
+    color: #991b1b;
+    border-left: 4px solid #ef4444;
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 992px) {
     .content .container {
@@ -699,6 +1046,7 @@ select.form-control {
         padding: 0.8rem !important;
     }
     #liste,
+    #communiquer,
     #add,
     #save,
     #edit_save,
@@ -745,6 +1093,14 @@ select.form-control {
         font-size: 0.75rem;
         line-height: 1.3;
     }
+    #communiquer_table thead th {
+        font-size: 0.72rem;
+        padding: 10px 6px !important;
+    }
+    #communiquer_table tbody td {
+        padding: 8px 10px !important;
+        font-size: 0.75rem;
+    }
     #form_add .col-6,
     #form_edit .col-6 {
         flex: 0 0 100%;
@@ -782,6 +1138,8 @@ select.form-control {
     #mapAllModalMap {
         height: 280px;
     }
+    .communiquer-filters { flex-direction: column; gap: 8px; }
+    .communiquer-filters .filter-group { width: 100%; min-width: 100%; }
 }
 
 @media (max-width: 480px) {
@@ -802,6 +1160,7 @@ select.form-control {
         font-size: 24px !important;
     }
     #liste,
+    #communiquer,
     #add,
     #save,
     #edit_save,
@@ -821,6 +1180,14 @@ select.form-control {
         padding: 6px 8px !important;
         font-size: 0.7rem;
         line-height: 1.2;
+    }
+    #communiquer_table thead th {
+        font-size: 0.62rem;
+        padding: 8px 4px !important;
+    }
+    #communiquer_table tbody td {
+        padding: 6px 8px !important;
+        font-size: 0.7rem;
     }
     .map-overlay-buttons .map-btn {
         width: 30px;
@@ -844,6 +1211,10 @@ select.form-control {
                             <div class="col-12">
                                 <a class="btn-primary btn-sm" id="liste" href="">
                                     <i class="zmdi zmdi-accounts"></i> Liste
+                                </a>
+                                &nbsp;
+                                <a class="btn-success btn-sm" id="communiquer" href="#">
+                                    <i class="zmdi zmdi-comment-text"></i> Communiquer
                                 </a>
                                 &nbsp;
                                 <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
@@ -1018,8 +1389,16 @@ select.form-control {
                                         } else {
                                             $affiche = 'Non renseigné';
                                         }
+
+                                        // ==== Récupération sécurisée du nom de l'activité ====
+                                        $activiteModele = \App\Models\Activites::find($data->activite_id);
+                                        $activiteNom = $activiteModele ? $activiteModele->nom : 'Non renseignée';
                                     @endphp
-                                    <tr data-usd="{{ $row_usd }}" data-cdf="{{ $row_cdf }}">
+                                    <tr data-usd="{{ $row_usd }}" data-cdf="{{ $row_cdf }}"
+                                        data-client-id="{{ $data->id }}"
+                                        data-client-name="{{ $data->name }}"
+                                        data-client-email="{{ $data->email }}"
+                                        data-client-phone="{{ $data->phone }}">
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">{{ $i }}</td>
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="nom-cell" data-nom="{{ $data->name }}">{{ $data->name }}</td>
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="email-cell" data-email="{{ $data->email }}">{{ $data->email }}</td>
@@ -1031,8 +1410,11 @@ select.form-control {
                                                 Entreprise
                                             @endif
                                         </td>
-                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="activite-cell" data-activite="{{ $data->activite_id }}">
-                                            <?= Activites::where('id', $data->activite_id)->first()["nom"]; ?>
+                                        <!-- ===== CELLULE ACTIVITÉ : on stocke l'ID + le NOM ===== -->
+                                        <td style="padding-top: 5px;padding-bottom: 5px;" class="activite-cell"
+                                            data-activite="{{ $data->activite_id }}"
+                                            data-activite-nom="{{ $activiteNom }}">
+                                            {{ $activiteNom }}
                                         </td>
                                         <!-- ===== CELLULE ABONNEMENT ===== -->
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="abonnement-cell" data-paiement="{{ $data->paiement ?? 0 }}" data-devise="{{ $data->devise ?? 0 }}" data-taux="{{ $data->taux ?? 1 }}">
@@ -1437,6 +1819,126 @@ select.form-control {
     </div>
 </div>
 
+{{-- ========== MODALE COMMUNIQUER CLIENT ========== --}}
+<div class="modal fade" id="communiquerModal" tabindex="-1" role="dialog" aria-labelledby="communiquerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document" style="max-width: 1150px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="communiquerModalLabel">
+                    <i class="zmdi zmdi-comment-text"></i> Communiquer avec les clients
+                    <span class="badge-invoice">
+                        <i class="zmdi zmdi-view-list"></i>
+                        <span id="communiquer_total_count">0</span> client(s)
+                    </span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                {{-- Filtres identiques à la page principale --}}
+                <div class="communiquer-filters">
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-account"></i> Nom</label>
+                        <input type="text" id="communiquer_filterNom" class="form-control" placeholder="Nom...">
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-email"></i> Email</label>
+                        <input type="text" id="communiquer_filterEmail" class="form-control" placeholder="Email...">
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-phone"></i> Téléphone</label>
+                        <input type="text" id="communiquer_filterPhone" class="form-control" placeholder="Téléphone...">
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-settings"></i> Type</label>
+                        <select id="communiquer_filterType" class="form-control">
+                            <option value="all">Tous les types</option>
+                            <option value="0">Privé</option>
+                            <option value="1">Entreprise</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-toll"></i> Activité</label>
+                        <select id="communiquer_filterActivite" class="form-control">
+                            <option value="all">Toutes les activités</option>
+                            @foreach ($activites as $activite)
+                                <option value="{{ $activite->id }}">{{ $activite->nom }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-money"></i> Abonnement</label>
+                        <input type="text" id="communiquer_filterAbonnement" class="form-control" placeholder="Montant...">
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-account"></i> Utilisateur</label>
+                        <input type="text" id="communiquer_filterUser" class="form-control" placeholder="Utilisateur...">
+                    </div>
+                    <div class="filter-group" style="flex: 0 0 auto; min-width: auto;">
+                        <button type="button" id="communiquer_resetFilters" class="communiquer-reset-btn">
+                            <i class="zmdi zmdi-refresh"></i> Réinitialiser
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Tableau des clients (même style que le tableau principal) --}}
+                <div id="communiquer_table_wrapper">
+                    <div class="table-scroll-x" style="max-height: 380px; overflow-y: auto; overflow-x: auto;">
+                        <table id="communiquer_table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px; text-align: center;">
+                                        <input type="checkbox" id="communiquer_check_all" title="Tout sélectionner">
+                                    </th>
+                                    <th>Nom</th>
+                                    <th>Email</th>
+                                    <th>Téléphone</th>
+                                    <th>Type</th>
+                                    <th>Activité</th>
+                                    <th>Abonnement</th>
+                                </tr>
+                            </thead>
+                            <tbody id="communiquer_table_body">
+                                <tr><td colspan="7" class="communiquer-empty">
+                                    <i class="zmdi zmdi-info-outline"></i> Chargement...
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Message --}}
+                <div class="communiquer-message-box">
+                    <label><i class="zmdi zmdi-comment-text" style="color: #10b981;"></i> Message à envoyer</label>
+                    <textarea id="communiquer_message" placeholder="Completez le texte à envoyer"></textarea>
+                </div>
+
+                {{-- Zone de messages (erreurs / succès / info) --}}
+                <div style="height:40px;" id="communiquer_msg_zone"></div>
+
+            </div>
+
+            <div class="modal-footer">
+                <span class="communiquer-count-selected">
+                    <i class="zmdi zmdi-check-square"></i> <span id="communiquer_selected_count">0</span> sélectionné(s)
+                </span>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                            style="border-radius: 40px; padding: 8px 22px;">
+                        <i class="zmdi zmdi-close"></i> Fermer
+                    </button>
+                    <button type="button" id="communiquer_send_btn" class="btn btn-success">
+                        <i class="zmdi zmdi-mail-send"></i> Envoyer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section('js-code')
 <script src="{{ asset('assets/vendors/flot/jquery.flot.js') }} "></script>
 <script src="{{ asset('assets/vendors/flot/jquery.flot.pie.js') }}"></script>
@@ -1558,7 +2060,6 @@ select.form-control {
                 totalUsd += parseFloat($row.data('usd')) || 0;
                 totalCdf += parseFloat($row.data('cdf')) || 0;
 
-                // Compter selon paiement
                 const paiement = parseFloat($row.find('.abonnement-cell').data('paiement')) || 0;
                 if (paiement > 0) {
                     renseigneCount++;
@@ -1570,7 +2071,6 @@ select.form-control {
             }
         });
 
-        // Mise à jour des badges
         $('#clientCount').text(visibleCount);
         $('#clientNonRenseigneCount').text(nonRenseigneCount);
         $('#clientRenseigneCount').text(renseigneCount);
@@ -1596,7 +2096,7 @@ select.form-control {
         $('#filterUser').val('');
 
         saveClientFiltersToStorage();
-        filterClients(); // recalcule les totaux immédiatement
+        filterClients();
 
         showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Tous les filtres ont été réinitialisés', 3000);
     }
@@ -1624,7 +2124,6 @@ select.form-control {
             resetClientFilters();
         });
 
-        // Premier calcul des totaux
         setTimeout(function() {
             filterClients();
         }, 100);
@@ -1766,22 +2265,18 @@ select.form-control {
     $("#save").click(function(e) {
         e.preventDefault();
 
-        // Récupération du nom
         var $nom = $("#nom");
         var nom = $nom.val().trim();
 
-        // Validation
         if (nom.length === 0) {
             showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Veuillez compléter le nom du client', 9000);
             return;
         }
 
-        // Désactivation du bouton
         var $btn = $(this);
         $btn.prop("disabled", true);
 
-        // Ajout du paramètre "page" dans les données sérialisées
-        var page = "<?= $ressource_id_1 ?>"; // La variable s'appelle bien "page"
+        var page = "<?= $ressource_id_1 ?>";
         var formData = $("#form_add").serialize() + "&page=" + encodeURIComponent(page);
 
         $.ajax({
@@ -1791,7 +2286,6 @@ select.form-control {
             success: function(response) {
                 $btn.prop("disabled", false);
 
-                // Réinitialisation des champs
                 $("#nom").val("");
                 $("#email").val("");
                 $("#phone").val("");
@@ -1847,7 +2341,7 @@ select.form-control {
         }
     });
 
-    // ========== CARTE AJOUT (avec bouton chercher par adresse en SUCCESS) ==========
+    // ========== CARTE AJOUT ==========
     (function() {
         var defaultLat = -4.4419;
         var defaultLng = 15.2663;
@@ -1936,7 +2430,6 @@ select.form-control {
                 );
             });
 
-            // ===== BOUTON CHERCHER PAR ADRESSE (AJOUT) – STYLE SUCCESS =====
             $("#btnSearchAddress").off('click').on('click', function(e) {
                 e.preventDefault();
                 var adresse = $("#adresse").val().trim();
@@ -2095,7 +2588,6 @@ select.form-control {
             initModalMap(parseFloat(lat), parseFloat(lng));
         });
 
-        // ===== BOUTON PARTAGER =====
         $('#btnShareLocation').on('click', function() {
             if (!currentClientData) {
                 alert('Aucune donnée client à partager.');
@@ -2143,6 +2635,268 @@ select.form-control {
         });
 
     })();
+
+    // ============================================================
+    // MODALE COMMUNIQUER CLIENT — Filtres identiques à la page principale
+    // ============================================================
+
+    // Fonction utilitaire pour afficher un message dans la modale communiquer
+    function showCommuniquerMsg(type, icon, text) {
+        var $zone = $('#communiquer_msg_zone');
+        $zone.removeClass('show info success error').addClass('show ' + type);
+        $zone.html('<i class="zmdi ' + icon + '"></i> <span>' + text + '</span>');
+        clearTimeout(window.__communiquerMsgTimeout);
+        window.__communiquerMsgTimeout = setTimeout(function() {
+            $zone.removeClass('show');
+        }, 6000);
+    }
+
+    // Récupère toutes les lignes clients (avec les mêmes data-attributes que la page principale)
+    function getCommuniquerAllRows() {
+        var rows = [];
+        $('#content_utilisateur tbody tr').each(function() {
+            var $r = $(this);
+            var paiement = parseFloat($r.find('.abonnement-cell').data('paiement')) || 0;
+
+            rows.push({
+                id: $r.data('client-id'),
+                nom: String($r.find('.nom-cell').data('nom') || ''),
+                email: String($r.find('.email-cell').data('email') || ''),
+                phone: String($r.find('.phone-cell').data('phone') || ''),
+                type: String($r.find('.type-cell').data('type') || ''),
+                // ID de l'activité (pour filtrer)
+                activite: String($r.find('.activite-cell').data('activite') || ''),
+                // Nom de l'activité (pour afficher)
+                activiteNom: String($r.find('.activite-cell').data('activite-nom') || ''),
+                user: String($r.data('user') || $r.find('.user-cell').data('user') || ''),
+                paiement: paiement,
+                abonnementText: String($r.find('.abonnement-cell').text() || '').trim(),
+                usd: parseFloat($r.data('usd')) || 0,
+                cdf: parseFloat($r.data('cdf')) || 0
+            });
+        });
+        return rows;
+    }
+
+    // Récupère les valeurs actuelles des filtres du modal
+    function getCommuniquerFilters() {
+        var fNom = $('#communiquer_filterNom').val().toLowerCase().trim();
+        var fEmail = $('#communiquer_filterEmail').val().toLowerCase().trim();
+        var fPhone = $('#communiquer_filterPhone').val().toLowerCase().trim();
+        var fType = $('#communiquer_filterType').val();
+        var fActivite = $('#communiquer_filterActivite').val();
+        var fAbonnement = $('#communiquer_filterAbonnement').val().toLowerCase().trim();
+        var fUser = $('#communiquer_filterUser').val().toLowerCase().trim();
+
+        return {
+            nom: $('#communiquer_filterNom').val() || '',
+            email: $('#communiquer_filterEmail').val() || '',
+            phone: $('#communiquer_filterPhone').val() || '',
+            type: fType || 'all',
+            activite: fActivite || 'all',
+            abonnement: $('#communiquer_filterAbonnement').val() || '',
+            user: $('#communiquer_filterUser').val() || '',
+            _raw_nom: fNom,
+            _raw_email: fEmail,
+            _raw_phone: fPhone,
+            _raw_type: fType,
+            _raw_activite: fActivite,
+            _raw_abonnement: fAbonnement,
+            _raw_user: fUser
+        };
+    }
+
+    // Applique les mêmes règles que filterClients()
+    function communiquerApplyFilters(rows, f) {
+        return rows.filter(function(r) {
+            if (f._raw_nom && r.nom.toLowerCase().indexOf(f._raw_nom) === -1) return false;
+            if (f._raw_email && r.email.toLowerCase().indexOf(f._raw_email) === -1) return false;
+            if (f._raw_phone && r.phone.toLowerCase().indexOf(f._raw_phone) === -1) return false;
+            if (f._raw_type && f._raw_type !== 'all' && String(r.type) !== String(f._raw_type)) return false;
+
+            // Filtrer par ID OU par nom d'activité
+            if (f._raw_activite && f._raw_activite !== 'all') {
+                if (String(r.activite) !== String(f._raw_activite)
+                    && (r.activiteNom || '').toLowerCase() !== String(f._raw_activite).toLowerCase()) {
+                    return false;
+                }
+            }
+
+            if (f._raw_abonnement && String(r.paiement).indexOf(f._raw_abonnement) === -1) return false;
+            if (f._raw_user && r.user.toLowerCase().indexOf(f._raw_user) === -1) return false;
+            return true;
+        });
+    }
+
+    function renderCommuniquerTable() {
+        var all = getCommuniquerAllRows();
+        var f = getCommuniquerFilters();
+        var filtered = communiquerApplyFilters(all, f);
+
+        $('#communiquer_total_count').text(filtered.length);
+
+        var html = '';
+        if (filtered.length === 0) {
+            html = '<tr><td colspan="7" class="communiquer-empty"><i class="zmdi zmdi-info-outline"></i> Aucun client ne correspond aux filtres</td></tr>';
+        } else {
+            filtered.forEach(function(r) {
+                var typeLabel = (String(r.type) === '0') ? 'Privé' : 'Entreprise';
+                var abonLabel = r.paiement > 0 ? r.abonnementText : 'Non renseigné';
+                html += '<tr data-client-id="' + r.id + '">';
+                html += '<td style="text-align:center;"><input type="checkbox" class="communiquer-row-check"></td>';
+                html += '<td><b>' + r.nom + '</b></td>';
+                html += '<td>' + r.email + '</td>';
+                html += '<td>' + r.phone + '</td>';
+                html += '<td>' + typeLabel + '</td>';
+                html += '<td>' + (r.activiteNom || 'Non renseignée') + '</td>';
+                html += '<td style="font-size:0.82rem;">' + abonLabel + '</td>';
+                html += '</tr>';
+            });
+        }
+        $('#communiquer_table_body').html(html);
+        $('#communiquer_check_all').prop('checked', false);
+        updateCommuniquerSelectedCount();
+    }
+
+    function updateCommuniquerSelectedCount() {
+        var n = $('#communiquer_table_body .communiquer-row-check:checked').length;
+        $('#communiquer_selected_count').text(n);
+    }
+
+    // Ouvrir la modale → reset des filtres internes et messages
+    $('#communiquer').on('click', function(e) {
+        e.preventDefault();
+        $('#communiquer_filterNom').val('');
+        $('#communiquer_filterEmail').val('');
+        $('#communiquer_filterPhone').val('');
+        $('#communiquer_filterType').val('all');
+        $('#communiquer_filterActivite').val('all');
+        $('#communiquer_filterAbonnement').val('');
+        $('#communiquer_filterUser').val('');
+        $('#communiquer_message').val('');
+        $('#communiquer_msg_zone').removeClass('show');
+        renderCommuniquerTable();
+        $('#communiquerModal').modal('show');
+    });
+
+    // Filtres live du modal
+    $(document).on('input change', '#communiquer_filterNom, #communiquer_filterEmail, #communiquer_filterPhone, #communiquer_filterType, #communiquer_filterActivite, #communiquer_filterAbonnement, #communiquer_filterUser', function() {
+        renderCommuniquerTable();
+    });
+
+    // Réinitialiser les filtres du modal
+    $(document).on('click', '#communiquer_resetFilters', function() {
+        $('#communiquer_filterNom').val('');
+        $('#communiquer_filterEmail').val('');
+        $('#communiquer_filterPhone').val('');
+        $('#communiquer_filterType').val('all');
+        $('#communiquer_filterActivite').val('all');
+        $('#communiquer_filterAbonnement').val('');
+        $('#communiquer_filterUser').val('');
+        renderCommuniquerTable();
+    });
+
+    // Check all
+    $(document).on('change', '#communiquer_check_all', function() {
+        var checked = $(this).prop('checked');
+        $('#communiquer_table_body .communiquer-row-check').prop('checked', checked);
+        updateCommuniquerSelectedCount();
+    });
+
+    $(document).on('change', '.communiquer-row-check', function() {
+        updateCommuniquerSelectedCount();
+    });
+
+    // ============================================================
+    // BOUTON UNIQUE D'ENVOI
+    // ============================================================
+    $(document).on('click', '#communiquer_send_btn', function() {
+        var message = $('#communiquer_message').val().trim();
+        if (!message) {
+            showCommuniquerMsg('error', 'zmdi-close-circle', 'Veuillez saisir un message.');
+            return;
+        }
+
+        var filters = getCommuniquerFilters();
+        var all = getCommuniquerAllRows();
+        var filtered = communiquerApplyFilters(all, filters);
+
+        if (filtered.length === 0) {
+            showCommuniquerMsg('error', 'zmdi-close-circle', 'Aucun client pour ces filtres.');
+            return;
+        }
+
+        // Si au moins une case est cochée, on envoie uniquement aux cochés.
+        // Sinon, on envoie à tous les filtrés.
+        var checkedIds = [];
+        $('#communiquer_table_body .communiquer-row-check:checked').each(function() {
+            checkedIds.push($(this).closest('tr').data('client-id'));
+        });
+
+        var targets = filtered;
+        var mode = 'all';
+        if (checkedIds.length > 0) {
+            targets = filtered.filter(function(r) { return checkedIds.indexOf(r.id) !== -1; });
+            mode = 'selected';
+        }
+
+        if (targets.length === 0) {
+            showCommuniquerMsg('error', 'zmdi-close-circle', 'Aucun client à qui envoyer.');
+            return;
+        }
+
+        var messages = targets.map(function(r) {
+            return {
+                client_id: r.id,
+                nom: r.nom,
+                email: r.email,
+                phone: r.phone,
+                message: message
+            };
+        });
+
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Envoi...');
+        showCommuniquerMsg('info', 'zmdi-time', 'Envoi en cours...');
+
+        $.ajax({
+            url: "{{ url('/send_communication_client') }}",
+            type: 'POST',
+            data: {
+                _token: "{{ csrf_token() }}",
+                mode: mode,
+                message: message,
+                messages: JSON.stringify(messages),
+                filters: JSON.stringify({
+                    nom: filters.nom,
+                    email: filters.email,
+                    phone: filters.phone,
+                    type: filters.type,
+                    activite: filters.activite,
+                    abonnement: filters.abonnement,
+                    user: filters.user
+                })
+            },
+            dataType: 'json',
+            success: function(res) {
+                $btn.prop('disabled', false).html('<i class="zmdi zmdi-mail-send"></i> Envoyer');
+                if (res && res.success) {
+                    showCommuniquerMsg('success', 'zmdi-check-circle', res.message || (messages.length + ' message(s) envoyé(s) avec succès'));
+                    setTimeout(function() {
+                        $('#communiquerModal').modal('hide');
+                        $('#communiquer_msg_zone').removeClass('show');
+                    }, 2500);
+                } else {
+                    showCommuniquerMsg('error', 'zmdi-close-circle', 'Erreur : ' + (res && res.message ? res.message : 'inconnue'));
+                }
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).html('<i class="zmdi zmdi-mail-send"></i> Envoyer');
+                console.error(xhr);
+                showCommuniquerMsg('error', 'zmdi-close-circle', 'Erreur lors de l\'envoi. Vérifiez la route /send_communication_client.');
+            }
+        });
+    });
 </script>
 @endsection
 @endsection

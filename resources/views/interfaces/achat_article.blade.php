@@ -210,6 +210,7 @@ h4 .badge-invoice {
 #edit_save,
 #edit_annuler,
 #resetFilters,
+#rapport,
 .btn-primary,
 .btn-info,
 .btn-danger,
@@ -308,6 +309,17 @@ h4 .badge-invoice {
     background: #2563eb !important;
     transform: translateY(-2px);
     box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
+}
+
+/* ===== BOUTON RAPPORT ===== */
+#rapport {
+    background: var(--rouge-gradient) !important;
+    color: white !important;
+}
+#rapport:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
 }
 
 .filters-container {
@@ -812,6 +824,7 @@ select.form-control {
     }
     #liste,
     #add,
+    #rapport,
     #save,
     #edit_save,
     #annuler,
@@ -923,6 +936,7 @@ select.form-control {
     }
     #liste,
     #add,
+    #rapport,
     #save,
     #edit_save,
     #annuler,
@@ -1170,7 +1184,6 @@ select.form-control {
     background: #e6f0ff !important;
 }
 
-/* Inputs compacts dans le tableau articles */
 .param-inline-input {
     width: 100% !important;
     min-width: 90px;
@@ -1192,7 +1205,6 @@ select.form-control {
     color: #991b1b;
 }
 
-/* Style des montants double devise */
 .dual-currency b {
     display: block;
     font-size: 0.82rem;
@@ -1204,9 +1216,6 @@ select.form-control {
     font-weight: 500;
 }
 
-/* ============================================================
-   TOTAUX GÉNÉRAUX – STYLE CARTES (comme "Frais & Réductions")
-   ============================================================ */
 .param-totals-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -1261,7 +1270,6 @@ select.form-control {
     line-height: 1.2;
 }
 
-/* Couleurs par type de total */
 .param-total-item.total-qte    .param-total-value { color: #17a2b8; }
 .param-total-item.total-qte    .param-total-dot   { background: #17a2b8; }
 
@@ -1293,6 +1301,76 @@ select.form-control {
     .param-statut-card i { font-size: 1.6rem; }
     .param-statut-card .param-statut-value { font-size: 1.1rem; }
     .param-totals-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ============================================================
+   MODALE RAPPORT DES MONTANTS REÇUS
+   ============================================================ */
+#rapportModal .modal-header {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+}
+#rapportModal #rapport_date_range {
+    width: 100%;
+    height: 38px;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 8px 12px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    background: #fff;
+}
+#rapportModal #rapport_date_range:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    outline: none;
+}
+#rapportModal #rapport_user_filter {
+    width: 100%;
+    height: 38px;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 8px 12px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    background: #fff;
+}
+#rapportModal #rapport_user_filter:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    outline: none;
+}
+#rapportModal #rapport_user_filter:disabled {
+    background: #f1f5f9 !important;
+    cursor: not-allowed;
+    opacity: 0.85;
+}
+#rapportModal #rapport_client_filter {
+    width: 100%;
+    height: 38px;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 8px 12px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    background: #fff;
+}
+#rapportModal #rapport_client_filter:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    outline: none;
+}
+#rapport_table thead th {
+    background: #FEE2E2 !important;
+    color: #7f1d1d;
+    border-bottom: 2px solid #fca5a5 !important;
+}
+#rapport_table tbody tr:hover {
+    background: #fef2f2 !important;
+}
+#rapport_table tfoot td {
+    background: #f1f5f9;
+    border-top: 2px solid #cbd5e1 !important;
+    font-size: 0.82rem;
 }
     </style>
     <section class="content">
@@ -1328,6 +1406,11 @@ select.form-control {
                                     </a>
                                     <?php } ?>
                                     <?php } ?>
+                                    &nbsp;
+                                    {{-- ✅ BOUTON RAPPORT (ROUGE) --}}
+                                    <a class="btn-danger btn-sm" id="rapport" href="#">
+                                        <i class="zmdi zmdi-chart"></i> Rapport
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -1445,11 +1528,6 @@ select.form-control {
 
                                                 $ent = Achats::where('facture_id', $data->id)->get();
 
-                                                // ============================================================
-                                                // MONTANT DÛ RÉEL = Σ (total − reduction) par achat
-                                                // (réduction retranchée sur chaque achat, dans SA devise)
-                                                // Sert à déterminer si la facture est IMPAYÉE.
-                                                // ============================================================
                                                 $total_original = 0;
                                                 foreach ($ent as $e)
                                                 {
@@ -1495,25 +1573,13 @@ select.form-control {
                                                 $delai_1h = 3600;
                                                 $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
 
-                                                // ============================================================
-                                                // ✅ NOUVEAU : RATIO IMPAYÉ DE LA FACTURE
-                                                // Les frais de crédit ne s'appliquent QUE sur la portion
-                                                // réellement non payée de la facture.
-                                                // ============================================================
-                                                $ratio_impaye_facture = 1; // 100% impayé par défaut
+                                                $ratio_impaye_facture = 1;
                                                 if ($total_original_usd > 0) {
                                                     $reste_global_usd = $total_original_usd - $montant_usd_paye;
                                                     if ($reste_global_usd < 0) $reste_global_usd = 0;
                                                     $ratio_impaye_facture = $reste_global_usd / $total_original_usd;
                                                 }
 
-                                                // ============================================================
-                                                // CALCUL DU TOTAL FINAL (avec frais crédit)
-                                                // ✅ RÉDUCTION APPLIQUÉE PARTOUT :
-                                                //    - base des frais crédit : (total − réduction)
-                                                //    - frais crédit uniquement sur la portion impayée
-                                                //    - net final = (total − réduction) + frais crédit
-                                                // ============================================================
                                                 $total = 0;
                                                 $achat_total_usd = 0;
                                                 $achat_total_cdf = 0;
@@ -1522,16 +1588,11 @@ select.form-control {
                                                     $devise_achat = $e->devise_achat ?? $data->devise;
                                                     $reduction_achat = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
 
-                                                    // 1) NET APRÈS RÉDUCTION (base de tout)
                                                     $net_apres_reduction = $e->total - $reduction_achat;
                                                     if ($net_apres_reduction < 0) $net_apres_reduction = 0;
 
-                                                    // 2) FRAIS DE CRÉDIT : 5% du NET IMPAYÉ de la ligne
-                                                    //    - calculés APRÈS réduction
-                                                    //    - uniquement sur la portion impayée (ratio_impaye_facture)
                                                     $frais_credit_achat = 0;
                                                     if ($e->frais_credit != 0 && $e->frais_credit !== null) {
-                                                        // Frais déjà figés en base → on les respecte
                                                         $frais_credit_achat = $e->frais_credit;
                                                     } else {
                                                         if ($est_impayee && $delai_depasse && $ratio_impaye_facture > 0) {
@@ -1541,10 +1602,8 @@ select.form-control {
                                                         }
                                                     }
 
-                                                    // 3) NET FINAL DE LA LIGNE = NET APRÈS RÉDUCTION + FRAIS
                                                     $net_achat_devise = $net_apres_reduction + $frais_credit_achat;
 
-                                                    // Conversion vers la devise de la facture
                                                     if ($devise_achat == $data->devise) {
                                                         $total += $net_achat_devise;
                                                     } elseif ($data->devise == 0) {
@@ -1553,7 +1612,6 @@ select.form-control {
                                                         $total += $net_achat_devise * $taux;
                                                     }
 
-                                                    // Bénéfice : prix d'achat converti par devise
                                                     $prix_achat = $e->prix_achat ?? 0;
                                                     $quantite = $e->quantite ?? 1;
                                                     $prix_achat_total = $prix_achat * $quantite;
@@ -1579,7 +1637,6 @@ select.form-control {
                                                 $benefice_usd = $montant_usd - $achat_total_usd;
                                                 $benefice_cdf = $montant_cdf - $achat_total_cdf;
 
-                                                // CRÉDIT = total final (avec réduction + frais) − paiements
                                                 $reste_usd = $montant_usd - $montant_usd_paye;
                                                 $reste_cdf = $montant_cdf - $montant_cdf_paye;
 
@@ -1645,6 +1702,7 @@ select.form-control {
                                                         'id'               => $p->id,
                                                         'date'             => date('d/m/Y à H:i', strtotime($p->created_at)),
                                                         'payer'            => $p->payer,
+                                                        'payer_nom'        => User::where('id', $data->user_id)->first()['name'] ?? 'N/A',
                                                         'montant_recu'     => $p->montant_recu,
                                                         'devise_label'     => $isUSD ? 'USD' : 'CDF',
                                                         'mode_de_paiement' => $p->mode_de_paiement,
@@ -1777,7 +1835,7 @@ select.form-control {
                                                         @endif
                                                     <?php } ?>
 
-                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
+                                                    <?php if ((($edit == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (Auth::user()->role == 0)) { ?>
                                                         <a href="#" class="param-facture-btn"
                                                            data-id="{{ $data->id }}"
                                                            title="Paramètres de la facture">
@@ -2046,9 +2104,9 @@ select.form-control {
                                     </div>
                                 </div>
                             </div>
-                            {{-- AJOUT : Montant total réduit --}}
+                            {{-- ✅ Montant total réduit + Contact (champ OPTIONNEL - client passager) --}}
                             <div style="margin-top: -8px;" class="row">
-                                <div class="col-12">
+                                <div class="col-6">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;">
                                             <i class="zmdi zmdi-check-circle"></i> Montant total réduit <span id="montant_reduit_devise" style="color:#e31b23;">(USD)</span>
@@ -2057,6 +2115,17 @@ select.form-control {
                                                class="form-control"
                                                style="font-weight: bold; background: #d1fae5; color:#065f46;"
                                                placeholder="Calculé automatiquement" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="text-info" style="font-weight: bold;margin-top: 16px;">
+                                            <i class="zmdi zmdi-phone"></i> Contact <span style="color:#e31b23;">(client passager - optionnel)</span>
+                                        </label>
+                                        <input id="contact" name="contact" type="text"
+                                               class="form-control"
+                                               style="font-weight: bold;"
+                                               placeholder="Ex : +243 81 23 45 678">
                                     </div>
                                 </div>
                             </div>
@@ -2432,7 +2501,6 @@ select.form-control {
                             </div>
                         </div>
 
-                        {{-- ONGLET ARTICLES – TOTAUX EN CARTES --}}
                         <div class="tab-pane fade" id="tab-articles" role="tabpanel">
                             <h6 class="param-section-title">
                                 <i class="zmdi zmdi-shopping-cart text-info"></i> Détails des articles
@@ -2460,12 +2528,10 @@ select.form-control {
                                 </table>
                             </div>
 
-                            {{-- ⭐ TOTAUX GÉNÉRAUX EN CARTES --}}
                             <h6 class="param-section-title" style="margin-top: 22px;">
                                 <i class="zmdi zmdi-chart text-info"></i> Totaux généraux
                             </h6>
                             <div class="param-totals-grid" id="param_totals_grid">
-                                {{-- Les cartes seront injectées via JS --}}
                             </div>
 
                             <div style="text-align: center; margin-top: 20px;">
@@ -2478,7 +2544,6 @@ select.form-control {
                             </div>
                         </div>
 
-                        {{-- ONGLET PAIEMENTS --}}
                         <div class="tab-pane fade" id="tab-paiements" role="tabpanel">
                             <h6 class="param-section-title">
                                 <i class="zmdi zmdi-money text-info"></i> Détail des tranches de paiement
@@ -2516,6 +2581,110 @@ select.form-control {
         </div>
     </div>
 
+    {{-- ✅ MODALE RAPPORT DES MONTANTS REÇUS --}}
+    <div class="modal fade" id="rapportModal" tabindex="-1" role="dialog" aria-labelledby="rapportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1100px;">
+            <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);">
+
+                <div class="modal-header" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-bottom: none; padding: 1.1rem 1.5rem;">
+                    <h5 class="modal-title" id="rapportModalLabel" style="font-weight: 700;">
+                        <i class="zmdi zmdi-chart"></i> Rapport des montants reçus
+                    </h5>
+                    <div style="margin-left: auto; display: flex; gap: 8px; align-items: center;">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.9; margin: 0; padding: 0 0 0 8px;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="modal-body" style="background: #f8fafc; padding: 1.5rem; max-height: 75vh; overflow-y: auto;">
+
+                    <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom: 15px;">
+                        <div style="flex:1; min-width: 200px;">
+                            <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
+                                <i class="zmdi zmdi-calendar text-danger"></i> Période du rapport
+                            </label>
+                            <input type="text" id="rapport_date_range" class="form-control" placeholder="Sélectionner une période">
+                        </div>
+                        <div style="flex:1; min-width: 200px;">
+                            <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
+                                <i class="zmdi zmdi-account text-danger"></i> Utilisateur
+                            </label>
+                            <select id="rapport_user_filter" class="form-control">
+                                <option value="all">Tous les utilisateurs</option>
+                            </select>
+                        </div>
+                        <div style="flex:1; min-width: 200px;">
+                            <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
+                                <i class="zmdi zmdi-accounts text-danger"></i> Client / Libellé
+                            </label>
+                            <input type="text" id="rapport_client_filter" class="form-control" placeholder="Rechercher un client ou libellé...">
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+                            <button id="rapport_apply_btn" class="btn-primary btn-sm" style="border-radius:40px;">
+                                <i class="zmdi zmdi-refresh"></i> Appliquer
+                            </button>
+                            <button id="rapport_reset_btn" class="btn-danger btn-sm" style="border-radius:40px;">
+                                <i class="zmdi zmdi-refresh-sync"></i> Réinitialiser
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="rapport_summary_badges" style="display:flex; flex-wrap:wrap; gap:8px 12px; margin-bottom: 15px;">
+                        <span class="invoice-count-badge usd-badge">
+                            <i class="zmdi zmdi-money"></i> Total USD reçu : <span id="rapport_total_usd">0,00</span> USD
+                        </span>
+                        <span class="invoice-count-badge cdf-badge">
+                            <i class="zmdi zmdi-money-box"></i> Total CDF reçu : <span id="rapport_total_cdf">0,00</span> CDF
+                        </span>
+                        <span class="invoice-count-badge" style="background: linear-gradient(135deg, #17a2b8, #0e7490);">
+                            <i class="zmdi zmdi-receipt"></i> Transactions : <span id="rapport_nb">0</span>
+                        </span>
+                    </div>
+
+                    <div style="font-weight:700; color:#0a192f; font-size:0.85rem; margin-bottom:10px;">
+                        <i class="zmdi zmdi-info text-danger"></i> Période : <span id="rapport_periode_label" style="color:#dc2626;">Toutes les dates</span>
+                        &nbsp;•&nbsp;
+                        <i class="zmdi zmdi-account text-danger"></i> Utilisateur : <span id="rapport_user_label" style="color:#dc2626;">Tous</span>
+                        &nbsp;•&nbsp;
+                        <i class="zmdi zmdi-accounts text-danger"></i> Client : <span id="rapport_client_label" style="color:#dc2626;">Tous</span>
+                    </div>
+
+                    <div class="table-responsive" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background:white;">
+                        <table class="table table-sm mb-0" id="rapport_table">
+                            <thead style="background: #FEE2E2;">
+                                <tr>
+                                    <th style="font-size:0.72rem;">#</th>
+                                    <th style="font-size:0.72rem;">Date</th>
+                                    <th style="font-size:0.72rem;">N° Facture</th>
+                                    <th style="font-size:0.72rem;">Date facture</th>
+                                    <th style="font-size:0.72rem;">Client / Libellé</th>
+                                    <th style="font-size:0.72rem;">Utilisateur</th>
+                                    <th style="font-size:0.72rem;">Mode</th>
+                                    <th style="font-size:0.72rem;">Devise</th>
+                                    <th style="font-size:0.72rem; text-align:right;">Montant reçu</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rapport_body">
+                                <tr><td colspan="9" class="text-center text-muted">Chargement...</td></tr>
+                            </tbody>
+                            <tfoot id="rapport_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
+                        </table>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer" style="background: white; border-top: 1px solid #eef2f6; padding: 1rem 1.5rem;">
+                    <button type="button" class="btn-secondary btn-sm" data-dismiss="modal"
+                            style="border-radius: 40px; padding: 8px 22px; background:#64748b; color:white;">
+                        <i class="zmdi zmdi-close"></i> Fermer
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 @section('js-code')
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" />
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
@@ -2534,6 +2703,16 @@ select.form-control {
     <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
     <script>
         $("#link_24").addClass("active");
+
+        var USER_ROLE = {{ Auth::user()->role ?? 1 }};
+        var CURRENT_USER_NAME = "{{ addslashes(Auth::user()->name ?? '') }}";
+
+        // 🔹 Liste de TOUS les utilisateurs actifs (etat = 1) — chargée depuis le serveur
+        var ALL_ACTIVE_USERS = [
+            @foreach(\App\Models\User::where('etat', 1)->orderBy('name')->get() as $u)
+                "{{ addslashes($u->name) }}",
+            @endforeach
+        ];
 
         $("#upload").click(function(e) {
             e.preventDefault();
@@ -2681,7 +2860,6 @@ select.form-control {
                                 success: function(response) {
                                     resetButton();
                                     $("#quantite").val("");
-                                    // AJOUT : reset complet
                                     $("#type_sortie").val("").trigger("change");
                                     $("#type_vente_id").val("").trigger("change");
                                     $("#montant_total").val("");
@@ -2691,8 +2869,8 @@ select.form-control {
                                     $("#reduction_devise").text("(USD)");
                                     $("#montant_reduit_devise").text("(USD)");
                                     $("#libelle").val("");
+                                    $("#contact").val("");           // ✅ Vider le contact (optionnel)
                                     $("#client_id").val("").trigger("change");
-                                    // FIN AJOUT
                                     Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
                                     $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
                                     $("#content_utilisateur").html(response);
@@ -2980,9 +3158,6 @@ select.form-control {
             }, 300);
         }
 
-        // ============================================================
-        // HELPERS POUR LA MODALE PARAMÈTRES
-        // ============================================================
         function formatMoney(val) {
             if (val === null || val === undefined) return '0.00';
             var n = parseFloat(val) || 0;
@@ -3014,7 +3189,6 @@ select.form-control {
             currentParamRow = $row;
             currentParamFactureId = $row.data('facture-id');
 
-            // === INFOS GÉNÉRALES ===
             $('#param_numero').text($row.data('numero'));
             $('#param_client').text($row.data('client'));
             $('#param_user').text($row.data('user'));
@@ -3026,7 +3200,6 @@ select.form-control {
             $('#param_client_id').text($row.data('client-id') || '-');
             $('#param_facture_id').text($row.data('facture-id'));
 
-            // === STATUT DÉTAILLÉ ===
             var deviseLabel = $row.data('devise-label');
             var montantUSD = parseFloat($row.data('montant-usd')) || 0;
             var montantCDF = parseFloat($row.data('montant-cdf')) || 0;
@@ -3058,7 +3231,6 @@ select.form-control {
             $('#param_statut_label').text(statutLabel);
             $('#param_statut_sub').text(statutSub);
 
-            // === RÉSUMÉ FINANCIER ===
             $('#param_montant_usd').text(formatMoney(montantUSD) + ' USD');
             $('#param_montant_cdf').text(formatMoney(montantCDF) + ' CDF');
             $('#param_paye_usd').text(formatMoney(payeUSD) + ' USD');
@@ -3068,10 +3240,7 @@ select.form-control {
             $('#param_benefice_usd').text(formatMoney($row.data('benefice-usd')) + ' USD');
             $('#param_benefice_cdf').text(formatMoney($row.data('benefice-cdf')) + ' CDF');
 
-            // === ARTICLES – DOUBLE DEVISE AVEC DEVISE PROPRE À CHAQUE ACHAT ===
             var articles = safeParseJSON($row.attr('data-articles'));
-            console.log('📦 Articles récupérés:', articles.length, articles);
-
             var tauxFacture = parseFloat($row.data('taux')) || 0;
             if (tauxFacture <= 0) tauxFacture = 1;
 
@@ -3081,7 +3250,6 @@ select.form-control {
             function formatBoth(val, deviseAchat) {
                 var v = parseFloat(val) || 0;
                 if (deviseAchat === undefined) deviseAchat = isFactureUSD ? 0 : 1;
-
                 var usd, cdf;
                 if (deviseAchat == 0) {
                     usd = v;
@@ -3125,7 +3293,6 @@ select.form-control {
                                         ? parseInt(a.devise_achat)
                                         : (isFactureUSD ? 0 : 1);
 
-                    // Bénéfice : (total − réduction) − prix_achat_total  (chaque valeur dans la devise de l'achat)
                     var totalBrutAchat = parseFloat(a.total) || 0;
                     var reductionAchat = parseFloat(a.reduction) || 0;
                     var totalNetAchat = totalBrutAchat - reductionAchat;
@@ -3218,9 +3385,7 @@ select.form-control {
 
             $('#param_lines_msg').html('');
 
-            // === PAIEMENTS (DOUBLE DEVISE) ===
             var paiements = safeParseJSON($row.attr('data-paiements'));
-            console.log('💳 Paiements récupérés:', paiements.length, paiements);
 
             var paiHtml = '';
             var totalRecuUSD = 0, totalRecuCDF = 0;
@@ -3274,9 +3439,6 @@ select.form-control {
             $('#param_paiements_body').html(paiHtml);
         }
 
-        // ============================================================
-        // AJOUT : parsing/formatage + calcul automatique
-        // ============================================================
         function parseFormattedNumber(str) {
             if (str === null || str === undefined) return 0;
             var cleaned = String(str).replace(/\s/g, '').replace(',', '.');
@@ -3335,7 +3497,6 @@ select.form-control {
         $(document).on('change', '#type_vente_id', calculerMontantTotal);
         $(document).on('input keyup', '#quantite', calculerMontantTotal);
         $(document).on('input keyup', '#reduction', calculerMontantReduit);
-        // ============================================================
 
         $(document).ready(function() {
             $('#client_id').select2({
@@ -3404,7 +3565,6 @@ select.form-control {
                 resetAllFilters();
             });
 
-            // ========== SUPPRESSION FACTURE ==========
             $(document).on('click', '.delete-facture-btn', function(e) {
                 e.preventDefault();
                 var id = $(this).data('id');
@@ -3472,9 +3632,6 @@ select.form-control {
                 });
             });
 
-            // ============================================================
-            // MODALE PARAMÈTRES FACTURE – OUVERTURE (DOM)
-            // ============================================================
             $(document).on('click', '.param-facture-btn', function(e) {
                 e.preventDefault();
                 var $row = $(this).closest('tr');
@@ -3483,7 +3640,6 @@ select.form-control {
                 openParamModalFromRow($row);
             });
 
-            // === BOUTON ACTUALISER ===
             $(document).on('click', '#param_refresh_btn', function(e) {
                 e.preventDefault();
                 if (currentParamRow) {
@@ -3494,11 +3650,14 @@ select.form-control {
                 }
             });
 
-            // ============================================================
-            // SAUVEGARDE DES LIGNES (FRAIS CRÉDIT + RÉDUCTION)
-            // ============================================================
             $(document).on('click', '#param_btn_save_lines', function(e) {
                 e.preventDefault();
+
+                if (USER_ROLE != 0) {
+                    $('#param_lines_msg').html('<i class="zmdi zmdi-close-circle text-danger"></i> Seul l\'administrateur peut modifier ces informations.');
+                    setTimeout(function() { $('#param_lines_msg').html(''); }, 4000);
+                    return;
+                }
 
                 if (!currentParamFactureId) {
                     alert('Identifiant facture manquant');
@@ -3585,13 +3744,329 @@ select.form-control {
                     }
                 });
             });
+
+            // ============================================================
+            // ✅ RAPPORT DES MONTANTS REÇUS PAR PLAGE DE DATES
+            // ============================================================
+
+            function parseDMY_to_ISO(str) {
+                if (!str) return null;
+                var p = String(str).trim().split('/');
+                if (p.length === 3 && p[0].length === 2 && p[1].length === 2 && p[2].length === 4) {
+                    return p[2] + '-' + p[1] + '-' + p[0];
+                }
+                return null;
+            }
+
+            function parsePaymentDateToISO(dateStr) {
+                if (!dateStr) return null;
+                var datePart = String(dateStr).split(' à ')[0].trim();
+                return parseDMY_to_ISO(datePart);
+            }
+
+            function formatRapportMoney(v) {
+                var n = parseFloat(v) || 0;
+                return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            }
+
+            // 🔹 Peuple la liste des utilisateurs du filtre du rapport
+            // → Utilise ALL_ACTIVE_USERS (tous les users avec etat = 1)
+            function populateRapportUsers() {
+                var $sel = $('#rapport_user_filter');
+                $sel.empty();
+
+                if (USER_ROLE == 0) {
+                    // Admin : peut voir tous les utilisateurs actifs
+                    $sel.append('<option value="all">Tous les utilisateurs</option>');
+                    ALL_ACTIVE_USERS.forEach(function (u) {
+                        $sel.append('<option value="' + u + '">' + u + '</option>');
+                    });
+                    $sel.prop('disabled', false);
+                } else {
+                    // Non-admin : seulement son propre nom, présélectionné et verrouillé
+                    var nom = CURRENT_USER_NAME || 'Utilisateur';
+                    $sel.append('<option value="' + nom + '" selected>' + nom + '</option>');
+                    $sel.val(nom);
+                    $sel.prop('disabled', true);
+                }
+            }
+
+            function buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
+                var totalUSD = 0, totalCDF = 0, nbTransactions = 0;
+                var html = '';
+                var lignes = [];
+
+                // 🔹 Si non-admin : on force le filtre sur son nom, quoi qu'il arrive
+                var effectiveUserFilter = (USER_ROLE == 0)
+                    ? (userFilter || 'all')
+                    : CURRENT_USER_NAME;
+
+                // 🔹 Filtre client/libellé (recherche insensible à la casse)
+                var effectiveClientFilter = (clientFilter || '').trim().toLowerCase();
+
+                $('#content_utilisateur tbody tr').each(function () {
+                    var $row = $(this);
+                    var factureId = $row.data('facture-id');
+                    if (!factureId) return;
+
+                    var numero = $row.data('numero') || '-';
+                    var client = $row.data('client') || '-';
+                    var user_nom = $row.data('user') || 'N/A';
+                    var dateFacture = $row.data('date') || '-';
+                    var tauxFacture = parseFloat($row.data('taux')) || 1;
+                    if (tauxFacture <= 0) tauxFacture = 1;
+
+                    // 🔹 Application du filtre utilisateur
+                    if (effectiveUserFilter && effectiveUserFilter !== 'all' && user_nom !== effectiveUserFilter) {
+                        return;
+                    }
+
+                    // 🔹 Application du filtre Client / Libellé
+                    if (effectiveClientFilter && !String(client).toLowerCase().includes(effectiveClientFilter)) {
+                        return;
+                    }
+
+                    var paiements = safeParseJSON($row.attr('data-paiements'));
+
+                    paiements.forEach(function (p) {
+                        var payISO = parsePaymentDateToISO(p.date);
+
+                        if (dateDebutISO && dateFinISO) {
+                            if (!payISO) return;
+                            if (payISO < dateDebutISO || payISO > dateFinISO) return;
+                        }
+
+                        var montant = parseFloat(p.montant_recu) || 0;
+                        var devise  = p.devise_label || 'USD';
+                        var tauxP   = parseFloat(p.taux) || tauxFacture;
+                        if (tauxP <= 0) tauxP = 1;
+
+                        var montantUSD, montantCDF;
+                        if (devise === 'USD') {
+                            montantUSD = montant;
+                            montantCDF = montant * tauxP;
+                            totalUSD += montantUSD;
+                            totalCDF += montantCDF;
+                        } else {
+                            montantCDF = montant;
+                            montantUSD = (tauxP > 0) ? (montant / tauxP) : 0;
+                            totalUSD += montantUSD;
+                            totalCDF += montantCDF;
+                        }
+
+                        nbTransactions++;
+                        lignes.push({
+                            date: p.date || '-',
+                            numero: numero,
+                            date_facture: dateFacture,
+                            client: client,
+                            user_nom: user_nom,
+                            mode: p.mode_label || 'N/A',
+                            devise: devise,
+                            montant: montant,
+                            montant_usd: montantUSD,
+                            montant_cdf: montantCDF,
+                            iso: payISO || ''
+                        });
+                    });
+                });
+
+                lignes.sort(function (a, b) {
+                    if (a.iso < b.iso) return -1;
+                    if (a.iso > b.iso) return 1;
+                    return 0;
+                });
+
+                if (lignes.length === 0) {
+                    html = '<tr><td colspan="9" class="text-center text-muted">Aucun paiement trouvé dans cette période</td></tr>';
+                } else {
+                    lignes.forEach(function (l, idx) {
+                        var badgeDevise = l.devise === 'USD' ? 'primary' : 'warning';
+                        html += '<tr>';
+                        html += '<td>' + (idx + 1) + '</td>';
+                        html += '<td style="font-size:0.78rem;">' + l.date + '</td>';
+                        html += '<td><b>' + l.numero + '</b></td>';
+                        html += '<td style="font-size:0.78rem;">' + l.date_facture + '</td>';
+                        html += '<td>' + l.client + '</td>';
+                        html += '<td><span class="badge badge-secondary"><i class="zmdi zmdi-account"></i> ' + l.user_nom + '</span></td>';
+                        html += '<td><span class="badge badge-info">' + l.mode + '</span></td>';
+                        html += '<td><span class="badge badge-' + badgeDevise + '">' + l.devise + '</span></td>';
+                        html += '<td style="text-align:right;">';
+                        html += '<div class="dual-currency">';
+                        html += '<b class="text-primary">' + formatRapportMoney(l.montant_usd) + ' USD</b>';
+                        html += '<small class="text-warning">' + formatRapportMoney(l.montant_cdf) + ' CDF</small>';
+                        html += '</div>';
+                        html += '</td>';
+                        html += '</tr>';
+                    });
+                }
+
+                $('#rapport_body').html(html);
+
+                var footHtml = '<tr>';
+                footHtml += '<td colspan="8" class="text-right">TOTAL REÇU (' + nbTransactions + ' transaction' + (nbTransactions > 1 ? 's' : '') + ') :</td>';
+                footHtml += '<td style="text-align:right;">';
+                footHtml += '<span class="text-primary">' + formatRapportMoney(totalUSD) + ' USD</span><br>';
+                footHtml += '<span class="text-warning">' + formatRapportMoney(totalCDF) + ' CDF</span>';
+                footHtml += '</td>';
+                footHtml += '</tr>';
+                $('#rapport_foot').html(footHtml);
+
+                $('#rapport_total_usd').text(formatRapportMoney(totalUSD));
+                $('#rapport_total_cdf').text(formatRapportMoney(totalCDF));
+                $('#rapport_nb').text(nbTransactions);
+
+                // 🔹 Mise à jour des labels affichés
+                if (USER_ROLE == 0) {
+                    $('#rapport_user_label').text(effectiveUserFilter === 'all' ? 'Tous' : effectiveUserFilter);
+                } else {
+                    $('#rapport_user_label').text(CURRENT_USER_NAME + ' (vous)');
+                }
+                $('#rapport_client_label').text(effectiveClientFilter ? clientFilter : 'Tous');
+            }
+
+            $(document).on('focus', '#rapport_date_range', function () {
+                if (!$(this).data('daterangepicker')) {
+                    $(this).daterangepicker({
+                        autoUpdateInput: false,
+                        locale: {
+                            format: 'DD/MM/YYYY',
+                            separator: ' - ',
+                            applyLabel: 'Appliquer',
+                            cancelLabel: 'Annuler',
+                            fromLabel: 'Du',
+                            toLabel: 'Au',
+                            customRangeLabel: 'Personnalisé',
+                            weekLabel: 'S',
+                            daysOfWeek: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
+                            monthNames: ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+                        },
+                        opens: 'left',
+                        ranges: {
+                            'Aujourd\'hui': [moment(), moment()],
+                            'Hier': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                            '7 derniers jours': [moment().subtract(6, 'days'), moment()],
+                            '30 derniers jours': [moment().subtract(29, 'days'), moment()],
+                            'Ce mois-ci': [moment().startOf('month'), moment().endOf('month')],
+                            'Mois dernier': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                            'Cette année': [moment().startOf('year'), moment().endOf('year')]
+                        }
+                    }, function (start, end) {
+                        $('#rapport_date_range').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+                    });
+                }
+            });
+
+            $("#rapport").click(function (e) {
+                e.preventDefault();
+
+                // 🔹 Peupler la liste des utilisateurs avant l'affichage
+                populateRapportUsers();
+
+                var filterRange = $('#filterDateRange').val() || '';
+                $('#rapport_date_range').val(filterRange);
+
+                var dateDebutISO = null, dateFinISO = null;
+                if (filterRange) {
+                    var parts = filterRange.split(' - ');
+                    if (parts.length === 2) {
+                        dateDebutISO = parseDMY_to_ISO(parts[0]);
+                        dateFinISO   = parseDMY_to_ISO(parts[1]);
+                    }
+                }
+
+                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                var clientFilter = $('#rapport_client_filter').val() || '';
+
+                $('#rapport_periode_label').text(filterRange || 'Toutes les dates');
+                buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+
+                $('#rapportModal').modal('show');
+            });
+
+            $(document).on('click', '#rapport_apply_btn', function (e) {
+                e.preventDefault();
+                var range = $('#rapport_date_range').val() || '';
+                var dateDebutISO = null, dateFinISO = null;
+                if (range) {
+                    var parts = range.split(' - ');
+                    if (parts.length === 2) {
+                        dateDebutISO = parseDMY_to_ISO(parts[0]);
+                        dateFinISO   = parseDMY_to_ISO(parts[1]);
+                    }
+                }
+                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                var clientFilter = $('#rapport_client_filter').val() || '';
+                $('#rapport_periode_label').text(range || 'Toutes les dates');
+                buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+            });
+
+            // 🔹 Rebuild quand on change l'utilisateur dans le filtre du rapport
+            $(document).on('change', '#rapport_user_filter', function () {
+                var range = $('#rapport_date_range').val() || '';
+                var dateDebutISO = null, dateFinISO = null;
+                if (range) {
+                    var parts = range.split(' - ');
+                    if (parts.length === 2) {
+                        dateDebutISO = parseDMY_to_ISO(parts[0]);
+                        dateFinISO   = parseDMY_to_ISO(parts[1]);
+                    }
+                }
+                var userFilter = $(this).val() || 'all';
+                var clientFilter = $('#rapport_client_filter').val() || '';
+                buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+            });
+
+            // 🔹 Rebuild quand on tape dans le filtre Client / Libellé (avec debounce)
+            var rapportClientTimeout;
+            $(document).on('input', '#rapport_client_filter', function () {
+                clearTimeout(rapportClientTimeout);
+                rapportClientTimeout = setTimeout(function () {
+                    var range = $('#rapport_date_range').val() || '';
+                    var dateDebutISO = null, dateFinISO = null;
+                    if (range) {
+                        var parts = range.split(' - ');
+                        if (parts.length === 2) {
+                            dateDebutISO = parseDMY_to_ISO(parts[0]);
+                            dateFinISO   = parseDMY_to_ISO(parts[1]);
+                        }
+                    }
+                    var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                    var clientFilter = $('#rapport_client_filter').val() || '';
+                    buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+                }, 300);
+            });
+
+            // ============================================================
+            // ✅ BOUTON RÉINITIALISER LE FILTRE DU RAPPORT
+            // ============================================================
+            $(document).on('click', '#rapport_reset_btn', function (e) {
+                e.preventDefault();
+
+                $('#rapport_date_range').val('');
+                $('#rapport_client_filter').val('');
+
+                if ($('#rapport_date_range').data('daterangepicker')) {
+                    $('#rapport_date_range').data('daterangepicker').setStartDate(moment().subtract(1, 'year'));
+                    $('#rapport_date_range').data('daterangepicker').setEndDate(moment());
+                }
+
+                // 🔹 Réinitialiser aussi le filtre utilisateur
+                if (USER_ROLE == 0) {
+                    $('#rapport_user_filter').val('all');
+                } else {
+                    $('#rapport_user_filter').val(CURRENT_USER_NAME);
+                }
+
+                $('#rapport_periode_label').text('Toutes les dates');
+                buildRapport(null, null, USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME, '');
+            });
         });
 
         window.addEventListener('beforeunload', function() {
             saveFiltersToStorage();
         });
 
-        // ===== GESTION DU PAIEMENT PDF =====
         var currentPdfUrl = "";
         var cdf_montant_payer = $("#cdf_montant_payer").val();
         var usd_montant_payer = $("#usd_montant_payer").val();

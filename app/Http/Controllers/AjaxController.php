@@ -5213,7 +5213,7 @@ class AjaxController extends Controller
     public function add_achat_article(Request $request)
     {
         date_default_timezone_set('Africa/Lubumbashi');
-    
+
         // AJOUT : début de la transaction et du try
         DB::beginTransaction();
         try {
@@ -5223,7 +5223,7 @@ class AjaxController extends Controller
             $stock_id = 0;
             $achat_id = Achats::get()->count() + 1;
             $pointdeventes = null;
-    
+
             if ($pointdeventes_id) {
                 $pointdeventes = pointdeventes::find($pointdeventes_id);
             } elseif ($table_id) {
@@ -5235,14 +5235,14 @@ class AjaxController extends Controller
                     }
                 }
             }
-    
+
             if ($pointdeventes) {
                 $stock_id = $pointdeventes->stock_id;
             }
-    
+
             // --- 2. Récupération de l'article selon le stock (inchangé) ---
             $article_id = $request->type_sortie;
-    
+
             if ($stock_id == 0) {
                 $article = Articles::where('id', $article_id)->first();
             } else {
@@ -5251,20 +5251,20 @@ class AjaxController extends Controller
                     'article_id' => $article_id,
                 ])->first();
             }
-    
+
             if (!$article) {
                 // MODIF : rollback avant de retourner l'erreur
                 DB::rollBack();
                 return back()->withErrors(['article' => 'Article introuvable pour ce stock.']);
             }
-    
+
             // --- 3. Calcul des données communes (inchangé) ---
             $dernierApprovisionnement = Approvisionnements::where('article_id', $article_id)->latest('id')->first();
-    
+
             $stock = $article->stock;
             $devise_article = $article->devise;
             $avoir_stock = $article->avoir_stock;
-    
+
             if ($avoir_stock == 1) {
                 $prix_achat = $dernierApprovisionnement->prix_unitaire;
                 $devise_achat = $dernierApprovisionnement->devise;
@@ -5272,7 +5272,7 @@ class AjaxController extends Controller
                 $prix_achat = ($request->type_vente_id == 1) ? $article->prix_detail : $article->prix_gros;
                 $devise_achat = $article->devise;
             }
-    
+
             if ($request->type_vente_id == 1) {
                 $taille_lot = $article->taille_piece;
                 $prix_unitaire = $article->prix_detail;
@@ -5280,7 +5280,7 @@ class AjaxController extends Controller
                 $taille_lot = $article->taille_lot;
                 $prix_unitaire = $article->prix_gros;
             }
-    
+
             // --- NOUVEAU : détermination du transfert_id ---
             // Si stock principal (0) => transfert_id = 0
             // Sinon => dernier id de transfertstocks pour cet article dans ce stock (stock_2)
@@ -5294,20 +5294,20 @@ class AjaxController extends Controller
                     $transfert_id = $dernierTransfert->id;
                 }
             }
-    
+
             // --- 4. Gestion de la facture (création si nécessaire) ---
             $facture_id = Session::get("facture_user_id");
-    
+
             if (!$facture_id)
             {
                 $id = Factureass::get()->count() + 1;
                 $nb_annonce = str_pad($id, 4, '0', STR_PAD_LEFT);
-    
+
                 $activite_id = Articles::where('id', $article_id)->first()["activite_id"];
                 $activites = Activites::where('id', $activite_id)->first();
                 $taux_general = $activites->taux;
                 $tva_general = $activites->tva;
-    
+
                 $facture = new Factureass();
                 $facture->id = $id;
                 $facture->numero = $nb_annonce;
@@ -5315,6 +5315,14 @@ class AjaxController extends Controller
                 $facture->devise = $devise_article;
                 $facture->taux = $taux_general;
                 $facture->libelle = $request->libelle;
+                if(strlen(trim($request->contact)) == 0)
+                {
+                    $facture->contact = 0;
+                }
+                else
+                {
+                    $facture->contact = $request->contact;
+                }
                 $facture->tva = $tva_general;
                 $facture->user_id = Auth::user()->id;
                 $facture->client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
@@ -5322,7 +5330,7 @@ class AjaxController extends Controller
                 // === NOUVEAU : enregistrement du point de vente ===
                 $facture->pointdeventes_id = $pointdeventes_id ?? 0;
                 $facture->save();
-    
+
                 // Gestion du client (inchangé)
                 $data_client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
                 if ($data_client_id != 0)
@@ -5343,7 +5351,7 @@ class AjaxController extends Controller
                         }
                     }
                 }
-    
+
                 // Marquage de la table (inchangé)
                 if (!empty($table_id)) {
                     $table = Tables::find($table_id);
@@ -5353,11 +5361,11 @@ class AjaxController extends Controller
                         $table->save();
                     }
                 }
-    
+
                 Session::put("facture_user_id", $id);
                 $facture_id = $id;
             }
-    
+
             // --- 5. Création de l'achat (inchangé) ---
             $achat = new Achats();
             $achat->id = $achat_id;
@@ -5394,13 +5402,13 @@ class AjaxController extends Controller
             }
             $achat->preuve_de_sortie = $preuve;
             $achat->save();
-    
+
             // --- 6. Mise à jour du stock (inchangé) ---
             $stock = $stock - $request->quantite;
             $article->stock = round($stock);
             $article->save();
-    
-    
+
+
             $data_client_id = (strlen(trim($request->client_id))) ? $request->client_id : 0;
             if ($data_client_id != 0)
             {
@@ -5415,7 +5423,7 @@ class AjaxController extends Controller
                         $prospects_client_id = $data_client_id;
                         $prospects_article_id = $article_id;
                         $prospects_montant = round($prix_unitaire * $request->quantite, 2);
-                        $taux_commission = 0.05; // 5%
+                        $taux_commission = 0.02; // 2%
                         if(strlen(trim($request->reduction)) == 0)
                         {
                             $prospects_commission = round(($prospects_montant - 0) * $taux_commission, 2);
@@ -5440,15 +5448,15 @@ class AjaxController extends Controller
                         $commisionsagents->date_creation = $prospects_date_creation;
                         $commisionsagents->achat_id = $prospects_achat_id;
                         $commisionsagents->taux = $prospects_taux_general;
-    
+
                         $commisionsagents->save();
                     }
                 }
             }
-    
-    
+
+
             Fichierss::where('id', Auth::user()->id)->delete();
-    
+
             // --- 8. Retour de la vue (inchangé) ---
             $groupe_user_id = Auth::user()->role;
             $data["ressource_id_1"] = 10;
@@ -5459,10 +5467,10 @@ class AjaxController extends Controller
             if(Auth::user()->role == 0) {
                 $data["factures"] = Factureass::where(["etat" => 0])->get();
             }
-    
+
             // AJOUT : tout s'est bien passé, on valide la transaction
             DB::commit();
-    
+
             if($request->page == 10)
             {
                 $data["ressource_id_1"] = 10;
@@ -5480,7 +5488,7 @@ class AjaxController extends Controller
                 $data["ressource_id_1"] = 15;
             }
             return view('include.refresh_factureass', $data);
-    
+
         } catch (\Exception $e) {
             // AJOUT : en cas d'exception, on annule tout et on retourne une erreur
             DB::rollBack();
@@ -5585,11 +5593,11 @@ class AjaxController extends Controller
 
     public function transfer_article(Request $request)
     {
-        try 
+        try
         {
             date_default_timezone_set('Africa/Lubumbashi');
             DB::beginTransaction();
-    
+
             // --------------------------------------------------------------
             // 1. Quantité : toujours un entier >= 0
             // --------------------------------------------------------------
@@ -5597,7 +5605,7 @@ class AjaxController extends Controller
             if ($quantite < 0) {
                 $quantite = 0;
             }
-    
+
             // --------------------------------------------------------------
             // 2. Récupération de l'article source
             // --------------------------------------------------------------
@@ -5608,13 +5616,13 @@ class AjaxController extends Controller
                     'message' => 'Article introuvable.'
                 ], 404);
             }
-    
+
             // --------------------------------------------------------------
             // 3. Détection du mode : transfert depuis un stock spécifique ?
             // --------------------------------------------------------------
             $sourceStockId = $request->input('transfer_source_stock_id', null);
             $isSpecific = $request->has('transfer_source_stock_id');
-    
+
             // --------------------------------------------------------------
             // 4. Récupération des stocks de destination
             // --------------------------------------------------------------
@@ -5625,7 +5633,7 @@ class AjaxController extends Controller
             $stockIds = array_filter($stockIds, function($id) {
                 return $id !== '' && $id !== null;
             });
-    
+
             // --- En mode spécifique, on interdit le transfert vers le stock source ---
             if ($isSpecific && in_array($sourceStockId, $stockIds)) {
                 return response()->json([
@@ -5633,7 +5641,7 @@ class AjaxController extends Controller
                     'message' => 'Vous ne pouvez pas transférer vers le même stock source.'
                 ], 400);
             }
-    
+
             // --- En mode global, on interdit le transfert vers le stock principal (0) ---
             if (!$isSpecific && in_array(0, $stockIds)) {
                 return response()->json([
@@ -5641,16 +5649,16 @@ class AjaxController extends Controller
                     'message' => 'Impossible de transférer vers le stock principal depuis la gestion globale.'
                 ], 400);
             }
-    
+
             if (empty($stockIds)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Veuillez sélectionner au moins un stock de destination.'
                 ], 400);
             }
-    
+
             $nbDest = count($stockIds);
-    
+
             // --------------------------------------------------------------
             // 5. Validation selon avoir_stock
             // --------------------------------------------------------------
@@ -5662,7 +5670,7 @@ class AjaxController extends Controller
                         'message' => 'La quantité doit être supérieure à 0.'
                     ], 400);
                 }
-    
+
                 // Calcul du total à déduire du stock source
                 if ($isSpecific) {
                     // Mode spécifique : quantité par destination, donc total = quantite * nbDest
@@ -5671,7 +5679,7 @@ class AjaxController extends Controller
                     // Mode global : quantité est le total à répartir
                     $totalQuantite = $quantite;
                 }
-    
+
                 // Vérification et déduction du stock source
                 if ($isSpecific && $sourceStockId == 0) {
                     // Source = stock principal
@@ -5683,7 +5691,7 @@ class AjaxController extends Controller
                     }
                     $article->stock -= $totalQuantite;
                     $article->save();
-    
+
                 } elseif ($isSpecific && $sourceStockId > 0) {
                     // Source = stock secondaire
                     $articlestockSource = articlestocks::where('article_id', $request->transfer_article_id)
@@ -5704,7 +5712,7 @@ class AjaxController extends Controller
                     }
                     $articlestockSource->stock -= $totalQuantite;
                     $articlestockSource->save();
-    
+
                 } else
                 {
                     // Mode global : source = stock principal (0)
@@ -5719,7 +5727,7 @@ class AjaxController extends Controller
                 }
             }
             // Si avoir_stock != 1, on ne touche pas au stock de l'article
-    
+
             // --------------------------------------------------------------
             // 6. Détermination de la quantité par destination
             // --------------------------------------------------------------
@@ -5732,17 +5740,17 @@ class AjaxController extends Controller
                 $qteParStock = intdiv($quantite, $nbDest);
                 $reste = $quantite - ($qteParStock * $nbDest);
             }
-    
+
             // --------------------------------------------------------------
             // 7. Mise à jour des stocks de destination
             // --------------------------------------------------------------
             $results = [];
             foreach ($stockIds as $index => $stockId) {
                 $qte = $qteParStock + ($index < $reste ? 1 : 0);
-    
+
                 // --- Quantité trouvée AVANT ajout (stock existant de la destination) ---
                 $qte_trouve = 0;
-    
+
                 if ($stockId == 0) {
                     // Destination = stock principal
                     $qte_trouve = $article->stock;
@@ -5755,8 +5763,8 @@ class AjaxController extends Controller
                     $articlestocks = articlestocks::where('article_id', $request->transfer_article_id)
                                                     ->where('stock_id', $stockId)
                                                     ->first();
-    
-                    if ($articlestocks) 
+
+                    if ($articlestocks)
                     {
                         // Article déjà présent dans ce stock : on récupère son stock actuel
                         $qte_trouve = $articlestocks->stock;
@@ -5764,7 +5772,7 @@ class AjaxController extends Controller
                         $articlestocks->save();
                         $action = 'updated';
                     }
-                    else 
+                    else
                     {
                         // Première fois dans ce stock : quantité trouvée = 0
                         $qte_trouve = 0;
@@ -5784,10 +5792,10 @@ class AjaxController extends Controller
                         $action = 'created';
                     }
                 }
-    
+
                 // --- Quantité totale = quantité trouvée + quantité transférée ---
                 $qte_total = $qte_trouve + $qte;
-    
+
                 // Création du transfert
                 $transfert = new transfertstocks();
                 $transfert->id = transfertstocks::count() + 1;
@@ -5801,7 +5809,7 @@ class AjaxController extends Controller
                 $transfert->stock_1 = $isSpecific ? $sourceStockId : 0;
                 $transfert->stock_2 = $stockId;
                 $transfert->save();
-    
+
                 $results[] = [
                     'stock_id' => $stockId,
                     'quantite' => $qte,
@@ -5810,9 +5818,9 @@ class AjaxController extends Controller
                     'transfert' => $transfert
                 ];
             }
-    
+
             DB::commit();
-    
+
             // --------------------------------------------------------------
             // 8. Réponse JSON
             // --------------------------------------------------------------
@@ -5824,7 +5832,7 @@ class AjaxController extends Controller
                     'details' => $results
                 ]
             ], 200);
-    
+
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -5834,56 +5842,188 @@ class AjaxController extends Controller
         }
     }
 
+    public function send_rappel_credit(Request $request)
+    {
+        $mode     = $request->input('mode');                        // 'all' ou 'selected'
+        $message  = $request->input('message');                     // texte du textarea
+        $messages = json_decode($request->input('messages'), true); // [{facture_id, client, message}, ...]
+        $filters  = json_decode($request->input('filters'), true);  // tous les filtres
+
+        if (empty($messages) || !is_array($messages)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun message à envoyer.'
+            ]);
+        }
+
+        $envoyes = 0;
+        foreach ($messages as $m)
+        {
+            // 👉 VOTRE LOGIQUE D'ENVOI ICI
+            // Exemple : SmsService::send($m['client'], $m['message']);
+            // ou WhatsApp / Email / etc.
+
+            $envoyes++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $envoyes . ' rappel(s) envoyé(s) avec succès',
+            'mode'    => $mode,
+            'filters' => $filters,
+        ]);
+    }
+
+    public function send_communication_client(Request $request)
+    {
+        // Récupération des données envoyées depuis la modale
+        $mode     = $request->input('mode');                        // 'all' ou 'selected'
+        $message  = $request->input('message');                     // texte du textarea
+        $messages = json_decode($request->input('messages'), true); // [{client_id, nom, email, phone, message}, ...]
+        $filters  = json_decode($request->input('filters'), true);  // filtres de la modale
+
+        // Sécurité
+        if (empty($messages) || !is_array($messages)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun message à envoyer.'
+            ]);
+        }
+
+        // Compteurs
+        $envoyes = 0;
+        $echecs  = 0;
+        $erreurs = [];
+
+        foreach ($messages as $m) {
+
+            // Récupération des infos client
+            $clientId = $m['client_id'] ?? null;
+            $nom      = $m['nom']       ?? '';
+            $email    = $m['email']     ?? '';
+            $phone    = $m['phone']     ?? '';
+            $msgTexte = $m['message']   ?? $message;
+
+            try {
+                // ============================================================
+                // 👉 VOTRE LOGIQUE D'ENVOI ICI
+                // ============================================================
+                //
+                // Exemple 1 — Envoi par SMS :
+                // SmsService::send($phone, $msgTexte);
+                //
+                // Exemple 2 — Envoi par Email :
+                // Mail::raw($msgTexte, function ($mail) use ($email, $nom) {
+                //     $mail->to($email)->subject('Communication');
+                // });
+                //
+                // Exemple 3 — Envoi par WhatsApp (API) :
+                // WhatsAppService::send($phone, $msgTexte);
+                //
+                // Exemple 4 — Enregistrer dans une table de communication :
+                // Communication::create([
+                //     'client_id' => $clientId,
+                //     'nom'       => $nom,
+                //     'email'     => $email,
+                //     'phone'     => $phone,
+                //     'message'   => $msgTexte,
+                //     'user_id'   => Auth::id(),
+                //     'mode'      => $mode,
+                //     'filters'   => json_encode($filters),
+                // ]);
+
+                $envoyes++;
+
+            } catch (\Exception $e) {
+                $echecs++;
+                $erreurs[] = $nom . ' : ' . $e->getMessage();
+            }
+        }
+
+        // Réponse finale
+        if ($envoyes > 0 && $echecs === 0) {
+            return response()->json([
+                'success' => true,
+                'message' => $envoyes . ' message(s) envoyé(s) avec succès',
+                'envoyes' => $envoyes,
+                'echecs'  => $echecs,
+                'mode'    => $mode,
+                'filters' => $filters,
+            ]);
+        } elseif ($envoyes > 0 && $echecs > 0) {
+            return response()->json([
+                'success' => true,
+                'message' => $envoyes . ' envoyé(s), ' . $echecs . ' échec(s)',
+                'envoyes' => $envoyes,
+                'echecs'  => $echecs,
+                'erreurs' => $erreurs,
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun message n\'a pu être envoyé',
+                'erreurs' => $erreurs,
+            ]);
+        }
+    }
+
     public function edit_article(Request $request)
     {
         $stock_id = $request->stock_id;
 
-        if (empty($stock_id) || $stock_id == 0) {
-            // Mise à jour de l'article principal (tous les champs)
-            $article = Articles::where('id', $request->id)->firstOrFail();
+        DB::transaction(function () use ($request, $stock_id) {
 
-            $article->user_id = Auth::user()->id;
-            $article->societe_id = $request->edit_categorie_id;
-            $article->nom_article = $request->edit_nom_article;
-            $article->prix = $request->edit_prix;
-            $article->devise = $request->edit_devise;
-            $article->seuil_minimum = $request->edit_seuil_minimum;
-            $article->seuil_maximum = $request->edit_seuil_maximum;
-            $article->prix_detail = $request->edit_prix_detail;
-            $article->prix_gros = $request->edit_prix_gros;
-            $article->taille_lot = $request->edit_taille_lot;
-            $article->date_expiration = $request->edit_date_expiration;
-            $article->description = $request->edit_libelle;
-            $article->activite_id = $request->edit_activite_id;
-            $article->mesure_id = $request->edit_mesure_id;
-            $article->avoir_stock = $request->edit_avoir_stock;
-            $article->save();
+            if (empty($stock_id) || $stock_id == 0) {
+                // ============================================
+                // Cas 1 : Mise à jour de l'article principal
+                // + tous les articlestocks liés
+                // ============================================
+                $article = Articles::where('id', $request->id)->firstOrFail();
 
-            $articleStock = articlestocks::where('article_id', $request->id)->firstOrFail();
-            if($articleStock)
-            {
-                $articleStock->prix_detail = $request->edit_prix_detail;
-                $articleStock->prix_gros = $request->edit_prix_gros;
-                $articleStock->taille_lot = $request->edit_taille_lot;
-                $articleStock->devise = $request->edit_devise;
-                $articleStock->avoir_stock = $request->edit_avoir_stock;
-                $articleStock->save();
+                $article->user_id         = Auth::user()->id;
+                $article->societe_id      = $request->edit_categorie_id;
+                $article->nom_article     = $request->edit_nom_article;
+                $article->prix            = $request->edit_prix;
+                $article->devise          = $request->edit_devise;
+                $article->seuil_minimum   = $request->edit_seuil_minimum;
+                $article->seuil_maximum   = $request->edit_seuil_maximum;
+                $article->prix_detail     = $request->edit_prix_detail;
+                $article->prix_gros       = $request->edit_prix_gros;
+                $article->taille_lot      = $request->edit_taille_lot;
+                $article->date_expiration = $request->edit_date_expiration;
+                $article->description     = $request->edit_libelle;
+                $article->activite_id     = $request->edit_activite_id;
+                $article->mesure_id       = $request->edit_mesure_id;
+                $article->avoir_stock     = $request->edit_avoir_stock;
+                $article->save();
+
+                // ✅ Mise à jour de TOUS les articlestocks liés à cet article_id
+                articlestocks::where('article_id', $request->id)->update([
+                    'prix_detail' => $request->edit_prix_detail,
+                    'prix_gros'   => $request->edit_prix_gros,
+                    'taille_lot'  => $request->edit_taille_lot,
+                    'devise'      => $request->edit_devise,
+                    'avoir_stock' => $request->edit_avoir_stock,
+                ]);
+
+            } else {
+                // ============================================
+                // Cas 2 : Mise à jour uniquement des articlestocks
+                // liés à cet article_id (tous)
+                // ============================================
+                articlestocks::where('article_id', $request->id)->update([
+                    'prix_detail' => $request->edit_prix_detail,
+                    'prix_gros'   => $request->edit_prix_gros,
+                    'taille_lot'  => $request->edit_taille_lot,
+                    'devise'      => $request->edit_devise,
+                    'avoir_stock' => $request->edit_avoir_stock,
+                ]);
             }
-        } else
-        {
-            // Mise à jour uniquement de certains champs dans articlestocks
-            $articleStock = articlestocks::where('article_id', $request->id)->firstOrFail();
+        });
 
-            // Seuls ces cinq champs sont modifiés
-            $articleStock->prix_detail = $request->edit_prix_detail;
-            $articleStock->prix_gros = $request->edit_prix_gros;
-            $articleStock->taille_lot = $request->edit_taille_lot;
-            $articleStock->devise = $request->edit_devise;
-            $articleStock->avoir_stock = $request->edit_avoir_stock;
-            $articleStock->save();
-        }
-
-        // Le reste du code (récupération des données pour la vue) inchangé
+        // ============================================
+        // Récupération des données pour la vue (inchangé)
+        // ============================================
         $groupe_user_id = Auth::user()->role;
         $data["ressource_id_1"] = 2;
         $data["groupe_user_id"] = $groupe_user_id;
@@ -5891,7 +6031,8 @@ class AjaxController extends Controller
         $data["factures"] = Factures::get();
         $data["articles"] = Articles::where(["user_id" => Auth::user()->id, "supprimer" => 0])->get();
         $data["typeventes"] = Typeventes::where(["supprimer" => 0])->get();
-        if(Auth::user()->role == 0) {
+
+        if (Auth::user()->role == 0) {
             $data["articles"] = Articles::where(["supprimer" => 0])->get();
         }
 

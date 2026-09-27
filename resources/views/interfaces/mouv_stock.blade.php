@@ -1,147 +1,160 @@
 @php
-    use App\Models\appnames;
-    use App\Models\Articles;
-    use App\Models\Stocks;
-    use App\Models\Pointdeventes;
-    use App\Models\User;
-    use Illuminate\Support\Facades\DB;
-    use Carbon\Carbon;
+use App\Models\appnames;
+use App\Models\Articles;
+use App\Models\Stocks;
+use App\Models\Pointdeventes;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
-    $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
+$nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 
-    // ✅ Liste des articles non supprimés pour le filtre Select2
-    $articles_list = DB::table('articles')
+// ✅ Liste des articles non supprimés pour le filtre Select2
+$articles_list = DB::table('articles')
+    ->where('supprimer', 0)
+    ->orderBy('nom_article', 'asc')
+    ->get();
+
+// ✅ On prépare un tableau de stock_ids accessible plus bas
+$stock_ids_autorises = null;
+
+if (Auth::user()->role != 0) {
+    $pointdeventes_ids = DB::table('affectationspointventes')
+                            ->where('user_id', Auth::id())
+                            ->pluck('pointdeventes_id')
+                            ->toArray();
+
+    $stock_ids_autorises = Pointdeventes::whereIn('id', $pointdeventes_ids)
+                              ->where('supprimer', 0)
+                              ->whereNotNull('stock_id')
+                              ->pluck('stock_id')
+                              ->unique()
+                              ->values()
+                              ->toArray();
+}
+
+// ✅ Liste des stocks pour les filtres Source et Destination
+$stocks_query = DB::table('stocks')->where('supprimer', 0);
+
+if ($stock_ids_autorises !== null) {
+    if (empty($stock_ids_autorises)) {
+        $stocks_query->whereRaw('1 = 0');
+    } else {
+        $stocks_query->whereIn('id', $stock_ids_autorises);
+    }
+}
+
+$stocks_list = $stocks_query->orderBy('nom', 'asc')->get();
+
+// ✅ Requête principale des transferts
+$query = DB::table('transfertstocks')
+    ->join('articles', 'transfertstocks.article_id', '=', 'articles.id')
+    ->leftJoin('stocks as s1', 'transfertstocks.stock_1', '=', 's1.id')
+    ->leftJoin('stocks as s2', 'transfertstocks.stock_2', '=', 's2.id')
+    ->select(
+        'transfertstocks.*',
+        'articles.nom_article as article_nom',
+        's1.nom as stock_1_nom',
+        's2.nom as stock_2_nom'
+    )
+    ->where('transfertstocks.supprimer', 0)
+    ->where('articles.supprimer', 0);
+
+// ✅ Restriction par rôle
+if ($stock_ids_autorises !== null) {
+    if (empty($stock_ids_autorises)) {
+        $query->whereRaw('1 = 0');
+    } else {
+        $query->whereIn('transfertstocks.stock_2', $stock_ids_autorises);
+    }
+}
+
+$transferts = $query->orderBy('transfertstocks.id', 'asc')->get();
+
+// ✅ OPTIMISATION : une seule requête pour toutes les sommes d'achats
+//    (filtre sur facture active — etat = 0 ou pas de facture)
+$transfert_ids = $transferts->pluck('id')->toArray();
+
+$sommes_achats_par_transfert = [];
+if (!empty($transfert_ids)) {
+    $sommes_achats_par_transfert = DB::table('achats')
+        ->leftJoin('factureasses', 'achats.facture_id', '=', 'factureasses.id')
+        ->whereIn('achats.transfert_id', $transfert_ids)
+        ->where(function($q) {
+            $q->where('factureasses.etat', 0)
+              ->orWhereNull('factureasses.id');
+        })
+        ->groupBy('achats.transfert_id')
+        ->select('achats.transfert_id', DB::raw('SUM(achats.quantite) as total_qte'))
+        ->pluck('total_qte', 'achats.transfert_id')
+        ->toArray();
+}
+
+$achats_par_transfert = [];
+$pdv_par_transfert = [];
+$stock_actuel_par_transfert = [];
+$qte_apres_transfert = [];
+$sortie_totale_par_transfert = [];
+
+foreach ($transferts as $transfert) {
+
+    $qte_transferee = (float) ($transfert->qte ?? 0);
+    $qte_trouvee   = (float) ($transfert->qte_trouve ?? 0);
+
+    $qte_apres = $qte_transferee + $qte_trouvee;
+    $qte_apres_transfert[$transfert->id] = $qte_apres;
+
+    // ✅ Utilise la somme pré-calculée (déjà filtrée sur facture active)
+    $somme_achats = (float) ($sommes_achats_par_transfert[$transfert->id] ?? 0);
+
+    $sortie_totale_par_transfert[$transfert->id] = $somme_achats;
+
+    $stock_actuel = $qte_apres - $somme_achats;
+    $stock_actuel_par_transfert[$transfert->id] = $stock_actuel;
+
+    $pdv_destination_ids = DB::table('pointdeventes')
+        ->where('stock_id', $transfert->stock_2)
         ->where('supprimer', 0)
-        ->orderBy('nom_article', 'asc')
+        ->pluck('id')
+        ->toArray();
+    $pdv_par_transfert[$transfert->id] = $pdv_destination_ids;
+
+    // ⚠️ Cette requête reste individuelle car on veut TOUTES les colonnes détaillées.
+    //    Elle est déjà correctement filtrée sur facture active.
+    $achats = DB::table('achats')
+        ->leftJoin('factureasses', 'achats.facture_id', '=', 'factureasses.id')
+        ->leftJoin('clients', 'factureasses.client_id', '=', 'clients.id')
+        ->leftJoin('users', 'factureasses.user_id', '=', 'users.id')
+        ->where('achats.transfert_id', $transfert->id)
+        ->where(function($q) {
+            $q->where('factureasses.etat', 0)
+              ->orWhereNull('factureasses.id');
+        })
+        ->select(
+            'achats.id',
+            'achats.quantite',
+            'achats.prix_unitaire',
+            'achats.total',
+            'achats.devise',
+            'achats.taux',
+            'achats.libelle',
+            'achats.created_at',
+            'achats.facture_id',
+            'achats.pointdeventes_id as achat_pdv_id',
+            'factureasses.numero as facture_numero',
+            'factureasses.libelle as facture_libelle',
+            'factureasses.client_id as facture_client_id',
+            'factureasses.taux as facture_taux',
+            'factureasses.etat as facture_etat',
+            'factureasses.pointdeventes_id as facture_pdv_id',
+            'clients.name as client_nom',
+            'users.name as user_nom'
+        )
+        ->orderBy('achats.created_at', 'asc')
         ->get();
 
-    // ✅ On prépare un tableau de stock_ids accessible plus bas (pour filtrer aussi les filtres Source/Destination)
-    $stock_ids_autorises = null; // null = pas de restriction (admin)
-
-    if (Auth::user()->role != 0) {
-        // 1️⃣ Récupérer les PDV affectés à l'utilisateur
-        $pointdeventes_ids = DB::table('affectationspointventes')
-                                ->where('user_id', Auth::id())
-                                ->pluck('pointdeventes_id')
-                                ->toArray();
-
-        // 2️⃣ Récupérer uniquement les stocks liés à ces PDV (destination)
-        $stock_ids_autorises = Pointdeventes::whereIn('id', $pointdeventes_ids)
-                                  ->where('supprimer', 0)
-                                  ->whereNotNull('stock_id')
-                                  ->pluck('stock_id')
-                                  ->unique()
-                                  ->values()
-                                  ->toArray();
-    }
-
-    // ✅ Liste des stocks pour les filtres Source et Destination
-    //    → un non-admin ne voit que les stocks de ses PDV
-    $stocks_query = DB::table('stocks')->where('supprimer', 0);
-
-    if ($stock_ids_autorises !== null) {
-        if (empty($stock_ids_autorises)) {
-            // Aucun PDV affecté → liste vide
-            $stocks_query->whereRaw('1 = 0');
-        } else {
-            $stocks_query->whereIn('id', $stock_ids_autorises);
-        }
-    }
-
-    $stocks_list = $stocks_query->orderBy('nom', 'asc')->get();
-
-    // ✅ Requête principale des transferts
-    $query = DB::table('transfertstocks')
-        ->join('articles', 'transfertstocks.article_id', '=', 'articles.id')
-        ->leftJoin('stocks as s1', 'transfertstocks.stock_1', '=', 's1.id')
-        ->leftJoin('stocks as s2', 'transfertstocks.stock_2', '=', 's2.id')
-        ->select(
-            'transfertstocks.*',
-            'articles.nom_article as article_nom',
-            's1.nom as stock_1_nom',
-            's2.nom as stock_2_nom'
-        )
-        ->where('transfertstocks.supprimer', 0)
-        ->where('articles.supprimer', 0);
-
-    // ✅ Restriction par rôle
-    if ($stock_ids_autorises !== null) {
-        if (empty($stock_ids_autorises)) {
-            // Aucun PDV affecté → aucun transfert visible
-            $query->whereRaw('1 = 0');
-        } else {
-            // ✅ On affiche uniquement les transferts dont la DESTINATION (stock_2)
-            //    est liée à l'un des points de vente de l'utilisateur
-            $query->whereIn('transfertstocks.stock_2', $stock_ids_autorises);
-        }
-    }
-
-    $transferts = $query->orderBy('transfertstocks.id', 'asc')->get();
-
-    $achats_par_transfert = [];
-    $pdv_par_transfert = [];
-    $stock_actuel_par_transfert = [];
-    $qte_apres_transfert = [];
-    $sortie_totale_par_transfert = [];
-
-    foreach ($transferts as $transfert) {
-
-        $qte_transferee = (float) ($transfert->qte ?? 0);
-        $qte_trouvee   = (float) ($transfert->qte_trouve ?? 0);
-
-        $qte_apres = $qte_transferee + $qte_trouvee;
-        $qte_apres_transfert[$transfert->id] = $qte_apres;
-
-        $somme_achats = DB::table('achats')
-            ->where('transfert_id', $transfert->id)
-            ->sum('quantite');
-
-        $sortie_totale_par_transfert[$transfert->id] = (float) $somme_achats;
-
-        $stock_actuel = $qte_apres - (float) $somme_achats;
-        $stock_actuel_par_transfert[$transfert->id] = $stock_actuel;
-
-        $pdv_destination_ids = DB::table('pointdeventes')
-            ->where('stock_id', $transfert->stock_2)
-            ->where('supprimer', 0)
-            ->pluck('id')
-            ->toArray();
-        $pdv_par_transfert[$transfert->id] = $pdv_destination_ids;
-
-        $achats = DB::table('achats')
-            ->leftJoin('factureasses', 'achats.facture_id', '=', 'factureasses.id')
-            ->leftJoin('clients', 'factureasses.client_id', '=', 'clients.id')
-            ->leftJoin('users', 'factureasses.user_id', '=', 'users.id')
-            ->where('achats.transfert_id', $transfert->id)
-            ->where(function($q) {
-                $q->where('factureasses.etat', 0)
-                  ->orWhereNull('factureasses.id');
-            })
-            ->select(
-                'achats.id',
-                'achats.quantite',
-                'achats.prix_unitaire',
-                'achats.total',
-                'achats.devise',
-                'achats.taux',
-                'achats.libelle',
-                'achats.created_at',
-                'achats.facture_id',
-                'achats.pointdeventes_id as achat_pdv_id',
-                'factureasses.numero as facture_numero',
-                'factureasses.libelle as facture_libelle',
-                'factureasses.client_id as facture_client_id',
-                'factureasses.taux as facture_taux',
-                'factureasses.etat as facture_etat',
-                'factureasses.pointdeventes_id as facture_pdv_id',
-                'clients.name as client_nom',
-                'users.name as user_nom'
-            )
-            ->orderBy('achats.created_at', 'asc')
-            ->get();
-
-        $achats_par_transfert[$transfert->id] = $achats;
-    }
+    $achats_par_transfert[$transfert->id] = $achats;
+}
 @endphp
 @extends('layouts.main')
 @section('title', $nom_app)
@@ -1232,7 +1245,6 @@ h4 i.zmdi {
                 }
             }
 
-            // ✅ Listes uniques pour les filtres du modal
             $clients_uniques = $achats_lies->map(function($a) {
                 if (($a->facture_client_id ?? 0) > 0 && !empty($a->client_nom)) return $a->client_nom;
                 if (!empty($a->facture_libelle)) return $a->facture_libelle;

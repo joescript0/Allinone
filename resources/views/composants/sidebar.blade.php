@@ -30,7 +30,7 @@
     $menu_11 = Desactiver();
     $menu_12 = Desactiver();
     $menu_13 = Activer();
-    $menu_14 = Activer(); // ici
+    $menu_14 = Desactiver(); // ici
     // Divine
     $menu_15 = Desactiver();
     $menu_16 = Desactiver();
@@ -67,7 +67,7 @@
     $menu_47 = Activer();
     $menu_48 = Activer();
     $menu_49 = Activer();
-    $menu_50 = Activer();
+    $menu_50 = Desactiver();
     $menu_51 = Activer();
     $menu_52 = Desactiver();
   }
@@ -86,7 +86,7 @@
     $menu_11 = Desactiver();
     $menu_12 = Desactiver();
     $menu_13 = Desactiver();
-    $menu_14 = Activer();
+    $menu_14 = Desactiver();
 
     // Divine
     $menu_15 = Activer();
@@ -126,7 +126,7 @@
     $menu_47 = Activer();
     $menu_48 = Activer();
     $menu_49 = Activer();
-    $menu_50 = Activer();
+    $menu_50 = Desactiver();
     $menu_51 = Activer();
     $menu_52 = Desactiver();
   }

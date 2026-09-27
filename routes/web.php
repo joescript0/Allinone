@@ -352,6 +352,8 @@ Route::post('/apply_param_facture', [AjaxController::class, 'apply_param_facture
 Route::post('/edit_charger_facture', [AjaxController::class, 'edit_charger_facture'])->name('edit_charger_facture');
 Route::get('/refresh_deleteinvite', [AjaxController::class, 'refresh_deleteinvite'])->name('refresh_deleteinvite');
 Route::get('/refresh_editinvite', [AjaxController::class, 'refresh_editinvite'])->name('refresh_editinvite');
+Route::post('/send_rappel_credit', [AjaxController::class, 'send_rappel_credit'])->name('send_rappel_credit');
+Route::post('/send_communication_client', [AjaxController::class, 'send_communication_client'])->name('send_communication_client');
 
 // Route::get('/', function () {
 //     $user = new User();
