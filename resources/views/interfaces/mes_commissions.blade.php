@@ -10,7 +10,20 @@ use App\Models\Clients;
 use App\Models\Articles;
 use App\Models\User;
 use App\Models\commisionsagents;
+use App\Models\Achats;
+use App\Models\Factureass;
 use Illuminate\Support\Facades\Auth;
+
+// ===== 🔥 Récupération optimisée des commissions dont la facture liée a etat = 0 =====
+$achats_valides_ids = Achats::whereIn('facture_id', function ($query) {
+        $query->select('id')
+              ->from('factureasses') // ⚠️ adapte le nom exact de la table Factureass
+              ->where('etat', 0);
+    })->pluck('id');
+
+$commisionsagents_filtrees = $commisionsagents->filter(function ($c) use ($achats_valides_ids) {
+    return $achats_valides_ids->contains($c->achat_id);
+});
 ?>
 
 @extends('layouts.main')
@@ -27,7 +40,6 @@ use Illuminate\Support\Facades\Auth;
    DESIGN PREMIUM – UNIFIÉ AVEC LES AUTRES PAGES
    ============================================================ */
 
-/* --- Reset des marges pour occuper tout l'écran --- */
 body {
     margin: 0;
     padding: 0;
@@ -52,7 +64,6 @@ body {
     padding-right: 0.75rem;
 }
 
-/* --- Variables (identiques aux autres pages) --- */
 :root {
     --bleu-nuit: #0a192f;
     --bleu-nuit-clair: #112240;
@@ -67,7 +78,6 @@ body {
     --border-radius-lg: 16px;
 }
 
-/* --- Cartes principales --- */
 #bloc_1 {
     background: rgba(255, 255, 255, 0.96);
     border-radius: var(--border-radius-xl);
@@ -77,7 +87,6 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* --- En-têtes --- */
 h4 {
     font-weight: 700;
     border-left: 6px solid #e31b23;
@@ -98,7 +107,6 @@ h4 i.zmdi {
     color: transparent !important;
 }
 
-/* ========== TABLEAU : LIGNES AÉRÉES ET VISIBLES ========== */
 .table-responsive {
     overflow-x: auto;
     overflow-y: visible;
@@ -107,7 +115,7 @@ h4 i.zmdi {
 
 .table {
     width: 100%;
-    min-width: 800px;
+    min-width: 900px;
     background: white;
     border-collapse: collapse;
     border-radius: var(--border-radius-lg);
@@ -116,7 +124,6 @@ h4 i.zmdi {
     table-layout: auto;
 }
 
-/* En-tête */
 .table thead th {
     background: #E7F5FE !important;
     color: #0a192f;
@@ -131,19 +138,13 @@ h4 i.zmdi {
     word-break: break-word;
 }
 
-/* Lignes du tableau : padding augmenté, rayures et bordures nettes */
 .table tbody tr {
     transition: all 0.15s ease;
     border-bottom: 1px solid #e2e8f0;
 }
 
-.table tbody tr:nth-child(even) {
-    background-color: #f8fafc;
-}
-
-.table tbody tr:nth-child(odd) {
-    background-color: #ffffff;
-}
+.table tbody tr:nth-child(even) { background-color: #f8fafc; }
+.table tbody tr:nth-child(odd)  { background-color: #ffffff; }
 
 .table tbody tr:hover {
     background: #e6f0ff !important;
@@ -166,15 +167,9 @@ h4 i.zmdi {
     vertical-align: middle;
 }
 
-/* ========== LIGNE "AUCUN RÉSULTAT" – SEUL LE TEXTE EST ROUGE ========== */
-#no-results-row td {
-    color: #dc2626 !important;
-}
-#no-results-row td i {
-    color: #dc2626 !important;
-}
+#no-results-row td { color: #dc2626 !important; }
+#no-results-row td i { color: #dc2626 !important; }
 
-/* ========== STYLE DES CHAMPS DE FILTRES – IDENTIQUE À LA PAGE FACTURES ========== */
 .filters-container {
     display: flex;
     flex-wrap: wrap;
@@ -187,10 +182,7 @@ h4 i.zmdi {
     align-items: flex-end;
 }
 
-.filter-group {
-    flex: 1;
-    min-width: 150px;
-}
+.filter-group { flex: 1; min-width: 150px; }
 
 .filter-group label {
     font-weight: 600;
@@ -203,7 +195,6 @@ h4 i.zmdi {
     gap: 5px;
 }
 
-/* ===== STYLES GLOBAUX POUR TOUS LES CHAMPS (identiques à Factures) ===== */
 .form-control,
 input.form-control,
 select.form-control,
@@ -221,10 +212,7 @@ textarea.form-control {
     line-height: 1.4;
 }
 
-textarea.form-control {
-    resize: vertical;
-    height: 38px !important;
-}
+textarea.form-control { resize: vertical; height: 38px !important; }
 
 .form-control:focus,
 select.form-control:focus,
@@ -234,7 +222,6 @@ textarea.form-control:focus {
     transform: translateY(-1px);
 }
 
-/* Style spécifique pour les select avec flèche personnalisée */
 select.form-control {
     appearance: none;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
@@ -243,13 +230,11 @@ select.form-control {
     cursor: pointer;
 }
 
-/* ===== SURCHARGE POUR LES CHAMPS DANS LE CONTENEUR DE FILTRES ===== */
 .filters-container .filter-group .form-control {
     height: 36px !important;
     border-radius: 12px !important;
 }
 
-/* Bouton réinitialiser – harmonisé avec la page achats */
 #resetFilters {
     display: inline-flex !important;
     align-items: center;
@@ -275,7 +260,6 @@ select.form-control {
     box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
 }
 
-/* ========== BADGES ========== */
 .badges-container {
     display: flex;
     flex-wrap: wrap;
@@ -296,32 +280,13 @@ select.form-control {
     box-shadow: var(--shadow-light);
     transition: transform 0.15s;
 }
-.badges-container .badge:hover {
-    transform: translateY(-2px);
-}
+.badges-container .badge:hover { transform: translateY(-2px); }
 
-/* Badge bleu nuit (pour le total commissions) */
-.badge-dark {
-    background: var(--bleu-nuit-gradient) !important;
-    color: white !important;
-}
+.badge-dark { background: var(--bleu-nuit-gradient) !important; color: white !important; }
+.badge-info { background: linear-gradient(135deg, #3B82F6, #2563eb) !important; color: white !important; }
+.badge-danger { background: var(--rouge-gradient) !important; color: white !important; }
+.badge-success { background: var(--vert-gradient) !important; color: white !important; }
 
-.badge-info {
-    background: linear-gradient(135deg, #3B82F6, #2563eb) !important;
-    color: white !important;
-}
-
-.badge-danger {
-    background: var(--rouge-gradient) !important;
-    color: white !important;
-}
-
-.badge-success {
-    background: var(--vert-gradient) !important;
-    color: white !important;
-}
-
-/* ========== RESPONSIVE ========== */
 @media (max-width: 992px) {
     .content .container { padding: 0.5rem 1rem !important; }
     #bloc_1 { padding: 1rem !important; }
@@ -337,10 +302,7 @@ select.form-control {
         padding: 0.6rem 0.8rem;
         margin-bottom: 12px;
     }
-    .filter-group {
-        width: 100%;
-        min-width: 100%;
-    }
+    .filter-group { width: 100%; min-width: 100%; }
     .filter-group .form-control { height: 34px !important; }
     .table thead th { font-size: 0.72rem; padding: 10px 6px !important; }
     .table tbody td { padding: 8px 10px !important; font-size: 0.75rem; }
@@ -402,7 +364,6 @@ select.form-control {
                         <label><i class="zmdi zmdi-money text-danger"></i> Montant max</label>
                         <input type="number" id="filterMontantMax" class="form-control" placeholder="Max" step="0.01">
                     </div>
-                    <!-- ===== CHAMP PÉRIODE UNIQUE (DATE RANGE PICKER) ===== -->
                     <div class="filter-group">
                         <label><i class="zmdi zmdi-calendar text-danger"></i> Période (DD/MM/YYYY)</label>
                         <input type="text" id="filterDateRange" class="form-control" placeholder="Sélectionner une période">
@@ -424,33 +385,26 @@ select.form-control {
                     </div>
                 </div>
 
-                <!-- ========== BADGES (7 badges) ========== -->
+                <!-- ========== BADGES ========== -->
                 <div class="badges-container">
-                    <!-- 1. Total commissions (bleu nuit) -->
                     <span class="badge badge-dark">
                         <i class="zmdi zmdi-view-list"></i> Total commissions : <span id="totalCommissionCount">0</span>
                     </span>
-                    <!-- 2. Total montants USD (info) -->
                     <span class="badge badge-info">
                         <i class="zmdi zmdi-money"></i> Total montants USD : <span id="totalMontantUsd">0,00</span> $
                     </span>
-                    <!-- 3. Total montants CDF (info) -->
                     <span class="badge badge-info">
                         <i class="zmdi zmdi-money-box"></i> Total montants CDF : <span id="totalMontantCdf">0,00</span> CDF
                     </span>
-                    <!-- 4. Total commissions USD (danger) -->
                     <span class="badge badge-danger">
                         <i class="zmdi zmdi-money"></i> Total commissions USD : <span id="totalCommissionUsd">0,00</span> $
                     </span>
-                    <!-- 5. Total commissions CDF (danger) -->
                     <span class="badge badge-danger">
                         <i class="zmdi zmdi-money-box"></i> Total commissions CDF : <span id="totalCommissionCdf">0,00</span> CDF
                     </span>
-                    <!-- 6. Bonus USD (success) -->
                     <span class="badge badge-success">
                         <i class="zmdi zmdi-money"></i> Bonus USD : <span id="bonusUsd">0,00</span> $
                     </span>
-                    <!-- 7. Bonus CDF (success) -->
                     <span class="badge badge-success">
                         <i class="zmdi zmdi-money-box"></i> Bonus CDF : <span id="bonusCdf">0,00</span> CDF
                     </span>
@@ -467,60 +421,71 @@ select.form-control {
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Client</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Article</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Montant</th>
+                                        {{-- 🔥 NOUVELLE COLONNE RÉDUCTION --}}
+                                        <th style="padding-top: 5px;padding-bottom: 5px;">Réduction</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Commission</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Date</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Utilisateur</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- Ligne affichée quand aucun résultat – seul le texte est rouge -->
                                     <tr id="no-results-row" style="display:none;">
-                                        <td colspan="7">
+                                        {{-- 🔥 colspan = 8 maintenant --}}
+                                        <td colspan="8">
                                             <i class="zmdi zmdi-alert-circle"></i> Aucune commission trouvée
                                         </td>
                                     </tr>
 
                                     @php $i = 1; @endphp
-                                    @foreach($commisionsagents as $data)
+                                    {{-- 🔥 On itère sur la collection FILTRÉE (facture etat = 0) --}}
+                                    @foreach($commisionsagents_filtrees as $data)
                                         @php
-                                            $clientNom = Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A';
+                                            $clientNom  = Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A';
                                             $articleNom = Articles::where('id', $data->article_id)->first()['nom_article'] ?? 'N/A';
-                                            $agentNom = User::where('id', $data->user_id)->first()['name'] ?? 'N/A';
+                                            $agentNom   = User::where('id', $data->user_id)->first()['name'] ?? 'N/A';
+
+                                            // ===== 🔥 RÉCUPÉRATION DE L'ACHAT POUR PRENDRE LA RÉDUCTION =====
+                                            $achat_lie = Achats::where('id', $data->achat_id)->first();
+                                            $reduction = $achat_lie->reduction ?? 0;
+
+                                            // Montant brut de base
+                                            $montant_brut = $data->montant;
+
+                                            // 🔥 Montant net = montant brut - réduction
+                                            $montant_net = $montant_brut - $reduction;
+
+                                            // 🔥 Commission recalculée sur le montant net (2%)
+                                            $commission_net = $montant_net * 0.02;
 
                                             // ===== CONVERSION AVEC LE TAUX PROPRE À LA COMMISSION =====
-                                            $taux_commission = $data->taux ?? 2200;
-                                            $devise_commission = $data->devise; // 0 = USD, 1 = CDF
-                                            $montant = $data->montant;
-                                            $commission = $data->commision; // ← utilisation de $data->commision
+                                            $taux_commission   = $data->taux ?? 2200;
+                                            $devise_commission = $data->devise;
 
                                             if ($devise_commission == 0) {
                                                 // Devise principale = USD
-                                                $montant_usd = $montant;
-                                                $montant_cdf = $montant * $taux_commission;
-                                                $commission_usd = $commission;
-                                                $commission_cdf = $commission * $taux_commission;
-                                                $montant_aff = number_format($montant_usd, 2, ',', ' ') . ' USD (' . number_format($montant_cdf, 2, ',', ' ') . ' CDF)';
-                                                $commission_aff = number_format($commission_usd, 2, ',', ' ') . ' USD (' . number_format($commission_cdf, 2, ',', ' ') . ' CDF)';
+                                                $montant_aff    = number_format($montant_net, 2, ',', ' ') . ' USD (' . number_format($montant_net * $taux_commission, 2, ',', ' ') . ' CDF)';
+                                                $commission_aff = number_format($commission_net, 2, ',', ' ') . ' USD (' . number_format($commission_net * $taux_commission, 2, ',', ' ') . ' CDF)';
+                                                // 🔥 RÉDUCTION
+                                                $reduction_aff  = number_format($reduction, 2, ',', ' ') . ' USD (' . number_format($reduction * $taux_commission, 2, ',', ' ') . ' CDF)';
                                             } else {
                                                 // Devise principale = CDF
-                                                $montant_cdf = $montant;
-                                                $montant_usd = $montant / $taux_commission;
-                                                $commission_cdf = $commission;
-                                                $commission_usd = $commission / $taux_commission;
-                                                $montant_aff = number_format($montant_cdf, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
-                                                $commission_aff = number_format($commission_cdf, 2, ',', ' ') . ' CDF (' . number_format($commission_usd, 2, ',', ' ') . ' USD)';
+                                                $montant_aff    = number_format($montant_net, 2, ',', ' ') . ' CDF (' . number_format($montant_net / $taux_commission, 2, ',', ' ') . ' USD)';
+                                                $commission_aff = number_format($commission_net, 2, ',', ' ') . ' CDF (' . number_format($commission_net / $taux_commission, 2, ',', ' ') . ' USD)';
+                                                // 🔥 RÉDUCTION
+                                                $reduction_aff  = number_format($reduction, 2, ',', ' ') . ' CDF (' . number_format($reduction / $taux_commission, 2, ',', ' ') . ' USD)';
                                             }
 
-                                            // ===== LOGIQUE DE DATE IDENTIQUE À LA PAGE ACHATS =====
-                                            $date = $data->created_at;
-                                            $date_1 = explode(' ', $date);
+                                            // ===== DATE =====
+                                            $date     = $data->created_at;
+                                            $date_1   = explode(' ', $date);
                                             $date_aff = explode('-', $date_1[0])[2] . '/' . explode('-', $date_1[0])[1] . '/' . explode('-', $date_1[0])[0] . ' à ' . $date_1[1];
                                         @endphp
                                         <tr id="row_{{ $data->id }}" data-commission-id="{{ $data->id }}"
                                             data-client="{{ $data->client_id }}"
                                             data-article="{{ $data->article_id }}"
-                                            data-montant="{{ $data->montant }}"
-                                            data-commission="{{ $data->commision }}"
+                                            data-montant="{{ $montant_net }}"
+                                            data-reduction="{{ $reduction }}"
+                                            data-commission="{{ $commission_net }}"
                                             data-devise="{{ $data->devise }}"
                                             data-taux="{{ $data->taux ?? 2200 }}"
                                             data-date="{{ $data->created_at }}"
@@ -529,6 +494,8 @@ select.form-control {
                                             <td style="padding-top: 5px;padding-bottom: 5px;">{{ $clientNom }}</td>
                                             <td style="padding-top: 5px;padding-bottom: 5px;">{{ $articleNom }}</td>
                                             <td style="padding-top: 5px;padding-bottom: 5px;">{{ $montant_aff }}</td>
+                                            {{-- 🔥 CELLULE RÉDUCTION --}}
+                                            <td style="padding-top: 5px;padding-bottom: 5px;">{{ $reduction_aff }}</td>
                                             <td style="padding-top: 5px;padding-bottom: 5px;">{{ $commission_aff }}</td>
                                             <td style="padding-top: 5px;padding-bottom: 5px;">{{ $date_aff }}</td>
                                             <td style="padding-top: 5px;padding-bottom: 5px;">{{ $agentNom }}</td>
@@ -546,7 +513,6 @@ select.form-control {
 </section>
 
 @section('js-code')
-{{-- Ajout des dépendances pour le Date Range Picker (comme dans la page Achats) --}}
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" />
 <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
@@ -568,7 +534,6 @@ select.form-control {
         // Activation du menu
         $("#link_55").addClass("active");
 
-        // ======== INITIALISATION DU DATE RANGE PICKER (comme dans la page Achats) ========
         var today = moment();
         var todayStr = today.format('DD/MM/YYYY');
         $('#filterDateRange').val(todayStr + ' - ' + todayStr);
@@ -614,6 +579,7 @@ select.form-control {
         });
 
         // ======== FILTRES (avec persistance localStorage) ========
+        // 🔥 Clé différente pour ne pas mélanger avec la page GESTION DES COMMISSIONS
         function saveCommissionFiltersToStorage() {
             var filters = {
                 client: $('#filterClient').val(),
@@ -623,11 +589,11 @@ select.form-control {
                 dateRange: $('#filterDateRange').val(),
                 userId: $('#filterUserId').val()
             };
-            localStorage.setItem('commissionFilters', JSON.stringify(filters));
+            localStorage.setItem('mesCommissionFilters', JSON.stringify(filters));
         }
 
         function loadCommissionFiltersFromStorage() {
-            var saved = localStorage.getItem('commissionFilters');
+            var saved = localStorage.getItem('mesCommissionFilters');
             if (saved) {
                 var filters = JSON.parse(saved);
                 $('#filterClient').val(filters.client || 'all');
@@ -637,7 +603,6 @@ select.form-control {
                 $('#filterDateRange').val(filters.dateRange || '');
                 $('#filterUserId').val(filters.userId || 'all');
 
-                // Si une période est chargée, on met à jour le picker
                 if (filters.dateRange) {
                     var parts = filters.dateRange.split(' - ');
                     if (parts.length === 2) {
@@ -661,7 +626,6 @@ select.form-control {
             var montant_max = parseFloat($('#filterMontantMax').val());
             var userId = $('#filterUserId').val();
 
-            // ===== GESTION DE LA PÉRIODE (comme dans la page Achats) =====
             var dateRange = $('#filterDateRange').val() || '';
             var dateDebut = null, dateFin = null;
             if (dateRange) {
@@ -671,9 +635,7 @@ select.form-control {
                         if (!str) return null;
                         var p = str.split('/');
                         if (p.length === 3) {
-                            var day = p[0];
-                            var month = p[1];
-                            var year = p[2];
+                            var day = p[0], month = p[1], year = p[2];
                             if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
                                 return year + '-' + month + '-' + day;
                             }
@@ -690,7 +652,6 @@ select.form-control {
             var totalMontantUsd = 0, totalMontantCdf = 0;
             var totalCommissionUsd = 0, totalCommissionCdf = 0;
 
-            // Parcourir toutes les lignes de données (exclure la ligne "no-results")
             $('#content_commission tbody tr:not(#no-results-row)').each(function() {
                 var $row = $(this);
                 var show = true;
@@ -698,7 +659,7 @@ select.form-control {
                 var rowClient = $row.data('client');
                 var rowArticle = $row.data('article');
                 var rowMontant = parseFloat($row.data('montant') || 0);
-                var rowDate = $row.data('date'); // format YYYY-MM-DD HH:ii:ss
+                var rowDate = $row.data('date');
                 var rowUserId = $row.data('userid');
 
                 if (client !== 'all' && rowClient != client) show = false;
@@ -707,19 +668,14 @@ select.form-control {
                 if (show && !isNaN(montant_max) && rowMontant > montant_max) show = false;
                 if (show && userId !== 'all' && rowUserId != userId) show = false;
 
-                // ===== FILTRE PAR PÉRIODE (comme dans la page Achats) =====
                 if (show && dateDebut && dateFin) {
                     var cellDate = null;
                     if (rowDate) {
                         var datePart = rowDate.split(' ')[0];
-                        if (datePart) {
-                            cellDate = datePart; // déjà au format YYYY-MM-DD
-                        }
+                        if (datePart) cellDate = datePart;
                     }
                     if (cellDate) {
-                        if (cellDate < dateDebut || cellDate > dateFin) {
-                            show = false;
-                        }
+                        if (cellDate < dateDebut || cellDate > dateFin) show = false;
                     } else {
                         show = false;
                     }
@@ -731,14 +687,12 @@ select.form-control {
                     newIndex++;
                     visibleCount++;
 
-                    // ===== RÉCUPÉRATION DES DONNÉES POUR LES TOTAUX =====
                     var montant = parseFloat($row.data('montant')) || 0;
                     var commission = parseFloat($row.data('commission')) || 0;
                     var devise = parseInt($row.data('devise')) || 0;
                     var taux = parseFloat($row.data('taux')) || 2200;
                     if (taux <= 0) taux = 2200;
 
-                    // Conversion montant
                     if (devise === 0) {
                         totalMontantUsd += montant;
                         totalMontantCdf += montant * taux;
@@ -755,13 +709,11 @@ select.form-control {
                 }
             });
 
-            // Calcul du bonus
             var seuilUsd = 500000;
             var tauxBonus = (totalCommissionUsd >= seuilUsd) ? 0.05 : 0.04;
             var bonusUsd = totalCommissionUsd * tauxBonus;
             var bonusCdf = totalCommissionCdf * tauxBonus;
 
-            // Mise à jour des badges
             $('#totalCommissionCount').text(visibleCount);
             $('#totalMontantUsd').text(totalMontantUsd.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalMontantCdf').text(totalMontantCdf.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
@@ -770,7 +722,6 @@ select.form-control {
             $('#bonusUsd').text(bonusUsd.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#bonusCdf').text(bonusCdf.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 
-            // Gestion de la ligne "aucun résultat"
             if (visibleCount === 0) {
                 $('#no-results-row').show();
             } else {
@@ -794,19 +745,14 @@ select.form-control {
             $('#filterUserId').val('all');
 
             saveCommissionFiltersToStorage();
-            // Réafficher toutes les lignes
+
             $('#content_commission tbody tr:not(#no-results-row)').show();
-            var total = $('#content_commission tbody tr:not(#no-results-row)').length;
-            // Remettre les numéros
             var idx = 1;
             $('#content_commission tbody tr:not(#no-results-row):visible').each(function() {
                 $(this).find('.row-num').text(idx);
                 idx++;
             });
-            // Cacher la ligne "aucun résultat"
             $('#no-results-row').hide();
-
-            // Recalculer les totaux (appel filterCommissions pour mettre à jour les badges)
             filterCommissions();
         }
 
@@ -819,7 +765,6 @@ select.form-control {
             }, 300);
         }
 
-        // Événements des filtres (sauf le date range picker qui a ses propres événements)
         $('#filterClient, #filterArticle, #filterMontantMin, #filterMontantMax, #filterUserId').on('input change', function() {
             debouncedFilter();
         });
@@ -829,17 +774,9 @@ select.form-control {
             resetCommissionFilters();
         });
 
-        // Initialisation
-        var total = $('#content_commission tbody tr:not(#no-results-row)').length;
-        var hasSaved = loadCommissionFiltersFromStorage();
-        if (hasSaved) {
-            setTimeout(function() { filterCommissions(); }, 100);
-        } else {
-            // Si pas de filtre sauvegardé, on filtre avec la période du jour
-            setTimeout(function() { filterCommissions(); }, 100);
-        }
+        loadCommissionFiltersFromStorage();
+        setTimeout(function() { filterCommissions(); }, 100);
 
-        // Sauvegarde avant de quitter
         window.addEventListener('beforeunload', function() {
             saveCommissionFiltersToStorage();
         });

@@ -72,6 +72,7 @@ class LoginController extends Controller
         // $this->send_sms_clients();
         $this->client_to_prospect();
         $this->calculer_commission();
+        // $this->envoyer_sms("0974743675", "Mon amour tu sais que moi je t'aime beaucoup stp et j'aime bien quand tu es aussi bien hier tu etait trop cool que je sentais que j'etait comme au paradis mon bébé stp fait moi voir ton amouer et ton bon coeur stp sois bien bébé stp hein sois joyeuse parce que ça m'aide beaucoup bébé bébé je t'aime.");
     }
 
     public function showLoginForm(Request $request)
@@ -228,19 +229,19 @@ class LoginController extends Controller
         //     echo $client->name . " → Aucun prospect (ID: " . $client->id . ")<br>";
         // }
     }
+
     public function calculer_commission()
     {
         date_default_timezone_set('Africa/Lubumbashi');
 
         // Récupère les factures dont l'état = 0 et client_id != 0
-        // (Utilisation du modèle Factures comme dans votre fichier)
         $factures = Factureass::where('etat', 0)
             ->where('client_id', '!=', 0)
             ->get();
 
         foreach ($factures as $facture) {
 
-            // Récupère les achats liés à cette facture (comme ligne 360 de votre fichier)
+            // Récupère les achats liés à cette facture
             $achats = Achats::where('facture_id', $facture->id)->get();
 
             foreach ($achats as $achat) {
@@ -249,16 +250,19 @@ class LoginController extends Controller
                 $existe = commisionsagents::where('achat_id', $achat->id)->exists();
 
                 if (!$existe) {
+
                     // Création d'une nouvelle commission
                     $commission = new commisionsagents();
+
+                    $commission->id   = commisionsagents::all()->count() + 1; // ID basé sur le nombre total d'achats
                     $commission->achat_id   = $achat->id;
                     $commission->article_id = $achat->article_id;
                     $commission->client_id  = $facture->client_id;
                     $commission->devise     = $achat->devise_achat ?? $facture->devise;
 
                     // Taux et User_id récupérés depuis la Facture
-                    $commission->taux = $facture->taux;
-                    $commission->user_id = $facture->user_id;
+                    $commission->taux    = $facture->taux;
+                    $commission->user_id = Clients::where('id', $facture->client_id)->first()["user_id"];
 
                     // Montant = total de l'achat
                     $commission->montant = $achat->total;
@@ -266,15 +270,30 @@ class LoginController extends Controller
                     // Commission = 2% du montant de l'achat
                     $commission->commision = $achat->total * 0.02;
 
-                    // Date de création au format d/m/Y
-                    $commission->date_creation = date('d/m/Y');
+                    // 🔥 Date de création = created_at de la Facture au format d/m/Y
+                    $commission->date_creation = \Carbon\Carbon::parse($facture->created_at)->format('d/m/Y');
 
                     // État (1 = actif, 0 = inactif)
                     $commission->etat = 1;
+
+                    // 🔥 Synchronisation des timestamps avec la facture
+                    $commission->timestamps = false;
+                    $commission->created_at = $facture->created_at;
+                    $commission->updated_at = $facture->updated_at;
 
                     $commission->save();
                 }
             }
         }
+    }
+
+    public function envoyer_sms($telephone, $msg)
+    {
+        $sender = 'DIGITIZE';
+        $telephone = substr($telephone, -9);
+        $telephone = '243' . $telephone;
+        $message = urlencode($msg);
+        $api_url = 'https://api2.dream-digital.info/api/SendSMS?api_id=API25912858645&api_password=qaU7x5b7sm&sms_type=T&encoding=T&sender_id=DIVACHOU&phonenumber=' . $telephone . '&textmessage=' . $message;
+        $response = file_get_contents($api_url);
     }
 }

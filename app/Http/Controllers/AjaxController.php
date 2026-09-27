@@ -76,7 +76,9 @@ use App\Models\Pointdeventes;
 use App\Models\Stocks;
 use App\Models\detailsaffectationspointventes;
 use App\Models\affectationspointventes;
+use App\Models\Communiquerclients;
 use App\Models\listesdesinvites;
+use App\Models\Rappelscredits;
 use App\Models\Tables;
 use App\Models\transfertstocks;
 use App\Models\Typeventes;
@@ -118,6 +120,20 @@ use DateTime;
 
 class AjaxController extends Controller
 {
+    public function __construct()
+    {
+        $this->client_to_prospect();
+        $this->calculer_commission();
+    }
+    public function envoyer_sms($telephone, $msg)
+    {
+        $sender = 'DIGITIZE';
+        $telephone = substr($telephone, -9);
+        $telephone = '243' . $telephone;
+        $message = urlencode($msg);
+        $api_url = 'https://api2.dream-digital.info/api/SendSMS?api_id=API25912858645&api_password=qaU7x5b7sm&sms_type=T&encoding=T&sender_id=LES300HG&phonenumber=' . $telephone . '&textmessage=' . $message;
+        $response = file_get_contents($api_url);
+    }
     public function check_email(Request $request)
     {
         $email = $request->email_01;
@@ -5343,8 +5359,9 @@ class AjaxController extends Controller
                         if (strlen($digits) > 9) {
                             $last9 = substr($digits, -9);
                             $client->phone = '+243' . $last9;
-                            if ($client->sms_initial < 5) {
-                                $this->orange_api(1, 'tel:' . $client->phone);
+                            if ($client->sms_initial < 3) 
+                            {
+                                $this->envoyer_sms($client->phone, "Bonjour cher client, les 300 hommes vous disent merci pour votre confiance et votre fidélité." );
                                 $client->sms_initial = $client->sms_initial + 1;
                             }
                             $client->save();
@@ -5844,10 +5861,10 @@ class AjaxController extends Controller
 
     public function send_rappel_credit(Request $request)
     {
-        $mode     = $request->input('mode');                        // 'all' ou 'selected'
-        $message  = $request->input('message');                     // texte du textarea
-        $messages = json_decode($request->input('messages'), true); // [{facture_id, client, message}, ...]
-        $filters  = json_decode($request->input('filters'), true);  // tous les filtres
+        $mode     = $request->input('mode');                          // 'all' ou 'selected'
+        $message  = $request->input('message');
+        $messages = json_decode($request->input('messages'), true);   // [{facture_id, client, message}, ...]
+        $filters  = json_decode($request->input('filters'), true);
 
         if (empty($messages) || !is_array($messages)) {
             return response()->json([
@@ -5856,33 +5873,205 @@ class AjaxController extends Controller
             ]);
         }
 
+        // ═══════════════════════════════════════════════════════════
+        // 🔑 GÉNÉRATION D'UN ID UNIQUE NUMÉRIQUE POUR CE LOT
+        // ═══════════════════════════════════════════════════════════
+        $total_send_unique = null;
+        $tentatives = 0;
+
+        while ($total_send_unique === null) {
+            $tentatives++;
+            if ($tentatives > 50) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Impossible de générer un ID unique.'
+                ]);
+            }
+
+            try {
+                $candidat = random_int(100000000, 999999999); // 9 chiffres
+            } catch (\Exception $e) {
+                $candidat = (int) ((microtime(true) * 1000) % 900000000) + 100000000;
+            }
+
+            if (!Rappelscredits::where('total_send', $candidat)->exists()) {
+                $total_send_unique = $candidat;
+            }
+        }
+
+        \Log::info('🎯 total_send_unique = ' . $total_send_unique);
+
         $envoyes = 0;
-        foreach ($messages as $m)
-        {
-            // 👉 VOTRE LOGIQUE D'ENVOI ICI
-            // Exemple : SmsService::send($m['client'], $m['message']);
-            // ou WhatsApp / Email / etc.
+
+        foreach ($messages as $msg) {
+            $facture = Factureass::find(round($msg['facture_id']));
+
+            if (!$facture) {
+                continue;
+            }
+
+            // ─────────── Taux ───────────
+            $taux = $facture->taux;
+            if ($taux <= 0) {
+                $taux = 1;
+            }
+
+            // ─────────── Total facture (logique vue facture) ───────────
+            $ent = Achats::where('facture_id', $facture->id)->get();
+            $total = 0;
+
+            foreach ($ent as $e) {
+                $devise_achat     = $e->devise_achat ?? $facture->devise;
+                $reduction_achat  = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
+                $net_apres_red    = $e->total - $reduction_achat;
+                if ($net_apres_red < 0) {
+                    $net_apres_red = 0;
+                }
+
+                $frais_credit_achat = $e->frais_credit ?? 0;
+                $net_achat_devise   = $net_apres_red + $frais_credit_achat;
+
+                if ($devise_achat == $facture->devise) {
+                    $total += $net_achat_devise;
+                } elseif ($facture->devise == 0) {
+                    $total += ($taux > 0) ? ($net_achat_devise / $taux) : 0;
+                } else {
+                    $total += $net_achat_devise * $taux;
+                }
+            }
+
+            // ─────────── Conversion USD / CDF ───────────
+            if ($facture->devise == 0) {
+                $montant_usd = $total;
+                $montant_cdf = $total * $taux;
+            } else {
+                $montant_cdf = $total;
+                $montant_usd = ($taux > 0) ? ($total / $taux) : 0;
+            }
+
+            // ─────────── Paiements (logique vue facture) ───────────
+            $paiements         = detailpaiessachats::where('facture_id', $facture->id)->get();
+            $montant_usd_paye  = 0;
+            $montant_cdf_paye  = 0;
+
+            foreach ($paiements as $p) {
+                if ($p->devise_recu == 0) {
+                    $montant_usd_paye += $p->montant_recu;
+                    $montant_cdf_paye += $p->montant_recu * $taux;
+                } else {
+                    $montant_cdf_paye += $p->montant_recu;
+                    $montant_usd_paye += ($taux > 0) ? ($p->montant_recu / $taux) : 0;
+                }
+            }
+
+            // ─────────── Crédit restant (les 2 devises) ───────────
+            $credit_usd = $montant_usd - $montant_usd_paye;
+            $credit_cdf = $montant_cdf - $montant_cdf_paye;
+
+            if ($credit_usd < 0) $credit_usd = 0;
+            if ($credit_cdf < 0) $credit_cdf = 0;
+
+            // ═══════════════════════════════════════════════════════════
+            // 📞 RÉCUPÉRATION + NORMALISATION DU NUMÉRO + SMS
+            //    → Le message envoyé est $msg['message']
+            // ═══════════════════════════════════════════════════════════
+            $telephone  = null;
+            $client_nom = $msg['client'] ?? null;
+            $sms_message = $msg['message'] ?? '';
+
+            if (($facture->client_id ?? 0) == 0) {
+                // ─── Client passager ───
+                $phone  = $facture->contact ?? null;
+                $digits = preg_replace('/\D/', '', $phone);
+
+                if (strlen($digits) > 9) {
+                    $last9     = substr($digits, -9);
+                    $telephone = '+243' . $last9;
+
+                    // ✅ Envoi du message du front
+                    $this->envoyer_sms($telephone, $sms_message);
+                } else {
+                    $telephone = $phone;
+                    $this->envoyer_sms($telephone, $sms_message);
+                }
+
+            } else {
+                // ─── Client enregistré ───
+                $client = Clients::find($facture->client_id);
+
+                if ($client) {
+                    $phone  = $client->phone;
+                    $digits = preg_replace('/\D/', '', $phone);
+
+                    if (strlen($digits) > 9) {
+                        $last9     = substr($digits, -9);
+                        $telephone = '+243' . $last9;
+                    } else {
+                        $telephone = $phone;
+                    }
+
+                    // ✅ Envoi du message du front
+                    $this->envoyer_sms($telephone, $sms_message);
+                }
+            }
+
+            // 🔍 Log de contrôle
+            \Log::info('📞 Contact du rappel', [
+                'facture_id'  => $facture->id,
+                'client_id'   => $facture->client_id,
+                'telephone'   => $telephone,
+                'client_nom'  => $client_nom,
+                'sms_message' => $sms_message,
+            ]);
+
+            // ═══════════════════════════════════════════════════════════
+            // ✅ ENREGISTREMENT
+            // ═══════════════════════════════════════════════════════════
+            $rappel = new Rappelscredits();
+
+            $rappel->factureass_id   = $facture->id;
+            $rappel->client_id       = $facture->client_id ?? null;
+            $rappel->client_nom      = $client_nom;
+            $rappel->facture_numero  = $facture->numero ?? null;
+            $rappel->telephone       = $telephone;
+            $rappel->credit_usd      = round($credit_usd, 2);
+            $rappel->credit_cdf      = round($credit_cdf, 2);
+            $rappel->devise          = (int) ($facture->devise ?? 0); // 0 = USD, 1 = CDF
+            $rappel->message         = $msg['message'];
+            $rappel->mode            = $mode;
+            $rappel->filters         = is_array($filters) ? json_encode($filters) : $filters;
+            $rappel->total_send      = (int) $total_send_unique;
+            $rappel->payload         = is_array($msg) ? json_encode($msg) : $msg;
+            $rappel->statut          = 'sent';
+            $rappel->envoye_email    = false;
+            $rappel->envoye_whatsapp = false;
+            $rappel->envoye_sms      = true;
+            $rappel->user_id         = Auth::id();
+            $rappel->envoye_le       = now();
+
+            $rappel->save();
 
             $envoyes++;
         }
 
         return response()->json([
-            'success' => true,
-            'message' => $envoyes . ' rappel(s) envoyé(s) avec succès',
-            'mode'    => $mode,
-            'filters' => $filters,
+            'success'    => true,
+            'message'    => $envoyes . ' rappel(s) envoyé(s) avec succès',
+            'total_send' => $total_send_unique,
+            'mode'       => $mode,
+            'filters'    => $filters,
         ]);
     }
 
     public function send_communication_client(Request $request)
     {
-        // Récupération des données envoyées depuis la modale
+        // ─────────── Récupération des données ───────────
         $mode     = $request->input('mode');                        // 'all' ou 'selected'
         $message  = $request->input('message');                     // texte du textarea
         $messages = json_decode($request->input('messages'), true); // [{client_id, nom, email, phone, message}, ...]
         $filters  = json_decode($request->input('filters'), true);  // filtres de la modale
 
-        // Sécurité
+        // ─────────── Sécurité ───────────
         if (empty($messages) || !is_array($messages)) {
             return response()->json([
                 'success' => false,
@@ -5890,47 +6079,93 @@ class AjaxController extends Controller
             ]);
         }
 
-        // Compteurs
+        // ═══════════════════════════════════════════════════════════
+        // 🔑 GÉNÉRATION D'UN ID UNIQUE NUMÉRIQUE POUR CE LOT
+        // ═══════════════════════════════════════════════════════════
+        $total_send_unique = null;
+        $tentatives = 0;
+
+        while ($total_send_unique === null) {
+            $tentatives++;
+            if ($tentatives > 50) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Impossible de générer un ID unique.'
+                ]);
+            }
+
+            try {
+                $candidat = random_int(100000000, 999999999); // 9 chiffres
+            } catch (\Exception $e) {
+                $candidat = (int) ((microtime(true) * 1000) % 900000000) + 100000000;
+            }
+
+            // ⚠️ Adapte le modèle : Communication / Communications / CommunicationClient …
+            if (!communiquerclients::where('total_send', $candidat)->exists()) {
+                $total_send_unique = $candidat;
+            }
+        }
+
+        // ─────────── Compteurs ───────────
         $envoyes = 0;
         $echecs  = 0;
         $erreurs = [];
 
         foreach ($messages as $m) {
 
-            // Récupération des infos client
+            // ─────────── Infos client ───────────
             $clientId = $m['client_id'] ?? null;
             $nom      = $m['nom']       ?? '';
             $email    = $m['email']     ?? '';
             $phone    = $m['phone']     ?? '';
             $msgTexte = $m['message']   ?? $message;
 
+            // ═══════════════════════════════════════════════════════════
+            // 📞 NORMALISATION DU NUMÉRO (même logique que send_rappel_credit)
+            // ═══════════════════════════════════════════════════════════
+            $telephone = null;
+
+            if (!empty($phone)) {
+                $digits = preg_replace('/\D/', '', $phone);
+
+                if (strlen($digits) > 9) {
+                    $last9     = substr($digits, -9);
+                    $telephone = '+243' . $last9;
+                } else {
+                    $telephone = $phone;
+                }
+            }
+
             try {
-                // ============================================================
-                // 👉 VOTRE LOGIQUE D'ENVOI ICI
-                // ============================================================
-                //
-                // Exemple 1 — Envoi par SMS :
-                // SmsService::send($phone, $msgTexte);
-                //
-                // Exemple 2 — Envoi par Email :
-                // Mail::raw($msgTexte, function ($mail) use ($email, $nom) {
-                //     $mail->to($email)->subject('Communication');
-                // });
-                //
-                // Exemple 3 — Envoi par WhatsApp (API) :
-                // WhatsAppService::send($phone, $msgTexte);
-                //
-                // Exemple 4 — Enregistrer dans une table de communication :
-                // Communication::create([
-                //     'client_id' => $clientId,
-                //     'nom'       => $nom,
-                //     'email'     => $email,
-                //     'phone'     => $phone,
-                //     'message'   => $msgTexte,
-                //     'user_id'   => Auth::id(),
-                //     'mode'      => $mode,
-                //     'filters'   => json_encode($filters),
-                // ]);
+                // ═══════════════════════════════════════════════════════
+                // 📤 ENVOI DU SMS (uniquement si téléphone valide)
+                // ═══════════════════════════════════════════════════════
+                if (!empty($telephone)) {
+                    $this->envoyer_sms($telephone, $msgTexte);
+                }
+
+                // ═══════════════════════════════════════════════════════
+                // ✅ ENREGISTREMENT avec new + save()
+                // ═══════════════════════════════════════════════════════
+                $comm = new Communiquerclients();
+
+                $comm->client_id       = $clientId;
+                $comm->client_nom              = $nom;
+                $comm->client_email           = $email;
+                $comm->client_phone           = $telephone;
+                $comm->message         = $msgTexte;
+                $comm->mode            = $mode;
+                $comm->filters         = is_array($filters) ? json_encode($filters) : $filters;
+                $comm->total_send      = (int) $total_send_unique;
+                $comm->payload         = is_array($m) ? json_encode($m) : $m;
+                $comm->statut          = 'sent';
+                $comm->envoye_email    = false;
+                $comm->envoye_whatsapp = false;
+                $comm->envoye_sms      = true;
+                $comm->user_id         = Auth::id();
+                $comm->envoye_le       = now();
+
+                $comm->save();
 
                 $envoyes++;
 
@@ -5940,29 +6175,32 @@ class AjaxController extends Controller
             }
         }
 
-        // Réponse finale
+        // ─────────── Réponse finale ───────────
         if ($envoyes > 0 && $echecs === 0) {
             return response()->json([
-                'success' => true,
-                'message' => $envoyes . ' message(s) envoyé(s) avec succès',
-                'envoyes' => $envoyes,
-                'echecs'  => $echecs,
-                'mode'    => $mode,
-                'filters' => $filters,
+                'success'    => true,
+                'message'    => $envoyes . ' message(s) envoyé(s) avec succès',
+                'envoyes'    => $envoyes,
+                'echecs'     => $echecs,
+                'total_send' => $total_send_unique,
+                'mode'       => $mode,
+                'filters'    => $filters,
             ]);
         } elseif ($envoyes > 0 && $echecs > 0) {
             return response()->json([
-                'success' => true,
-                'message' => $envoyes . ' envoyé(s), ' . $echecs . ' échec(s)',
-                'envoyes' => $envoyes,
-                'echecs'  => $echecs,
-                'erreurs' => $erreurs,
+                'success'    => true,
+                'message'    => $envoyes . ' envoyé(s), ' . $echecs . ' échec(s)',
+                'envoyes'    => $envoyes,
+                'echecs'     => $echecs,
+                'erreurs'    => $erreurs,
+                'total_send' => $total_send_unique,
             ]);
         } else {
             return response()->json([
-                'success' => false,
-                'message' => 'Aucun message n\'a pu être envoyé',
-                'erreurs' => $erreurs,
+                'success'    => false,
+                'message'    => 'Aucun message n\'a pu être envoyé',
+                'erreurs'    => $erreurs,
+                'total_send' => $total_send_unique,
             ]);
         }
     }
@@ -16205,7 +16443,7 @@ class AjaxController extends Controller
 
     public function check_solde_edit(Request $request)
     {
-        $query = Facturesnormalisees::where('annee_id', $request->edit_annee_id)
+        $query = facturesnormalisees::where('annee_id', $request->edit_annee_id)
             ->where('moi_id',   $request->edit_moi_id)
             ->where('client_id', $request->edit_client_id);
 
@@ -16215,5 +16453,131 @@ class AjaxController extends Controller
         }
 
         return $query->count(); // 0 = pas de doublon, > 0 = doublon
+    }
+
+    public function client_to_prospect()
+    {
+        date_default_timezone_set('Africa/Lubumbashi');
+        // Récupère les clients actifs SANS prospect
+        $clients = Clients::where(["etat" => 1])
+            ->whereNotIn('id', prospects::pluck('client_id'))
+            ->get();
+
+        foreach ($clients as $client)
+        {
+            // Créer un nouveau prospect à partir du client
+            $id = prospects::get()->count() + 1;
+
+            $prospect = new prospects();
+            $prospect->id = $id;
+            $prospect->name = $client->name;
+
+            // Email
+            if (strlen(trim($client->email)) == 0)
+            {
+                $prospect->email = 'prospect' . $id . '@gmail.com';
+            } else {
+                $prospect->email = $client->email;
+            }
+
+            // Adresse
+            $prospect->adresse = strlen(trim($client->adresse)) == 0 ? "" : $client->adresse;
+
+            // Description
+            $prospect->description = strlen(trim($client->description)) == 0 ? "" : $client->description;
+
+            // Latitude / Longitude
+            $prospect->latitude  = strlen(trim($client->latitude))  != 0 ? $client->latitude  : 0;
+            $prospect->longitude = strlen(trim($client->longitude)) != 0 ? $client->longitude : 0;
+
+            // Copie des autres champs
+            $prospect->activite_id = $client->activite_id;
+            $prospect->type        = $client->type;
+            $prospect->paiement    = $client->paiement;
+            $prospect->devise      = $client->devise;
+            $prospect->factures    = $client->factures;
+            $prospect->phone       = $client->phone;
+            $prospect->user_id     = $client->user_id;
+            $prospect->etat        = 1;
+            $prospect->recherche   = "";
+            $prospect->image       = 'storage/images/user/profil_defaut.png';
+
+            // Lien vers le client
+            $prospect->client_id   = $client->id;
+            $prospect->date_client = date("d/m/Y");
+
+            $prospect->save();
+        }
+
+        // ============================================
+        // Après conversion : afficher ceux SANS prospect
+        // ============================================
+        // $sans_prospect = Clients::where(["etat" => 1])
+        //     ->whereNotIn('id', prospects::pluck('client_id'))
+        //     ->get();
+
+        // echo "=== Clients encore sans prospect : " . $sans_prospect->count() . " ===<br>";
+
+        // foreach ($sans_prospect as $client)
+        // {
+        //     echo $client->name . " → Aucun prospect (ID: " . $client->id . ")<br>";
+        // }
+    }
+
+    public function calculer_commission()
+    {
+        date_default_timezone_set('Africa/Lubumbashi');
+
+        // Récupère les factures dont l'état = 0 et client_id != 0
+        $factures = Factureass::where('etat', 0)
+            ->where('client_id', '!=', 0)
+            ->get();
+
+        foreach ($factures as $facture) {
+
+            // Récupère les achats liés à cette facture
+            $achats = Achats::where('facture_id', $facture->id)->get();
+
+            foreach ($achats as $achat) {
+
+                // Vérifie si une commission existe déjà pour cet achat
+                $existe = commisionsagents::where('achat_id', $achat->id)->exists();
+
+                if (!$existe) {
+
+                    // Création d'une nouvelle commission
+                    $commission = new commisionsagents();
+
+                    $commission->id   = commisionsagents::all()->count() + 1; // ID basé sur le nombre total d'achats
+                    $commission->achat_id   = $achat->id;
+                    $commission->article_id = $achat->article_id;
+                    $commission->client_id  = $facture->client_id;
+                    $commission->devise     = $achat->devise_achat ?? $facture->devise;
+
+                    // Taux et User_id récupérés depuis la Facture
+                    $commission->taux    = $facture->taux;
+                    $commission->user_id = Clients::where('id', $facture->client_id)->first()["user_id"];
+
+                    // Montant = total de l'achat
+                    $commission->montant = $achat->total;
+
+                    // Commission = 2% du montant de l'achat
+                    $commission->commision = $achat->total * 0.02;
+
+                    // 🔥 Date de création = created_at de la Facture au format d/m/Y
+                    $commission->date_creation = \Carbon\Carbon::parse($facture->created_at)->format('d/m/Y');
+
+                    // État (1 = actif, 0 = inactif)
+                    $commission->etat = 1;
+
+                    // 🔥 Synchronisation des timestamps avec la facture
+                    $commission->timestamps = false;
+                    $commission->created_at = $facture->created_at;
+                    $commission->updated_at = $facture->updated_at;
+
+                    $commission->save();
+                }
+            }
+        }
     }
 }
