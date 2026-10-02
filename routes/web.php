@@ -1,12 +1,10 @@
 <?php
 
 use App\Http\Controllers\AjaxController;
+use App\Http\Controllers\ProfileController;
 use App\Models\User;
-use GuzzleHttp\Psr7\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
 // Methode ajax
 Route::post('/check_email', [AjaxController::class , 'check_email'])->name('check_email');
 Route::post('/check_matricule', [AjaxController::class , 'check_matricule'])->name('check_matricule');
@@ -369,10 +368,13 @@ Route::post('/send_communication_client', [AjaxController::class, 'send_communic
 //     $user->save();
 // });
 
-Auth::routes();
-
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('index');
+
+Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
 Route::get('/utilisateurs', [App\Http\Controllers\HomeController::class, 'utilisateurs'])->name('utilisateurs');
 Route::get('/commissions', [App\Http\Controllers\HomeController::class, 'commissions'])->name('commissions');
 Route::get('/mes_utilisateurs', [App\Http\Controllers\HomeController::class, 'mes_utilisateurs'])->name('mes_utilisateurs');
@@ -436,3 +438,11 @@ Route::get('/invitation_formulaire', [App\Http\Controllers\InvitationnumControll
 Route::get('/invitation_programme', [App\Http\Controllers\InvitationnumController::class, 'invitation_programme'])->name('invitation_programme');
 Route::get('/check_qr_code', [App\Http\Controllers\InvitationnumController::class, 'check_qr_code'])->name('check_qr_code');
 Route::get('/bulletin', [App\Http\Controllers\BulletinController::class, 'bulletin'])->name('bulletin');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';

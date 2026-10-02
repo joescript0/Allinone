@@ -2057,7 +2057,7 @@ select.form-control {
                                 <div class="col-6">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                                class="zmdi zmdi-comment"></i> Libelle </span></label>
+                                                class="zmdi zmdi-comment"></i> Libelle <span style="color:#e31b23;">(nom client passager)</span></span></label>
                                         <textarea id="libelle" name="libelle"
                                             style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);"
                                             class="form-control" placeholder="Libellé" cols="2" rows="2"></textarea>
@@ -2066,7 +2066,7 @@ select.form-control {
                                 <div class="col-6">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                                class="zmdi zmdi-accounts"></i> Clients </span></label>
+                                                class="zmdi zmdi-accounts"></i> Clients <span style="color:#e31b23;">(nom client existant)</span></span></label>
                                         <select id="client_id" name="client_id" class="form-control select2"
                                                 data-placeholder="Rechercher un client..." style="width: 100%;"
                                                 data-theme="bootstrap">
