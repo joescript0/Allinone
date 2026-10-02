@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AjaxController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\GopayController;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
@@ -353,6 +354,9 @@ Route::get('/refresh_deleteinvite', [AjaxController::class, 'refresh_deleteinvit
 Route::get('/refresh_editinvite', [AjaxController::class, 'refresh_editinvite'])->name('refresh_editinvite');
 Route::post('/send_rappel_credit', [AjaxController::class, 'send_rappel_credit'])->name('send_rappel_credit');
 Route::post('/send_communication_client', [AjaxController::class, 'send_communication_client'])->name('send_communication_client');
+Route::post('/save_paiement_facture_1', [GopayController::class, 'save_paiement_facture_1'])->name('save_paiement_facture_1');
+Route::get ('/check_payment', [GopayController::class, 'check_payment'])->name('check_payment');
+Route::get ('/complete_trans',[GopayController::class, 'complete_trans'])->name('complete_trans');
 
 // Route::get('/', function () {
 //     $user = new User();

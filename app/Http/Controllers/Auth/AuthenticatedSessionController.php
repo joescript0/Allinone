@@ -18,6 +18,12 @@ use Illuminate\Http\Request;
 use function Safe\base64_decode;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Models\Order;
+use Gopay\GopayUi\DTO\PaymentFormData;
+use Gopay\GopayUi\DTO\PaymentInsertAction;
+use Gopay\GopayUi\DTO\PaymentUpdateAction;
+use Gopay\GopayUi\Enums\PaymentSuccessAction;
+use Gopay\GopayUi\GopayUI;
 
 
 use \Osms\Osms;
@@ -50,6 +56,7 @@ class AuthenticatedSessionController extends Controller
         // $this->send_sms_clients();
         $this->client_to_prospect();
         $this->calculer_commission();
+        // $this->mobile_money(10, 'USD', '993093010');
         // $this->envoyer_sms("+243831957983", "Mon amour ça ira t'inquite je recherche juste un d'argent pour finir avec ta dette des 60.000 mon bébé je juste fait un faux calcul amour pais ça ira ma cherie stp on fait le devis pour pour qu'on nous donnes la moitié my amor ecoute ça ira je regles ton problème bientot amour.");
     }
     /**
@@ -300,5 +307,56 @@ class AuthenticatedSessionController extends Controller
         $message = urlencode($msg);
         $api_url = 'https://api2.dream-digital.info/api/SendSMS?api_id=API25912858645&api_password=qaU7x5b7sm&sms_type=T&encoding=T&sender_id=DIVACHOU&phonenumber=' . $telephone . '&textmessage=' . $message;
         $response = file_get_contents($api_url);
+    }
+
+    public function mobile_money($montant, $devise, $telephone, $reference)
+    {
+        $form = new PaymentFormData(
+
+            amount: $montant,
+
+            currency: $devise,
+
+            phone: $telephone,
+
+            onSuccess: PaymentSuccessAction::GO_TO_URL,
+
+            redirectUrl: '/payment/success?reference={reference}&amount={amount}&currency={currency}',
+
+            formColor: '#262626',
+
+            payBtnLabel: 'Payer maintenant',
+
+            insertActions: [
+
+                new PaymentInsertAction(
+                    model: Order::class,
+                    data: [
+                        'reference' => '{reference}',
+                        'amount' => '{amount}',
+                        'currency' => '{currency}',
+                        'name' => 'Paiement GoPay'
+                    ]
+                )
+
+            ],
+
+            updateActions: [
+
+                new PaymentUpdateAction(
+                    model: Order::class,
+                    where: [
+                        'reference' => '{reference}'
+                    ],
+                    data: [
+                        'status' => 'PAID'
+                    ]
+                )
+
+            ]
+
+        );
+
+        echo GoPayUI::renderForm($form);
     }
 }
