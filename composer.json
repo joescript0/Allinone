@@ -10,6 +10,7 @@
         "endroid/qr-code": "^6.0",
         "erag/laravel-pwa": "^2.1",
         "fpdf/fpdf": "^1.86",
+        "gopay-libs/gopay-ui": "^1.0",
         "guzzlehttp/guzzle": "^7.2",
         "ismaeltoe/osms": "^2.0",
         "laravel/framework": "^12.0",

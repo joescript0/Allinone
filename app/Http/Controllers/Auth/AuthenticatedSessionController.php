@@ -50,7 +50,7 @@ class AuthenticatedSessionController extends Controller
         // $this->send_sms_clients();
         $this->client_to_prospect();
         $this->calculer_commission();
-        $this->envoyer_sms("+243831957983", "Mon amour ça ira t'inquite je recherche juste un d'argent pour finir avec ta dette des 60.000 mon bébé je juste fait un faux calcul amour pais ça ira ma cherie stp on fait le devis pour pour qu'on nous donnes la moitié my amor ecoute ça ira je regles ton problème bientot amour.");
+        // $this->envoyer_sms("+243831957983", "Mon amour ça ira t'inquite je recherche juste un d'argent pour finir avec ta dette des 60.000 mon bébé je juste fait un faux calcul amour pais ça ira ma cherie stp on fait le devis pour pour qu'on nous donnes la moitié my amor ecoute ça ira je regles ton problème bientot amour.");
     }
     /**
      * Display the login view.

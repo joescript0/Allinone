@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0be726ee118a642ee42616f47bf8f33f",
+    "content-hash": "b3d05a39563f8b5ea5659f2c95aeebf5",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1193,6 +1193,73 @@
                 }
             ],
             "time": "2025-12-03T09:33:47+00:00"
+        },
+        {
+            "name": "gopay-libs/gopay-ui",
+            "version": "v1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/gopay-sdk/gopay-ui.git",
+                "reference": "c675b6b2067d3879fed71ff5e525ceba29b89e60"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/gopay-sdk/gopay-ui/zipball/c675b6b2067d3879fed71ff5e525ceba29b89e60",
+                "reference": "c675b6b2067d3879fed71ff5e525ceba29b89e60",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^12.0",
+                "mecxer713/gopay-php": "^1.3.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "pestphp/pest": "^3.8"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Gopay\\GopayUi\\GopayUiServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Gopay\\GopayUi\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "GoPay",
+                    "homepage": "https://gopay.gooomart.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Official GoPay payment UI SDK for Laravel. Easily embed Mobile Money payment forms, process transactions and automate post-payment actions.",
+            "homepage": "https://gopay.gooomart.com",
+            "keywords": [
+                "checkout",
+                "congo",
+                "fintech",
+                "gopay",
+                "laravel",
+                "mobile-money",
+                "payment",
+                "payments",
+                "rdc",
+                "sdk"
+            ],
+            "support": {
+                "email": "gopay@gooomart.com",
+                "issues": "https://github.com/gopay/gopay-ui/issues",
+                "source": "https://github.com/gopay/gopay-ui"
+            },
+            "time": "2026-09-10T17:59:49+00:00"
         },
         {
             "name": "graham-campbell/result-type",
@@ -3010,6 +3077,78 @@
                 "source": "https://github.com/Masterminds/html5-php/tree/2.11.0"
             },
             "time": "2026-08-18T06:18:41+00:00"
+        },
+        {
+            "name": "mecxer713/gopay-php",
+            "version": "v1.5.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Mecxer713/gopay-package.git",
+                "reference": "954fab96b3244268c96e65e198a2c99126a750b8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Mecxer713/gopay-package/zipball/954fab96b3244268c96e65e198a2c99126a750b8",
+                "reference": "954fab96b3244268c96e65e198a2c99126a750b8",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.2",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "illuminate/support": "^9.0|^10.0|^11.0",
+                "laravel/pint": "^1.29",
+                "pestphp/pest": "^4.7",
+                "phpstan/phpstan": "^2.2",
+                "symfony/config": "^5.4|^6.0|^7.0",
+                "symfony/dependency-injection": "^5.4|^6.0|^7.0",
+                "symfony/http-kernel": "^5.4|^6.0|^7.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "GoPay": "Mecxer713\\GoPay\\Facades\\GoPay"
+                    },
+                    "providers": [
+                        "Mecxer713\\GoPay\\GoPayServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Mecxer713\\GoPay\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mecxer713",
+                    "email": "mecxer@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Un package PHP universel (Laravel & Symfony) pour intégrer l'API GoPAY",
+            "homepage": "https://gopay.gooomart.com",
+            "keywords": [
+                "api",
+                "fintech",
+                "gopay",
+                "laravel",
+                "mobile-money",
+                "payment",
+                "payout",
+                "symfony"
+            ],
+            "support": {
+                "issues": "https://github.com/Mecxer713/gopay-php/issues",
+                "source": "https://github.com/Mecxer713/gopay-php"
+            },
+            "time": "2026-06-29T13:50:17+00:00"
         },
         {
             "name": "monolog/monolog",
