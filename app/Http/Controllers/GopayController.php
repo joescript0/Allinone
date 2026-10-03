@@ -195,16 +195,6 @@ class GopayController extends Controller
         $mobile_money    = $request->input("mobile_money");
         $montant_recu    = (float) $request->input("montant_recu");
         $duree           = 10;
-        $date_debut      = date("d/m/Y");
-
-        // Conversion CDF → devise de paiement (division par le taux)
-        if ($devise === "CDF") {
-            $montant_recu = $montant_recu / $this->taux;
-        }
-
-        $date_fin = Carbon::createFromFormat('d/m/Y', $date_debut)
-            ->addDays((int) $duree)
-            ->format('d/m/Y');
 
         $myref = 'myref' . time() . rand(10000, 90000);
 
@@ -212,7 +202,6 @@ class GopayController extends Controller
             "facture_id"     => $facture_id,
             "numero_facture" => $numero_facture,
             "mobile_money"   => $mobile_money,
-            "duree"          => $duree,
             "montant_recu"   => $montant_recu,
         ];
 

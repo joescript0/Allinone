@@ -706,6 +706,76 @@ select.form-control {
 }
 
 .daterangepicker { z-index: 10050 !important; }
+
+/* ============================================================
+   BOUTON QR CODE / PAYER (4ème bouton vert)
+   ============================================================ */
+#qr_btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 16px !important;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border-radius: 40px !important;
+    transition: all 0.25s ease;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: var(--shadow-light);
+    white-space: nowrap;
+    line-height: 1.5;
+    min-width: 130px;
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+}
+#qr_btn:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.3);
+}
+#qr_btn i.zmdi { color: white !important; }
+
+@media (max-width: 768px) {
+    #qr_btn { padding: 4px 12px !important; font-size: 0.7rem; min-width: 90px; flex: 1 1 auto; }
+}
+@media (max-width: 480px) {
+    #qr_btn { padding: 4px 6px !important; font-size: 0.65rem !important; min-width: 70px; flex: 1 1 auto; }
+}
+
+/* ============================================================
+   MODALE QR CODE
+   ============================================================ */
+.modal.fade#qrModal .modal-dialog { max-width: 100%; width: 60%; margin: 1.75rem auto; }
+.modal.fade#qrModal .modal-content { border-radius: 20px; border: none; box-shadow: var(--shadow-premium); overflow: hidden; }
+.modal.fade#qrModal .modal-header {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    border-bottom: none; padding: 1.2rem 1.5rem;
+}
+.modal.fade#qrModal .modal-header .modal-title { font-weight: 700; font-size: 1.2rem; color: white; }
+.modal.fade#qrModal .modal-header .close { color: white; opacity: 0.8; text-shadow: none; }
+.modal.fade#qrModal .modal-header .close:hover { opacity: 1; }
+.modal.fade#qrModal .modal-body { padding: 0; background: #f8fafc; }
+.modal.fade#qrModal .modal-footer { background: white; border-top: 1px solid #eef2f6; padding: 1.2rem 1.5rem; }
+.modal.fade#qrModal #qrIframe { width: 100%; height: 60vh; border: none; background: white; }
+.modal.fade#qrModal .btn-secondary {
+    background: #64748b; border: none; border-radius: 40px;
+    padding: 8px 20px; font-weight: 600; font-size: 0.8rem;
+    transition: all 0.2s ease; color: white;
+}
+.modal.fade#qrModal .btn-secondary:hover { background: #475569; transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+    .modal.fade#qrModal .modal-dialog { width: 95%; margin: 1rem auto; }
+    .modal.fade#qrModal #qrIframe { height: 45vh; }
+    .modal.fade#qrModal .modal-footer { padding: 1rem; }
+}
+@media (max-width: 480px) {
+    .modal.fade#qrModal .modal-header { padding: 0.8rem 1rem; }
+    .modal.fade#qrModal .modal-header .modal-title { font-size: 1rem; }
+    .modal.fade#qrModal #qrIframe { height: 40vh; }
+}
     </style>
 
     <section class="content">
@@ -738,6 +808,9 @@ select.form-control {
                                     <?php } ?>
                                     <a class="btn-danger btn-sm" id="rapport" href="#">
                                         <i class="zmdi zmdi-chart"></i> Rapport
+                                    </a>
+                                    <a class="btn-sm" id="qr_btn" href="#">
+                                        <i class="fas fa-hand-holding-usd"></i> Payer
                                     </a>
                                 </div>
                             </div>
@@ -1513,6 +1586,28 @@ select.form-control {
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODALE QR CODE / PAYER --}}
+    <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 100%; width: 60%;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrModalLabel">
+                        <i class="zmdi zmdi-qr-code"></i> QR Code de paiement
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 0;">
+                    <iframe id="qrIframe" src="" style="width: 100%; height: 60vh; border: none;"></iframe>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 8px;">Fermer</button>
                 </div>
             </div>
         </div>
@@ -2726,6 +2821,46 @@ select.form-control {
     });
 
     $("#pdfModal").on("hidden.bs.modal", function() { $("#pdfIframe").attr("src", ""); });
+
+    /* ============================================================
+       BOUTON QR CODE / PAYER — ouvre la modale QR
+       ============================================================ */
+    $("#qr_btn").click(function(e) {
+        e.preventDefault();
+        var $btn = $(this);
+        $btn.prop('disabled', true);
+
+        // 🔹 Récupère l'URL du PDF (QR code) depuis le back, comme pour l'icône eye
+        $.get("{{ url('/print_qr_code') }}", {}, function(response) {
+            var url = '';
+
+            // Même logique que l'icône eye des factures déjà payées
+            if (response && response[0] && response[0][0]) {
+                url = response[0][0];
+            } else if (response && typeof response.url === 'string') {
+                url = response.url;
+            } else if (typeof response === 'string' && response.trim() !== '') {
+                url = response.trim();
+            }
+
+            if (url && url !== '') {
+                currentPdfUrl = url;
+                $("#qrIframe").attr("src", url);
+                $("#qrModal").modal("show");
+            } else {
+                alert("Aucun QR code disponible pour le moment.");
+            }
+        }).fail(function() {
+            alert("Erreur lors de la récupération du QR code.");
+        }).always(function() {
+            $btn.prop('disabled', false);
+        });
+    });
+
+    // Nettoyage de l'iframe à la fermeture
+    $("#qrModal").on("hidden.bs.modal", function() {
+        $("#qrIframe").attr("src", "");
+    });
     </script>
 @endsection
 @endsection

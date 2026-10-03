@@ -357,6 +357,7 @@ Route::post('/send_communication_client', [AjaxController::class, 'send_communic
 Route::post('/save_paiement_facture_1', [GopayController::class, 'save_paiement_facture_1'])->name('save_paiement_facture_1');
 Route::get ('/check_payment', [GopayController::class, 'check_payment'])->name('check_payment');
 Route::get ('/complete_trans',[GopayController::class, 'complete_trans'])->name('complete_trans');
+Route::get('/print_qr_code', [AjaxController::class, 'print_qr_code'])->name('print_qr_code');
 
 // Route::get('/', function () {
 //     $user = new User();
@@ -430,6 +431,7 @@ Route::get('/rendez_vous', [App\Http\Controllers\HomeController::class, 'rendez_
 Route::get('/charger_facture', [App\Http\Controllers\HomeController::class, 'charger_facture'])->name('charger_facture');
 Route::get('/scanner_rq_code', [App\Http\Controllers\OfficierController::class, 'scanner_rq_code'])->name('scanner_rq_code');
 Route::get('/paiement', [App\Http\Controllers\PaiementController::class, 'paiement'])->name('paiement');
+Route::get('/paiement_general', [App\Http\Controllers\PaiementController::class, 'paiement_general'])->name('paiement_general');
 Route::get('/client_partager', [App\Http\Controllers\ClientController::class, 'client_partager'])->name('client_partager');
 Route::get('/menu', [App\Http\Controllers\SiteController::class, 'menu'])->name('menu');
 Route::get('/serveur_se', [App\Http\Controllers\HomeController::class, 'serveur_se'])->name('serveur_se');

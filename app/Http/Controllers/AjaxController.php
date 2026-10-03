@@ -11499,6 +11499,76 @@ class AjaxController extends Controller
         return response()->json([[$nom_fichier, number_format($cdf_montant_payer, 2, ',', ' '), number_format($usd_montant_payer, 2, ',', ' '), $tva, $taux, $payer]]);
     }
 
+    public function print_qr_code(Request $request)
+    {
+        // ---------- 1. URL à encoder dans le QR code ----------
+        $url = route('paiement_general');
+
+        // ---------- 2. Génération du QR code ----------
+        $builder = new Builder(
+            writer: new PngWriter(),
+            data: $url,
+            encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
+            size: 1000,
+            margin: 15
+        );
+        $result = $builder->build();
+        $fileName = "./storage/images/fichiers/" . 'qrcode_' . time() . '.png';
+        $result->saveToFile($fileName);
+
+        // ---------- 3. Création du PDF en A4 ----------
+        $pdf = new \FPDF('P', 'mm', 'A4'); // A4 = 210 x 297 mm
+        $pdf->AddPage();
+        $pdf->SetAutoPageBreak(false);
+
+        $largeur_page = 210;
+        $hauteur_page = 297;
+        $marge_gauche = 15;
+
+        // ---------- Texte principal (titre) ----------
+        $pdf->SetY(30);
+        $pdf->SetFont('Arial', 'B', 22);
+        $pdf->SetTextColor(10, 25, 47);
+        $pdf->Cell($largeur_page - 30, 12,
+            iconv('UTF-8', 'Windows-1252', 'Scannez-moi pour effectuer votre paiement'),
+            0, 1, 'C'
+        );
+        $pdf->Ln(4);
+
+        // ---------- Sous-texte ----------
+        $pdf->SetFont('Arial', '', 13);
+        $pdf->SetTextColor(100, 100, 100);
+        $pdf->MultiCell($largeur_page - 30, 7,
+            iconv('UTF-8', 'Windows-1252', 'Scannez ce QR code avec votre téléphone pour accéder à la page de paiement'),
+            0, 'C'
+        );
+        $pdf->Ln(15);
+
+        // ---------- QR CODE CENTRÉ (grand format A4) ----------
+        $qr_largeur = 120; // 120 mm de large
+        $qr_hauteur = 120;
+        $qr_x = ($largeur_page - $qr_largeur) / 2; // centré horizontalement
+        $qr_y = $pdf->GetY();
+
+        $pdf->Image($fileName, $qr_x, $qr_y, $qr_largeur, $qr_hauteur);
+        $pdf->SetY($qr_y + $qr_hauteur + 15);
+
+        // ---------- Message de bas de page ----------
+        $pdf->SetFont('Arial', 'I', 14);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->Cell($largeur_page - 30, 8,
+            iconv('UTF-8', 'Windows-1252', 'Merci pour votre confiance'),
+            0, 1, 'C'
+        );
+
+        // ---------- 4. Sauvegarde + retour JSON ----------
+        $nom_fichier = 'QRCode_' . time() . '.pdf';
+        $pdf->Output('F', $nom_fichier);
+
+        return response()->json([[$nom_fichier]]);
+    }
+
     public function get_print_listes_factures(Request $request)
     {
 

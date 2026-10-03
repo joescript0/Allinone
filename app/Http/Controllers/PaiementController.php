@@ -74,4 +74,10 @@ class PaiementController extends Controller
             return view('interfaces.paiement', $data);
         }
     }
+
+    public function paiement_general(request $request)
+    {
+        $data = [];
+        return view('interfaces.paiement_general', $data);
+    }
 }
