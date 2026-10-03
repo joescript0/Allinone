@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Achats;
+use App\Models\detailpaiessachats;
+use App\Models\Factureass;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -139,13 +142,13 @@ class GopayController extends Controller
 
             unset($extra['ref']);
 
-            $allowed = ['facture_id', 'numero_facture', 'mobile_money', 'duree', 'montant_recu'];
+            $allowed = ['id', 'detail_facture_id', 'detail_montant_effectif', 'detail_devise_recu', 'detail_date_creation', 'detail_montant_recu', 'detail_mode_de_paiement', 'detail_reste'];
             $extra   = array_intersect_key($extra, array_flip($allowed));
 
-            if ($mode_abonnement == 3) {
-                DB::table('visites')->insert($extra);
-            } else {
-                DB::table('abonnements')->insert($extra);
+            if ($mode_abonnement == 1)
+            {
+                $extra["id"] = detailpaiessachats::max('id') + 1;
+                DB::table('detailpaiessachats')->insert($extra);
             }
 
             DB::table('gopay')->where('id', $trans->id)->update([
@@ -189,20 +192,180 @@ class GopayController extends Controller
 
     public function save_paiement_facture_1(Request $request)
     {
-        $devise          = $request->input("devise_recu");
-        $facture_id      = $request->input("facture_id");
-        $numero_facture  = $request->input("numero_facture");
-        $mobile_money    = $request->input("mobile_money");
-        $montant_recu    = (float) $request->input("montant_recu");
-        $duree           = 10;
+        $facture = Factureass::find($request->facture_id);
+        if (!$facture) {
+            DB::rollBack();
+            return response()->json([0]);
+        }
+
+        $taux = $facture->taux;
+        if ($taux <= 0) $taux = 1;
+
+        $achats = Achats::where('facture_id', $facture->id)->get();
+
+        // ------------------------------------------------------------
+        // 0. Application des frais de crédit si conditions remplies
+        // ------------------------------------------------------------
+        // ⭐ Calcul du total original = Σ (total − réduction) par achat,
+        //    dans SA devise d'achat, puis converti vers la devise facture.
+        //    → sert à déterminer correctement si la facture est IMPAYÉE.
+        $total_original = 0;
+        foreach ($achats as $a)
+        {
+            $devise_achat_orig = $a->devise_achat ?? $facture->devise;
+            $reduction_orig    = (isset($a->reduction) && $a->reduction > 0) ? $a->reduction : 0;
+            $net_orig          = $a->total - $reduction_orig;
+
+            if ($devise_achat_orig == $facture->devise) {
+                $total_original += $net_orig;
+            } elseif ($facture->devise == 0) {
+                $total_original += ($taux > 0) ? ($net_orig / $taux) : 0;
+            } else {
+                $total_original += $net_orig * $taux;
+            }
+        }
+        if ($facture->devise == 0)
+        {
+            $total_original_usd = $total_original;
+            $total_original_cdf = $total_original * $taux;
+        } else {
+            $total_original_cdf = $total_original;
+            $total_original_usd = ($taux > 0) ? ($total_original / $taux) : 0;
+        }
+
+        // Récupération des paiements déjà effectués
+        $paiements = detailpaiessachats::where('facture_id', $facture->id)->get();
+        $paye_usd = 0;
+        $paye_cdf = 0;
+        foreach ($paiements as $p) {
+            if ($p->devise_recu == 0) {
+                $paye_usd += $p->montant_recu;
+                $paye_cdf += $p->montant_recu * $taux;
+            } else {
+                $paye_cdf += $p->montant_recu;
+                $paye_usd += ($taux > 0) ? ($p->montant_recu / $taux) : 0;
+            }
+        }
+        $est_impayee = ($paye_usd < $total_original_usd) || ($paye_cdf < $total_original_cdf);
+
+        // Vérification du délai d'1 heure
+        $date_creation = strtotime($facture->created_at);
+        $delai_1h = 3600;
+        $delai_depasse = (time() - $date_creation) > $delai_1h;
+
+        // Application des frais de crédit (5%) sur chaque achat si conditions remplies
+        // (frais calculés sur le total BRUT — inchangé)
+        foreach ($achats as $achat) {
+            if (($achat->frais_credit == 0 || $achat->frais_credit === null) && $est_impayee && $delai_depasse) {
+                $frais = $achat->total * 0.05;
+                $achat->frais_credit = $frais;
+                $achat->save();
+            }
+        }
+
+        // ------------------------------------------------------------
+        // 1. ⭐ Calcul du total dû = Σ (total − réduction + frais_credit) par achat
+        //    Chaque montant dans SA devise d'achat, puis converti.
+        // ------------------------------------------------------------
+        $total_du = 0;
+        foreach ($achats as $a) {
+            $devise_achat    = $a->devise_achat ?? $facture->devise;
+            $reduction_achat = (isset($a->reduction) && $a->reduction > 0) ? $a->reduction : 0;
+            $frais_achat     = $a->frais_credit ?? 0;
+
+            $net_achat_devise = $a->total - $reduction_achat + $frais_achat;
+
+            if ($devise_achat == $facture->devise) {
+                $total_du += $net_achat_devise;
+            } elseif ($facture->devise == 0) {
+                $total_du += ($taux > 0) ? ($net_achat_devise / $taux) : 0;
+            } else {
+                $total_du += $net_achat_devise * $taux;
+            }
+        }
+
+        if ($facture->devise == 0) {
+            $total_du_usd = $total_du;
+            $total_du_cdf = $total_du * $taux;
+        } else {
+            $total_du_cdf = $total_du;
+            $total_du_usd = ($taux > 0) ? ($total_du / $taux) : 0;
+        }
+
+        // ------------------------------------------------------------
+        // 2. Calcul du total déjà payé (depuis les détails) en USD et CDF
+        // ------------------------------------------------------------
+        $total_paye_usd = 0;
+        $total_paye_cdf = 0;
+        foreach ($paiements as $p) {
+            if ($p->devise_recu == 0) {
+                $total_paye_usd += $p->montant_recu;
+                $total_paye_cdf += $p->montant_recu * $taux;
+            } else {
+                $total_paye_cdf += $p->montant_recu;
+                $total_paye_usd += ($taux > 0) ? ($p->montant_recu / $taux) : 0;
+            }
+        }
+
+        // ------------------------------------------------------------
+        // 3. Restant dû dans la devise du paiement reçu (pour plafonner)
+        // ------------------------------------------------------------
+        $devise_paiement = $request->devise_recu;
+        $reste_du_usd = max($total_du_usd - $total_paye_usd, 0);
+        $reste_du_cdf = max($total_du_cdf - $total_paye_cdf, 0);
+
+        if ($reste_du_usd <= 0 && $reste_du_cdf <= 0) {
+            DB::rollBack();
+            return response()->json([0]);
+        }
+
+        if ($devise_paiement == 0) {
+            $reste_en_devise_paiement = $reste_du_usd;
+        } else {
+            $reste_en_devise_paiement = $reste_du_cdf;
+        }
+
+        // ------------------------------------------------------------
+        // 4. Plafonnement du montant saisi
+        // ------------------------------------------------------------
+        $montant_saisi = $request->montant_recu;
+        if ($montant_saisi <= 0)
+        {
+            DB::rollBack();
+            return response()->json([0]);
+        }
+        $montant_effectif = min($montant_saisi, $reste_en_devise_paiement);
+        $monnaie_a_rendre = max($montant_saisi - $montant_effectif, 0);
+
+        // ------------------------------------------------------------
+        // 5. Mise à jour de la facture (champs montant_recu et reste)
+        // ------------------------------------------------------------
+        if ($facture->devise == 0)
+        {
+            $montant_a_ajouter = ($devise_paiement == 0) ? $montant_effectif : $montant_effectif / $taux;
+        } else {
+            $montant_a_ajouter = ($devise_paiement == 1) ? $montant_effectif : $montant_effectif * $taux;
+        }
+        $facture->montant_recu += $montant_a_ajouter;
+        $facture->devise_recu = $devise_paiement;
+        $facture->mode_de_paiement = 1;
+        $facture->reste = $monnaie_a_rendre;
+
+
+        $devise          = $request->devise_recu;
+        $mobile_money    = $request->mobile_money;
+        $montant_recu    = (float) $request->montant_recu;
 
         $myref = 'myref' . time() . rand(10000, 90000);
 
         $data = [
-            "facture_id"     => $facture_id,
-            "numero_facture" => $numero_facture,
-            "mobile_money"   => $mobile_money,
-            "montant_recu"   => $montant_recu,
+            "detail_facture_id"     => $request->facture_id,
+            "detail_montant_effectif" => $montant_effectif,
+            "detail_devise_recu"   => $devise_paiement,
+            "detail_date_creation"   => date("d/m/Y à H:i:s"),
+            "detail_montant_recu"   => $montant_a_ajouter,
+            "detail_mode_de_paiement"   => 2,
+            "detail_reste"   => $monnaie_a_rendre,
         ];
 
         // ✅ "environment" est une colonne SQL, pas une clé du JSON
@@ -264,7 +427,8 @@ class GopayController extends Controller
 
         if ($status === 'success') {
             $issaved = (int) $trans->issaved;
-            if ($issaved !== 1) {
+            if ($issaved !== 1)
+            {
                 $paydata = json_decode($trans->paydata);
                 $this->saveData($paydata, $trans, $mode_abonnement);
                 $ok = true;
@@ -274,7 +438,8 @@ class GopayController extends Controller
             DB::table('gopay')->where('id', $trans->id)->update(['isfailed' => 1]);
         }
 
-        if ($ok || $issaved === 1 || (int) $trans->issaved === 1) {
+        if ($ok || $issaved === 1 || (int) $trans->issaved === 1)
+            {
             return response()->json([
                 'success'     => true,
                 'message'     => 'Votre paiement est effectué avec succès.',
