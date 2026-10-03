@@ -2,144 +2,200 @@
     use App\Models\appnames;
     use App\Models\Factureass;
     use App\Models\detailpaiessachats;
-    use App\Models\Achats; // ⚠️ Adapte le nom du modèle des achats à ton projet
+    use App\Models\Achats;
+    use App\Models\clients;
     use Illuminate\Support\Facades\DB;
 
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 
-    // --- Récupération de l'ID de la facture ---
-    $facture_id = $facture_id ?? null;
-    $factureId  = base64_decode($facture_id) ? base64_decode($facture_id) : null;
-    $facture    = base64_decode($facture_id) ? Factureass::find(base64_decode($facture_id)) : null;
+    // ============================================================
+    // ===== PRÉ-CHARGEMENT DES CLIENTS (évite N+1) ===============
+    // ============================================================
+    $clients_map = clients::pluck('name', 'id')->toArray();
 
-    // --- Initialisation des variables ---
+    // ============================================================
+    // ===== HELPER : DÉTERMINER SI UNE FACTURE EST IMPAYÉE ======
+    // ============================================================
+    $estImpayee = function ($f) {
+        $taux_f = $f->taux ?? 1;
+        if ($taux_f <= 0) $taux_f = 1;
+        $devise_f = $f->devise ?? 0;
+
+        $achats_f = Achats::where('facture_id', $f->id)->get();
+        if ($achats_f->isEmpty()) return false;
+
+        $total_original_f = 0;
+        foreach ($achats_f as $a) {
+            $dev_a = $a->devise_achat ?? $devise_f;
+            $red   = (isset($a->reduction) && $a->reduction > 0) ? $a->reduction : 0;
+            $net   = $a->total - $red;
+
+            if ($dev_a == $devise_f) {
+                $total_original_f += $net;
+            } elseif ($devise_f == 0) {
+                $total_original_f += ($taux_f > 0) ? ($net / $taux_f) : 0;
+            } else {
+                $total_original_f += $net * $taux_f;
+            }
+        }
+
+        $paiements_f = detailpaiessachats::where('facture_id', $f->id)->get();
+        $usd_paye_f = 0;
+        $cdf_paye_f = 0;
+        foreach ($paiements_f as $p) {
+            if ($p->devise_recu == 0) {
+                $usd_paye_f += $p->montant_recu;
+                $cdf_paye_f += $p->montant_recu * $taux_f;
+            } else {
+                $cdf_paye_f += $p->montant_recu;
+                $usd_paye_f += $p->montant_recu / $taux_f;
+            }
+        }
+
+        if ($devise_f == 0) {
+            $orig_usd_f = $total_original_f;
+            $orig_cdf_f = $total_original_f * $taux_f;
+        } else {
+            $orig_cdf_f = $total_original_f;
+            $orig_usd_f = $total_original_f / $taux_f;
+        }
+
+        return ($usd_paye_f < $orig_usd_f) || ($cdf_paye_f < $orig_cdf_f);
+    };
+
+    // ============================================================
+    // ===== HELPER : NOM DU CLIENT (client_id OU libelle) ========
+    // ============================================================
+    $getNomClient = function ($f) use ($clients_map) {
+        if (isset($f->client_id) && $f->client_id != 0 && isset($clients_map[$f->client_id])) {
+            return $clients_map[$f->client_id];
+        }
+        return $f->libelle ?? '';
+    };
+
+    // ============================================================
+    // ===== FILTRAGE : FACTURES IMPAYÉES + etat = 0 ==============
+    // ===== ORDRE NATUREL D'ENREGISTREMENT (pas de orderBy) ======
+    // ============================================================
+    $toutes_factures = [];
+    foreach (Factureass::where('etat', 0)->get() as $f) {
+        if ($estImpayee($f)) {
+            $toutes_factures[] = $f;
+        }
+    }
+    $toutes_factures = collect($toutes_factures);
+
+    // ============================================================
+    // ===== RÉCUPÉRATION DE L'ID DE LA FACTURE (URL initiale) ====
+    // ============================================================
+    $factureId = request()->query('facture_id');
+    $factureId = is_numeric($factureId) ? (int) $factureId : null;
+
+    $facture = null;
+    if ($factureId) {
+        foreach ($toutes_factures as $f) {
+            if ($f->id == $factureId) { $facture = $f; break; }
+        }
+        if (!$facture) $factureId = null;
+    }
+
     $montant_usd_1 = 0;
     $montant_cdf_1 = 0;
-    $montant_usd_2 = 0;
-    $montant_cdf_2 = 0;
-    $usd_montant_total_a_payer = 0;
-    $cdf_montant_total_a_payer = 0;
+    $usd_montant   = 0;
+    $cdf_montant   = 0;
 
-    $devise_facture = $facture->devise ?? 0; // 0 = USD, 1 = CDF
-    $numero_facture = $facture->numero
-        ?? ('FAC-' . str_pad($factureId ?? '0000', 6, '0', STR_PAD_LEFT));
+    $devise_facture = $facture->devise ?? 0;
+    $numero_facture = $facture->numero ?? '';
+    $nom_client     = $facture ? $getNomClient($facture) : '';
     $devise_defaut  = ($devise_facture == 1) ? 'CDF' : 'USD';
 
     if ($facture) {
         $taux = $facture->taux ?? 1;
         if ($taux <= 0) $taux = 1;
 
-        // --- Récupération des achats liés à la facture ---
         $achats = Achats::where('facture_id', $factureId)->get();
 
-        // --- 1. Calcul du total original (sans frais) avec réduction ---
         $total_original = 0;
         foreach ($achats as $a) {
-            $devise_achat_orig = $a->devise_achat ?? $devise_facture;
-            $reduction_orig    = (isset($a->reduction) && $a->reduction > 0) ? $a->reduction : 0;
-            $net_orig          = $a->total - $reduction_orig;
-
-            if ($devise_achat_orig == $devise_facture) {
-                $total_original += $net_orig;
+            $dev_a = $a->devise_achat ?? $devise_facture;
+            $red   = (isset($a->reduction) && $a->reduction > 0) ? $a->reduction : 0;
+            $net   = $a->total - $red;
+            if ($dev_a == $devise_facture) {
+                $total_original += $net;
             } elseif ($devise_facture == 0) {
-                $total_original += ($taux > 0) ? ($net_orig / $taux) : 0;
+                $total_original += ($taux > 0) ? ($net / $taux) : 0;
             } else {
-                $total_original += $net_orig * $taux;
+                $total_original += $net * $taux;
             }
         }
 
-        // --- 2. Calcul des paiements déjà effectués ---
-        $paiements = Detailpaiessachats::where('facture_id', $factureId)->get();
-        $montant_usd_paye = 0;
-        $montant_cdf_paye = 0;
-        foreach ($paiements as $paiement) {
-            if ($paiement->devise_recu == 0) { // paiement en USD
-                $montant_usd_paye += $paiement->montant_recu;
-                $montant_cdf_paye += $paiement->montant_recu * $taux;
-            } else { // paiement en CDF
-                $montant_cdf_paye += $paiement->montant_recu;
-                $montant_usd_paye += $paiement->montant_recu / $taux;
+        $paiements = detailpaiessachats::where('facture_id', $factureId)->get();
+        $usd_paye = 0;
+        $cdf_paye = 0;
+        foreach ($paiements as $p) {
+            if ($p->devise_recu == 0) {
+                $usd_paye += $p->montant_recu;
+                $cdf_paye += $p->montant_recu * $taux;
+            } else {
+                $cdf_paye += $p->montant_recu;
+                $usd_paye += $p->montant_recu / $taux;
             }
         }
 
-        // --- 3. Conversion du total original en USD et CDF selon devise de la facture ---
         if ($devise_facture == 0) {
-            $total_original_usd = $total_original;
-            $total_original_cdf = $total_original * $taux;
+            $orig_usd = $total_original;
+            $orig_cdf = $total_original * $taux;
         } else {
-            $total_original_cdf = $total_original;
-            $total_original_usd = $total_original / $taux;
+            $orig_cdf = $total_original;
+            $orig_usd = $total_original / $taux;
         }
 
-        // --- 4. Déterminer si la facture est impayée (sans tolérance) ---
-        $est_impayee = ($montant_usd_paye < $total_original_usd)
-                    || ($montant_cdf_paye < $total_original_cdf);
+        $est_impayee   = ($usd_paye < $orig_usd) || ($cdf_paye < $orig_cdf);
+        $delai_depasse = (time() - strtotime($facture->created_at)) > 3600;
 
-        // --- 5. Vérifier le délai d'1 heure depuis la création de la facture ---
-        $date_creation_facture = strtotime($facture->created_at);
-        $delai_1h      = 3600;
-        $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
-
-        // --- 6. Appliquer les frais de crédit sur chaque achat si conditions remplies ---
         foreach ($achats as $achat) {
             if (($achat->frais_credit == 0 || $achat->frais_credit === null)
                 && $est_impayee && $delai_depasse) {
-                $frais = $achat->total * 0.05; // 5 %
+                $frais = $achat->total * 0.05;
                 $achat->frais_credit = $frais;
                 $achat->save();
             }
         }
 
-        // --- 7. Recalculer le total incluant les frais de crédit et réduction ---
         $total_avec_frais = 0;
         foreach ($achats as $achat) {
-            $devise_achat    = $achat->devise_achat ?? $devise_facture;
-            $reduction_achat = (isset($achat->reduction) && $achat->reduction > 0) ? $achat->reduction : 0;
-            $frais_achat     = $achat->frais_credit ?? 0;
-
-            $net_achat_devise = $achat->total - $reduction_achat + $frais_achat;
-
-            if ($devise_achat == $devise_facture) {
-                $total_avec_frais += $net_achat_devise;
+            $dev_a = $achat->devise_achat ?? $devise_facture;
+            $red   = (isset($achat->reduction) && $achat->reduction > 0) ? $achat->reduction : 0;
+            $fr    = $achat->frais_credit ?? 0;
+            $net   = $achat->total - $red + $fr;
+            if ($dev_a == $devise_facture) {
+                $total_avec_frais += $net;
             } elseif ($devise_facture == 0) {
-                $total_avec_frais += ($taux > 0) ? ($net_achat_devise / $taux) : 0;
+                $total_avec_frais += ($taux > 0) ? ($net / $taux) : 0;
             } else {
-                $total_avec_frais += $net_achat_devise * $taux;
+                $total_avec_frais += $net * $taux;
             }
         }
 
-        // --- 8. Montant total de la facture en USD et CDF (incluant les frais) ---
         if ($devise_facture == 0) {
-            $montant_usd_1 = $total_avec_frais;
-            $montant_cdf_1 = $total_avec_frais * $taux;
+            $usd_1 = $total_avec_frais;
+            $cdf_1 = $total_avec_frais * $taux;
         } else {
-            $montant_cdf_1 = $total_avec_frais;
-            $montant_usd_1 = $total_avec_frais / $taux;
+            $cdf_1 = $total_avec_frais;
+            $usd_1 = $total_avec_frais / $taux;
         }
 
-        // --- 9. Montants déjà payés ---
-        $montant_usd_2 = $montant_usd_paye;
-        $montant_cdf_2 = $montant_cdf_paye;
+        $usd_montant = max(0, $usd_1 - $usd_paye);
+        $cdf_montant = max(0, $cdf_1 - $cdf_paye);
 
-        // --- 10. Solde restant ---
-        $usd_montant_total_a_payer = max(0, $montant_usd_1 - $montant_usd_2);
-        $cdf_montant_total_a_payer = max(0, $montant_cdf_1 - $montant_cdf_2);
-
-        // --- On surcharge les variables attendues par la vue (format base64 conservé) ---
-        $usd_montant = base64_encode($usd_montant_total_a_payer);
-        $cdf_montant = base64_encode($cdf_montant_total_a_payer);
-    }
-
-    // --- Montant par défaut selon devise ---
-    if ($devise_defaut === 'USD') {
-        $montant_defaut = number_format(abs(base64_decode($usd_montant)), 2, ',', ' ');
+        $montant_defaut = number_format(
+            abs($devise_defaut === 'USD' ? $usd_montant : $cdf_montant),
+            2, ',', ' '
+        );
     } else {
-        $montant_defaut = number_format(abs(base64_decode($cdf_montant)), 2, ',', ' ');
+        $montant_defaut = '';
     }
 @endphp
-<?php
-$facture_id = $facture_id ?? 123;
-?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -151,6 +207,7 @@ $facture_id = $facture_id ?? 123;
     <link rel="stylesheet" href="{{ asset('./assets/vendors/fullcalendar/fullcalendar.min.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="icon" type="image/png" href="{{ asset('connexion/images/icons/top_icone_1.ico') }}">
     <title>{{ $nom_app }} - PAIEMENT GENERAL</title>
 
@@ -215,7 +272,7 @@ $facture_id = $facture_id ?? 123;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, opacity 0.3s ease;
         }
         .amount-card.active { border-left-color: #10B981; background: #ECFDF5; }
         .amount-card:hover { transform: scale(1.02); }
@@ -249,20 +306,6 @@ $facture_id = $facture_id ?? 123;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
             background: white;
         }
-        .form-group input[readonly] {
-            background: #EFF6FF;
-            color: #1D4ED8;
-            font-weight: 700;
-            border-color: #BFDBFE;
-            cursor: not-allowed;
-            letter-spacing: 0.5px;
-        }
-        .form-group input[readonly]:focus {
-            outline: none;
-            border-color: #BFDBFE;
-            box-shadow: none;
-            background: #EFF6FF;
-        }
         .form-group input.error,
         .form-group select.error {
             border-color: #EF4444;
@@ -276,7 +319,79 @@ $facture_id = $facture_id ?? 123;
             background-repeat: no-repeat;
             background-position: right 15px center;
             background-size: 16px;
+            padding-right: 40px;
         }
+
+        .select2-container--default .select2-selection--single {
+            height: 48px;
+            border: 1px solid #CBD5E1;
+            border-radius: 16px;
+            background: #F8FAFC;
+            font-family: 'Inter', sans-serif;
+            padding: 0 8px;
+            transition: all 0.2s ease;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 46px;
+            color: #1E293B;
+            padding-left: 8px;
+            font-size: 1rem;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__placeholder {
+            color: #94A3B8;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 46px;
+            right: 12px;
+        }
+        .select2-container--default.select2-container--focus .select2-selection--single,
+        .select2-container--default.select2-container--open .select2-selection--single {
+            border-color: #3B82F6;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .select2-container--default .select2-selection--single.error {
+            border-color: #EF4444;
+            background: #FEF2F2;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+        }
+        .select2-dropdown {
+            border: 1px solid #CBD5E1;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        .select2-search--dropdown {
+            padding: 10px;
+            background: #F8FAFC;
+        }
+        .select2-search--dropdown .select2-search__field {
+            border: 1px solid #CBD5E1;
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+        }
+        .select2-search--dropdown .select2-search__field:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #3B82F6;
+            color: white;
+        }
+        .select2-container--default .select2-results__option[aria-selected=true] {
+            background-color: #EFF6FF;
+            color: #1D4ED8;
+            font-weight: 600;
+        }
+        .select2-results__option {
+            padding: 10px 15px;
+            font-size: 0.95rem;
+        }
+
         .dynamic-field { display: none; animation: slideDown 0.4s ease-out; }
         .dynamic-field.show { display: block; }
         @keyframes slideDown {
@@ -299,18 +414,15 @@ $facture_id = $facture_id ?? 123;
             justify-content: center;
             gap: 8px;
         }
-        .btn-login:hover {
+        .btn-login:hover:not(:disabled) {
             background: #2563EB;
             transform: scale(1.01);
             box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
         }
         .btn-login:active { transform: scale(0.98); }
-        .btn-login:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .btn-login:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         .btn-login i { font-size: 1rem; }
 
-        /* ============================================================
-           BOUTON ANNULER
-           ============================================================ */
         .btn-cancel {
             width: 100%;
             background: #EF4444;
@@ -333,22 +445,11 @@ $facture_id = $facture_id ?? 123;
             box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
         }
         .btn-cancel:active { transform: scale(0.98); }
-        .btn-cancel:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
+        .btn-cancel:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
-        /* Conteneur flex pour les boutons Payer / Annuler */
-        .btn-actions {
-            display: flex;
-            gap: 10px;
-            align-items: stretch;
-        }
+        .btn-actions { display: flex; gap: 10px; align-items: stretch; }
         .btn-actions .btn-login,
-        .btn-actions .btn-cancel {
-            flex: 1;
-        }
+        .btn-actions .btn-cancel { flex: 1; }
 
         #msg {
             margin-top: 1.5rem;
@@ -368,9 +469,6 @@ $facture_id = $facture_id ?? 123;
         #msg.success { background: #ECFDF5; color: #10B981; }
         #msg.error { background: #FEF2F2; color: #EF4444; }
 
-        /* ============================================================
-           SPINNER POUR LES BOUTONS (Payer / Annuler)
-           ============================================================ */
         .spinner-border {
             display: inline-block;
             width: 1rem;
@@ -381,21 +479,11 @@ $facture_id = $facture_id ?? 123;
             border-radius: 50%;
             animation: spinner-border-anim 0.75s linear infinite;
         }
-        .spinner-border-sm {
-            width: 0.9rem;
-            height: 0.9rem;
-            border-width: 0.15em;
-        }
-        @keyframes spinner-border-anim {
-            to { transform: rotate(360deg); }
-        }
+        .spinner-border-sm { width: 0.9rem; height: 0.9rem; border-width: 0.15em; }
+        @keyframes spinner-border-anim { to { transform: rotate(360deg); } }
         .btn-login .spinner-border,
-        .btn-cancel .spinner-border {
-            color: #fff;
-            margin-right: 8px;
-        }
+        .btn-cancel .spinner-border { color: #fff; margin-right: 8px; }
 
-        /* Indice d'aide sous le champ mobile money */
         .field-hint {
             display: block;
             font-size: 0.75rem;
@@ -404,6 +492,11 @@ $facture_id = $facture_id ?? 123;
             font-style: italic;
         }
         .field-hint i { color: #3B82F6; margin-right: 4px; }
+
+        .form-disabled .amounts-container,
+        .form-disabled #mode_paiement,
+        .form-disabled #montant_payer,
+        .form-disabled .dynamic-field { opacity: 0.5; pointer-events: none; }
 
         @media (max-width: 600px) {
             .login-container { padding: 1.5rem; }
@@ -431,32 +524,42 @@ $facture_id = $facture_id ?? 123;
         <div class="login-container">
             <h5>Effectuer un paiement</h5>
 
-            <form id="form_paiement" method="POST">
+            <form id="form_paiement" method="POST" class="{{ $facture ? '' : 'form-disabled' }}">
                 @csrf
 
-                <input type="hidden" id="cdf_montant" name="cdf_montant" value="{{ number_format(abs(base64_decode($cdf_montant)), 2, ',', ' ') }}">
-                <input type="hidden" id="usd_montant" name="usd_montant" value="{{ number_format(abs(base64_decode($usd_montant)), 2, ',', ' ') }}">
-                <input type="hidden" id="facture_id" name="facture_id" value="{{ base64_decode($facture_id) ?? '' }}">
+                <input type="hidden" id="facture_id" name="facture_id" value="{{ $factureId ?? '' }}">
                 <input type="hidden" id="devise_facture" name="devise_facture" value="{{ $devise_facture }}">
+                <input type="hidden" id="cdf_montant" name="cdf_montant" value="{{ $facture ? number_format(abs($cdf_montant), 2, ',', ' ') : '' }}">
+                <input type="hidden" id="usd_montant" name="usd_montant" value="{{ $facture ? number_format(abs($usd_montant), 2, ',', ' ') : '' }}">
 
                 <div class="form-group">
-                    <label><i class="fas fa-file-invoice"></i> Numéro de facture</label>
-                    <input type="text" id="numero_facture" name="numero_facture"
-                           value="{{ $numero_facture }}"
-                           readonly
-                           tabindex="-1"
-                           onfocus="this.blur()"
-                           style="user-select: none;">
+                    <label for="numero_facture_select">
+                        <i class="fas fa-file-invoice"></i> Numéro de facture <span class="required-star">*</span>
+                    </label>
+                    <select id="numero_facture_select" name="numero_facture_select" autocomplete="off">
+                        <option value="" disabled {{ $facture ? '' : 'selected' }}>-- Sélectionner une facture --</option>
+                        @forelse($toutes_factures as $fi)
+                            <option value="{{ $fi->id }}" {{ $fi->id == $factureId ? 'selected' : '' }}>
+                                {{ $fi->numero ?? 'FAC-' . str_pad($fi->id, 6, '0', STR_PAD_LEFT) }}
+                                @if($getNomClient($fi))
+                                    — {{ $getNomClient($fi) }}
+                                @endif
+                            </option>
+                        @empty
+                            <option value="" disabled>-- Aucune facture impayée --</option>
+                        @endforelse
+                    </select>
+                    <input type="hidden" id="numero_facture" name="numero_facture" value="{{ $numero_facture }}">
                 </div>
 
                 <div class="amounts-container">
-                    <div class="amount-card {{ $devise_defaut === 'CDF' ? 'active' : '' }}">
+                    <div class="amount-card {{ $devise_defaut === 'CDF' && $facture ? 'active' : '' }}" id="card_cdf">
                         <span class="amount-icon"><i class="fas fa-money-bill-wave"></i></span>
-                        <h4>{{ number_format(abs(base64_decode($cdf_montant)), 2, ',', ' ') }} CDF</h4>
+                        <h4 id="text_cdf">{{ $facture ? number_format(abs($cdf_montant), 2, ',', ' ') : '0,00' }} CDF</h4>
                     </div>
-                    <div class="amount-card {{ $devise_defaut === 'USD' ? 'active' : '' }}">
+                    <div class="amount-card {{ $devise_defaut === 'USD' && $facture ? 'active' : '' }}" id="card_usd">
                         <span class="amount-icon"><i class="fas fa-dollar-sign"></i></span>
-                        <h4>{{ number_format(abs(base64_decode($usd_montant)), 2, ',', ' ') }} USD</h4>
+                        <h4 id="text_usd">{{ $facture ? number_format(abs($usd_montant), 2, ',', ' ') : '0,00' }} USD</h4>
                     </div>
                 </div>
 
@@ -511,7 +614,7 @@ $facture_id = $facture_id ?? 123;
                 </div>
 
                 <div class="btn-actions">
-                    <button class="btn-login" id="btn_payer" type="button">
+                    <button class="btn-login" id="btn_payer" type="button" {{ $facture ? '' : 'disabled' }}>
                         <i class="fas fa-hand-holding-usd"></i> Payer
                     </button>
                     <button class="btn-cancel" id="btn_annuler" type="button">
@@ -529,68 +632,39 @@ $facture_id = $facture_id ?? 123;
     <script src="{{ asset('./assets/vendors/popper.js/popper.min.js') }}"></script>
     <script src="{{ asset('./assets/vendors/bootstrap/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('./assets/js/app.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <span style="display: none;" id="v_mode_abonnement"></span>
 
     <script>
-        // ===== CONFIGURATION GLOBALE CSRF POUR TOUTES LES REQUÊTES AJAX =====
         $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
         });
 
-        // ===== OUTILS =====
+        var URL_FACTURE_MONTANTS = "{{ route('get_facture_montants') }}";
+
         function convertirEnNombre(valeur) {
             if (!valeur && valeur !== 0) return NaN;
-            let str = String(valeur).trim();
-            str = str.replace(/\s/g, '');
-            str = str.replace(',', '.');
+            let str = String(valeur).trim().replace(/\s/g, '').replace(',', '.');
             return parseFloat(str);
         }
 
-        /**
-         * Normalise un numéro mobile money vers le format +243XXXXXXXXX
-         * Accepte : +243812345678, 243812345678, 0812345678, 812345678
-         * Retourne null si le format est invalide.
-         */
         function normaliserNumeroMobile(numero) {
             if (!numero) return null;
             var clean = String(numero).replace(/[\s\-\.\(\)]/g, '');
-
-            if (/^\+243[0-9]{9}$/.test(clean)) {
-                return clean;
-            }
-            if (/^243[0-9]{9}$/.test(clean)) {
-                return '+' + clean;
-            }
-            if (/^0[1-9][0-9]{8}$/.test(clean)) {
-                return '+243' + clean.substring(1);
-            }
-            if (/^[1-9][0-9]{8}$/.test(clean)) {
-                return '+243' + clean;
-            }
+            if (/^\+243[0-9]{9}$/.test(clean)) return clean;
+            if (/^243[0-9]{9}$/.test(clean)) return '+' + clean;
+            if (/^0[1-9][0-9]{8}$/.test(clean)) return '+243' + clean.substring(1);
+            if (/^[1-9][0-9]{8}$/.test(clean)) return '+243' + clean;
             return null;
         }
 
-        var DEVISE_DEFAUT = "{{ $devise_defaut }}";
-
-        // ============================================================
-        // ===== MESSAGE : PAS DE SPINNER — icône statique ============
-        // ============================================================
         function showMessage(message, type) {
-            var icons = {
-                processing: 'fa-hourglass-half',   // ✅ icône statique, PAS de spin
-                success: 'fa-check-circle',
-                error: 'fa-exclamation-circle'
-            };
+            var icons = { processing: 'fa-hourglass-half', success: 'fa-check-circle', error: 'fa-exclamation-circle' };
             var classes = { processing: 'processing', success: 'success', error: 'error' };
             var icon = icons[type] || 'fa-info-circle';
-            var cls = classes[type] || 'processing';
-
-            $('#msg')
-                .removeClass('processing success error')
-                .addClass(cls + ' show')
+            var cls  = classes[type] || 'processing';
+            $('#msg').removeClass('processing success error').addClass(cls + ' show')
                 .html('<i class="fas ' + icon + '"></i> <span>' + message + '</span>');
         }
 
@@ -598,32 +672,21 @@ $facture_id = $facture_id ?? 123;
             $('#msg').removeClass('processing success error show').html('');
         }
 
-        // ===== AFFICHAGE PROGRESSIF (typewriter — icône statique) =====
         function typeMessage(message, type, duration) {
-            var icons = {
-                processing: 'fa-hourglass-half',   // ✅ statique
-                success: 'fa-check-circle',
-                error: 'fa-exclamation-circle'
-            };
+            var icons = { processing: 'fa-hourglass-half', success: 'fa-check-circle', error: 'fa-exclamation-circle' };
             var classes = { processing: 'processing', success: 'success', error: 'error' };
             var icon = icons[type] || 'fa-info-circle';
-            var cls = classes[type] || 'processing';
+            var cls  = classes[type] || 'processing';
             duration = duration || 40;
-
-            $('#msg').removeClass('processing success error').addClass(cls + ' show').html('<i class="fas ' + icon + '"></i> <span></span>');
-            var target = $('#msg span');
-            var i = 0;
+            $('#msg').removeClass('processing success error').addClass(cls + ' show')
+                .html('<i class="fas ' + icon + '"></i> <span></span>');
+            var target = $('#msg span'), i = 0;
             var timer = setInterval(function() {
-                if (i < message.length) {
-                    target.text(target.text() + message[i]);
-                    i++;
-                } else {
-                    clearInterval(timer);
-                }
+                if (i < message.length) { target.text(target.text() + message[i]); i++; }
+                else clearInterval(timer);
             }, duration);
         }
 
-        // ===== TOGGLE DES CHAMPS =====
         function toggleFields() {
             var selectedMode = $('#mode_paiement').val();
             $('#devise_field').removeClass('show');
@@ -643,96 +706,154 @@ $facture_id = $facture_id ?? 123;
 
         $('#mode_paiement').change(function() { toggleFields(); });
 
-        // ===== SYNCHRO MONTANT ↔ DEVISE =====
         $('#devise').change(function() {
             var devise = $(this).val();
             var cdf = $('#cdf_montant').val();
             var usd = $('#usd_montant').val();
 
-            if (devise === 'USD') {
-                $('#montant_payer').val(usd);
-            } else if (devise === 'CDF') {
-                $('#montant_payer').val(cdf);
-            }
+            if (devise === 'USD') $('#montant_payer').val(usd);
+            else if (devise === 'CDF') $('#montant_payer').val(cdf);
 
-            $('.amount-card').removeClass('active');
-            if (devise === 'USD') {
-                $('.amount-card:last').addClass('active');
-            } else if (devise === 'CDF') {
-                $('.amount-card:first').addClass('active');
-            }
+            $('#card_cdf, #card_usd').removeClass('active');
+            if (devise === 'USD') $('#card_usd').addClass('active');
+            else if (devise === 'CDF') $('#card_cdf').addClass('active');
         });
 
-        // ============================================================
-        // ===== FONCTIONS DE GESTION DES BOUTONS =====================
-        // ============================================================
         function resetPayerButton() {
-            $("#btn_payer")
-                .prop("disabled", false)
-                .html('<i class="fas fa-hand-holding-usd"></i> Payer');
+            var factureId = $('#facture_id').val();
+            if (!factureId || factureId == 0) {
+                $("#btn_payer").prop("disabled", true).html('<i class="fas fa-hand-holding-usd"></i> Payer');
+            } else {
+                $("#btn_payer").prop("disabled", false).html('<i class="fas fa-hand-holding-usd"></i> Payer');
+            }
         }
 
         function resetAnnulerButton() {
-            $("#btn_annuler")
-                .prop("disabled", false)
-                .html('<i class="fas fa-times-circle"></i> Annuler')
-                .show();
+            $("#btn_annuler").prop("disabled", false)
+                .html('<i class="fas fa-times-circle"></i> Annuler').show();
         }
 
-        // ✅ Helper : met le bouton Payer en mode "chargement" (spinner + texte)
         function setPayerLoading(texte) {
             $("#btn_payer").prop("disabled", true).html(
                 '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' + texte
             );
         }
 
-        // ✅ Helper : met le bouton Annuler en mode "chargement" (spinner + texte)
         function setAnnulerLoading(texte) {
             $("#btn_annuler").prop("disabled", true).html(
                 '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' + texte
             );
         }
 
+        function chargerFacture(factureId, cb) {
+            if (!factureId) { if (cb) cb(false); return; }
+
+            $.ajax({
+                type: "GET",
+                url: URL_FACTURE_MONTANTS,
+                data: { facture_id: factureId },
+                dataType: 'json',
+                success: function(r) {
+                    if (!r || !r.success) {
+                        showMessage(r.message || 'Impossible de charger cette facture.', 'error');
+                        if (cb) cb(false);
+                        return;
+                    }
+
+                    $('#facture_id').val(r.facture_id);
+                    $('#devise_facture').val(r.devise);
+                    $('#cdf_montant').val(r.cdf);
+                    $('#usd_montant').val(r.usd);
+                    $('#numero_facture').val(r.numero_facture);
+
+                    $('#text_cdf').text(r.cdf + ' CDF');
+                    $('#text_usd').text(r.usd + ' USD');
+
+                    $('#devise').val(r.devise_defaut);
+
+                    $('#card_cdf, #card_usd').removeClass('active');
+                    if (r.devise_defaut === 'USD') $('#card_usd').addClass('active');
+                    else $('#card_cdf').addClass('active');
+
+                    $('#montant_payer').val(r.montant_defaut);
+
+                    $('#form_paiement').removeClass('form-disabled');
+                    $('#numero_facture_select').next('.select2-container')
+                        .find('.select2-selection--single').removeClass('error');
+
+                    resetPayerButton();
+                    toggleFields();
+                    clearMessage();
+
+                    if (cb) cb(true);
+                },
+                error: function(xhrErr) {
+                    console.error('Erreur get_facture_montants:', xhrErr);
+                    showMessage('Erreur de connexion. Impossible de charger les données.', 'error');
+                    if (cb) cb(false);
+                }
+            });
+        }
+
         $(document).ready(function() {
+
+            $('#numero_facture_select').select2({
+                placeholder: "-- Sélectionner une facture --",
+                allowClear: false,
+                width: '100%',
+                language: {
+                    noResults: function() { return "Aucune facture trouvée"; },
+                    searching: function() { return "Recherche..."; }
+                }
+            });
+
             toggleFields();
 
-            var cdfDefaut = $('#cdf_montant').val();
-            var usdDefaut = $('#usd_montant').val();
-
-            if (DEVISE_DEFAUT === 'USD' && usdDefaut) {
-                $('#montant_payer').val(usdDefaut);
-            } else if (DEVISE_DEFAUT === 'CDF' && cdfDefaut) {
-                $('#montant_payer').val(cdfDefaut);
+            var factureId = $('#facture_id').val();
+            if (factureId && factureId != 0) {
+                var deviseDefaut = $('#devise').val() || "{{ $devise_defaut }}";
+                var cdfDefaut = $('#cdf_montant').val();
+                var usdDefaut = $('#usd_montant').val();
+                if (deviseDefaut === 'USD' && usdDefaut) $('#montant_payer').val(usdDefaut);
+                else if (deviseDefaut === 'CDF' && cdfDefaut) $('#montant_payer').val(cdfDefaut);
             }
 
-            // Filtre de saisie mobile : chiffres, +, espaces, tirets, points
             $('#numero_mobile').on('input', function() {
                 this.value = this.value.replace(/[^\d\+\s\-\.]/g, '');
             });
 
             resetAnnulerButton();
+
+            $('#numero_facture_select').on('change', function () {
+                var newId = $(this).val();
+                if (!newId) return;
+
+                showMessage('Chargement des données de la facture...', 'processing');
+
+                chargerFacture(newId, function(ok) {
+                    if (ok) {
+                        $('#numero_mobile').val('');
+                        $('#numero_compte').val('');
+                        $('#nom_titulaire').val('');
+                        clearMessage();
+                    }
+                });
+            });
         });
 
         $('#montant_payer, #numero_mobile, #numero_compte, #nom_titulaire, #devise').on('input change', function() {
             $(this).removeClass('error');
         });
 
-        // ============================================================
-        // ===== LOGIQUE PAIEMENT =====================================
-        // ============================================================
         var xhr = [];
         var interv = null;
         REF = '';
         var mode_abonnement = 1;
 
-        // ===== CALLBACK de polling =====
         var callback = function() {
             var x = $.ajax({
                 url: "{{ url('/check_payment') }}",
-                data: {
-                    myref: REF,
-                    mode_abonnement: mode_abonnement,
-                },
+                data: { myref: REF, mode_abonnement: mode_abonnement },
                 success: function(res) {
                     try {
                         var mode_abonnement = $("#v_mode_abonnement").html();
@@ -742,19 +863,15 @@ $facture_id = $facture_id ?? 123;
 
                         if (mode_abonnement == 1) {
                             if (status === 'success') {
-                                clearInterval(interv);
-                                interv = null;
+                                clearInterval(interv); interv = null;
                                 $(xhr).each(function(i, xh) { try { xh.abort(); } catch (e) {} });
                                 xhr = [];
                                 resetPayerButton();
                                 resetAnnulerButton();
                                 typeMessage(parsed.message || 'Paiement effectué avec succès !', 'success');
-                                setTimeout(function() {
-                                    location.assign("{{ url('/') }}");
-                                }, 5000);
+                                setTimeout(function() { location.assign("{{ url('/') }}"); }, 5000);
                             } else if (status === 'failed') {
-                                clearInterval(interv);
-                                interv = null;
+                                clearInterval(interv); interv = null;
                                 $(xhr).each(function(i, xh) { try { xh.abort(); } catch (e) {} });
                                 xhr = [];
                                 resetPayerButton();
@@ -768,69 +885,38 @@ $facture_id = $facture_id ?? 123;
                         console.error('Erreur parsing check_payment:', e, res);
                     }
                 },
-                error: function(xhrErr) {
-                    console.error('Erreur AJAX check_payment:', xhrErr);
-                }
+                error: function(xhrErr) { console.error('Erreur AJAX check_payment:', xhrErr); }
             });
             xhr.push(x);
         };
 
-        // ============================================================
-        // ===== CLIC SUR LE BOUTON ANNULER ===========================
-        // ✅ Spinner + texte "Annulation..." conservés
-        // ============================================================
         $("#btn_annuler").click(function(e) {
             e.preventDefault();
-
-            // 1) Bouton Annuler en mode chargement
             setAnnulerLoading("Annulation...");
-
-            // 2) Stopper le polling
-            if (interv) {
-                clearInterval(interv);
-                interv = null;
-            }
-
-            // 3) Abandonner toutes les requêtes AJAX en cours
-            $(xhr).each(function(i, xh) {
-                try { xh.abort(); } catch (err) { /* noop */ }
-            });
-            xhr = [];
-            REF = '';
-
-            // 4) Remettre le bouton Payer à son état initial
+            if (interv) { clearInterval(interv); interv = null; }
+            $(xhr).each(function(i, xh) { try { xh.abort(); } catch (err) {} });
+            xhr = []; REF = '';
             resetPayerButton();
-
-            // 5) Message d'annulation (sans spinner)
             typeMessage("Paiement annulé par l'utilisateur.", 'error');
-
-            // 6) Remettre le bouton Annuler à son état normal
-            setTimeout(function() {
-                resetAnnulerButton();
-            }, 2500);
+            setTimeout(function() { resetAnnulerButton(); }, 2500);
         });
 
-        // ============================================================
-        // ===== CLIC SUR LE BOUTON PAYER =============================
-        // ✅ Spinner + texte de chargement conservés sur le bouton
-        // ✅ Aucun spinner dans le message
-        // ============================================================
         $("#btn_payer").click(async function(e) {
             e.preventDefault();
-            var btn = $(this);
             var factureId = $('#facture_id').val();
 
-            $('.form-group input:not([readonly]), .form-group select').removeClass('error');
+            $('.form-group input, .form-group select').removeClass('error');
+            $('#numero_facture_select').next('.select2-container')
+                .find('.select2-selection--single').removeClass('error');
             clearMessage();
 
-            // ===== VÉRIF 1 : facture présente =====
             if (!factureId || factureId == 0 || factureId === "0") {
-                showMessage('Facture introuvable.', 'error');
+                $('#numero_facture_select').next('.select2-container')
+                    .find('.select2-selection--single').addClass('error');
+                showMessage('Veuillez sélectionner une facture.', 'error');
                 return;
             }
 
-            // ===== VÉRIF 2 : appel check_paie_facture =====
-            // ✅ Bouton Payer : spinner + texte "Vérification..."
             setPayerLoading("Vérification...");
             showMessage('Vérification de la facture en cours...', 'processing');
 
@@ -840,23 +926,15 @@ $facture_id = $facture_id ?? 123;
             } catch (err) {
                 console.error('Erreur check_paie_facture:', err);
                 resetPayerButton();
-                showMessage('Erreur de connexion lors de la vérification de la facture. Veuillez réessayer.', 'error');
+                showMessage('Erreur de connexion lors de la vérification de la facture.', 'error');
                 return;
             }
 
             if (response == 1) {
                 showMessage('Cette facture a déjà été payée.', 'error');
-                resetPayerButton();
-                return;
-            } else if (response != 0 && response != "" && response !== undefined && response !== null) {
-                if (typeof response === 'string' && response.length > 0 && isNaN(response) === false && response != 0) {
-                    showMessage('Cette facture a déjà été payée.', 'error');
-                    resetPayerButton();
-                    return;
-                }
+                resetPayerButton(); return;
             }
 
-            // ===== VÉRIF 3 : mode de paiement =====
             var mode_paiement = $('#mode_paiement').val();
             var devise_texte = $('#devise').val();
             var montant_payer = $('#montant_payer').val();
@@ -864,44 +942,34 @@ $facture_id = $facture_id ?? 123;
             if (!mode_paiement) {
                 $('#mode_paiement').addClass('error');
                 showMessage('Veuillez sélectionner un mode de paiement.', 'error');
-                resetPayerButton();
-                return;
+                resetPayerButton(); return;
             }
 
-            // ===== VÉRIF 4 : montant obligatoire =====
             if (!montant_payer || !montant_payer.trim()) {
                 $('#montant_payer').addClass('error').focus();
                 showMessage('Veuillez saisir le montant à payer.', 'error');
-                resetPayerButton();
-                return;
+                resetPayerButton(); return;
             }
 
-            // ===== VÉRIF 5 : montant numérique =====
             var montant_numerique = convertirEnNombre(montant_payer);
             if (isNaN(montant_numerique)) {
                 $('#montant_payer').addClass('error').focus();
                 showMessage('Le montant saisi est invalide.', 'error');
-                resetPayerButton();
-                return;
+                resetPayerButton(); return;
             }
 
-            // ===== VÉRIF 6 : montant > 0 =====
             if (montant_numerique <= 0) {
                 $('#montant_payer').addClass('error').focus();
                 showMessage('Le montant doit être supérieur à zéro.', 'error');
-                resetPayerButton();
-                return;
+                resetPayerButton(); return;
             }
 
-            // ===== VÉRIF 7 : devise =====
             if (!devise_texte) {
                 $('#devise').addClass('error');
                 showMessage('Veuillez choisir une devise (USD ou CDF).', 'error');
-                resetPayerButton();
-                return;
+                resetPayerButton(); return;
             }
 
-            // ===== VÉRIF 8 : montant ≤ facture =====
             var rawCdf = $('#cdf_montant').val();
             var rawUsd = $('#usd_montant').val();
             var cdf_numerique = convertirEnNombre(rawCdf);
@@ -910,80 +978,61 @@ $facture_id = $facture_id ?? 123;
             if (devise_texte === 'USD') {
                 if (montant_numerique > usd_numerique) {
                     $('#montant_payer').addClass('error').focus();
-                    showMessage('Le montant saisi dépasse le montant USD de la facture (' + rawUsd + ' USD).', 'error');
-                    resetPayerButton();
-                    return;
+                    showMessage('Le montant dépasse le montant USD de la facture (' + rawUsd + ' USD).', 'error');
+                    resetPayerButton(); return;
                 }
             } else if (devise_texte === 'CDF') {
                 if (montant_numerique > cdf_numerique) {
                     $('#montant_payer').addClass('error').focus();
-                    showMessage('Le montant saisi dépasse le montant CDF de la facture (' + rawCdf + ' CDF).', 'error');
-                    resetPayerButton();
-                    return;
+                    showMessage('Le montant dépasse le montant CDF de la facture (' + rawCdf + ' CDF).', 'error');
+                    resetPayerButton(); return;
                 }
             }
 
             var montant_a_envoyer = montant_numerique;
             var devise_code = devise_texte;
-
-            // ===== VÉRIF 9 : champs spécifiques au mode =====
             var mobile_money = "";
             var numero_compte = "";
             var nom_titulaire = "";
 
             if (mode_paiement === 'mobile_money') {
                 var numero_mobile = $('#numero_mobile').val();
-
                 if (!numero_mobile || !numero_mobile.trim()) {
                     $('#numero_mobile').addClass('error').focus();
                     showMessage('Veuillez saisir votre numéro Mobile Money.', 'error');
-                    resetPayerButton();
-                    return;
+                    resetPayerButton(); return;
                 }
-
                 var numero_normalise = normaliserNumeroMobile(numero_mobile);
-
                 if (!numero_normalise) {
                     $('#numero_mobile').addClass('error').focus();
-                    showMessage('Numéro Mobile Money invalide. Utilisez le format +243XXXXXXXXX (ex: +243812345678).', 'error');
-                    resetPayerButton();
-                    return;
+                    showMessage('Numéro Mobile Money invalide (+243XXXXXXXXX).', 'error');
+                    resetPayerButton(); return;
                 }
-
                 $('#numero_mobile').val(numero_normalise);
                 mobile_money = numero_normalise;
-
             } else if (mode_paiement === 'bank') {
                 numero_compte = $('#numero_compte').val();
                 nom_titulaire = $('#nom_titulaire').val();
-
                 if (!numero_compte.trim()) {
                     $('#numero_compte').addClass('error').focus();
                     showMessage('Veuillez saisir votre numéro de compte bancaire.', 'error');
-                    resetPayerButton();
-                    return;
+                    resetPayerButton(); return;
                 }
                 if (!nom_titulaire.trim()) {
                     $('#nom_titulaire').addClass('error').focus();
                     showMessage('Veuillez saisir le nom du titulaire du compte.', 'error');
-                    resetPayerButton();
-                    return;
+                    resetPayerButton(); return;
                 }
                 if (numero_compte.length < 10) {
                     $('#numero_compte').addClass('error').focus();
                     showMessage('Numéro de compte trop court (min. 10 caractères).', 'error');
-                    resetPayerButton();
-                    return;
+                    resetPayerButton(); return;
                 }
                 mobile_money = numero_compte;
             }
 
-            // ===== POST vers save_paiement_facture_1 =====
             $("#v_mode_abonnement").html(1);
-
-            // ✅ Bouton Payer : spinner + texte "Traitement..."
             setPayerLoading("Traitement...");
-
             showMessage('Initialisation de la transaction en cours...', 'processing');
 
             $.ajax({
@@ -1002,43 +1051,30 @@ $facture_id = $facture_id ?? 123;
                 },
                 success: function(rep) {
                     var r;
-                    try {
-                        r = (typeof rep === 'string') ? JSON.parse(rep) : rep;
-                    } catch (err) {
-                        console.error('Réponse non-JSON:', rep);
+                    try { r = (typeof rep === 'string') ? JSON.parse(rep) : rep; }
+                    catch (err) {
                         resetPayerButton();
-                        showMessage('Réponse invalide du serveur. Veuillez réessayer.', 'error');
+                        showMessage('Réponse invalide du serveur.', 'error');
                         return;
                     }
-
                     if (r && r.success) {
-                        // ✅ Le bouton Payer reste en mode chargement pendant le polling
-                        typeMessage(
-                            r.message || 'Transaction initialisée avec succès. Veuillez saisir votre Pin Mobile Money pour confirmer la transaction.',
-                            'success'
-                        );
+                        typeMessage(r.message || 'Transaction initialisée. Saisissez votre Pin pour confirmer.', 'success');
                         clearInterval(interv);
                         REF = r.myref;
                         interv = setInterval(callback, 3000);
-
-                        // Le bouton Annuler reste visible et actif pendant le polling
                         resetAnnulerButton();
                     } else {
                         resetPayerButton();
                         resetAnnulerButton();
-                        typeMessage(
-                            (r && r.message) ? r.message : 'Erreur lors de l\'initialisation du paiement.',
-                            'error'
-                        );
+                        typeMessage((r && r.message) ? r.message : 'Erreur lors de l\'initialisation.', 'error');
                     }
                 },
                 error: function(xhrErr) {
-                    console.error('Erreur AJAX save_paiement_facture_1:', xhrErr);
                     resetPayerButton();
                     resetAnnulerButton();
                     var errMsg = 'Erreur de connexion au serveur. Veuillez réessayer.';
-                    if (xhrErr.status === 419) errMsg = 'Session expirée. Veuillez recharger la page.';
-                    if (xhrErr.status === 500) errMsg = 'Erreur interne du serveur. Veuillez réessayer plus tard.';
+                    if (xhrErr.status === 419) errMsg = 'Session expirée. Rechargez la page.';
+                    if (xhrErr.status === 500) errMsg = 'Erreur interne du serveur.';
                     if (xhrErr.status === 404) errMsg = 'Service de paiement introuvable.';
                     showMessage(errMsg, 'error');
                 }

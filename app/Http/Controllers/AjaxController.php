@@ -11499,6 +11499,128 @@ class AjaxController extends Controller
         return response()->json([[$nom_fichier, number_format($cdf_montant_payer, 2, ',', ' '), number_format($usd_montant_payer, 2, ',', ' '), $tva, $taux, $payer]]);
     }
 
+    public function get_facture_montants(Request $request)
+    {
+        $factureId = $request->query('facture_id');
+        $factureId = is_numeric($factureId) ? (int) $factureId : null;
+
+        $facture = $factureId ? Factureass::find($factureId) : null;
+
+        if (!$facture) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Facture introuvable.',
+            ], 404);
+        }
+
+        $taux = $facture->taux ?? 1;
+        if ($taux <= 0) $taux = 1;
+
+        $devise_facture = $facture->devise ?? 0;
+
+        $achats    = Achats::where('facture_id', $factureId)->get();
+        $paiements = detailpaiessachats::where('facture_id', $factureId)->get();
+
+        // 1. Total original (sans frais) avec réduction
+        $total_original = 0;
+        foreach ($achats as $a) {
+            $dev_a = $a->devise_achat ?? $devise_facture;
+            $red   = (isset($a->reduction) && $a->reduction > 0) ? $a->reduction : 0;
+            $net   = $a->total - $red;
+
+            if ($dev_a == $devise_facture) {
+                $total_original += $net;
+            } elseif ($devise_facture == 0) {
+                $total_original += ($taux > 0) ? ($net / $taux) : 0;
+            } else {
+                $total_original += $net * $taux;
+            }
+        }
+
+        // 2. Paiements déjà effectués
+        $usd_paye = 0;
+        $cdf_paye = 0;
+        foreach ($paiements as $p) {
+            if ($p->devise_recu == 0) {
+                $usd_paye += $p->montant_recu;
+                $cdf_paye += $p->montant_recu * $taux;
+            } else {
+                $cdf_paye += $p->montant_recu;
+                $usd_paye += $p->montant_recu / $taux;
+            }
+        }
+
+        // 3. Total original en USD/CDF
+        if ($devise_facture == 0) {
+            $orig_usd = $total_original;
+            $orig_cdf = $total_original * $taux;
+        } else {
+            $orig_cdf = $total_original;
+            $orig_usd = $total_original / $taux;
+        }
+
+        // 4. Facture impayée ?
+        $est_impayee   = ($usd_paye < $orig_usd) || ($cdf_paye < $orig_cdf);
+        $delai_depasse = (time() - strtotime($facture->created_at)) > 3600;
+
+        // 5. Frais de crédit 5%
+        foreach ($achats as $achat) {
+            if (($achat->frais_credit == 0 || $achat->frais_credit === null)
+                && $est_impayee && $delai_depasse) {
+                $frais = $achat->total * 0.05;
+                $achat->frais_credit = $frais;
+                $achat->save();
+            }
+        }
+
+        // 6. Recalcul avec frais
+        $total_avec_frais = 0;
+        foreach ($achats as $achat) {
+            $dev_a = $achat->devise_achat ?? $devise_facture;
+            $red   = (isset($achat->reduction) && $achat->reduction > 0) ? $achat->reduction : 0;
+            $fr    = $achat->frais_credit ?? 0;
+            $net   = $achat->total - $red + $fr;
+
+            if ($dev_a == $devise_facture) {
+                $total_avec_frais += $net;
+            } elseif ($devise_facture == 0) {
+                $total_avec_frais += ($taux > 0) ? ($net / $taux) : 0;
+            } else {
+                $total_avec_frais += $net * $taux;
+            }
+        }
+
+        // 7. Total en USD/CDF
+        if ($devise_facture == 0) {
+            $usd_1 = $total_avec_frais;
+            $cdf_1 = $total_avec_frais * $taux;
+        } else {
+            $cdf_1 = $total_avec_frais;
+            $usd_1 = $total_avec_frais / $taux;
+        }
+
+        // 8. Solde restant
+        $usd_solde = max(0, $usd_1 - $usd_paye);
+        $cdf_solde = max(0, $cdf_1 - $cdf_paye);
+
+        $devise_defaut  = ($devise_facture == 1) ? 'CDF' : 'USD';
+        $montant_defaut = number_format(
+            abs($devise_defaut === 'USD' ? $usd_solde : $cdf_solde),
+            2, ',', ' '
+        );
+
+        return response()->json([
+            'success'        => true,
+            'facture_id'     => $facture->id,
+            'numero_facture' => $facture->numero ?? ('FAC-' . str_pad($facture->id, 6, '0', STR_PAD_LEFT)),
+            'devise'         => $devise_facture,
+            'devise_defaut'  => $devise_defaut,
+            'usd'            => number_format(abs($usd_solde), 2, ',', ' '),
+            'cdf'            => number_format(abs($cdf_solde), 2, ',', ' '),
+            'montant_defaut' => $montant_defaut,
+        ]);
+    }
+
     public function print_qr_code(Request $request)
     {
         // ---------- 1. URL à encoder dans le QR code ----------

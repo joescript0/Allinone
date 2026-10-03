@@ -358,6 +358,7 @@ Route::post('/save_paiement_facture_1', [GopayController::class, 'save_paiement_
 Route::get ('/check_payment', [GopayController::class, 'check_payment'])->name('check_payment');
 Route::get ('/complete_trans',[GopayController::class, 'complete_trans'])->name('complete_trans');
 Route::get('/print_qr_code', [AjaxController::class, 'print_qr_code'])->name('print_qr_code');
+Route::get('/get_facture_montants', [AjaxController::class, 'get_facture_montants'])->name('get_facture_montants');;
 
 // Route::get('/', function () {
 //     $user = new User();
