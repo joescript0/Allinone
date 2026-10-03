@@ -3,7 +3,7 @@
     use App\Models\Factureass;
     use App\Models\detailpaiessachats;
     use App\Models\Achats;
-    use App\Models\clients;
+    use App\Models\Clients;
     use Illuminate\Support\Facades\DB;
 
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
@@ -567,7 +567,7 @@
                     <label><i class="fas fa-credit-card"></i> Mode de paiement <span class="required-star">*</span></label>
                     <select id="mode_paiement" name="mode_paiement">
                         <option value="mobile_money" selected>Mobile Money</option>
-                        <option value="bank">Virement bancaire</option>
+                        <option disabled value="bank">Virement bancaire</option>
                     </select>
                 </div>
 

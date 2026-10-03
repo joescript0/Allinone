@@ -464,7 +464,7 @@ $facture_id = $facture_id ?? 123;
                     <label><i class="fas fa-credit-card"></i> Mode de paiement <span class="required-star">*</span></label>
                     <select id="mode_paiement" name="mode_paiement">
                         <option value="mobile_money" selected>Mobile Money</option>
-                        <option value="bank">Virement bancaire</option>
+                        <option disabled value="bank">Virement bancaire</option>
                     </select>
                 </div>
 
