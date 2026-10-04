@@ -78,10 +78,13 @@ use App\Models\detailsaffectationspointventes;
 use App\Models\affectationspointventes;
 use App\Models\Communiquerclients;
 use App\Models\listesdesinvites;
+use App\Models\Patients;
+use App\Models\Personnes;
 use App\Models\Rappelscredits;
 use App\Models\Tables;
 use App\Models\transfertstocks;
 use App\Models\Typeventes;
+use App\Models\Visiteurs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -124,6 +127,7 @@ class AjaxController extends Controller
     {
         $this->client_to_prospect();
         $this->calculer_commission();
+        $this->all_user_to_personne();
     }
     public function envoyer_sms($telephone, $msg)
     {
@@ -16768,6 +16772,36 @@ class AjaxController extends Controller
                     $commission->updated_at = $facture->updated_at;
 
                     $commission->save();
+                }
+            }
+        }
+    }
+
+    public function all_user_to_personne()
+    {
+        date_default_timezone_set('Africa/Lubumbashi');
+
+        $sources = [
+            0 => User::all(),
+            1 => Clients::all(),
+            2 => Patients::all(),
+            3 => Visiteurs::all(),
+        ];
+
+        foreach ($sources as $type => $entites) {
+            foreach ($entites as $entite) {
+                $existe = Personnes::where('user_id', $entite->id)
+                                ->where('type', $type)
+                                ->exists();
+
+                if (!$existe) {
+                    $idd = Personnes::get()->count() + 1;
+
+                    $personne = new Personnes();
+                    $personne->id      = $idd;
+                    $personne->user_id = $entite->id;
+                    $personne->type    = $type;
+                    $personne->save();
                 }
             }
         }

@@ -2985,6 +2985,25 @@ select.form-control {
                             resetButton();
                             return;
                         } else {
+                            // ✅ NOUVELLE VÉRIFICATION : refuser un libellé qui n'est que "client" ou "client pasager/passager" sous toutes ses formes
+                            var libelleClean = libelle.trim().toLowerCase()
+                                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")   // enlève les accents
+                                .replace(/[^a-z0-9]+/g, " ")                         // remplace tout séparateur par un espace
+                                .trim();
+
+                            // 🔹 Refuse : "client", "clients", "client pasager", "client passager",
+                            //    "client pasagers", "client passagers", "client pasagere(s)", "client passagere(s)"
+                            //    (1 ou plusieurs "s" dans pasager/passager, avec ou sans "s" au pluriel)
+                            var libelleInterdit  = /^(client|clients)( pas+agers?| pas+ageres?)?$/;
+                            var libelleInterdit2 = /^(libelle|nom|libelle client|nom client)$/;
+
+                            if (libelleInterdit.test(libelleClean) || libelleInterdit2.test(libelleClean)) {
+                                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le libellé ne peut pas être "client", "client pasager" ou similaire. Veuillez saisir un vrai nom.');
+                                setTimeout(() => { $('#msg').html(""); }, 9000);
+                                resetButton();
+                                return;
+                            }
+
                             $.ajax({
                                 type: "POST",
                                 url: "/add_achat_article",

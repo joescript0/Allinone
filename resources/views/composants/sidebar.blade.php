@@ -70,6 +70,7 @@
     $menu_50 = Desactiver();
     $menu_51 = Activer();
     $menu_52 = Desactiver();
+    $menu_53 = Activer();
   }
   elseif($menueapp == "Divine")
   {
@@ -129,6 +130,7 @@
     $menu_50 = Desactiver();
     $menu_51 = Activer();
     $menu_52 = Desactiver();
+    $menu_53 = Activer();
   }
 ?>
 
@@ -528,6 +530,7 @@
       $data["ressource_id_35"] = 35;
       $data["ressource_id_36"] = 36;
       $data["ressource_id_37"] = 37;
+      $data["ressource_id_38"] = 38;
       $data["groupe_user_id"] = $groupe_user_id;
       ?>
       <ul class="navigation">
@@ -1055,6 +1058,21 @@
                 ?>
                 <?php if (((($display_24 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_24"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_24 ==  0) && (Auth::user()->role == 0))) { ?>
                     <li id="link_45"><a href="{{ route('debarrasseur_se') }}" id="text_43"> 🧹 Débarrasseur(se)</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+
+        @if ($menu_53 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_38"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_38 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_38"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+                    {
+                        $display_38 = Writes::where(["ressource_id" => $data["ressource_id_37"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_38 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_38"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_38 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_59"><a href="{{ route('accueil_orientation') }}" id="text_59"> 🕓 Accueil & Orientation</a></li>
                 <?php } ?>
             <?php } ?>
         @endif

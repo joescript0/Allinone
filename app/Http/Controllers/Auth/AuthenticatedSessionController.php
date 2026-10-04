@@ -12,6 +12,9 @@ use App\Models\Factureass;
 use App\Models\Facturess;
 use App\Models\prospects;
 use App\Models\User;
+use App\Models\Patients;
+use App\Models\Visiteurs;
+use App\Models\Personnes;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,6 +59,7 @@ class AuthenticatedSessionController extends Controller
         // $this->send_sms_clients();
         $this->client_to_prospect();
         $this->calculer_commission();
+        // $this->all_user_to_personne();
         // $this->mobile_money(10, 'USD', '993093010');
         // $this->envoyer_sms("+243831957983", "Mon amour ça ira t'inquite je recherche juste un d'argent pour finir avec ta dette des 60.000 mon bébé je juste fait un faux calcul amour pais ça ira ma cherie stp on fait le devis pour pour qu'on nous donnes la moitié my amor ecoute ça ira je regles ton problème bientot amour.");
     }
@@ -359,4 +363,36 @@ class AuthenticatedSessionController extends Controller
 
         echo GoPayUI::renderForm($form);
     }
+
+
+    public function all_user_to_personne()
+    {
+        date_default_timezone_set('Africa/Lubumbashi');
+
+        $sources = [
+            0 => User::all(),
+            1 => Clients::all(),
+            2 => Patients::all(),
+            3 => Visiteurs::all(),
+        ];
+
+        foreach ($sources as $type => $entites) {
+            foreach ($entites as $entite) {
+                $existe = Personnes::where('user_id', $entite->id)
+                                ->where('type', $type)
+                                ->exists();
+
+                if (!$existe) {
+                    $idd = Personnes::get()->count() + 1;
+
+                    $personne = new Personnes();
+                    $personne->id      = $idd;
+                    $personne->user_id = $entite->id;
+                    $personne->type    = $type;
+                    $personne->save();
+                }
+            }
+        }
+    }
+
 }

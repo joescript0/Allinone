@@ -445,6 +445,7 @@ Route::get('/invitation_formulaire', [App\Http\Controllers\InvitationnumControll
 Route::get('/invitation_programme', [App\Http\Controllers\InvitationnumController::class, 'invitation_programme'])->name('invitation_programme');
 Route::get('/check_qr_code', [App\Http\Controllers\InvitationnumController::class, 'check_qr_code'])->name('check_qr_code');
 Route::get('/bulletin', [App\Http\Controllers\BulletinController::class, 'bulletin'])->name('bulletin');
+Route::get('/accueil_orientation', [App\Http\Controllers\HomeController::class, 'accueil_orientation'])->name('accueil_orientation');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
