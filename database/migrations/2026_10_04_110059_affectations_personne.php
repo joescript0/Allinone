@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('Personnes', function (Blueprint $table) {
+        Schema::table('personnes', function (Blueprint $table) {
             //
             $table->integer('poste_id')->default(0);
         });

@@ -71,6 +71,7 @@
     $menu_51 = Activer();
     $menu_52 = Desactiver();
     $menu_53 = Activer();
+    $menu_54 = Activer();
   }
   elseif($menueapp == "Divine")
   {
@@ -131,6 +132,7 @@
     $menu_51 = Activer();
     $menu_52 = Desactiver();
     $menu_53 = Activer();
+    $menu_54 = Activer();
   }
 ?>
 
@@ -531,6 +533,7 @@
       $data["ressource_id_36"] = 36;
       $data["ressource_id_37"] = 37;
       $data["ressource_id_38"] = 38;
+      $data["ressource_id_39"] = 39;
       $data["groupe_user_id"] = $groupe_user_id;
       ?>
       <ul class="navigation">
@@ -1072,7 +1075,22 @@
                     }
                 ?>
                 <?php if (((($display_38 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_38"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_38 ==  0) && (Auth::user()->role == 0))) { ?>
-                    <li id="link_59"><a href="{{ route('accueil_orientation') }}" id="text_59"> 🕓 Accueil & Orientation</a></li>
+                    <li id="link_59"><a href="{{ route('accueil_orientation') }}" id="text_59"> 🏛️ Accueil & Orientation</a></li>
+                <?php } ?>
+            <?php } ?>
+        @endif
+
+        @if ($menu_54 == 1)
+            <?php if ((Writes::where(["ressource_id" => $data["ressource_id_39"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
+                <?php
+                    $display_39 = 0;
+                    if ((Writes::where(["ressource_id" => $data["ressource_id_39"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+                    {
+                        $display_39 = Writes::where(["ressource_id" => $data["ressource_id_39"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+                    }
+                ?>
+                <?php if (((($display_39 ==  1)) && (Writes::where(["ressource_id" => $data["ressource_id_39"], "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display_39 ==  0) && (Auth::user()->role == 0))) { ?>
+                    <li id="link_60"><a href="{{ route('fidelite_client') }}" id="text_60"> 🎁 Fidelité des clients</a></li>
                 <?php } ?>
             <?php } ?>
         @endif

@@ -27,37 +27,11 @@ use Illuminate\Support\Facades\Auth;
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
 <style>
-/* ============================================================
-   DESIGN PREMIUM – UNIFIÉ AVEC LES PAGES "GESTION ARTICLE",
-   "APPROVISIONNEMENT" ET "FACTURES" – ADAPTÉ AUX CLIENTS
-   ============================================================ */
+body { margin: 0; padding: 0; background: #f0f4f8; }
+.content .container { max-width: 100% !important; width: 100%; padding: 0.5rem 1.5rem !important; margin: 0 auto; background: #f8fafc; }
+.content .container .row { margin-left: 0; margin-right: 0; }
+.content .container [class*="col-"] { padding-left: 0.75rem; padding-right: 0.75rem; }
 
-/* --- Reset des marges pour occuper tout l'écran --- */
-body {
-    margin: 0;
-    padding: 0;
-    background: #f0f4f8;
-}
-
-.content .container {
-    max-width: 100% !important;
-    width: 100%;
-    padding: 0.5rem 1.5rem !important;
-    margin: 0 auto;
-    background: #f8fafc;
-}
-
-.content .container .row {
-    margin-left: 0;
-    margin-right: 0;
-}
-
-.content .container [class*="col-"] {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-}
-
-/* --- Variables (identiques aux autres pages) --- */
 :root {
     --bleu-nuit: #0a192f;
     --bleu-nuit-clair: #112240;
@@ -72,11 +46,7 @@ body {
     --border-radius-lg: 16px;
 }
 
-/* --- Cartes principales --- */
-#bloc_1,
-#bloc_2,
-#bloc_3,
-#bloc_4 {
+#bloc_1, #bloc_2, #bloc_3, #bloc_4 {
     background: rgba(255, 255, 255, 0.96);
     border-radius: var(--border-radius-xl);
     box-shadow: var(--shadow-premium);
@@ -85,1119 +55,242 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* --- En-têtes --- */
-h4 {
-    font-weight: 700;
-    border-left: 6px solid #e31b23;
-    padding-left: 18px;
-    margin-bottom: 16px;
-    margin-top: 0;
-    color: var(--bleu-nuit);
-}
+h4 { font-weight: 700; border-left: 6px solid #e31b23; padding-left: 18px; margin-bottom: 16px; margin-top: 0; color: var(--bleu-nuit); }
+h4 i.zmdi { background: var(--bleu-nuit-gradient); background-clip: text; -webkit-background-clip: text; color: transparent !important; }
 
-h4 i.zmdi {
-    background: var(--bleu-nuit-gradient);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent !important;
-}
+.table-responsive { overflow-x: auto; overflow-y: visible; border-radius: var(--border-radius-lg); }
+.table { width: 100%; min-width: 800px; background: white; border-collapse: collapse; border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--shadow-light); table-layout: auto; }
+.table thead th { background: #E7F5FE !important; color: #0a192f; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 12px !important; border-bottom: 2px solid #cbd5e1 !important; border-right: 1px solid #d0e2f2; white-space: normal; word-break: break-word; }
+.table tbody tr { transition: all 0.15s ease; border-bottom: 1px solid #e2e8f0; }
+.table tbody tr:nth-child(even) { background-color: #f8fafc; }
+.table tbody tr:nth-child(odd) { background-color: #ffffff; }
+.table tbody tr:hover { background: #e6f0ff !important; cursor: default; }
+.table tbody td { padding: 10px 12px !important; vertical-align: middle !important; font-weight: 500; font-size: 0.85rem; color: #1e2a3e; word-break: break-word; border-bottom: 1px solid #eef2f6; line-height: 1.4; }
+.table tbody td:last-child { text-align: center; vertical-align: middle; }
 
-/* ========== TABLEAU : LIGNES AÉRÉES ET VISIBLES ========== */
-.table-responsive {
-    overflow-x: auto;
-    overflow-y: visible;
-    border-radius: var(--border-radius-lg);
-}
-
-.table {
-    width: 100%;
-    min-width: 800px;
-    background: white;
-    border-collapse: collapse;
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-light);
-    table-layout: auto;
-}
-
-/* En-tête */
-.table thead th {
-    background: #E7F5FE !important;
-    color: #0a192f;
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 14px 12px !important;
-    border-bottom: 2px solid #cbd5e1 !important;
-    border-right: 1px solid #d0e2f2;
-    white-space: normal;
-    word-break: break-word;
-}
-
-/* Lignes du tableau : padding augmenté, rayures et bordures nettes */
-.table tbody tr {
-    transition: all 0.15s ease;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.table tbody tr:nth-child(even) {
-    background-color: #f8fafc;
-}
-
-.table tbody tr:nth-child(odd) {
-    background-color: #ffffff;
-}
-
-.table tbody tr:hover {
-    background: #e6f0ff !important;
-    cursor: default;
-}
-
-.table tbody td {
-    padding: 10px 12px !important;
-    vertical-align: middle !important;
+/* ✅ Ligne "aucun résultat" : icône à côté + espacement réduit */
+.table tbody tr.no-result-row { background: #f8fafc !important; }
+.table tbody tr.no-result-row:hover { background: #f8fafc !important; cursor: default; }
+.table tbody tr.no-result-row td {
+    text-align: center !important;
+    padding: 15px 20px !important;
+    color: #94a3b8 !important;
+    font-size: 0.88rem !important;
     font-weight: 500;
-    font-size: 0.85rem;
-    color: #1e2a3e;
-    word-break: break-word;
-    border-bottom: 1px solid #eef2f6;
-    line-height: 1.4;
 }
-
-.table tbody td:last-child {
-    text-align: center;
+.table tbody tr.no-result-row td i.zmdi {
+    font-size: 1.3rem;
+    display: inline-block;
     vertical-align: middle;
-}
-
-/* ========== STYLE UNIQUE POUR TOUS LES BOUTONS ========== */
-#bloc_1 button,
-#bloc_2 button,
-#bloc_3 button,
-#bloc_4 button,
-#liste,
-#communiquer,
-#add,
-#add_r,
-#save,
-#save_r,
-#annuler,
-#edit_save,
-#edit_annuler,
-#print,
-#print_r,
-#mapAll,
-#mapAll_r,
-.btn-primary,
-.btn-info,
-.btn-danger,
-.btn-success,
-.btn-secondary {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 6px 16px !important;
-    font-weight: 600;
-    font-size: 0.85rem;
-    border-radius: 40px !important;
-    transition: all 0.25s ease;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    box-shadow: var(--shadow-light);
-    white-space: nowrap;
-    line-height: 1.5;
-}
-
-/* Couleurs spécifiques pour chaque type de bouton */
-#liste,
-.btn-primary {
-    background: #3B82F6 !important;
-    color: white !important;
-}
-#liste:hover,
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
-    background: #2563eb !important;
-}
-
-#communiquer,
-.btn-success {
-    background: var(--vert-gradient) !important;
-    color: white !important;
-}
-#communiquer:hover,
-.btn-success:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, #059669, #047857) !important;
-    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.35);
-    color: white !important;
-}
-
-#add,
-.btn-info {
-    background: var(--bleu-nuit-gradient) !important;
-    color: white !important;
-}
-#add:hover,
-.btn-info:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
-}
-
-#save,
-#edit_save {
-    background: var(--bleu-secondaire-gradient) !important;
-    color: white;
-}
-#save:hover,
-#edit_save:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3);
-}
-
-#annuler,
-#edit_annuler,
-.btn-danger {
-    background: var(--rouge-gradient) !important;
-    color: white;
-}
-#annuler:hover,
-#edit_annuler:hover,
-.btn-danger:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
-    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
-}
-
-#resetFilters {
-    background: #64748b !important;
-    color: white !important;
-}
-#resetFilters:hover {
-    transform: translateY(-2px);
-    background: #475569 !important;
-    box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
-}
-
-/* Boutons désactivés (add_r, save_r, print_r, mapAll_r) */
-#add_r,
-#save_r,
-#print_r,
-#mapAll_r {
-    background: #cbd5e1 !important;
-    color: #475569 !important;
-    cursor: not-allowed !important;
-    opacity: 0.7;
-    transform: none !important;
-    box-shadow: none !important;
-}
-
-/* ===== BOUTON "CARTE" (ROUGE) ET BOUTON "IMPRIMER" ===== */
-#print {
-    background: #3B82F6 !important;
-    color: white !important;
-}
-#print:hover {
-    background: #2563eb !important;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
-}
-
-#mapAll {
-    background: var(--rouge-gradient) !important;
-    color: white !important;
-}
-#mapAll:hover {
-    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
-}
-
-/* ========== FILTRES ========== */
-.filters-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 16px;
-    background: white;
-    padding: 0.8rem 1.2rem;
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-light);
-    align-items: flex-end;
-}
-
-.filter-group {
-    flex: 1;
-    min-width: 150px;
-}
-
-.filter-group label {
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: var(--bleu-nuit);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.filter-group .form-control {
-    height: 36px;
-}
-
-/* ===== BADGES DE TOTAUX ET COMPTEURS ===== */
-.client-badges-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 8px 12px;
-    margin-bottom: 15px;
-}
-
-.client-count-badge {
-    border-radius: 50px;
-    padding: 4px 12px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    color: white;
-}
-
-/* Badges de compteurs */
-.client-count-badge.non-renseigne-badge {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-}
-.client-count-badge.renseigne-badge {
-    background: linear-gradient(135deg, #10b981, #059669);
-}
-/* Badges de totaux USD/CDF */
-.client-count-badge.usd-badge {
-    background: linear-gradient(135deg, #3B82F6, #2563eb);
-}
-.client-count-badge.cdf-badge {
-    background: linear-gradient(135deg, #3B82F6, #2563eb);
-}
-/* Badge de compteur total (liste) */
-.client-count-badge.count-badge {
-    background: var(--rouge-gradient);
-}
-
-/* ========== FORMULAIRES : AJOUT ET MODIFICATION ========== */
-#form_add .row,
-#form_edit .row {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-#form_add .col-6,
-#form_edit .col-6 {
-    margin-bottom: 0.8rem;
-}
-
-.form-group {
-    width: 100%;
+    margin-right: 8px;
     margin-bottom: 0;
-}
-
-.form-group label {
-    display: block;
-    font-weight: 700;
-    color: var(--bleu-nuit);
-    margin-bottom: 4px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-}
-
-.form-group label i {
-    color: #e31b23;
-    margin-right: 6px;
-}
-
-.form-control,
-input.form-control,
-select.form-control,
-textarea.form-control,
-.input-mask {
-    width: 100% !important;
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    padding: 8px 12px !important;
-    font-weight: 500;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-    box-sizing: border-box;
-    height: 38px !important;
-    line-height: 1.4;
-}
-
-textarea.form-control {
-    resize: vertical;
-    height: 38px !important;
-}
-
-.form-control:focus,
-select.form-control:focus,
-textarea.form-control:focus {
-    border-color: var(--bleu-nuit) !important;
-    box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
-    transform: translateY(-1px);
-}
-
-select.form-control {
-    appearance: none;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-}
-
-.input-mask {
-    font-family: monospace;
-    background: #fff9ef !important;
-}
-
-/* ========== MESSAGES STYLISÉS (SUCCÈS / ERREUR / INFO) ========== */
-#msg, #edit_msg {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    min-height: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-}
-
-#msg:not(:empty), #edit_msg:not(:empty) {
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    height: auto !important;
-    margin-top: 16px !important;
-    padding: 10px 18px !important;
-    background: white !important;
-    border-radius: 50px !important;
-    box-shadow: var(--shadow-light) !important;
-    gap: 10px;
-    font-weight: 600;
-    font-size: 0.8rem;
-    animation: slideInMsg 0.3s ease-out;
-}
-
-/* Succès */
-#msg.msg-success, #edit_msg.msg-success {
-    background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
-    color: #065f46 !important;
-    border-left: 4px solid #10b981 !important;
-}
-
-/* Erreur */
-#msg.msg-error, #edit_msg.msg-error {
-    background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
-    color: #991b1b !important;
-    border-left: 4px solid #ef4444 !important;
-}
-
-/* Information */
-#msg.msg-info, #edit_msg.msg-info {
-    background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important;
-    color: #1e3a8a !important;
-    border-left: 4px solid #3b82f6 !important;
-}
-
-@keyframes slideInMsg {
-    from {
-        opacity: 0;
-        transform: translateY(-8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ========== BOUTONS DE CONTRÔLE DANS LE TABLEAU ========== */
-.table tbody td a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50% !important;
-    background: #f1f5f9;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    margin: 0 2px;
-}
-.table tbody td a i.zmdi {
-    font-size: 1.1rem;
-    margin: 0;
-}
-.table tbody td a i.zmdi-edit {
-    color: #10b981;
-}
-.table tbody td a i.zmdi-delete {
-    color: #ef4444;
-}
-.table tbody td a i.zmdi-pin {
-    color: #3b82f6;
-}
-.table tbody td a:hover {
-    background: #e0f2fe;
-    transform: translateY(-2px);
-}
-.table tbody td a:hover i.zmdi-delete {
-    color: #b91c1c;
-}
-.table tbody td a:hover i.zmdi-edit {
-    color: #059669;
-}
-.table tbody td a:hover i.zmdi-pin {
-    color: #1d4ed8;
-}
-
-/* ========== BARRE D'ACTIONS (EN TÊTE) ========== */
-[style*="background-color: rgba(0, 0, 0, 0.1)"] {
-    background: #eef3fc !important;
-    border-radius: 60px;
-    padding: 10px 24px !important;
-    margin-bottom: 20px;
-    display: flex !important;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: flex-start;
-}
-
-/* ========== STYLES POUR LA CARTE (formulaire) ========== */
-.map-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin: 16px 0 12px 0;
-}
-.map-toolbar button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 16px;
-    font-weight: 600;
-    font-size: 0.8rem;
-    border-radius: 40px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: var(--bleu-nuit-gradient);
-    color: white;
-    box-shadow: var(--shadow-light);
-}
-.map-toolbar button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
-}
-/* On surcharge pour que le bouton success garde son style vert */
-.map-toolbar button.btn-success {
-    background: var(--vert-gradient) !important;
-}
-.map-toolbar button.btn-success:hover {
-    background: linear-gradient(135deg, #059669, #047857) !important;
-}
-
-#map-container {
-    position: relative;
-}
-#map {
-    width: 100%;
-    height: 350px;
-    border-radius: 16px;
-    margin-bottom: 15px;
-    z-index: 1;
-    background: #e9ecef;
-}
-.map-overlay-buttons {
-    position: absolute;
-    bottom: 25px;
-    right: 25px;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    padding: 8px;
-    border-radius: 50px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-.map-overlay-buttons .map-btn {
-    background: white;
-    border: none;
-    border-radius: 40px;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 1.2rem;
-    color: #0a192f;
-    transition: all 0.2s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-.map-overlay-buttons .map-btn:hover {
-    transform: scale(1.05);
-    background: #f0f0f0;
-}
-@media (max-width: 768px) {
-    .map-overlay-buttons {
-        bottom: 15px;
-        right: 15px;
-        gap: 5px;
-    }
-    .map-overlay-buttons .map-btn {
-        width: 35px;
-        height: 35px;
-        font-size: 1rem;
-    }
-}
-
-/* ========== STYLES POUR LA CARTE DANS LE MODAL ========== */
-#mapModalMap,
-#mapAllModalMap {
-    width: 100%;
-    height: 400px;
-    border-radius: 12px;
-    background: #e9ecef;
-}
-
-/* ============================================================
-   MODALE COMMUNIQUER CLIENT
-   ============================================================ */
-#communiquerModal .modal-content {
-    border-radius: 20px;
-    border: none;
-    box-shadow: 0 20px 35px -12px rgba(0,0,0,0.25);
-    overflow: hidden;
-}
-#communiquerModal .modal-header {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    border-bottom: none;
-    padding: 1.1rem 1.5rem;
-}
-#communiquerModal .modal-header .close {
-    color: white;
-    opacity: 0.9;
-    text-shadow: none;
-}
-#communiquerModal .modal-header .modal-title {
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-#communiquerModal .badge-invoice {
-    background: rgba(255,255,255,0.25);
-    color: white;
-    border-radius: 50px;
-    padding: 4px 12px;
-    font-size: 0.75rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    font-weight: bold;
-}
-#communiquerModal .modal-body {
-    background: #f8fafc;
-    padding: 1.2rem 1.5rem;
-    max-height: 78vh;
-    overflow-y: auto;
-}
-#communiquerModal .modal-footer {
-    background: white;
-    border-top: 1px solid #eef2f6;
-    padding: 1rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-/* Filtres internes de la modale communiquer — identiques à la page principale */
-.communiquer-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 14px;
-    padding: 12px 14px;
-    background: white;
-    border-radius: 14px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    align-items: flex-end;
-}
-.communiquer-filters .filter-group {
-    flex: 1;
-    min-width: 140px;
-}
-.communiquer-filters .filter-group label {
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: #0a192f;
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-.communiquer-filters .filter-group label i {
-    color: #10b981;
-}
-.communiquer-filters .filter-group .form-control {
-    height: 34px;
-    font-size: 0.8rem;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    width: 100%;
-    padding: 6px 10px;
-    background: #fff;
-    appearance: none;
-}
-.communiquer-filters .filter-group select.form-control {
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%2310b981" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-}
-.communiquer-filters .filter-group .form-control:focus {
-    border-color: #10b981;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
-    outline: none;
-}
-.communiquer-reset-btn {
-    background: #64748b;
-    color: white;
-    border: none;
-    border-radius: 40px;
-    padding: 7px 16px;
-    font-weight: 600;
-    font-size: 0.78rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-.communiquer-reset-btn:hover {
-    background: #475569;
-    transform: translateY(-1px);
-}
-
-/* ============================================================
-   TABLEAU DE LA MODALE COMMUNIQUER — STYLE IDENTIQUE AU TABLEAU PRINCIPAL
-   ============================================================ */
-#communiquer_table_wrapper {
-    background: white;
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-light);
-    overflow: hidden;
-    margin-bottom: 16px;
-}
-
-/* Le conteneur scrollable garde le style */
-#communiquer_table_wrapper > div {
-    background: white;
-}
-
-#communiquer_table {
-    width: 100%;
-    min-width: 800px;
-    margin: 0;
-    background: white;
-    border-collapse: collapse;
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    box-shadow: none;
-    table-layout: auto;
-    border: 1px solid #e2e8f0;
-}
-
-/* En-tête : identique au tableau principal + petites lignes verticales */
-#communiquer_table thead th {
-    background: #E7F5FE !important;
-    color: #0a192f !important;
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 14px 12px !important;
-    border-bottom: 2px solid #cbd5e1 !important;
-    border-right: 1px solid #d0e2f2;
-    white-space: normal;
-    word-break: break-word;
-    text-align: left;
-    vertical-align: middle;
-}
-#communiquer_table thead th:last-child {
-    border-right: none;
-}
-
-/* Alternance de lignes identique au tableau principal */
-#communiquer_table tbody tr {
-    transition: all 0.15s ease;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-#communiquer_table tbody tr:nth-child(even) {
-    background-color: #f8fafc;
-}
-
-#communiquer_table tbody tr:nth-child(odd) {
-    background-color: #ffffff;
-}
-
-#communiquer_table tbody tr:hover {
-    background: #e6f0ff !important;
-    cursor: default;
-}
-
-/* Cellules : identiques au tableau principal + petites lignes verticales */
-#communiquer_table tbody td {
-    padding: 10px 12px !important;
-    vertical-align: middle !important;
-    font-weight: 500;
-    font-size: 0.85rem;
-    color: #1e2a3e;
-    word-break: break-word;
-    border-bottom: 1px solid #eef2f6;
-    border-right: 1px solid #eef2f6;
-    line-height: 1.4;
-    text-align: left;
-}
-#communiquer_table tbody td:last-child {
-    border-right: none;
-}
-
-/* Case à cocher centrée dans sa cellule */
-#communiquer_table tbody td:first-child {
-    text-align: center;
-}
-
-#communiquer_table tbody td:first-child input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: #10b981;
-}
-
-/* Case "tout cocher" dans l'en-tête centrée */
-#communiquer_table thead th:first-child {
-    text-align: center;
-}
-
-#communiquer_table thead th:first-child input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: #10b981;
-}
-
-/* Scrollbar horizontale pour garder l'alignement avec le tableau principal */
-#communiquer_table_wrapper .table-scroll-x {
-    overflow-x: auto;
-}
-
-.communiquer-message-box {
-    background: white;
-    border-radius: 14px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    padding: 14px 16px;
-    margin-bottom: 14px;
-}
-.communiquer-message-box label {
-    font-weight: 700;
-    color: #0a192f;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    display: block;
-    margin-bottom: 8px;
-}
-.communiquer-message-box textarea {
-    width: 100%;
-    min-height: 110px;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 10px 12px;
-    font-size: 0.85rem;
-    resize: vertical;
-    font-family: inherit;
-}
-.communiquer-message-box textarea:focus {
-    outline: none;
-    border-color: #10b981;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
-}
-.communiquer-count-selected {
-    font-weight: 700;
-    color: #10b981;
-    font-size: 0.85rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-.communiquer-empty {
-    text-align: center;
-    padding: 30px 20px;
-    color: #94a3b8;
-    font-size: 0.85rem;
-}
-.communiquer-empty i {
-    font-size: 2.5rem;
-    display: block;
-    margin-bottom: 8px;
     color: #cbd5e1;
 }
-#communiquer_send_btn {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-    color: white !important;
-    border: none;
-    border-radius: 40px !important;
-    padding: 8px 26px !important;
-    font-weight: 700;
-    font-size: 0.85rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    cursor: pointer;
-}
-#communiquer_send_btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.4);
-    background: linear-gradient(135deg, #059669, #047857) !important;
-}
-#communiquer_send_btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none !important;
-}
-
-/* Zone de messages dans la modale communiquer */
-#communiquer_msg_zone {
-    display: none;
-    margin-top: 12px;
-    padding: 10px 16px;
-    border-radius: 12px;
+.table tbody tr.no-result-row td b {
+    display: inline-block;
+    vertical-align: middle;
     font-weight: 600;
-    font-size: 0.82rem;
-    align-items: center;
-    gap: 8px;
-    animation: slideInMsg 0.3s ease-out;
-}
-#communiquer_msg_zone.show { display: flex; }
-#communiquer_msg_zone.info {
-    background: linear-gradient(95deg, #dbeafe, #bfdbfe);
-    color: #1e3a8a;
-    border-left: 4px solid #3b82f6;
-}
-#communiquer_msg_zone.success {
-    background: linear-gradient(95deg, #d1fae5, #a7f3d0);
-    color: #065f46;
-    border-left: 4px solid #10b981;
-}
-#communiquer_msg_zone.error {
-    background: linear-gradient(95deg, #fee2e2, #fecaca);
-    color: #991b1b;
-    border-left: 4px solid #ef4444;
 }
 
-/* ========== RESPONSIVE ========== */
+#bloc_1 button, #bloc_2 button, #bloc_3 button, #bloc_4 button, #liste, #communiquer, #add, #add_r, #save, #save_r, #annuler, #edit_save, #edit_annuler, #print, #print_r, #mapAll, #mapAll_r, .btn-primary, .btn-info, .btn-danger, .btn-success, .btn-secondary {
+    display: inline-flex !important; align-items: center; justify-content: center; gap: 8px;
+    padding: 6px 16px !important; font-weight: 600; font-size: 0.85rem; border-radius: 40px !important;
+    transition: all 0.25s ease; border: none; cursor: pointer; text-decoration: none;
+    box-shadow: var(--shadow-light); white-space: nowrap; line-height: 1.5;
+}
+#liste, .btn-primary { background: #3B82F6 !important; color: white !important; }
+#liste:hover, .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3); background: #2563eb !important; }
+#communiquer, .btn-success { background: var(--vert-gradient) !important; color: white !important; }
+#communiquer:hover, .btn-success:hover { transform: translateY(-2px); background: linear-gradient(135deg, #059669, #047857) !important; box-shadow: 0 8px 18px rgba(16, 185, 129, 0.35); color: white !important; }
+#add, .btn-info { background: var(--bleu-nuit-gradient) !important; color: white !important; }
+#add:hover, .btn-info:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3); }
+#save, #edit_save { background: var(--bleu-secondaire-gradient) !important; color: white; }
+#save:hover, #edit_save:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3); }
+#annuler, #edit_annuler, .btn-danger { background: var(--rouge-gradient) !important; color: white; }
+#annuler:hover, #edit_annuler:hover, .btn-danger:hover { transform: translateY(-2px); background: linear-gradient(135deg, #dc2626, #b91c1c) !important; box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3); }
+#resetFilters { background: #64748b !important; color: white !important; }
+#resetFilters:hover { transform: translateY(-2px); background: #475569 !important; box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3); }
+#add_r, #save_r, #print_r, #mapAll_r { background: #cbd5e1 !important; color: #475569 !important; cursor: not-allowed !important; opacity: 0.7; transform: none !important; box-shadow: none !important; }
+#print { background: #3B82F6 !important; color: white !important; }
+#print:hover { background: #2563eb !important; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3); }
+#mapAll { background: var(--rouge-gradient) !important; color: white !important; }
+#mapAll:hover { background: linear-gradient(135deg, #dc2626, #b91c1c) !important; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3); }
+
+.filters-container { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; background: white; padding: 0.8rem 1.2rem; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-light); align-items: flex-end; }
+.filter-group { flex: 1; min-width: 150px; }
+.filter-group label { font-weight: 600; margin-bottom: 4px; color: var(--bleu-nuit); font-size: 0.7rem; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
+.filter-group .form-control { height: 36px; }
+
+.client-badges-container { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 12px; margin-bottom: 15px; }
+.client-count-badge { border-radius: 50px; padding: 4px 12px; font-size: 0.75rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: white; }
+.client-count-badge.non-renseigne-badge { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.client-count-badge.renseigne-badge { background: linear-gradient(135deg, #10b981, #059669); }
+.client-count-badge.usd-badge { background: linear-gradient(135deg, #3B82F6, #2563eb); }
+.client-count-badge.cdf-badge { background: linear-gradient(135deg, #3B82F6, #2563eb); }
+.client-count-badge.count-badge { background: var(--rouge-gradient); }
+
+#form_add .row, #form_edit .row { display: flex; flex-wrap: wrap; }
+#form_add .col-6, #form_edit .col-6 { margin-bottom: 0.8rem; }
+.form-group { width: 100%; margin-bottom: 0; }
+.form-group label { display: block; font-weight: 700; color: var(--bleu-nuit); margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px; }
+.form-group label i { color: #e31b23; margin-right: 6px; }
+.form-control, input.form-control, select.form-control, textarea.form-control, .input-mask {
+    width: 100% !important; background: #ffffff !important; border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important; padding: 8px 12px !important; font-weight: 500; font-size: 0.85rem;
+    transition: all 0.2s; box-sizing: border-box; height: 38px !important; line-height: 1.4;
+}
+textarea.form-control { resize: vertical; height: 38px !important; }
+.form-control:focus, select.form-control:focus, textarea.form-control:focus { border-color: var(--bleu-nuit) !important; box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important; transform: translateY(-1px); }
+select.form-control { appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>'); background-repeat: no-repeat; background-position: right 14px center; }
+.input-mask { font-family: monospace; background: #fff9ef !important; }
+
+#msg, #edit_msg {
+    display: none !important; visibility: hidden !important; opacity: 0 !important;
+    margin: 0 !important; padding: 0 !important; border: 0 !important;
+    background: transparent !important; box-shadow: none !important;
+    min-height: 0 !important; height: 0 !important; overflow: hidden !important;
+}
+#msg:not(:empty), #edit_msg:not(:empty) {
+    display: inline-flex !important; visibility: visible !important; opacity: 1 !important;
+    height: auto !important; margin-top: 16px !important; padding: 10px 18px !important;
+    background: white !important; border-radius: 50px !important;
+    box-shadow: var(--shadow-light) !important; gap: 10px;
+    font-weight: 600; font-size: 0.8rem; animation: slideInMsg 0.3s ease-out;
+}
+#msg.msg-success, #edit_msg.msg-success { background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important; color: #065f46 !important; border-left: 4px solid #10b981 !important; }
+#msg.msg-error, #edit_msg.msg-error { background: linear-gradient(95deg, #fee2e2, #fecaca) !important; color: #991b1b !important; border-left: 4px solid #ef4444 !important; }
+#msg.msg-info, #edit_msg.msg-info { background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important; color: #1e3a8a !important; border-left: 4px solid #3b82f6 !important; }
+@keyframes slideInMsg { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+.table tbody td a { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50% !important; background: #f1f5f9; transition: all 0.2s ease; text-decoration: none; margin: 0 2px; }
+.table tbody td a i.zmdi { font-size: 1.1rem; margin: 0; }
+.table tbody td a i.zmdi-edit { color: #10b981; }
+.table tbody td a i.zmdi-delete { color: #ef4444; }
+.table tbody td a i.zmdi-pin { color: #3b82f6; }
+.table tbody td a:hover { background: #e0f2fe; transform: translateY(-2px); }
+.table tbody td a:hover i.zmdi-delete { color: #b91c1c; }
+.table tbody td a:hover i.zmdi-edit { color: #059669; }
+.table tbody td a:hover i.zmdi-pin { color: #1d4ed8; }
+
+[style*="background-color: rgba(0, 0, 0, 0.1)"] {
+    background: #eef3fc !important; border-radius: 60px; padding: 10px 24px !important;
+    margin-bottom: 20px; display: flex !important; flex-wrap: wrap; gap: 12px; justify-content: flex-start;
+}
+
+.map-toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0 12px 0; }
+.map-toolbar button { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; font-weight: 600; font-size: 0.8rem; border-radius: 40px; border: none; cursor: pointer; transition: all 0.2s ease; background: var(--bleu-nuit-gradient); color: white; box-shadow: var(--shadow-light); }
+.map-toolbar button:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3); }
+.map-toolbar button.btn-success { background: var(--vert-gradient) !important; }
+.map-toolbar button.btn-success:hover { background: linear-gradient(135deg, #059669, #047857) !important; }
+
+#map-container { position: relative; }
+#map { width: 100%; height: 350px; border-radius: 16px; margin-bottom: 15px; z-index: 1; background: #e9ecef; }
+.map-overlay-buttons { position: absolute; bottom: 25px; right: 25px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); padding: 8px; border-radius: 50px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+.map-overlay-buttons .map-btn { background: white; border: none; border-radius: 40px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; color: #0a192f; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+.map-overlay-buttons .map-btn:hover { transform: scale(1.05); background: #f0f0f0; }
+@media (max-width: 768px) {
+    .map-overlay-buttons { bottom: 15px; right: 15px; gap: 5px; }
+    .map-overlay-buttons .map-btn { width: 35px; height: 35px; font-size: 1rem; }
+}
+
+#mapModalMap, #mapAllModalMap { width: 100%; height: 400px; border-radius: 12px; background: #e9ecef; }
+
+#communiquerModal .modal-content { border-radius: 20px; border: none; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.25); overflow: hidden; }
+#communiquerModal .modal-header { background: linear-gradient(135deg, #10b981, #059669); color: white; border-bottom: none; padding: 1.1rem 1.5rem; }
+#communiquerModal .modal-header .close { color: white; opacity: 0.9; text-shadow: none; }
+#communiquerModal .modal-header .modal-title { font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+#communiquerModal .badge-invoice { background: rgba(255,255,255,0.25); color: white; border-radius: 50px; padding: 4px 12px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-weight: bold; }
+#communiquerModal .modal-body { background: #f8fafc; padding: 1.2rem 1.5rem; max-height: 78vh; overflow-y: auto; }
+#communiquerModal .modal-footer { background: white; border-top: 1px solid #eef2f6; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+
+.communiquer-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; padding: 12px 14px; background: white; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); align-items: flex-end; }
+.communiquer-filters .filter-group { flex: 1; min-width: 140px; }
+.communiquer-filters .filter-group label { font-weight: 600; margin-bottom: 4px; color: #0a192f; font-size: 0.68rem; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
+.communiquer-filters .filter-group label i { color: #10b981; }
+.communiquer-filters .filter-group .form-control { height: 34px; font-size: 0.8rem; border-radius: 10px; border: 1px solid #e2e8f0; width: 100%; padding: 6px 10px; background: #fff; appearance: none; }
+.communiquer-filters .filter-group select.form-control { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%2310b981" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>'); background-repeat: no-repeat; background-position: right 14px center; }
+.communiquer-filters .filter-group .form-control:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12); outline: none; }
+.communiquer-reset-btn { background: #64748b; color: white; border: none; border-radius: 40px; padding: 7px 16px; font-weight: 600; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.communiquer-reset-btn:hover { background: #475569; transform: translateY(-1px); }
+
+#communiquer_table_wrapper { background: white; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-light); overflow: hidden; margin-bottom: 16px; }
+#communiquer_table_wrapper > div { background: white; }
+#communiquer_table { width: 100%; min-width: 800px; margin: 0; background: white; border-collapse: collapse; border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: none; table-layout: auto; border: 1px solid #e2e8f0; }
+#communiquer_table thead th { background: #E7F5FE !important; color: #0a192f !important; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 12px !important; border-bottom: 2px solid #cbd5e1 !important; border-right: 1px solid #d0e2f2; white-space: normal; word-break: break-word; text-align: left; vertical-align: middle; }
+#communiquer_table thead th:last-child { border-right: none; }
+#communiquer_table tbody tr { transition: all 0.15s ease; border-bottom: 1px solid #e2e8f0; }
+#communiquer_table tbody tr:nth-child(even) { background-color: #f8fafc; }
+#communiquer_table tbody tr:nth-child(odd) { background-color: #ffffff; }
+#communiquer_table tbody tr:hover { background: #e6f0ff !important; cursor: default; }
+#communiquer_table tbody td { padding: 10px 12px !important; vertical-align: middle !important; font-weight: 500; font-size: 0.85rem; color: #1e2a3e; word-break: break-word; border-bottom: 1px solid #eef2f6; border-right: 1px solid #eef2f6; line-height: 1.4; text-align: left; }
+#communiquer_table tbody td:last-child { border-right: none; }
+#communiquer_table tbody td:first-child { text-align: center; }
+#communiquer_table tbody td:first-child input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #10b981; }
+#communiquer_table thead th:first-child { text-align: center; }
+#communiquer_table thead th:first-child input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #10b981; }
+#communiquer_table_wrapper .table-scroll-x { overflow-x: auto; }
+
+.communiquer-message-box { background: white; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 14px 16px; margin-bottom: 14px; }
+.communiquer-message-box label { font-weight: 700; color: #0a192f; font-size: 0.8rem; text-transform: uppercase; display: block; margin-bottom: 8px; }
+.communiquer-message-box textarea { width: 100%; min-height: 110px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; font-size: 0.85rem; resize: vertical; font-family: inherit; }
+.communiquer-message-box textarea:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12); }
+.communiquer-count-selected { font-weight: 700; color: #10b981; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; }
+.communiquer-empty { text-align: center; padding: 30px 20px; color: #94a3b8; font-size: 0.85rem; }
+.communiquer-empty i { font-size: 2.5rem; display: block; margin-bottom: 8px; color: #cbd5e1; }
+#communiquer_send_btn { background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; border: none; border-radius: 40px !important; padding: 8px 26px !important; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; transition: all 0.25s ease; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); cursor: pointer; }
+#communiquer_send_btn:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(16, 185, 129, 0.4); background: linear-gradient(135deg, #059669, #047857) !important; }
+#communiquer_send_btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none !important; }
+
+#communiquer_msg_zone { display: none; margin-top: 12px; padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 0.82rem; align-items: center; gap: 8px; animation: slideInMsg 0.3s ease-out; }
+#communiquer_msg_zone.show { display: flex; }
+#communiquer_msg_zone.info { background: linear-gradient(95deg, #dbeafe, #bfdbfe); color: #1e3a8a; border-left: 4px solid #3b82f6; }
+#communiquer_msg_zone.success { background: linear-gradient(95deg, #d1fae5, #a7f3d0); color: #065f46; border-left: 4px solid #10b981; }
+#communiquer_msg_zone.error { background: linear-gradient(95deg, #fee2e2, #fecaca); color: #991b1b; border-left: 4px solid #ef4444; }
+
 @media (max-width: 992px) {
-    .content .container {
-        padding: 0.5rem 1rem !important;
-    }
-    #bloc_1,
-    #bloc_2,
-    #bloc_3,
-    #bloc_4 {
-        padding: 1rem !important;
-    }
+    .content .container { padding: 0.5rem 1rem !important; }
+    #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 1rem !important; }
 }
 
 @media (max-width: 768px) {
-    .content .container {
-        padding: 0.4rem 0.6rem !important;
-    }
-    #bloc_1,
-    #bloc_2,
-    #bloc_3,
-    #bloc_4 {
-        padding: 0.8rem !important;
-    }
-    #liste,
-    #communiquer,
-    #add,
-    #save,
-    #edit_save,
-    #annuler,
-    #edit_annuler,
-    #resetFilters,
-    .btn-primary,
-    .btn-info,
-    .btn-danger,
-    .btn-success,
-    #print,
-    #mapAll {
-        padding: 4px 12px !important;
-        font-size: 0.7rem;
-    }
-    .filters-container {
-        flex-direction: column;
-        gap: 8px;
-        padding: 0.6rem 0.8rem;
-        margin-bottom: 12px;
-    }
-    .filter-group {
-        width: 100%;
-        min-width: 100%;
-    }
-    .filter-group .form-control {
-        height: 34px !important;
-    }
-    .client-badges-container {
-        justify-content: flex-start;
-        gap: 6px 8px;
-    }
-    .client-count-badge {
-        font-size: 0.65rem;
-        padding: 3px 10px;
-    }
-    .table thead th {
-        font-size: 0.72rem;
-        padding: 10px 6px !important;
-        letter-spacing: 0.05em;
-    }
-    .table tbody td {
-        padding: 8px 10px !important;
-        font-size: 0.75rem;
-        line-height: 1.3;
-    }
-    #communiquer_table thead th {
-        font-size: 0.72rem;
-        padding: 10px 6px !important;
-    }
-    #communiquer_table tbody td {
-        padding: 8px 10px !important;
-        font-size: 0.75rem;
-    }
-    #form_add .col-6,
-    #form_edit .col-6 {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-    .form-group label {
-        font-size: 0.65rem;
-    }
-    .form-control,
-    input.form-control,
-    select.form-control,
-    textarea.form-control {
-        height: 34px !important;
-        font-size: 0.75rem;
-    }
-    [style*="background-color: rgba(0, 0, 0, 0.1)"] {
-        justify-content: center;
-        gap: 8px;
-    }
-    .map-toolbar button {
-        padding: 4px 10px;
-        font-size: 0.7rem;
-    }
-    .map-overlay-buttons {
-        bottom: 15px;
-        right: 15px;
-        gap: 5px;
-    }
-    .map-overlay-buttons .map-btn {
-        width: 35px;
-        height: 35px;
-        font-size: 1rem;
-    }
-    #mapModalMap,
-    #mapAllModalMap {
-        height: 280px;
-    }
+    .content .container { padding: 0.4rem 0.6rem !important; }
+    #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 0.8rem !important; }
+    #liste, #communiquer, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters, .btn-primary, .btn-info, .btn-danger, .btn-success, #print, #mapAll { padding: 4px 12px !important; font-size: 0.7rem; }
+    .filters-container { flex-direction: column; gap: 8px; padding: 0.6rem 0.8rem; margin-bottom: 12px; }
+    .filter-group { width: 100%; min-width: 100%; }
+    .filter-group .form-control { height: 34px !important; }
+    .client-badges-container { justify-content: flex-start; gap: 6px 8px; }
+    .client-count-badge { font-size: 0.65rem; padding: 3px 10px; }
+    .table thead th { font-size: 0.72rem; padding: 10px 6px !important; letter-spacing: 0.05em; }
+    .table tbody td { padding: 8px 10px !important; font-size: 0.75rem; line-height: 1.3; }
+    #communiquer_table thead th { font-size: 0.72rem; padding: 10px 6px !important; }
+    #communiquer_table tbody td { padding: 8px 10px !important; font-size: 0.75rem; }
+    #form_add .col-6, #form_edit .col-6 { flex: 0 0 100%; max-width: 100%; }
+    .form-group label { font-size: 0.65rem; }
+    .form-control, input.form-control, select.form-control, textarea.form-control { height: 34px !important; font-size: 0.75rem; }
+    [style*="background-color: rgba(0, 0, 0, 0.1)"] { justify-content: center; gap: 8px; }
+    .map-toolbar button { padding: 4px 10px; font-size: 0.7rem; }
+    .map-overlay-buttons { bottom: 15px; right: 15px; gap: 5px; }
+    .map-overlay-buttons .map-btn { width: 35px; height: 35px; font-size: 1rem; }
+    #mapModalMap, #mapAllModalMap { height: 280px; }
     .communiquer-filters { flex-direction: column; gap: 8px; }
     .communiquer-filters .filter-group { width: 100%; min-width: 100%; }
+    .table tbody tr.no-result-row td { padding: 12px 15px !important; font-size: 0.8rem !important; }
+    .table tbody tr.no-result-row td i.zmdi { font-size: 1.1rem; margin-right: 6px; }
 }
 
 @media (max-width: 480px) {
-    .content .container {
-        padding: 0.3rem !important;
-    }
-    #bloc_1,
-    #bloc_2,
-    #bloc_3,
-    #bloc_4 {
-        padding: 0.6rem !important;
-    }
-    h4 {
-        font-size: 1.1rem;
-        margin-bottom: 12px;
-    }
-    h4 i {
-        font-size: 24px !important;
-    }
-    #liste,
-    #communiquer,
-    #add,
-    #save,
-    #edit_save,
-    #annuler,
-    #edit_annuler,
-    #resetFilters,
-    #print,
-    #mapAll {
-        padding: 3px 8px !important;
-        font-size: 0.65rem;
-    }
-    .table thead th {
-        font-size: 0.62rem;
-        padding: 8px 4px !important;
-    }
-    .table tbody td {
-        padding: 6px 8px !important;
-        font-size: 0.7rem;
-        line-height: 1.2;
-    }
-    #communiquer_table thead th {
-        font-size: 0.62rem;
-        padding: 8px 4px !important;
-    }
-    #communiquer_table tbody td {
-        padding: 6px 8px !important;
-        font-size: 0.7rem;
-    }
-    .map-overlay-buttons .map-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 0.9rem;
-    }
-    #mapModalMap,
-    #mapAllModalMap {
-        height: 220px;
-    }
+    .content .container { padding: 0.3rem !important; }
+    #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 0.6rem !important; }
+    h4 { font-size: 1.1rem; margin-bottom: 12px; }
+    h4 i { font-size: 24px !important; }
+    #liste, #communiquer, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters, #print, #mapAll { padding: 3px 8px !important; font-size: 0.65rem; }
+    .table thead th { font-size: 0.62rem; padding: 8px 4px !important; }
+    .table tbody td { padding: 6px 8px !important; font-size: 0.7rem; line-height: 1.2; }
+    #communiquer_table thead th { font-size: 0.62rem; padding: 8px 4px !important; }
+    #communiquer_table tbody td { padding: 6px 8px !important; font-size: 0.7rem; }
+    .map-overlay-buttons .map-btn { width: 30px; height: 30px; font-size: 0.9rem; }
+    #mapModalMap, #mapAllModalMap { height: 220px; }
 }
 </style>
 
@@ -1233,7 +326,6 @@ select.form-control {
                                             <i class="zmdi zmdi-print"></i> Imprimer
                                         </a>
                                         &nbsp;
-                                        <!-- ===== BOUTON CARTE (ROUGE) ===== -->
                                         <a id="mapAll" class="btn-sm" href="#">
                                             <i class="zmdi zmdi-pin"></i> Carte
                                         </a>
@@ -1272,7 +364,6 @@ select.form-control {
                     </span>
                 </h4>
 
-                <!-- ========== SECTION FILTRES ========== -->
                 <div class="filters-container">
                     <div class="filter-group">
                         <label><i class="zmdi zmdi-account text-danger"></i> Nom</label>
@@ -1303,7 +394,6 @@ select.form-control {
                             @endforeach
                         </select>
                     </div>
-                    <!-- ===== FILTRE ABONNEMENT ===== -->
                     <div class="filter-group">
                         <label><i class="zmdi zmdi-money text-danger"></i> Abonnement</label>
                         <input type="text" id="filterAbonnement" class="form-control" placeholder="Montant (ex: 100)">
@@ -1319,17 +409,13 @@ select.form-control {
                     </div>
                 </div>
 
-                <!-- ===== BADGES : NON RENSEIGNÉS, ENREGISTRÉS, TOTAUX USD/CDF ===== -->
                 <div class="client-badges-container">
-                    <!-- 1. Non renseignés (orange) avec icône utilisateur barrée -->
                     <span class="client-count-badge non-renseigne-badge">
                         <i class="zmdi zmdi-account"></i> Enregistrés sans abonnement : <span id="clientNonRenseigneCount">0</span>
                     </span>
-                    <!-- 2. Enregistrés (vert) avec icône utilisateur pleine -->
                     <span class="client-count-badge renseigne-badge">
                         <i class="zmdi zmdi-account"></i> Enregistrés avec abonnement: <span id="clientRenseigneCount">0</span>
                     </span>
-                    <!-- 3. Totaux USD et CDF (bleu) -->
                     <span class="client-count-badge usd-badge">
                         <i class="zmdi zmdi-money"></i> Total abonnements USD : <span id="totalAbonnementUsd">0,00</span> $
                     </span>
@@ -1350,7 +436,6 @@ select.form-control {
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Telephone</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Type</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Activité</th>
-                                        <!-- ===== ABONNEMENT ===== -->
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Abonnement</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Utilisateur</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
@@ -1360,11 +445,10 @@ select.form-control {
                                     {{! $i = 1; }}
                                     @foreach ($clients as $data)
                                     @php
-                                        // --- Calcul des équivalents USD et CDF pour chaque ligne ---
                                         $montant = (float) ($data->paiement ?? 0);
                                         $devise = (int) ($data->devise ?? 0);
                                         $taux = (float) ($data->taux ?? 1);
-                                        if ($taux <= 0) $taux = 1; // sécurité
+                                        if ($taux <= 0) $taux = 1;
 
                                         if ($montant > 0) {
                                             if ($devise == 0) {
@@ -1379,7 +463,6 @@ select.form-control {
                                             $row_cdf = 0;
                                         }
 
-                                        // Affichage double devise (format identique à la page Factures)
                                         if ($montant > 0) {
                                             if ($devise == 0) {
                                                 $affiche = number_format($montant, 2, ',', ' ') . ' USD (' . number_format($montant * $taux, 2, ',', ' ') . ' CDF)';
@@ -1390,7 +473,6 @@ select.form-control {
                                             $affiche = 'Non renseigné';
                                         }
 
-                                        // ==== Récupération sécurisée du nom de l'activité ====
                                         $activiteModele = \App\Models\Activites::find($data->activite_id);
                                         $activiteNom = $activiteModele ? $activiteModele->nom : 'Non renseignée';
                                     @endphp
@@ -1404,28 +486,19 @@ select.form-control {
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="email-cell" data-email="{{ $data->email }}">{{ $data->email }}</td>
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="phone-cell" data-phone="{{ $data->phone }}">{{ $data->phone }}</td>
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="type-cell" data-type="{{ $data->type }}">
-                                           @if ($data->type == 0)
-                                                Privé
-                                            @else
-                                                Entreprise
-                                            @endif
+                                           @if ($data->type == 0) Privé @else Entreprise @endif
                                         </td>
-                                        <!-- ===== CELLULE ACTIVITÉ : on stocke l'ID + le NOM ===== -->
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="activite-cell"
                                             data-activite="{{ $data->activite_id }}"
                                             data-activite-nom="{{ $activiteNom }}">
                                             {{ $activiteNom }}
                                         </td>
-                                        <!-- ===== CELLULE ABONNEMENT ===== -->
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="abonnement-cell" data-paiement="{{ $data->paiement ?? 0 }}" data-devise="{{ $data->devise ?? 0 }}" data-taux="{{ $data->taux ?? 1 }}">
                                             {{ $affiche }}
                                         </td>
                                         <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ $data->user_id }}">
-                                            @if (Auth::user()->id == $data->user_id)
-                                                Vous
-                                            @else
-                                                {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
-                                            @endif
+                                            @if (Auth::user()->id == $data->user_id) Vous
+                                            @else {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }} @endif
                                         </td>
                                         <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                                             <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
@@ -1449,7 +522,6 @@ select.form-control {
                                                 <a id="delete_r<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
                                             <?php } ?>
                                             &nbsp;
-                                            <!-- ===== ICÔNE POUR AFFICHER LA POSITION D'UN CLIENT ===== -->
                                             <a id="map_<?= $i ?>" href="#"
                                                data-id="<?= $data->id ?>"
                                                data-lat="<?= $data->latitude ?? '' ?>"
@@ -1501,7 +573,6 @@ select.form-control {
             <div id="bloc_2" style="margin-top: 12px;display: none;margin-bottom: 100px;" class="col-lg-12">
                 <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-accounts-add text-info"></i> Ajouter</h4>
                 @php
-                    // Récupération du taux par défaut à partir de l'activité par défaut (id = 1)
                     $_activite_default = Activites::where('id', 1)->first();
                     $_taux_default = $_activite_default->taux ?? 0;
                 @endphp
@@ -1573,10 +644,8 @@ select.form-control {
                         </div>
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                        class="zmdi zmdi-map"></i> Adresse </span></label>
-                                <textarea style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);"
-                                    class="form-control" placeholder="Adresse" name="adresse" id="adresse" cols="2" rows="1"></textarea>
+                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-map"></i> Adresse </span></label>
+                                <textarea style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control" placeholder="Adresse" name="adresse" id="adresse" cols="2" rows="1"></textarea>
                             </div>
                         </div>
                     </div>
@@ -1598,8 +667,6 @@ select.form-control {
                             </div>
                         </div>
                     </div>
-
-                    <!-- ===== NOUVEAUX CHAMPS : TAUX ET TYPE DE FACTURE ===== -->
                     <div style="margin-top: -20px;" class="row">
                         <div class="col-6">
                             <div class="form-group">
@@ -1617,8 +684,6 @@ select.form-control {
                             </div>
                         </div>
                     </div>
-
-                    <!-- ===== CHAMPS : LATITUDE / LONGITUDE ===== -->
                     <div style="margin-top: -20px;" class="row">
                         <div class="col-6">
                             <div class="form-group">
@@ -1633,19 +698,14 @@ select.form-control {
                             </div>
                         </div>
                     </div>
-
-                    <!-- ===== BARRE D'OUTILS : POSITION ACTUELLE + CHERCHER PAR ADRESSE ===== -->
                     <div class="map-toolbar">
                         <button type="button" id="btnCurrentLocation">
                             <i class="zmdi zmdi-my-location"></i> Position actuelle
                         </button>
-                        <!-- BOUTON CHERCHER PAR ADRESSE – STYLE SUCCESS -->
                         <button type="button" id="btnSearchAddress" class="btn btn-success btn-sm">
                             <i class="zmdi zmdi-search"></i> Chercher par adresse
                         </button>
                     </div>
-
-                    <!-- ===== CARTE INTERACTIVE AVEC BOUTONS OVERLAY ===== -->
                     <div class="row">
                         <div class="col-12">
                             <div class="form-group">
@@ -1669,7 +729,6 @@ select.form-control {
                             </div>
                         </div>
                     </div>
-
                     <div class="row">
                         <div class="col-12">
                             <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
@@ -1729,11 +788,10 @@ select.form-control {
     </div>
 </div>
 
-<!-- ===== MODAL POUR LA CARTE D'UN CLIENT (individuel) AVEC BOUTON PARTAGER ===== -->
+<!-- ===== MODAL POUR LA CARTE D'UN CLIENT ===== -->
 <div class="modal fade" id="mapModal" tabindex="-1" role="dialog" aria-labelledby="mapModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content" style="border-radius: 28px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-            <!-- ========== EN-TÊTE STYLE PREMIUM ========== -->
             <div class="modal-header" style="flex-shrink: 0; background: linear-gradient(135deg, #1e3a5f, #0a192f); padding: 20px 25px; color: white !important; border-radius: 28px 28px 0 0; border-bottom: none; position: relative;">
                 <h3 style="margin:0; font-weight:700; font-size:1.4rem; color:white !important; display:flex; align-items:center; gap:12px; width:100%;">
                     <i class="zmdi zmdi-pin" style="font-size:1.8rem; color: #e31b23;"></i>
@@ -1746,7 +804,6 @@ select.form-control {
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-
             <div class="modal-body" style="padding: 20px 25px;">
                 <div id="clientInfos" style="margin-bottom: 15px; font-weight: 500; background: #f8fafc; padding: 15px; border-radius: 16px; border: 1px solid #eef2f6;">
                     <p style="margin: 5px 0;"><strong>Nom :</strong> <span id="modalClientNom"></span></p>
@@ -1757,7 +814,6 @@ select.form-control {
                 </div>
                 <div id="mapModalMap" style="width: 100%; height: 400px; border-radius: 16px; border: 1px solid #eef2f6; background: #eef2f6;"></div>
             </div>
-
             <div class="modal-footer" style="padding: 15px 25px; border-top: 1px solid #eef2f6; display: flex; justify-content: flex-end; gap: 10px;">
                 <button type="button" id="btnShareLocation" class="btn btn-success" style="border-radius: 40px; padding: 8px 24px; font-weight: 600;">
                     <i class="zmdi zmdi-share"></i> Partager
@@ -1770,7 +826,7 @@ select.form-control {
     </div>
 </div>
 
-<!-- ===== MODAL POUR LA CARTE DE TOUS LES CLIENTS (AVEC CLUSTERING) ===== -->
+<!-- ===== MODAL POUR LA CARTE DE TOUS LES CLIENTS ===== -->
 <div class="modal fade" id="mapAllModal" tabindex="-1" role="dialog" aria-labelledby="mapAllModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
@@ -1835,10 +891,7 @@ select.form-control {
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-
             <div class="modal-body">
-
-                {{-- Filtres identiques à la page principale --}}
                 <div class="communiquer-filters">
                     <div class="filter-group">
                         <label><i class="zmdi zmdi-account"></i> Nom</label>
@@ -1883,8 +936,6 @@ select.form-control {
                         </button>
                     </div>
                 </div>
-
-                {{-- Tableau des clients (même style que le tableau principal) --}}
                 <div id="communiquer_table_wrapper">
                     <div class="table-scroll-x" style="max-height: 380px; overflow-y: auto; overflow-x: auto;">
                         <table id="communiquer_table">
@@ -1909,18 +960,12 @@ select.form-control {
                         </table>
                     </div>
                 </div>
-
-                {{-- Message --}}
                 <div class="communiquer-message-box">
                     <label><i class="zmdi zmdi-comment-text" style="color: #10b981;"></i> Message à envoyer</label>
                     <textarea id="communiquer_message" placeholder="Completez le texte à envoyer"></textarea>
                 </div>
-
-                {{-- Zone de messages (erreurs / succès / info) --}}
                 <div style="height:40px;" id="communiquer_msg_zone"></div>
-
             </div>
-
             <div class="modal-footer">
                 <span class="communiquer-count-selected">
                     <i class="zmdi zmdi-check-square"></i> <span id="communiquer_selected_count">0</span> sélectionné(s)
@@ -1952,13 +997,19 @@ select.form-control {
 <script src="{{ asset('assets/demo/js/flot-charts/pie.js') }}"></script>
 <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
 
-<!-- ===== LEAFLET JS ===== -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<!-- ===== LEAFLET.MARKERCLUSTER JS ===== -->
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
 <script>
-    // Fonction utilitaire pour afficher un message avec la bonne classe
+    function normalize(str) {
+        return String(str || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
     function showMsg(type, html, duration) {
         var $msg = $('#msg');
         $msg.removeClass('msg-success msg-error msg-info');
@@ -1989,7 +1040,6 @@ select.form-control {
 
     $("#link_30").addClass("active");
 
-    // ========== FILTRES AVEC PERSISTANCE ==========
     let clientFilterTimeout;
 
     function saveClientFiltersToStorage() {
@@ -2022,45 +1072,50 @@ select.form-control {
     }
 
     function filterClients() {
-        const filterNom = $('#filterNom').val().toLowerCase().trim();
-        const filterEmail = $('#filterEmail').val().toLowerCase().trim();
-        const filterPhone = $('#filterPhone').val().toLowerCase().trim();
-        const filterType = $('#filterType').val();
-        const filterActivite = $('#filterActivite').val();
-        const filterAbonnement = $('#filterAbonnement').val().toLowerCase().trim();
-        const filterUser = $('#filterUser').val().toLowerCase().trim();
+        const filterNom        = normalize($('#filterNom').val());
+        const filterEmail      = normalize($('#filterEmail').val());
+        const filterPhone      = normalize($('#filterPhone').val());
+        const filterType       = $('#filterType').val();
+        const filterActivite   = $('#filterActivite').val();
+        const filterAbonnement = normalize($('#filterAbonnement').val());
+        const filterUser       = normalize($('#filterUser').val());
 
         let visibleCount = 0;
         let totalUsd = 0, totalCdf = 0;
         let renseigneCount = 0, nonRenseigneCount = 0;
 
+        $('#content_utilisateur tbody tr.no-result-row').remove();
+
         $('#content_utilisateur tbody tr').each(function() {
             const $row = $(this);
+            if ($row.hasClass('no-result-row')) return;
+
             let showRow = true;
 
-            const nomValue = ($row.find('.nom-cell').data('nom') || '').toLowerCase();
-            const emailValue = ($row.find('.email-cell').data('email') || '').toLowerCase();
-            const phoneValue = ($row.find('.phone-cell').data('phone') || '').toLowerCase();
-            const typeValue = $row.find('.type-cell').data('type') + '';
-            const activiteValue = $row.find('.activite-cell').data('activite') + '';
-            const abonnementValue = ($row.find('.abonnement-cell').data('paiement') || '').toString();
-            const userText = ($row.find('.user-cell').text() || '').toLowerCase();
+            const nomValue        = normalize($row.find('.nom-cell').attr('data-nom'));
+            const emailValue      = normalize($row.find('.email-cell').attr('data-email'));
+            const phoneValue      = normalize($row.find('.phone-cell').attr('data-phone'));
+            const typeValue       = String($row.find('.type-cell').attr('data-type') || '');
+            const activiteValue   = String($row.find('.activite-cell').attr('data-activite') || '');
+            const abonnementValue = String($row.find('.abonnement-cell').attr('data-paiement') || '0');
+            const userText        = normalize($row.find('.user-cell').text());
 
-            if (filterNom && !nomValue.includes(filterNom)) showRow = false;
-            if (showRow && filterEmail && !emailValue.includes(filterEmail)) showRow = false;
-            if (showRow && filterPhone && !phoneValue.includes(filterPhone)) showRow = false;
+            if (filterNom && nomValue.indexOf(filterNom) === -1) showRow = false;
+            if (showRow && filterEmail && emailValue.indexOf(filterEmail) === -1) showRow = false;
+            if (showRow && filterPhone && phoneValue.indexOf(filterPhone) === -1) showRow = false;
             if (showRow && filterType !== 'all' && typeValue !== filterType) showRow = false;
             if (showRow && filterActivite !== 'all' && activiteValue !== filterActivite) showRow = false;
-            if (showRow && filterAbonnement && !abonnementValue.includes(filterAbonnement)) showRow = false;
-            if (showRow && filterUser && !userText.includes(filterUser)) showRow = false;
+            if (showRow && filterAbonnement && abonnementValue.indexOf(filterAbonnement) === -1) showRow = false;
+            if (showRow && filterUser && userText.indexOf(filterUser) === -1) showRow = false;
 
             if (showRow) {
                 $row.show();
                 $row.find('.row-num').text(++visibleCount);
-                totalUsd += parseFloat($row.data('usd')) || 0;
-                totalCdf += parseFloat($row.data('cdf')) || 0;
 
-                const paiement = parseFloat($row.find('.abonnement-cell').data('paiement')) || 0;
+                totalUsd += parseFloat($row.attr('data-usd')) || 0;
+                totalCdf += parseFloat($row.attr('data-cdf')) || 0;
+
+                const paiement = parseFloat($row.find('.abonnement-cell').attr('data-paiement')) || 0;
                 if (paiement > 0) {
                     renseigneCount++;
                 } else {
@@ -2077,12 +1132,21 @@ select.form-control {
         $('#totalAbonnementUsd').text(totalUsd.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
         $('#totalAbonnementCdf').text(totalCdf.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 
-        if (visibleCount === 0 && (filterNom || filterEmail || filterPhone || filterType !== 'all' || filterActivite !== 'all' || filterAbonnement || filterUser)) {
-            $('#infoModal .modal-body').html(
-                '<i class="zmdi zmdi-search text-warning" style="font-size: 20px; margin-right: 10px;"></i> ' +
-                'Aucun client ne correspond aux critères de recherche.'
+        const hasFilter = filterNom || filterEmail || filterPhone
+                       || (filterType !== 'all') || (filterActivite !== 'all')
+                       || filterAbonnement || filterUser;
+
+        if (visibleCount === 0 && hasFilter) {
+            const colspan = $('#content_utilisateur thead th').length || 9;
+
+            $('#content_utilisateur tbody').append(
+                '<tr class="no-result-row">' +
+                    '<td colspan="' + colspan + '">' +
+                        '<i class="zmdi zmdi-search-for"></i>' +
+                        '<b>Aucun client ne correspond aux critères de recherche.</b>' +
+                    '</td>' +
+                '</tr>'
             );
-            $('#infoModal').modal('show');
         }
     }
 
@@ -2103,7 +1167,7 @@ select.form-control {
 
     function debouncedClientFilter() {
         clearTimeout(clientFilterTimeout);
-        clientFilterTimeout = setTimeout(() => {
+        clientFilterTimeout = setTimeout(function() {
             filterClients();
             saveClientFiltersToStorage();
         }, 300);
@@ -2113,7 +1177,7 @@ select.form-control {
         const totalClients = $('#content_utilisateur tbody tr').length;
         $('#clientCount').text(totalClients);
 
-        const hasSavedFilters = loadClientFiltersFromStorage();
+        loadClientFiltersFromStorage();
 
         $('#filterNom, #filterEmail, #filterPhone, #filterType, #filterActivite, #filterAbonnement, #filterUser').on('input change', function() {
             debouncedClientFilter();
@@ -2129,16 +1193,13 @@ select.form-control {
         }, 100);
     });
 
-    // ========== NAVIGATION ==========
     $("#liste").click(function(e) {
         e.preventDefault();
         $("#bloc_1").show();
         $("#bloc_2").hide();
         $("#bloc_3").hide();
         $("#bloc_4").hide();
-        setTimeout(function() {
-            filterClients();
-        }, 100);
+        setTimeout(function() { filterClients(); }, 100);
     });
 
     $("#add").click(function(e) {
@@ -2148,9 +1209,7 @@ select.form-control {
         $("#bloc_3").hide();
         $("#bloc_4").hide();
         setTimeout(function() {
-            if (typeof map !== 'undefined' && map) {
-                map.invalidateSize();
-            }
+            if (typeof map !== 'undefined' && map) map.invalidateSize();
         }, 200);
     });
 
@@ -2171,17 +1230,15 @@ select.form-control {
         $("#bloc_2").hide();
         $("#bloc_3").hide();
         $("#bloc_4").hide();
-        setTimeout(function() {
-            filterClients();
-        }, 100);
+        setTimeout(function() { filterClients(); }, 100);
     });
 
-    // ===== BOUTON "CARTE" (tous les clients) AVEC CLUSTERING =====
     $("#mapAll").click(function(e) {
         e.preventDefault();
         var clientsData = [];
         $('#content_utilisateur tbody tr').each(function() {
             var $row = $(this);
+            if ($row.hasClass('no-result-row')) return;
             var $mapLink = $row.find('a[id^="map_"]');
             if ($mapLink.length) {
                 var lat = $mapLink.data('lat');
@@ -2244,8 +1301,7 @@ select.form-control {
             var popupContent = '<strong>' + client.nom + '</strong><br>' +
                                'Adresse: ' + client.adresse + '<br>' +
                                'Coordonnées: ' + client.lat + ', ' + client.lng;
-            var marker = L.marker([client.lat, client.lng])
-                .bindPopup(popupContent);
+            var marker = L.marker([client.lat, client.lng]).bindPopup(popupContent);
             markerCluster.addLayer(marker);
         });
 
@@ -2261,7 +1317,6 @@ select.form-control {
         }, 200);
     }
 
-    // ===== AJOUT CLIENT =====
     $("#save").click(function(e) {
         e.preventDefault();
 
@@ -2285,16 +1340,13 @@ select.form-control {
             data: formData,
             success: function(response) {
                 $btn.prop("disabled", false);
-
                 $("#nom").val("");
                 $("#email").val("");
                 $("#phone").val("");
                 $("#adresse").val("");
                 $("#description").val("");
-
                 showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Client ajouté avec succès', 9000);
                 $("#content_utilisateur").html(response);
-
                 saveClientFiltersToStorage();
                 setTimeout(function() {
                     loadClientFiltersFromStorage();
@@ -2308,7 +1360,6 @@ select.form-control {
         });
     });
 
-    // ===== SUPPRESSION =====
     $("#oui").click(function(e) {
         e.preventDefault();
         var id = $("#data_id").html();
@@ -2332,8 +1383,8 @@ select.form-control {
 
     $(document).ajaxComplete(function(event, xhr, settings) {
         if (settings.url && (settings.url.includes('refresh_') || settings.url.includes('add_client') || settings.url.includes('deleteclient'))) {
-            setTimeout(() => {
-                const totalClients = $('#content_utilisateur tbody tr').length;
+            setTimeout(function() {
+                const totalClients = $('#content_utilisateur tbody tr:not(.no-result-row)').length;
                 $('#clientCount').text(totalClients);
                 loadClientFiltersFromStorage();
                 filterClients();
@@ -2341,7 +1392,6 @@ select.form-control {
         }
     });
 
-    // ========== CARTE AJOUT ==========
     (function() {
         var defaultLat = -4.4419;
         var defaultLng = 15.2663;
@@ -2352,10 +1402,7 @@ select.form-control {
         var marker = null;
 
         function initMap() {
-            if (map) {
-                map.invalidateSize();
-                return;
-            }
+            if (map) { map.invalidateSize(); return; }
 
             map = L.map('map').setView([defaultLat, defaultLng], defaultZoom);
 
@@ -2376,11 +1423,8 @@ select.form-control {
             function updateLocation(lat, lng) {
                 $('#latitude').val(lat.toFixed(6));
                 $('#longitude').val(lng.toFixed(6));
-                if (marker) {
-                    marker.setLatLng([lat, lng]);
-                } else {
-                    marker = L.marker([lat, lng]).addTo(map);
-                }
+                if (marker) { marker.setLatLng([lat, lng]); }
+                else { marker = L.marker([lat, lng]).addTo(map); }
                 map.setView([lat, lng], 15);
             }
 
@@ -2393,11 +1437,8 @@ select.form-control {
                 var lat = parseFloat($('#latitude').val());
                 var lng = parseFloat($('#longitude').val());
                 if (!isNaN(lat) && !isNaN(lng)) {
-                    if (marker) {
-                        marker.setLatLng([lat, lng]);
-                    } else {
-                        marker = L.marker([lat, lng]).addTo(map);
-                    }
+                    if (marker) { marker.setLatLng([lat, lng]); }
+                    else { marker = L.marker([lat, lng]).addTo(map); }
                     map.setView([lat, lng], 15);
                 }
             });
@@ -2439,13 +1480,9 @@ select.form-control {
                 }
                 showMsg('info', '<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Recherche de l\'adresse...', 10000);
                 var url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(adresse) + '&format=json&limit=1';
-                fetch(url, {
-                    headers: {
-                        'User-Agent': 'ControlApp/1.0 (votre-email@domaine.com)'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
+                fetch(url, { headers: { 'User-Agent': 'ControlApp/1.0 (votre-email@domaine.com)' } })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
                     if (data && data.length > 0) {
                         var lat = parseFloat(data[0].lat);
                         var lng = parseFloat(data[0].lon);
@@ -2459,7 +1496,7 @@ select.form-control {
                         showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Aucune adresse trouvée', 5000);
                     }
                 })
-                .catch(error => {
+                .catch(function(error) {
                     showMsg('error', '<i class="zmdi zmdi-close-circle"></i> Erreur de recherche : ' + error.message, 5000);
                 });
             });
@@ -2480,9 +1517,7 @@ select.form-control {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
-                        var lat = position.coords.latitude;
-                        var lng = position.coords.longitude;
-                        map.setView([lat, lng], 15);
+                        map.setView([position.coords.latitude, position.coords.longitude], 15);
                         showMsg('success', '<i class="zmdi zmdi-check-circle"></i> Carte centrée sur votre position', 4000);
                     },
                     function(error) {
@@ -2515,12 +1550,9 @@ select.form-control {
             }
         });
 
-        window.invalidateMap = function() {
-            if (map) map.invalidateSize();
-        };
+        window.invalidateMap = function() { if (map) map.invalidateSize(); };
     })();
 
-    // ========== CARTE MODAL INDIVIDUEL ==========
     (function() {
         var mapModal = null;
         var markerModal = null;
@@ -2539,15 +1571,10 @@ select.form-control {
                 mapModal.setView([lat, lng], 15);
             }
 
-            if (markerModal) {
-                markerModal.setLatLng([lat, lng]);
-            } else {
-                markerModal = L.marker([lat, lng]).addTo(mapModal);
-            }
+            if (markerModal) { markerModal.setLatLng([lat, lng]); }
+            else { markerModal = L.marker([lat, lng]).addTo(mapModal); }
 
-            setTimeout(function() {
-                if (mapModal) mapModal.invalidateSize();
-            }, 300);
+            setTimeout(function() { if (mapModal) mapModal.invalidateSize(); }, 300);
         }
 
         $('#content_utilisateur').on('click', 'a[id^="map_"]', function(e) {
@@ -2569,14 +1596,7 @@ select.form-control {
                 return;
             }
 
-            currentClientData = {
-                lat: lat,
-                lng: lng,
-                nom: nom,
-                adresse: adresse,
-                phone: phone,
-                email: email
-            };
+            currentClientData = { lat: lat, lng: lng, nom: nom, adresse: adresse, phone: phone, email: email };
 
             $('#modalClientNom').text(nom);
             $('#modalClientAdresse').text(adresse);
@@ -2589,10 +1609,7 @@ select.form-control {
         });
 
         $('#btnShareLocation').on('click', function() {
-            if (!currentClientData) {
-                alert('Aucune donnée client à partager.');
-                return;
-            }
+            if (!currentClientData) { alert('Aucune donnée client à partager.'); return; }
 
             var data = currentClientData;
 
@@ -2607,12 +1624,9 @@ select.form-control {
             }
 
             var jsonString = JSON.stringify({
-                nom: data.nom,
-                adresse: data.adresse,
-                phone: data.phone,
-                email: data.email,
-                lat: data.lat,
-                lng: data.lng
+                nom: data.nom, adresse: data.adresse,
+                phone: data.phone, email: data.email,
+                lat: data.lat, lng: data.lng
             });
 
             var encodedData = utf8ToBase64(jsonString);
@@ -2633,40 +1647,30 @@ select.form-control {
         $('#mapModal').on('hidden.bs.modal', function() {
             currentClientData = null;
         });
-
     })();
 
-    // ============================================================
-    // MODALE COMMUNIQUER CLIENT — Filtres identiques à la page principale
-    // ============================================================
-
-    // Fonction utilitaire pour afficher un message dans la modale communiquer
     function showCommuniquerMsg(type, icon, text) {
         var $zone = $('#communiquer_msg_zone');
         $zone.removeClass('show info success error').addClass('show ' + type);
         $zone.html('<i class="zmdi ' + icon + '"></i> <span>' + text + '</span>');
         clearTimeout(window.__communiquerMsgTimeout);
-        window.__communiquerMsgTimeout = setTimeout(function() {
-            $zone.removeClass('show');
-        }, 6000);
+        window.__communiquerMsgTimeout = setTimeout(function() { $zone.removeClass('show'); }, 6000);
     }
 
-    // Récupère toutes les lignes clients (avec les mêmes data-attributes que la page principale)
     function getCommuniquerAllRows() {
         var rows = [];
         $('#content_utilisateur tbody tr').each(function() {
             var $r = $(this);
-            var paiement = parseFloat($r.find('.abonnement-cell').data('paiement')) || 0;
+            if ($r.hasClass('no-result-row')) return;
 
+            var paiement = parseFloat($r.find('.abonnement-cell').data('paiement')) || 0;
             rows.push({
                 id: $r.data('client-id'),
                 nom: String($r.find('.nom-cell').data('nom') || ''),
                 email: String($r.find('.email-cell').data('email') || ''),
                 phone: String($r.find('.phone-cell').data('phone') || ''),
                 type: String($r.find('.type-cell').data('type') || ''),
-                // ID de l'activité (pour filtrer)
                 activite: String($r.find('.activite-cell').data('activite') || ''),
-                // Nom de l'activité (pour afficher)
                 activiteNom: String($r.find('.activite-cell').data('activite-nom') || ''),
                 user: String($r.data('user') || $r.find('.user-cell').data('user') || ''),
                 paiement: paiement,
@@ -2678,7 +1682,6 @@ select.form-control {
         return rows;
     }
 
-    // Récupère les valeurs actuelles des filtres du modal
     function getCommuniquerFilters() {
         var fNom = $('#communiquer_filterNom').val().toLowerCase().trim();
         var fEmail = $('#communiquer_filterEmail').val().toLowerCase().trim();
@@ -2696,32 +1699,22 @@ select.form-control {
             activite: fActivite || 'all',
             abonnement: $('#communiquer_filterAbonnement').val() || '',
             user: $('#communiquer_filterUser').val() || '',
-            _raw_nom: fNom,
-            _raw_email: fEmail,
-            _raw_phone: fPhone,
-            _raw_type: fType,
-            _raw_activite: fActivite,
-            _raw_abonnement: fAbonnement,
-            _raw_user: fUser
+            _raw_nom: fNom, _raw_email: fEmail, _raw_phone: fPhone,
+            _raw_type: fType, _raw_activite: fActivite,
+            _raw_abonnement: fAbonnement, _raw_user: fUser
         };
     }
 
-    // Applique les mêmes règles que filterClients()
     function communiquerApplyFilters(rows, f) {
         return rows.filter(function(r) {
             if (f._raw_nom && r.nom.toLowerCase().indexOf(f._raw_nom) === -1) return false;
             if (f._raw_email && r.email.toLowerCase().indexOf(f._raw_email) === -1) return false;
             if (f._raw_phone && r.phone.toLowerCase().indexOf(f._raw_phone) === -1) return false;
             if (f._raw_type && f._raw_type !== 'all' && String(r.type) !== String(f._raw_type)) return false;
-
-            // Filtrer par ID OU par nom d'activité
             if (f._raw_activite && f._raw_activite !== 'all') {
                 if (String(r.activite) !== String(f._raw_activite)
-                    && (r.activiteNom || '').toLowerCase() !== String(f._raw_activite).toLowerCase()) {
-                    return false;
-                }
+                    && (r.activiteNom || '').toLowerCase() !== String(f._raw_activite).toLowerCase()) return false;
             }
-
             if (f._raw_abonnement && String(r.paiement).indexOf(f._raw_abonnement) === -1) return false;
             if (f._raw_user && r.user.toLowerCase().indexOf(f._raw_user) === -1) return false;
             return true;
@@ -2763,7 +1756,6 @@ select.form-control {
         $('#communiquer_selected_count').text(n);
     }
 
-    // Ouvrir la modale → reset des filtres internes et messages
     $('#communiquer').on('click', function(e) {
         e.preventDefault();
         $('#communiquer_filterNom').val('');
@@ -2779,12 +1771,10 @@ select.form-control {
         $('#communiquerModal').modal('show');
     });
 
-    // Filtres live du modal
     $(document).on('input change', '#communiquer_filterNom, #communiquer_filterEmail, #communiquer_filterPhone, #communiquer_filterType, #communiquer_filterActivite, #communiquer_filterAbonnement, #communiquer_filterUser', function() {
         renderCommuniquerTable();
     });
 
-    // Réinitialiser les filtres du modal
     $(document).on('click', '#communiquer_resetFilters', function() {
         $('#communiquer_filterNom').val('');
         $('#communiquer_filterEmail').val('');
@@ -2796,7 +1786,6 @@ select.form-control {
         renderCommuniquerTable();
     });
 
-    // Check all
     $(document).on('change', '#communiquer_check_all', function() {
         var checked = $(this).prop('checked');
         $('#communiquer_table_body .communiquer-row-check').prop('checked', checked);
@@ -2807,9 +1796,6 @@ select.form-control {
         updateCommuniquerSelectedCount();
     });
 
-    // ============================================================
-    // BOUTON UNIQUE D'ENVOI
-    // ============================================================
     $(document).on('click', '#communiquer_send_btn', function() {
         var message = $('#communiquer_message').val().trim();
         if (!message) {
@@ -2826,8 +1812,6 @@ select.form-control {
             return;
         }
 
-        // Si au moins une case est cochée, on envoie uniquement aux cochés.
-        // Sinon, on envoie à tous les filtrés.
         var checkedIds = [];
         $('#communiquer_table_body .communiquer-row-check:checked').each(function() {
             checkedIds.push($(this).closest('tr').data('client-id'));
@@ -2846,13 +1830,7 @@ select.form-control {
         }
 
         var messages = targets.map(function(r) {
-            return {
-                client_id: r.id,
-                nom: r.nom,
-                email: r.email,
-                phone: r.phone,
-                message: message
-            };
+            return { client_id: r.id, nom: r.nom, email: r.email, phone: r.phone, message: message };
         });
 
         var $btn = $(this);
@@ -2864,17 +1842,12 @@ select.form-control {
             type: 'POST',
             data: {
                 _token: "{{ csrf_token() }}",
-                mode: mode,
-                message: message,
+                mode: mode, message: message,
                 messages: JSON.stringify(messages),
                 filters: JSON.stringify({
-                    nom: filters.nom,
-                    email: filters.email,
-                    phone: filters.phone,
-                    type: filters.type,
-                    activite: filters.activite,
-                    abonnement: filters.abonnement,
-                    user: filters.user
+                    nom: filters.nom, email: filters.email, phone: filters.phone,
+                    type: filters.type, activite: filters.activite,
+                    abonnement: filters.abonnement, user: filters.user
                 })
             },
             dataType: 'json',

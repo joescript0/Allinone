@@ -1,4 +1,4 @@
-@php
+Cette page est bien : @php
     use App\Models\appnames;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
@@ -312,7 +312,6 @@ h4 .badge-invoice {
     box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
 }
 
-/* ===== BOUTON RAPPORT ===== */
 #rapport {
     background: var(--rouge-gradient) !important;
     color: white !important;
@@ -323,7 +322,6 @@ h4 .badge-invoice {
     box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
 }
 
-/* ===== BOUTON PAYER (QR) ===== */
 #payer {
     background: linear-gradient(135deg, #10b981, #059669) !important;
     color: white !important;
@@ -586,9 +584,6 @@ select.form-control {
     background: #e0f2fe;
     transform: translateY(-2px);
 }
-.table tbody td a i.zmdi-delete {
-    color: #ef4444;
-}
 .table tbody td a:hover i.zmdi-delete {
     color: #b91c1c;
 }
@@ -596,7 +591,6 @@ select.form-control {
 .table tbody td a:hover i.zmdi-money {
     color: #1e5a7a;
 }
-
 .table tbody td a i.zmdi-settings {
     color: #17a2b8 !important;
     transition: all 0.2s ease;
@@ -792,9 +786,6 @@ select.form-control {
     border-top: 1px solid #eef2f6;
 }
 
-/* ============================================================
-   MODALE QR CODE / PAYER
-   ============================================================ */
 .modal.fade#qrModal .modal-dialog {
     max-width: 100%;
     width: 60%;
@@ -1135,14 +1126,14 @@ select.form-control {
     border: none;
     color: #64748b;
     font-weight: 600;
-    font-size: 0.82rem;
-    padding: 14px 16px;
+    font-size: 0.9rem;
+    padding: 16px 20px;
     border-bottom: 3px solid transparent;
     transition: all 0.2s;
     background: transparent;
 }
 .param-nav-tabs .nav-link i {
-    margin-right: 4px;
+    margin-right: 6px;
 }
 .param-nav-tabs .nav-link:hover {
     color: #0a192f;
@@ -1157,12 +1148,12 @@ select.form-control {
 .param-section-title {
     font-weight: 700;
     color: #0a192f;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding-left: 12px;
     border-left: 4px solid #17a2b8;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 .param-info-grid {
@@ -1173,7 +1164,7 @@ select.form-control {
 
 .param-info-item {
     background: white;
-    padding: 10px 14px;
+    padding: 12px 16px;
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     display: flex;
@@ -1182,7 +1173,7 @@ select.form-control {
 }
 
 .param-info-label {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     color: #64748b;
     text-transform: uppercase;
     font-weight: 600;
@@ -1191,7 +1182,7 @@ select.form-control {
 .param-info-label i { color: #17a2b8; margin-right: 4px; }
 
 .param-info-value {
-    font-size: 0.88rem;
+    font-size: 0.92rem;
     color: #0a192f;
     font-weight: 700;
 }
@@ -1274,14 +1265,92 @@ select.form-control {
     margin-bottom: 8px;
 }
 
+/* ============================================================
+   MODALE PARAMÈTRES FACTURE – AGRANDISSEMENT
+   ============================================================ */
+#paramFactureModal .modal-dialog {
+    max-width: 98vw !important;
+    width: 98vw !important;
+    margin: 1vh auto !important;
+    height: 96vh;
+}
+#paramFactureModal .modal-content {
+    height: 96vh;
+    max-height: 96vh;
+    display: flex;
+    flex-direction: column;
+}
+#paramFactureModal .modal-body {
+    flex: 1 1 auto;
+    max-height: none !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+#paramFactureModal .tab-content {
+    flex: 1 1 auto;
+    max-height: none !important;
+    overflow-y: auto !important;
+    padding: 1.75rem 2rem !important;
+}
+#paramFactureModal .modal-footer {
+    flex-shrink: 0;
+}
 #paramFactureModal .modal-body::-webkit-scrollbar,
 #paramFactureModal .tab-content::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
 }
 #paramFactureModal .modal-body::-webkit-scrollbar-thumb,
 #paramFactureModal .tab-content::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 10px;
+}
+
+/* Élargir les grilles à l'intérieur pour profiter de l'espace */
+#paramFactureModal .param-info-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+}
+#paramFactureModal .param-finance-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+}
+#paramFactureModal .param-totals-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+}
+
+/* Tableau articles : police un peu plus grande puisque l'espace le permet */
+#paramFactureModal #param_articles_table thead th,
+#paramFactureModal #param_paiements_table thead th {
+    font-size: 0.78rem !important;
+    padding: 12px 10px !important;
+}
+#paramFactureModal #param_articles_table tbody td,
+#paramFactureModal #param_paiements_table tbody td {
+    font-size: 0.82rem !important;
+    padding: 10px 10px !important;
+}
+#paramFactureModal .param-inline-input {
+    min-width: 110px !important;
+    height: 38px !important;
+    font-size: 0.85rem !important;
+}
+
+/* Responsive : sur petit écran, on garde plein écran */
+@media (max-width: 992px) {
+    #paramFactureModal .modal-dialog {
+        max-width: 100vw !important;
+        width: 100vw !important;
+        margin: 0 !important;
+        height: 100vh;
+    }
+    #paramFactureModal .modal-content {
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0 !important;
+    }
+    #paramFactureModal .tab-content {
+        padding: 1rem !important;
+    }
 }
 
 #param_articles_table tbody tr:hover,
@@ -1378,8 +1447,20 @@ select.form-control {
 .param-total-item.total-qte    .param-total-value { color: #17a2b8; }
 .param-total-item.total-qte    .param-total-dot   { background: #17a2b8; }
 
+.param-total-item.total-pa     .param-total-value { color: #6366f1; }
+.param-total-item.total-pa     .param-total-dot   { background: #6366f1; }
+
 .param-total-item.total-pv     .param-total-value { color: #3B82F6; }
 .param-total-item.total-pv     .param-total-dot   { background: #3B82F6; }
+
+.param-total-item.total-papv   .param-total-value { color: #8b5cf6; }
+.param-total-item.total-papv   .param-total-dot   { background: #8b5cf6; }
+
+.param-total-item.total-brut-pa .param-total-value { color: #6366f1; }
+.param-total-item.total-brut-pa .param-total-dot   { background: #6366f1; }
+
+.param-total-item.total-brut-pv .param-total-value { color: #3B82F6; }
+.param-total-item.total-brut-pv .param-total-dot   { background: #3B82F6; }
 
 .param-total-item.total-gen    .param-total-value { color: #0a192f; }
 .param-total-item.total-gen    .param-total-dot   { background: #0a192f; }
@@ -1398,19 +1479,15 @@ select.form-control {
 .param-total-item.total-benef  .param-total-sub   { color: #146c43; }
 
 @media (max-width: 768px) {
-    .param-finance-grid { grid-template-columns: repeat(2, 1fr); }
-    .param-info-grid    { grid-template-columns: 1fr; }
-    .param-nav-tabs .nav-link { padding: 10px 8px; font-size: 0.72rem; }
-    #paramFactureModal .modal-dialog { max-width: 100% !important; margin: 0.5rem; }
-    .param-statut-card { padding: 12px 14px; }
-    .param-statut-card i { font-size: 1.6rem; }
-    .param-statut-card .param-statut-value { font-size: 1.1rem; }
-    .param-totals-grid { grid-template-columns: repeat(2, 1fr); }
+    #paramFactureModal .param-finance-grid { grid-template-columns: repeat(2, 1fr); }
+    #paramFactureModal .param-info-grid    { grid-template-columns: 1fr; }
+    #paramFactureModal .param-nav-tabs .nav-link { padding: 10px 8px; font-size: 0.72rem; }
+    #paramFactureModal .param-statut-card { padding: 12px 14px; }
+    #paramFactureModal .param-statut-card i { font-size: 1.6rem; }
+    #paramFactureModal .param-statut-card .param-statut-value { font-size: 1.1rem; }
+    #paramFactureModal .param-totals-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ============================================================
-   MODALE RAPPORT DES MONTANTS REÇUS
-   ============================================================ */
 #rapportModal .modal-header {
     background: linear-gradient(135deg, #ef4444, #dc2626) !important;
 }
@@ -1512,12 +1589,10 @@ select.form-control {
                                     <?php } ?>
                                     <?php } ?>
                                     &nbsp;
-                                    {{-- ✅ BOUTON RAPPORT (ROUGE) --}}
                                     <a class="btn-danger btn-sm" id="rapport" href="#">
                                         <i class="zmdi zmdi-chart"></i> Rapport
                                     </a>
                                     &nbsp;
-                                    {{-- ✅ BOUTON PAYER (VERT - QR CODE) --}}
                                     <a class="btn-sm" id="payer" href="#">
                                         <i class="fas fa-hand-holding-usd"></i> Payer
                                     </a>
@@ -2188,7 +2263,6 @@ select.form-control {
                                     </div>
                                 </div>
                             </div>
-                            {{-- AJOUT : Montant total + Réduction --}}
                             <div style="margin-top: -8px;" class="row">
                                 <div class="col-6">
                                     <div class="form-group">
@@ -2214,7 +2288,6 @@ select.form-control {
                                     </div>
                                 </div>
                             </div>
-                            {{-- ✅ Montant total réduit + Contact (champ OPTIONNEL - client passager) --}}
                             <div style="margin-top: -8px;" class="row">
                                 <div class="col-6">
                                     <div class="form-group">
@@ -2372,7 +2445,6 @@ select.form-control {
         </div>
     </div>
 
-    {{-- MODALE DE SUPPRESSION AVEC DÉTAILS --}}
     <div class="modal fade" id="deleteFactureModal" tabindex="-1" role="dialog" aria-labelledby="deleteFactureModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -2402,7 +2474,6 @@ select.form-control {
         </div>
     </div>
 
-    <!-- Modal/Fenêtre modale pour afficher le PDF -->
     <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 100%; width: 60%;">
             <div class="modal-content">
@@ -2460,7 +2531,6 @@ select.form-control {
         </div>
     </div>
 
-    {{-- ========== MODALE QR CODE / PAYER ========== --}}
     <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 100%; width: 60%;">
             <div class="modal-content">
@@ -2482,9 +2552,8 @@ select.form-control {
         </div>
     </div>
 
-    {{-- MODALE PARAMÈTRES FACTURE --}}
     <div class="modal fade" id="paramFactureModal" tabindex="-1" role="dialog" aria-labelledby="paramFactureLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1200px;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden;">
 
                 <div class="modal-header" style="background: linear-gradient(135deg, #0a192f, #1e3a5f); color: white; border-bottom: none; padding: 1.1rem 1.5rem;">
@@ -2504,7 +2573,7 @@ select.form-control {
                     </div>
                 </div>
 
-                <div class="modal-body" style="background: #f8fafc; padding: 0; max-height: 78vh; overflow: hidden;">
+                <div class="modal-body" style="background: #f8fafc; padding: 0;">
 
                     <ul class="nav nav-tabs param-nav-tabs" id="paramTabs" role="tablist" style="border-bottom: 1px solid #e2e8f0; background: white; padding: 0 1.5rem;">
                         <li class="nav-item">
@@ -2524,7 +2593,7 @@ select.form-control {
                         </li>
                     </ul>
 
-                    <div class="tab-content" style="padding: 1.5rem; max-height: calc(78vh - 60px); overflow-y: auto;">
+                    <div class="tab-content" style="padding: 1.75rem 2rem;">
 
                         <div class="tab-pane fade show active" id="tab-info" role="tabpanel">
 
@@ -2615,16 +2684,28 @@ select.form-control {
                             </h6>
                             <div class="param-info-grid">
                                 <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-shopping-cart"></i> Prix d'achat total</span>
+                                    <span class="param-info-value" id="param_prix_achat_show" style="color:#6366f1;">0.00</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-money"></i> Prix de vente total</span>
+                                    <span class="param-info-value" id="param_prix_vente_show" style="color:#3B82F6;">0.00</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-shopping-basket"></i> Montant brut (prix achat)</span>
+                                    <span class="param-info-value" id="param_brut_achat_show" style="color:#6366f1;">0.00</span>
+                                </div>
+                                <div class="param-info-item">
+                                    <span class="param-info-label"><i class="zmdi zmdi-shopping-basket"></i> Montant brut (prix vente)</span>
+                                    <span class="param-info-value" id="param_brut_vente_show" style="color:#3B82F6;">0.00</span>
+                                </div>
+                                <div class="param-info-item">
                                     <span class="param-info-label"><i class="zmdi zmdi-alert-circle"></i> Frais de crédit total</span>
                                     <span class="param-info-value text-warning" id="param_frais_credit_show">0.00</span>
                                 </div>
                                 <div class="param-info-item">
                                     <span class="param-info-label"><i class="zmdi zmdi-minus-circle"></i> Réduction totale</span>
                                     <span class="param-info-value text-danger" id="param_reduction_show">0.00</span>
-                                </div>
-                                <div class="param-info-item">
-                                    <span class="param-info-label"><i class="zmdi zmdi-shopping-basket"></i> Montant brut</span>
-                                    <span class="param-info-value" id="param_brut_show">0.00</span>
                                 </div>
                                 <div class="param-info-item">
                                     <span class="param-info-label"><i class="zmdi zmdi-receipt"></i> Nombre d'articles</span>
@@ -2647,7 +2728,10 @@ select.form-control {
                                             <th style="font-size: 0.72rem;">#</th>
                                             <th style="font-size: 0.72rem;">Article</th>
                                             <th style="font-size: 0.72rem;">Qté</th>
+                                            <th style="font-size: 0.72rem;">Prix achat</th>
                                             <th style="font-size: 0.72rem;">Prix vente</th>
+                                            <th style="font-size: 0.72rem;">Montant brut (prix achat)</th>
+                                            <th style="font-size: 0.72rem;">Montant brut (prix vente)</th>
                                             <th style="font-size: 0.72rem;">Total</th>
                                             <th style="font-size: 0.72rem;">Frais crédit</th>
                                             <th style="font-size: 0.72rem;">Réduction</th>
@@ -2655,7 +2739,7 @@ select.form-control {
                                         </tr>
                                     </thead>
                                     <tbody id="param_articles_body">
-                                        <tr><td colspan="8" class="text-center text-muted">Chargement...</td></tr>
+                                        <tr><td colspan="11" class="text-center text-muted">Chargement...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -2713,7 +2797,6 @@ select.form-control {
         </div>
     </div>
 
-    {{-- ✅ MODALE RAPPORT DES MONTANTS REÇUS --}}
     <div class="modal fade" id="rapportModal" tabindex="-1" role="dialog" aria-labelledby="rapportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1100px;">
             <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);">
@@ -2839,7 +2922,6 @@ select.form-control {
         var USER_ROLE = {{ Auth::user()->role ?? 1 }};
         var CURRENT_USER_NAME = "{{ addslashes(Auth::user()->name ?? '') }}";
 
-        // 🔹 Liste de TOUS les utilisateurs actifs (etat = 1) — chargée depuis le serveur
         var ALL_ACTIVE_USERS = [
             @foreach(\App\Models\User::where('etat', 1)->orderBy('name')->get() as $u)
                 "{{ addslashes($u->name) }}",
@@ -2859,7 +2941,6 @@ select.form-control {
             $("#bloc_3").hide();
             $("#bloc_t").hide();
             $.get("{{ url('/delete_facture_user_id') }}", {}, function(response) {
-                // bien
             });
         });
 
@@ -2868,7 +2949,6 @@ select.form-control {
                 $("#numero_facture").html(response);
             });
             $.get("{{ url('/delete_facture_user_id') }}", {}, function(response) {
-                // bien
             });
             e.preventDefault();
             $("#bloc_1").hide();
@@ -2985,15 +3065,11 @@ select.form-control {
                             resetButton();
                             return;
                         } else {
-                            // ✅ NOUVELLE VÉRIFICATION : refuser un libellé qui n'est que "client" ou "client pasager/passager" sous toutes ses formes
                             var libelleClean = libelle.trim().toLowerCase()
-                                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")   // enlève les accents
-                                .replace(/[^a-z0-9]+/g, " ")                         // remplace tout séparateur par un espace
+                                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                .replace(/[^a-z0-9]+/g, " ")
                                 .trim();
 
-                            // 🔹 Refuse : "client", "clients", "client pasager", "client passager",
-                            //    "client pasagers", "client passagers", "client pasagere(s)", "client passagere(s)"
-                            //    (1 ou plusieurs "s" dans pasager/passager, avec ou sans "s" au pluriel)
                             var libelleInterdit  = /^(client|clients)( pas+agers?| pas+ageres?)?$/;
                             var libelleInterdit2 = /^(libelle|nom|libelle client|nom client)$/;
 
@@ -3020,7 +3096,7 @@ select.form-control {
                                     $("#reduction_devise").text("(USD)");
                                     $("#montant_reduit_devise").text("(USD)");
                                     $("#libelle").val("");
-                                    $("#contact").val("");           // ✅ Vider le contact (optionnel)
+                                    $("#contact").val("");
                                     $("#client_id").val("").trigger("change");
                                     Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
                                     $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
@@ -3436,6 +3512,9 @@ select.form-control {
             var rowsHtml = '';
             var totalQte = 0;
             var totalPrixVente = 0;
+            var totalPrixAchat = 0;
+            var totalBrutAchat = 0;
+            var totalBrutVente = 0;
             var totalGeneral = 0, totalAchat = 0, totalBenef = 0, totalFrais = 0, totalReduction = 0;
 
             if (articles.length > 0) {
@@ -3444,19 +3523,26 @@ select.form-control {
                                         ? parseInt(a.devise_achat)
                                         : (isFactureUSD ? 0 : 1);
 
-                    var totalBrutAchat = parseFloat(a.total) || 0;
+                    var totalBrutAchatLigne = (parseFloat(a.prix_achat) || 0) * (parseFloat(a.quantite) || 0);
+                    var totalBrutVenteLigne = parseFloat(a.total) || 0;
                     var reductionAchat = parseFloat(a.reduction) || 0;
-                    var totalNetAchat = totalBrutAchat - reductionAchat;
-                    var benef = totalNetAchat - (parseFloat(a.prix_achat_total) || 0);
+                    var totalNetAchat = totalBrutVenteLigne - reductionAchat;
+                    var benef = totalNetAchat - totalBrutAchatLigne;
 
+                    var sPA    = splitBoth(a.prix_achat, deviseAchat);
                     var sPV    = splitBoth(a.prix_unitaire, deviseAchat);
                     var sGen   = splitBoth(a.total, deviseAchat);
                     var sFra   = splitBoth(a.frais_credit, deviseAchat);
                     var sRed   = splitBoth(a.reduction, deviseAchat);
                     var sBen   = splitBoth(benef, deviseAchat);
+                    var sBrutPA = splitBoth(totalBrutAchatLigne, deviseAchat);
+                    var sBrutPV = splitBoth(totalBrutVenteLigne, deviseAchat);
 
                     totalQte       += parseFloat(a.quantite) || 0;
+                    totalPrixAchat += sPA.usd;
                     totalPrixVente += sPV.usd;
+                    totalBrutAchat += sBrutPA.usd;
+                    totalBrutVente += sBrutPV.usd;
                     totalGeneral   += sGen.usd;
                     totalFrais     += sFra.usd;
                     totalReduction += sRed.usd;
@@ -3469,7 +3555,10 @@ select.form-control {
                     rowsHtml += '<td>' + (idx + 1) + '</td>';
                     rowsHtml += '<td><b>' + a.nom + '</b> <small class="text-muted">(' + (deviseAchat == 0 ? 'USD' : 'CDF') + ')</small></td>';
                     rowsHtml += '<td>' + a.quantite + '</td>';
+                    rowsHtml += '<td style="color:#6366f1; font-weight:600;">' + formatBoth(a.prix_achat, deviseAchat) + '</td>';
                     rowsHtml += '<td>' + formatBoth(a.prix_unitaire, deviseAchat) + '</td>';
+                    rowsHtml += '<td style="color:#6366f1; font-weight:600;">' + formatBoth(totalBrutAchatLigne, deviseAchat) + '</td>';
+                    rowsHtml += '<td style="color:#3B82F6; font-weight:600;">' + formatBoth(totalBrutVenteLigne, deviseAchat) + '</td>';
                     rowsHtml += '<td>' + formatBoth(a.total, deviseAchat) + '</td>';
                     rowsHtml += '<td><input type="number" step="0.01" min="0" class="form-control param-inline-input frais-input" value="' + fraisVal.toFixed(2) + '"></td>';
                     rowsHtml += '<td><input type="number" step="0.01" min="0" class="form-control param-inline-input reduction-input" value="' + redVal.toFixed(2) + '"></td>';
@@ -3498,7 +3587,10 @@ select.form-control {
                     };
                 }
 
+                var tPA    = usdPair(totalPrixAchat);
                 var tPV    = usdPair(totalPrixVente);
+                var tBPA   = usdPair(totalBrutAchat);
+                var tBPV   = usdPair(totalBrutVente);
                 var tGen   = usdPair(totalGeneral);
                 var tFrais = usdPair(totalFrais);
                 var tRed   = usdPair(totalReduction);
@@ -3506,9 +3598,18 @@ select.form-control {
 
                 var cardsHtml = '';
                 cardsHtml += buildCard('total-qte',   'zmdi-format-list-numbered', 'Total Qté',           totalQte, null);
+                cardsHtml += buildCard('total-pa',    'zmdi-shopping-cart',        'Total Prix achat',
+                                        formatMoney(tPA.usd) + ' USD',
+                                        formatMoney(tPA.cdf) + ' CDF');
                 cardsHtml += buildCard('total-pv',    'zmdi-money',                'Total Prix vente',
                                         formatMoney(tPV.usd) + ' USD',
                                         formatMoney(tPV.cdf) + ' CDF');
+                cardsHtml += buildCard('total-brut-pa', 'zmdi-shopping-basket',    'Montant brut (prix achat)',
+                                        formatMoney(tBPA.usd) + ' USD',
+                                        formatMoney(tBPA.cdf) + ' CDF');
+                cardsHtml += buildCard('total-brut-pv', 'zmdi-shopping-basket',    'Montant brut (prix vente)',
+                                        formatMoney(tBPV.usd) + ' USD',
+                                        formatMoney(tBPV.cdf) + ' CDF');
                 cardsHtml += buildCard('total-gen',   'zmdi-balance-wallet',       'Total Général',
                                         formatMoney(tGen.usd) + ' USD',
                                         formatMoney(tGen.cdf) + ' CDF');
@@ -3524,15 +3625,18 @@ select.form-control {
 
                 $('#param_totals_grid').html(cardsHtml);
             } else {
-                rowsHtml = '<tr><td colspan="8" class="text-center text-muted">Aucun article</td></tr>';
+                rowsHtml = '<tr><td colspan="11" class="text-center text-muted">Aucun article</td></tr>';
                 $('#param_totals_grid').html('');
             }
             $('#param_articles_body').html(rowsHtml);
             $('#param_nb_articles').text(articles.length);
 
+            $('#param_prix_achat_show').text(formatBothShort(totalPrixAchat, 0));
+            $('#param_prix_vente_show').text(formatBothShort(totalPrixVente, 0));
+            $('#param_brut_achat_show').text(formatBothShort(totalBrutAchat, 0));
+            $('#param_brut_vente_show').text(formatBothShort(totalBrutVente, 0));
             $('#param_frais_credit_show').text(formatBothShort(totalFrais, 0));
             $('#param_reduction_show').text(formatBothShort(totalReduction, 0));
-            $('#param_brut_show').text(formatBothShort(montantUSD, 0));
 
             $('#param_lines_msg').html('');
 
@@ -3896,10 +4000,6 @@ select.form-control {
                 });
             });
 
-            // ============================================================
-            // ✅ RAPPORT DES MONTANTS REÇUS PAR PLAGE DE DATES
-            // ============================================================
-
             function parseDMY_to_ISO(str) {
                 if (!str) return null;
                 var p = String(str).trim().split('/');
@@ -3920,21 +4020,17 @@ select.form-control {
                 return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
             }
 
-            // 🔹 Peuple la liste des utilisateurs du filtre du rapport
-            // → Utilise ALL_ACTIVE_USERS (tous les users avec etat = 1)
             function populateRapportUsers() {
                 var $sel = $('#rapport_user_filter');
                 $sel.empty();
 
                 if (USER_ROLE == 0) {
-                    // Admin : peut voir tous les utilisateurs actifs
                     $sel.append('<option value="all">Tous les utilisateurs</option>');
                     ALL_ACTIVE_USERS.forEach(function (u) {
                         $sel.append('<option value="' + u + '">' + u + '</option>');
                     });
                     $sel.prop('disabled', false);
                 } else {
-                    // Non-admin : seulement son propre nom, présélectionné et verrouillé
                     var nom = CURRENT_USER_NAME || 'Utilisateur';
                     $sel.append('<option value="' + nom + '" selected>' + nom + '</option>');
                     $sel.val(nom);
@@ -3947,12 +4043,10 @@ select.form-control {
                 var html = '';
                 var lignes = [];
 
-                // 🔹 Si non-admin : on force le filtre sur son nom, quoi qu'il arrive
                 var effectiveUserFilter = (USER_ROLE == 0)
                     ? (userFilter || 'all')
                     : CURRENT_USER_NAME;
 
-                // 🔹 Filtre client/libellé (recherche insensible à la casse)
                 var effectiveClientFilter = (clientFilter || '').trim().toLowerCase();
 
                 $('#content_utilisateur tbody tr').each(function () {
@@ -3967,12 +4061,10 @@ select.form-control {
                     var tauxFacture = parseFloat($row.data('taux')) || 1;
                     if (tauxFacture <= 0) tauxFacture = 1;
 
-                    // 🔹 Application du filtre utilisateur
                     if (effectiveUserFilter && effectiveUserFilter !== 'all' && user_nom !== effectiveUserFilter) {
                         return;
                     }
 
-                    // 🔹 Application du filtre Client / Libellé
                     if (effectiveClientFilter && !String(client).toLowerCase().includes(effectiveClientFilter)) {
                         return;
                     }
@@ -4067,7 +4159,6 @@ select.form-control {
                 $('#rapport_total_cdf').text(formatRapportMoney(totalCDF));
                 $('#rapport_nb').text(nbTransactions);
 
-                // 🔹 Mise à jour des labels affichés
                 if (USER_ROLE == 0) {
                     $('#rapport_user_label').text(effectiveUserFilter === 'all' ? 'Tous' : effectiveUserFilter);
                 } else {
@@ -4111,7 +4202,6 @@ select.form-control {
             $("#rapport").click(function (e) {
                 e.preventDefault();
 
-                // 🔹 Peupler la liste des utilisateurs avant l'affichage
                 populateRapportUsers();
 
                 var filterRange = $('#filterDateRange').val() || '';
@@ -4152,7 +4242,6 @@ select.form-control {
                 buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
             });
 
-            // 🔹 Rebuild quand on change l'utilisateur dans le filtre du rapport
             $(document).on('change', '#rapport_user_filter', function () {
                 var range = $('#rapport_date_range').val() || '';
                 var dateDebutISO = null, dateFinISO = null;
@@ -4168,7 +4257,6 @@ select.form-control {
                 buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
             });
 
-            // 🔹 Rebuild quand on tape dans le filtre Client / Libellé (avec debounce)
             var rapportClientTimeout;
             $(document).on('input', '#rapport_client_filter', function () {
                 clearTimeout(rapportClientTimeout);
@@ -4188,9 +4276,6 @@ select.form-control {
                 }, 300);
             });
 
-            // ============================================================
-            // ✅ BOUTON RÉINITIALISER LE FILTRE DU RAPPORT
-            // ============================================================
             $(document).on('click', '#rapport_reset_btn', function (e) {
                 e.preventDefault();
 
@@ -4202,7 +4287,6 @@ select.form-control {
                     $('#rapport_date_range').data('daterangepicker').setEndDate(moment());
                 }
 
-                // 🔹 Réinitialiser aussi le filtre utilisateur
                 if (USER_ROLE == 0) {
                     $('#rapport_user_filter').val('all');
                 } else {
@@ -4384,9 +4468,6 @@ select.form-control {
             $("#pdfIframe").attr("src", "");
         });
 
-        /* ============================================================
-           BOUTON PAYER — ouvre la modale QR (appel /print_qr_code)
-           ============================================================ */
         $("#payer").click(function(e) {
             e.preventDefault();
             var $btn = $(this);
@@ -4395,7 +4476,6 @@ select.form-control {
             $.get("{{ url('/print_qr_code') }}", {}, function(response) {
                 var url = '';
 
-                // 🔹 Même logique que l'icône œil des factures payées
                 if (response && response[0] && response[0][0]) {
                     url = response[0][0];
                 } else if (response && typeof response.url === 'string') {
@@ -4417,7 +4497,6 @@ select.form-control {
             });
         });
 
-        // Nettoyage de l'iframe à la fermeture
         $("#qrModal").on("hidden.bs.modal", function() {
             $("#qrIframe").attr("src", "");
         });

@@ -735,6 +735,41 @@ class HomeController extends Controller
         }
     }
 
+    public function fidelite_client()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 14;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(($display ==  1) || (Auth::user()->role == 0))
+            {
+                $data["utilisateurs"] = User::where(["etat" => 1])->get();
+                $clients = Clients::where(["etat" => 1])->get();
+                $data["clients"] = $clients;
+                $data["activites"] = Activites::where(["etat" => 1])->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                return view('interfaces.fidelite_client', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+
     public function mes_clients()
     {
         $groupe_user_id = Auth::user()->role;

@@ -16806,4 +16806,112 @@ class AjaxController extends Controller
             }
         }
     }
+
+    public function get_fidelite_data(Request $request)
+    {
+        $date_debut = $request->input('date_debut');
+        $date_fin   = $request->input('date_fin');
+
+        // 1) Factures candidates
+        $facturesCandidates = DB::table('factureasses')
+            ->where('etat', 0)
+            ->where('client_id', '!=', 0);
+
+        if (!empty($date_debut)) {
+            $facturesCandidates->whereDate('created_at', '>=', $date_debut);
+        }
+        if (!empty($date_fin)) {
+            $facturesCandidates->whereDate('created_at', '<=', $date_fin);
+        }
+
+        $facturesCandidates = $facturesCandidates->get(['id', 'client_id', 'devise', 'taux']);
+        $factureIds = $facturesCandidates->pluck('id')->toArray();
+
+        // 2) Achats par facture (nb + montant)
+        $achatsParFacture = [];
+        if (!empty($factureIds)) {
+            $rowsA = DB::table('achats')
+                ->whereIn('facture_id', $factureIds)
+                ->select(
+                    'facture_id',
+                    DB::raw('COUNT(*) AS nb'),
+                    DB::raw('SUM(total - COALESCE(reduction, 0)) AS montant')
+                )
+                ->groupBy('facture_id')
+                ->get();
+
+            foreach ($rowsA as $r) {
+                $achatsParFacture[$r->facture_id] = [
+                    'nb'      => (int) $r->nb,
+                    'montant' => (float) $r->montant,
+                ];
+            }
+        }
+
+        // 3) Paiements par facture
+        $paiementsParFacture = [];
+        if (!empty($factureIds)) {
+            $rowsP = DB::table('detailpaiessachats')
+                ->whereIn('facture_id', $factureIds)
+                ->get(['facture_id', 'devise_recu', 'montant_recu']);
+
+            foreach ($rowsP as $r) {
+                if (!isset($paiementsParFacture[$r->facture_id])) {
+                    $paiementsParFacture[$r->facture_id] = [];
+                }
+                $paiementsParFacture[$r->facture_id][] = $r;
+            }
+        }
+
+        // 4) Calculer points + montants par client
+        $fideliteData = [];
+
+        foreach ($facturesCandidates as $fac) {
+            if (!isset($achatsParFacture[$fac->id])) continue;
+
+            $nbAchats     = $achatsParFacture[$fac->id]['nb'];
+            $montantTotal = $achatsParFacture[$fac->id]['montant'];
+
+            if ($nbAchats === 0 || $montantTotal <= 0) continue;
+
+            $taux = ($fac->taux > 0) ? (float) $fac->taux : 1;
+
+            $payeUSD = 0;
+            if (isset($paiementsParFacture[$fac->id])) {
+                foreach ($paiementsParFacture[$fac->id] as $p) {
+                    if ((int) $p->devise_recu === 0) {
+                        $payeUSD += (float) $p->montant_recu;
+                    } else {
+                        $payeUSD += ($taux > 0) ? ((float) $p->montant_recu / $taux) : 0;
+                    }
+                }
+            }
+
+            if ((int) $fac->devise === 0) {
+                $montantUSD = $montantTotal;
+                $montantCDF = $montantTotal * $taux;
+            } else {
+                $montantCDF = $montantTotal;
+                $montantUSD = ($taux > 0) ? ($montantTotal / $taux) : 0;
+            }
+
+            // ✅ Uniquement les factures totalement payées
+            if ($payeUSD + 0.01 < $montantUSD) continue;
+
+            $cid = (int) $fac->client_id;
+            if (!isset($fideliteData[$cid])) {
+                $fideliteData[$cid] = [
+                    'points'      => 0,
+                    'montant_usd' => 0,
+                    'montant_cdf' => 0,
+                ];
+            }
+
+            $fideliteData[$cid]['points']      += $nbAchats;
+            $fideliteData[$cid]['montant_usd'] += $montantUSD;
+            $fideliteData[$cid]['montant_cdf'] += $montantCDF;
+        }
+
+        return response()->json($fideliteData);
+    }
 }

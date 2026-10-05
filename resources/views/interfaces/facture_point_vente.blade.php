@@ -514,33 +514,33 @@ select.form-control {
    ============================================================ */
 .param-nav-tabs .nav-link {
     border: none; color: #64748b; font-weight: 600;
-    font-size: 0.82rem; padding: 14px 16px;
+    font-size: 0.9rem; padding: 16px 20px;
     border-bottom: 3px solid transparent; transition: all 0.2s;
     background: transparent;
 }
-.param-nav-tabs .nav-link i { margin-right: 4px; }
+.param-nav-tabs .nav-link i { margin-right: 6px; }
 .param-nav-tabs .nav-link:hover { color: #0a192f; border-bottom-color: #cbd5e1; }
 .param-nav-tabs .nav-link.active { color: #17a2b8; border-bottom-color: #17a2b8; background: transparent; }
 
 .param-section-title {
-    font-weight: 700; color: #0a192f; font-size: 0.9rem;
+    font-weight: 700; color: #0a192f; font-size: 0.95rem;
     text-transform: uppercase; letter-spacing: 0.5px;
     padding-left: 12px; border-left: 4px solid #17a2b8;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 .param-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
 .param-info-item {
-    background: white; padding: 10px 14px; border-radius: 12px;
+    background: white; padding: 12px 16px; border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     display: flex; flex-direction: column; gap: 3px;
 }
 .param-info-label {
-    font-size: 0.7rem; color: #64748b; text-transform: uppercase;
+    font-size: 0.72rem; color: #64748b; text-transform: uppercase;
     font-weight: 600; letter-spacing: 0.3px;
 }
 .param-info-label i { color: #17a2b8; margin-right: 4px; }
-.param-info-value { font-size: 0.88rem; color: #0a192f; font-weight: 700; }
+.param-info-value { font-size: 0.92rem; color: #0a192f; font-weight: 700; }
 
 .param-finance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
 .param-finance-card {
@@ -569,10 +569,75 @@ select.form-control {
 .param-statut-card .param-statut-value { font-size: 1.3rem; font-weight: 800; }
 .param-statut-card .param-statut-sub { font-size: 0.78rem; opacity: 0.9; font-weight: 500; }
 
+/* ============================================================
+   MODALE PARAMÈTRES FACTURE – AGRANDISSEMENT
+   ============================================================ */
+#paramFactureModal .modal-dialog {
+    max-width: 98vw !important;
+    width: 98vw !important;
+    margin: 1vh auto !important;
+    height: 96vh;
+}
+#paramFactureModal .modal-content {
+    height: 96vh;
+    max-height: 96vh;
+    display: flex;
+    flex-direction: column;
+}
+#paramFactureModal .modal-body {
+    flex: 1 1 auto;
+    max-height: none !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+#paramFactureModal .tab-content {
+    flex: 1 1 auto;
+    max-height: none !important;
+    overflow-y: auto !important;
+    padding: 1.75rem 2rem !important;
+}
+#paramFactureModal .modal-footer { flex-shrink: 0; }
 #paramFactureModal .modal-body::-webkit-scrollbar,
-#paramFactureModal .tab-content::-webkit-scrollbar { width: 8px; }
+#paramFactureModal .tab-content::-webkit-scrollbar { width: 10px; }
 #paramFactureModal .modal-body::-webkit-scrollbar-thumb,
 #paramFactureModal .tab-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+#paramFactureModal .param-info-grid    { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important; }
+#paramFactureModal .param-finance-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important; }
+#paramFactureModal .param-totals-grid  { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; }
+
+#paramFactureModal #param_articles_table thead th,
+#paramFactureModal #param_paiements_table thead th {
+    font-size: 0.78rem !important; padding: 12px 10px !important;
+}
+#paramFactureModal #param_articles_table tbody td,
+#paramFactureModal #param_paiements_table tbody td {
+    font-size: 0.82rem !important; padding: 10px 10px !important;
+}
+#paramFactureModal .param-inline-input {
+    min-width: 110px !important; height: 38px !important; font-size: 0.85rem !important;
+}
+
+@media (max-width: 992px) {
+    #paramFactureModal .modal-dialog {
+        max-width: 100vw !important; width: 100vw !important;
+        margin: 0 !important; height: 100vh;
+    }
+    #paramFactureModal .modal-content { height: 100vh; max-height: 100vh; border-radius: 0 !important; }
+    #paramFactureModal .tab-content { padding: 1rem !important; }
+}
+
+/* ============================================================
+   NOUVELLES CARTES TOTAUX (prix achat / brut)
+   ============================================================ */
+.param-total-item.total-pa      .param-total-value { color: #6366f1; }
+.param-total-item.total-pa      .param-total-dot   { background: #6366f1; }
+.param-total-item.total-brut-pa .param-total-value { color: #6366f1; }
+.param-total-item.total-brut-pa .param-total-dot   { background: #6366f1; }
+.param-total-item.total-brut-pv .param-total-value { color: #3B82F6; }
+.param-total-item.total-brut-pv .param-total-dot   { background: #3B82F6; }
 
 #param_articles_table tbody tr:hover,
 #param_paiements_table tbody tr:hover { background: #e6f0ff !important; }
@@ -625,14 +690,13 @@ select.form-control {
 .param-total-item.total-benef .param-total-sub   { color: #146c43; }
 
 @media (max-width: 768px) {
-    .param-finance-grid { grid-template-columns: repeat(2, 1fr); }
-    .param-info-grid    { grid-template-columns: 1fr; }
-    .param-nav-tabs .nav-link { padding: 10px 8px; font-size: 0.72rem; }
-    #paramFactureModal .modal-dialog { max-width: 100% !important; margin: 0.5rem; }
-    .param-statut-card { padding: 12px 14px; }
-    .param-statut-card i { font-size: 1.6rem; }
-    .param-statut-card .param-statut-value { font-size: 1.1rem; }
-    .param-totals-grid { grid-template-columns: repeat(2, 1fr); }
+    #paramFactureModal .param-finance-grid { grid-template-columns: repeat(2, 1fr); }
+    #paramFactureModal .param-info-grid    { grid-template-columns: 1fr; }
+    #paramFactureModal .param-nav-tabs .nav-link { padding: 10px 8px; font-size: 0.72rem; }
+    #paramFactureModal .param-statut-card { padding: 12px 14px; }
+    #paramFactureModal .param-statut-card i { font-size: 1.6rem; }
+    #paramFactureModal .param-statut-card .param-statut-value { font-size: 1.1rem; }
+    #paramFactureModal .param-totals-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ============================================================
@@ -708,7 +772,7 @@ select.form-control {
 .daterangepicker { z-index: 10050 !important; }
 
 /* ============================================================
-   BOUTON QR CODE / PAYER (4ème bouton vert)
+   BOUTON QR CODE / PAYER
    ============================================================ */
 #qr_btn {
     display: inline-flex !important;
@@ -1390,7 +1454,6 @@ select.form-control {
                                     </div>
                                 </div>
                             </div>
-                            {{-- ✅ Montant total réduit + Contact (champ OPTIONNEL - client passager) --}}
                             <div style="margin-top: -8px;" class="row">
                                 <div class="col-6">
                                     <div class="form-group">
@@ -1615,7 +1678,7 @@ select.form-control {
 
     {{-- MODALE PARAMÈTRES FACTURE --}}
     <div class="modal fade" id="paramFactureModal" tabindex="-1" role="dialog" aria-labelledby="paramFactureLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1200px;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden;">
                 <div class="modal-header" style="background: linear-gradient(135deg, #0a192f, #1e3a5f); color: white; border-bottom: none; padding: 1.1rem 1.5rem;">
                     <h5 class="modal-title" id="paramFactureLabel" style="font-weight: 700;">
@@ -1631,13 +1694,13 @@ select.form-control {
                         </button>
                     </div>
                 </div>
-                <div class="modal-body" style="background: #f8fafc; padding: 0; max-height: 78vh; overflow: hidden;">
+                <div class="modal-body" style="background: #f8fafc; padding: 0;">
                     <ul class="nav nav-tabs param-nav-tabs" id="paramTabs" role="tablist" style="border-bottom: 1px solid #e2e8f0; background: white; padding: 0 1.5rem;">
                         <li class="nav-item"><a class="nav-link active" id="tab-info-tab" data-toggle="tab" href="#tab-info" role="tab"><i class="zmdi zmdi-info"></i> Informations</a></li>
                         <li class="nav-item"><a class="nav-link" id="tab-articles-tab" data-toggle="tab" href="#tab-articles" role="tab"><i class="zmdi zmdi-shopping-cart"></i> Articles</a></li>
                         <li class="nav-item"><a class="nav-link" id="tab-paiements-tab" data-toggle="tab" href="#tab-paiements" role="tab"><i class="zmdi zmdi-money"></i> Paiements</a></li>
                     </ul>
-                    <div class="tab-content" style="padding: 1.5rem; max-height: calc(78vh - 60px); overflow-y: auto;">
+                    <div class="tab-content" style="padding: 1.75rem 2rem;">
                         <div class="tab-pane fade show active" id="tab-info" role="tabpanel">
                             <h6 class="param-section-title"><i class="zmdi zmdi-check-circle text-info"></i> Statut de paiement</h6>
                             <div id="param_statut_card_wrapper" style="margin-bottom: 22px;">
@@ -1687,9 +1750,12 @@ select.form-control {
                             </div>
                             <h6 class="param-section-title" style="margin-top: 22px;"><i class="zmdi zmdi-alert-circle text-info"></i> Frais & Réductions appliqués</h6>
                             <div class="param-info-grid">
+                                <div class="param-info-item"><span class="param-info-label"><i class="zmdi zmdi-shopping-cart"></i> Prix d'achat total</span><span class="param-info-value" id="param_prix_achat_show" style="color:#6366f1;">0.00</span></div>
+                                <div class="param-info-item"><span class="param-info-label"><i class="zmdi zmdi-money"></i> Prix de vente total</span><span class="param-info-value" id="param_prix_vente_show" style="color:#3B82F6;">0.00</span></div>
+                                <div class="param-info-item"><span class="param-info-label"><i class="zmdi zmdi-shopping-basket"></i> Montant brut (prix achat)</span><span class="param-info-value" id="param_brut_achat_show" style="color:#6366f1;">0.00</span></div>
+                                <div class="param-info-item"><span class="param-info-label"><i class="zmdi zmdi-shopping-basket"></i> Montant brut (prix vente)</span><span class="param-info-value" id="param_brut_vente_show" style="color:#3B82F6;">0.00</span></div>
                                 <div class="param-info-item"><span class="param-info-label"><i class="zmdi zmdi-alert-circle"></i> Frais de crédit total</span><span class="param-info-value text-warning" id="param_frais_credit_show">0.00</span></div>
                                 <div class="param-info-item"><span class="param-info-label"><i class="zmdi zmdi-minus-circle"></i> Réduction totale</span><span class="param-info-value text-danger" id="param_reduction_show">0.00</span></div>
-                                <div class="param-info-item"><span class="param-info-label"><i class="zmdi zmdi-shopping-basket"></i> Montant brut</span><span class="param-info-value" id="param_brut_show">0.00</span></div>
                                 <div class="param-info-item"><span class="param-info-label"><i class="zmdi zmdi-receipt"></i> Nombre d'articles</span><span class="param-info-value" id="param_nb_articles">0</span></div>
                             </div>
                         </div>
@@ -1705,7 +1771,10 @@ select.form-control {
                                             <th style="font-size: 0.72rem;">#</th>
                                             <th style="font-size: 0.72rem;">Article</th>
                                             <th style="font-size: 0.72rem;">Qté</th>
+                                            <th style="font-size: 0.72rem;">Prix achat</th>
                                             <th style="font-size: 0.72rem;">Prix vente</th>
+                                            <th style="font-size: 0.72rem;">Montant brut (prix achat)</th>
+                                            <th style="font-size: 0.72rem;">Montant brut (prix vente)</th>
                                             <th style="font-size: 0.72rem;">Total</th>
                                             <th style="font-size: 0.72rem;">Frais crédit</th>
                                             <th style="font-size: 0.72rem;">Réduction</th>
@@ -1713,7 +1782,7 @@ select.form-control {
                                         </tr>
                                     </thead>
                                     <tbody id="param_articles_body">
-                                        <tr><td colspan="8" class="text-center text-muted">Chargement...</td></tr>
+                                        <tr><td colspan="11" class="text-center text-muted">Chargement...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -2029,7 +2098,7 @@ select.form-control {
                     success: function(response) {
                         resetButton();
                         $("#quantite,#libelle,#montant_total,#montant_reduit").val("");
-                        $("#contact").val("");   // ✅ Vider le contact (optionnel)
+                        $("#contact").val("");
                         $("#type_sortie,#type_vente_id,#client_id").val("").trigger("change");
                         $("#reduction").val("0");
                         $("#montant_total_devise,#reduction_devise,#montant_reduit_devise").text("(USD)");
@@ -2292,49 +2361,86 @@ select.form-control {
             return '<div class="dual-currency"><b>' + formatMoney(usd) + ' USD</b><small>' + formatMoney(cdf) + ' CDF</small></div>';
         }
 
-        var rowsHtml = '', totalQte = 0, totalPV = 0, totalGen = 0, totalFrais = 0, totalRed = 0, totalBen = 0;
+        function formatBothShort(val, devAchat) {
+            var v = parseFloat(val) || 0;
+            if (devAchat === undefined) devAchat = isUSD ? 0 : 1;
+            if (devAchat == 0) return formatMoney(v) + ' USD (' + formatMoney(v * taux) + ' CDF)';
+            var usd = (taux > 0) ? (v / taux) : 0;
+            return formatMoney(v) + ' CDF (' + formatMoney(usd) + ' USD)';
+        }
+
+        var rowsHtml = '', totalQte = 0, totalPV = 0, totalPA = 0, totalBrutAchat = 0, totalBrutVente = 0;
+        var totalGen = 0, totalFrais = 0, totalRed = 0, totalBen = 0;
 
         articles.forEach(function(a, idx) {
             var devAchat = (a.devise_achat !== undefined && a.devise_achat !== null) ? parseInt(a.devise_achat) : (isUSD ? 0 : 1);
-            var totalNet = (parseFloat(a.total) || 0) - (parseFloat(a.reduction) || 0);
-            var benef = totalNet - (parseFloat(a.prix_achat_total) || 0);
-            var sPV = (devAchat == 0) ? { usd: parseFloat(a.prix_unitaire) || 0 } : { usd: (parseFloat(a.prix_unitaire) || 0) / taux };
-            var sGen = (devAchat == 0) ? { usd: parseFloat(a.total) || 0 } : { usd: (parseFloat(a.total) || 0) / taux };
-            var sFra = (devAchat == 0) ? { usd: parseFloat(a.frais_credit) || 0 } : { usd: (parseFloat(a.frais_credit) || 0) / taux };
-            var sRed = (devAchat == 0) ? { usd: parseFloat(a.reduction) || 0 } : { usd: (parseFloat(a.reduction) || 0) / taux };
-            var sBen = (devAchat == 0) ? { usd: benef } : { usd: benef / taux };
+            var qte = parseFloat(a.quantite) || 0;
+            var prixAchat = parseFloat(a.prix_achat) || 0;
+            var prixVente = parseFloat(a.prix_unitaire) || 0;
+            var brutAchatLigne = prixAchat * qte;
+            var brutVenteLigne = parseFloat(a.total) || 0;
+            var reduction = parseFloat(a.reduction) || 0;
+            var frais = parseFloat(a.frais_credit) || 0;
+            var totalNet = brutVenteLigne - reduction;
+            var benef = totalNet - brutAchatLigne;
 
-            totalQte += parseFloat(a.quantite) || 0;
-            totalPV += sPV.usd; totalGen += sGen.usd; totalFrais += sFra.usd; totalRed += sRed.usd; totalBen += sBen.usd;
+            var sPA   = (devAchat == 0) ? prixAchat : prixAchat / taux;
+            var sPV   = (devAchat == 0) ? prixVente : prixVente / taux;
+            var sBPA  = (devAchat == 0) ? brutAchatLigne : brutAchatLigne / taux;
+            var sBPV  = (devAchat == 0) ? brutVenteLigne : brutVenteLigne / taux;
+            var sGen  = (devAchat == 0) ? brutVenteLigne : brutVenteLigne / taux;
+            var sFra  = (devAchat == 0) ? frais : frais / taux;
+            var sRed  = (devAchat == 0) ? reduction : reduction / taux;
+            var sBen  = (devAchat == 0) ? benef : benef / taux;
+
+            totalQte       += qte;
+            totalPA        += sPA;
+            totalPV        += sPV;
+            totalBrutAchat += sBPA;
+            totalBrutVente += sBPV;
+            totalGen       += sGen;
+            totalFrais     += sFra;
+            totalRed       += sRed;
+            totalBen       += sBen;
 
             rowsHtml += '<tr data-achat-id="' + a.id + '" data-devise-achat="' + devAchat + '">';
             rowsHtml += '<td>' + (idx + 1) + '</td>';
             rowsHtml += '<td><b>' + a.nom + '</b></td>';
             rowsHtml += '<td>' + a.quantite + '</td>';
+            rowsHtml += '<td style="color:#6366f1; font-weight:600;">' + formatBoth(a.prix_achat, devAchat) + '</td>';
             rowsHtml += '<td>' + formatBoth(a.prix_unitaire, devAchat) + '</td>';
+            rowsHtml += '<td style="color:#6366f1; font-weight:600;">' + formatBoth(brutAchatLigne, devAchat) + '</td>';
+            rowsHtml += '<td style="color:#3B82F6; font-weight:600;">' + formatBoth(brutVenteLigne, devAchat) + '</td>';
             rowsHtml += '<td>' + formatBoth(a.total, devAchat) + '</td>';
-            rowsHtml += '<td><input type="number" step="0.01" min="0" class="form-control param-inline-input frais-input" value="' + (parseFloat(a.frais_credit) || 0).toFixed(2) + '"></td>';
-            rowsHtml += '<td><input type="number" step="0.01" min="0" class="form-control param-inline-input reduction-input" value="' + (parseFloat(a.reduction) || 0).toFixed(2) + '"></td>';
+            rowsHtml += '<td><input type="number" step="0.01" min="0" class="form-control param-inline-input frais-input" value="' + frais.toFixed(2) + '"></td>';
+            rowsHtml += '<td><input type="number" step="0.01" min="0" class="form-control param-inline-input reduction-input" value="' + reduction.toFixed(2) + '"></td>';
             rowsHtml += '<td class="' + (benef >= 0 ? 'text-success' : 'text-danger') + '">' + formatBoth(benef, devAchat) + '</td>';
             rowsHtml += '</tr>';
         });
 
-        $('#param_articles_body').html(rowsHtml || '<tr><td colspan="8" class="text-center text-muted">Aucun article</td></tr>');
+        $('#param_articles_body').html(rowsHtml || '<tr><td colspan="11" class="text-center text-muted">Aucun article</td></tr>');
         $('#param_nb_articles').text(articles.length);
-        $('#param_brut_show').text(formatMoney(montantUSD) + ' USD');
-        $('#param_frais_credit_show').text(formatMoney(totalFrais) + ' USD');
-        $('#param_reduction_show').text(formatMoney(totalRed) + ' USD');
+
+        $('#param_prix_achat_show').text(formatBothShort(totalPA, 0));
+        $('#param_prix_vente_show').text(formatBothShort(totalPV, 0));
+        $('#param_brut_achat_show').text(formatBothShort(totalBrutAchat, 0));
+        $('#param_brut_vente_show').text(formatBothShort(totalBrutVente, 0));
+        $('#param_frais_credit_show').text(formatBothShort(totalFrais, 0));
+        $('#param_reduction_show').text(formatBothShort(totalRed, 0));
 
         function buildCard(cls, icon, label, value, sub) {
             return '<div class="param-total-item ' + cls + '"><div class="param-total-label"><span class="param-total-dot"></span><i class="zmdi ' + icon + '"></i> ' + label + '</div><div class="param-total-value">' + value + '</div>' + (sub ? '<div class="param-total-sub">' + sub + '</div>' : '') + '</div>';
         }
         var cards = '';
-        cards += buildCard('total-qte', 'zmdi-format-list-numbered', 'Total Qté', totalQte, null);
-        cards += buildCard('total-pv', 'zmdi-money', 'Total Prix vente', formatMoney(totalPV) + ' USD', formatMoney(totalPV * taux) + ' CDF');
-        cards += buildCard('total-gen', 'zmdi-balance-wallet', 'Total Général', formatMoney(totalGen) + ' USD', formatMoney(totalGen * taux) + ' CDF');
-        cards += buildCard('total-frais', 'zmdi-alert-circle', 'Total Frais crédit', formatMoney(totalFrais) + ' USD', formatMoney(totalFrais * taux) + ' CDF');
-        cards += buildCard('total-red', 'zmdi-minus-circle', 'Total Réduction', formatMoney(totalRed) + ' USD', formatMoney(totalRed * taux) + ' CDF');
-        cards += buildCard('total-benef', 'zmdi-trending-up', 'Total Bénéfice', formatMoney(totalBen) + ' USD', formatMoney(totalBen * taux) + ' CDF');
+        cards += buildCard('total-qte',     'zmdi-format-list-numbered', 'Total Qté', totalQte, null);
+        cards += buildCard('total-pa',      'zmdi-shopping-cart',        'Total Prix achat', formatMoney(totalPA) + ' USD', formatMoney(totalPA * taux) + ' CDF');
+        cards += buildCard('total-pv',      'zmdi-money',                'Total Prix vente', formatMoney(totalPV) + ' USD', formatMoney(totalPV * taux) + ' CDF');
+        cards += buildCard('total-brut-pa', 'zmdi-shopping-basket',      'Montant brut (prix achat)', formatMoney(totalBrutAchat) + ' USD', formatMoney(totalBrutAchat * taux) + ' CDF');
+        cards += buildCard('total-brut-pv', 'zmdi-shopping-basket',      'Montant brut (prix vente)', formatMoney(totalBrutVente) + ' USD', formatMoney(totalBrutVente * taux) + ' CDF');
+        cards += buildCard('total-gen',     'zmdi-balance-wallet',       'Total Général', formatMoney(totalGen) + ' USD', formatMoney(totalGen * taux) + ' CDF');
+        cards += buildCard('total-frais',   'zmdi-alert-circle',         'Total Frais crédit', formatMoney(totalFrais) + ' USD', formatMoney(totalFrais * taux) + ' CDF');
+        cards += buildCard('total-red',     'zmdi-minus-circle',         'Total Réduction', formatMoney(totalRed) + ' USD', formatMoney(totalRed * taux) + ' CDF');
+        cards += buildCard('total-benef',   'zmdi-trending-up',          'Total Bénéfice', formatMoney(totalBen) + ' USD', formatMoney(totalBen * taux) + ' CDF');
         $('#param_totals_grid').html(cards);
 
         var paiements = safeParseJSON($row.attr('data-paiements'));
@@ -2529,7 +2635,6 @@ select.form-control {
         }
         function formatRMoney(v) { return (parseFloat(v) || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
 
-        // 🔹 Peuple la liste des utilisateurs du filtre du rapport
         function populateRapportUsers() {
             var $sel = $('#rapport_user_filter');
             $sel.empty();
@@ -2830,11 +2935,9 @@ select.form-control {
         var $btn = $(this);
         $btn.prop('disabled', true);
 
-        // 🔹 Récupère l'URL du PDF (QR code) depuis le back, comme pour l'icône eye
         $.get("{{ url('/print_qr_code') }}", {}, function(response) {
             var url = '';
 
-            // Même logique que l'icône eye des factures déjà payées
             if (response && response[0] && response[0][0]) {
                 url = response[0][0];
             } else if (response && typeof response.url === 'string') {
@@ -2857,11 +2960,9 @@ select.form-control {
         });
     });
 
-    // Nettoyage de l'iframe à la fermeture
     $("#qrModal").on("hidden.bs.modal", function() {
         $("#qrIframe").attr("src", "");
     });
     </script>
 @endsection
 @endsection
-
