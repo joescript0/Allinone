@@ -15,6 +15,8 @@ use App\Models\Type_documents;
 use App\Models\Fichier_documents;
 use App\Models\User;
 use App\Models\Entres;
+use App\Models\Motifs;
+use App\Models\Services;
 use App\Models\Factures;
 use App\Models\commisionsagents;
 use App\Models\transfertstocks;
@@ -2175,6 +2177,8 @@ class HomeController extends Controller
                 })->get();
                 $data["groupes"] = Groupes::where(["etat" => 1])->get();
                 $data["personnes"] = Personnes::where(["etat" => 1])->get();
+                $data["motifs"] = Motifs::where(["etat" => 1])->get();
+                $data["services"] = Services::where(["etat" => 1])->get();
                 $data["registreaccueils"] = Registreaccueil::where(["etat" => 1])->get();
                 $data["postes"] = Postes::where(["supprimer" => 0])->get();
                 $data["activites"] = Activites::where(["supprimer" => 0])->get();

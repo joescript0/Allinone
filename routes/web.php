@@ -360,6 +360,7 @@ Route::get ('/complete_trans',[GopayController::class, 'complete_trans'])->name(
 Route::get('/print_qr_code', [AjaxController::class, 'print_qr_code'])->name('print_qr_code');
 Route::get('/get_facture_montants', [AjaxController::class, 'get_facture_montants'])->name('get_facture_montants');
 Route::get('/get_fidelite_data', [AjaxController::class, 'get_fidelite_data'])->name('get_fidelite_data');
+Route::get('/get_personnes_by_type', [AjaxController::class, 'get_personnes_by_type'])->name('get_personnes_by_type');
 
 // Route::get('/', function () {
 //     $user = new User();

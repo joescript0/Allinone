@@ -16914,4 +16914,35 @@ class AjaxController extends Controller
 
         return response()->json($fideliteData);
     }
+
+    public function get_personnes_by_type(Request $request)
+{
+    $type = $request->input('type');
+    $personnes = [];
+
+    switch ($type) {
+        case 0:
+            $personnes = \App\Models\User::select('id', 'name', 'phone')->get()->map(function($u) {
+                return ['id' => $u->id, 'label' => $u->name . ($u->phone ? ' - ' . $u->phone : '') . ' (Utilisateur)'];
+            });
+            break;
+        case 1:
+            $personnes = \App\Models\Clients::select('id', 'name', 'phone')->get()->map(function($c) {
+                return ['id' => $c->id, 'label' => $c->name . ($c->phone ? ' - ' . $c->phone : '') . ' (Client)'];
+            });
+            break;
+        case 2:
+            $personnes = \App\Models\Patients::select('id', 'name', 'phone')->get()->map(function($p) {
+                return ['id' => $p->id, 'label' => $p->name . ($p->phone ? ' - ' . $p->phone : '') . ' (Patient)'];
+            });
+            break;
+        case 3:
+            $personnes = \App\Models\Visiteurs::select('id', 'name', 'phone')->get()->map(function($v) {
+                return ['id' => $v->id, 'label' => $v->name . ($v->phone ? ' - ' . $v->phone : '') . ' (Visiteur)'];
+            });
+            break;
+    }
+
+    return response()->json($personnes);
+}
 }
