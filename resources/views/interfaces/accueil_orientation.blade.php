@@ -257,6 +257,15 @@ h4 i.zmdi {
     box-shadow: none !important;
 }
 
+/* ========== SPINNER SUR LE BOUTON ========== */
+#save .spinner-border,
+#edit_save .spinner-border {
+    width: 0.95rem;
+    height: 0.95rem;
+    border-width: 0.15em;
+    margin-right: 4px;
+}
+
 /* ========== FILTRES ========== */
 .filters-container {
     display: flex;
@@ -369,6 +378,49 @@ select.form-control {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
     background-repeat: no-repeat;
     background-position: right 14px center;
+}
+
+/* ========== FORMULAIRE AJOUT – ALIGNEMENT RESPONSIVE ========== */
+#form_add .form-row-custom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+#form_add .form-row-custom > [class*="col-"] {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 260px;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+#form_add .form-row-custom .form-group {
+    margin: 0;
+}
+
+#form_add .form-row-custom .form-group label {
+    margin-top: 0 !important;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+}
+
+#form_add .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#form_add .row + .row {
+    margin-top: 0 !important;
+}
+
+@media (max-width: 768px) {
+    #form_add .form-row-custom > [class*="col-"] {
+        flex: 1 1 100%;
+        min-width: 100%;
+    }
 }
 
 /* ========== SELECT2 ========== */
@@ -853,7 +905,6 @@ a[id^="voir_profil_"] + * {
     .user-count-badge { font-size: 0.65rem; padding: 3px 10px; }
     .table thead th { font-size: 0.72rem; padding: 10px 6px !important; letter-spacing: 0.05em; }
     .table tbody td { padding: 8px 10px !important; font-size: 0.75rem; line-height: 1.3; }
-    #form_add .col-6, #form_edit .col-6 { flex: 0 0 100%; max-width: 100%; }
     .form-group label { font-size: 0.65rem; }
     .form-control, input.form-control, select.form-control, textarea.form-control {
         height: 34px !important;
@@ -1149,20 +1200,19 @@ a[id^="voir_profil_"] + * {
                     <input type="text" name="image" id="image" value="{{ asset('storage/images/user/profil_defaut.png') }}" style="display:none;">
 
                     {{-- ========== LIGNE 1 : Personne + Type de personne ========== --}}
-                    <div class="row">
+                    <div class="form-row-custom">
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-account-box"></i> Personne</label>
-                                <select id="personne" name="personne" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control">
+                                <label class="text-info"><i class="zmdi zmdi-account-box"></i> Personne</label>
+                                <select id="personne" name="personne" class="form-control">
                                     <option value=""></option>
-                                    {{-- ✅ Vide : sera rempli par AJAX via get_personnes_by_type --}}
                                 </select>
                             </div>
                         </div>
-                        <div class="col-6">
+                        <div class="col-6" id="wrapper_type_personne">
                             <div class="form-group">
-                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-accounts-list"></i> Type de personne</label>
-                                <select id="type_personne" name="type_personne" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control">
+                                <label class="text-info"><i class="zmdi zmdi-accounts-list"></i> Type de personne</label>
+                                <select id="type_personne" name="type_personne" class="form-control">
                                     <option value=""></option>
                                     <option value="0">Utilisateurs</option>
                                     <option value="1">Client</option>
@@ -1174,11 +1224,11 @@ a[id^="voir_profil_"] + * {
                     </div>
 
                     {{-- ========== LIGNE 2 : Nature + Nom ========== --}}
-                    <div style="margin-top: -20px;" class="row">
+                    <div class="form-row-custom" id="row_nature_nom">
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-city-alt"></i> Nature</label>
-                                <select id="nature" name="nature" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control">
+                                <label class="text-info"><i class="zmdi zmdi-city-alt"></i> Nature</label>
+                                <select id="nature" name="nature" class="form-control">
                                     <option value=""></option>
                                     <option value="0">Privé</option>
                                     <option value="1">Entreprise</option>
@@ -1187,34 +1237,34 @@ a[id^="voir_profil_"] + * {
                         </div>
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-account"></i> Nom</label>
-                                <input type="text" id="nom" name="nom" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control" placeholder="Nom (Ex : Mgm congo)">
+                                <label class="text-info"><i class="zmdi zmdi-account"></i> Nom</label>
+                                <input type="text" id="nom" name="nom" class="form-control" placeholder="Nom (Ex : Mgm congo)">
                             </div>
                         </div>
                     </div>
 
                     {{-- ========== LIGNE 3 : E-mail + Téléphone ========== --}}
-                    <div style="margin-top: -20px;" class="row">
+                    <div class="form-row-custom" id="row_email_phone">
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-email"></i> E-mail</label>
-                                <input type="text" id="email" name="email" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control" placeholder="Email (Ex : mgm@gmail.com)">
+                                <label class="text-info"><i class="zmdi zmdi-email"></i> E-mail</label>
+                                <input type="text" id="email" name="email" class="form-control" placeholder="Email (Ex : mgm@gmail.com)">
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-phone"></i> Telephone</label>
-                                <input type="text" id="phone" name="phone" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control" placeholder="Telephone (Ex : +243974743675)">
+                                <label class="text-info"><i class="zmdi zmdi-phone"></i> Telephone</label>
+                                <input type="text" id="phone" name="phone" class="form-control" placeholder="Telephone (Ex : +243974743675)">
                             </div>
                         </div>
                     </div>
 
                     {{-- ========== LIGNE 4 : Motif + Service ========== --}}
-                    <div style="margin-top: -20px;" class="row">
+                    <div class="form-row-custom">
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-tag"></i> Motif</label>
-                                <select id="motif" name="motif" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control">
+                                <label class="text-info"><i class="zmdi zmdi-tag"></i> Motif</label>
+                                <select id="motif" name="motif" class="form-control">
                                     <option value=""></option>
                                     <option value="0">Aucun motif</option>
                                     @isset($motifs)
@@ -1227,8 +1277,8 @@ a[id^="voir_profil_"] + * {
                         </div>
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-balance"></i> Service</label>
-                                <select id="service" name="service" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" class="form-control">
+                                <label class="text-info"><i class="zmdi zmdi-balance"></i> Service</label>
+                                <select id="service" name="service" class="form-control">
                                     <option value=""></option>
                                     <option value="0">Aucun service</option>
                                     @isset($services)
@@ -1242,18 +1292,18 @@ a[id^="voir_profil_"] + * {
                     </div>
 
                     {{-- ========== LIGNE 5 : Date et heure + Note ========== --}}
-                    <div style="margin-top: -20px;" class="row">
+                    <div class="form-row-custom">
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-calendar"></i> Date et heure d'entrée</label>
+                                <label class="text-info"><i class="zmdi zmdi-calendar"></i> Date et heure d'entrée</label>
                                 <input type="hidden" id="heure" name="heure">
                                 <input type="text" id="heure_picker" class="form-control flatpickr-input" placeholder="Sélectionner la date et l'heure" readonly>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="form-group">
-                                <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i class="zmdi zmdi-comment-text"></i> Note</label>
-                                <textarea id="note" name="note" class="form-control" rows="1" style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);" placeholder="Remarque éventuelle..."></textarea>
+                                <label class="text-info"><i class="zmdi zmdi-comment-text"></i> Note</label>
+                                <textarea id="note" name="note" class="form-control" rows="1" placeholder="Remarque éventuelle..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -1382,6 +1432,26 @@ a[id^="voir_profil_"] + * {
         $("#dropzone-upload").trigger("click");
     });
 
+    /* ============================================================
+       ✅ togglePersonFields() - cache/affiche les champs
+    ============================================================ */
+    function togglePersonFields() {
+        var val = $('#personne').val();
+        var hasExistingPerson = (val !== null && val !== '' && val !== undefined && parseInt(val, 10) > 0);
+
+        if (hasExistingPerson) {
+            $('#wrapper_type_personne').hide();
+            $('#row_nature_nom').hide();
+            $('#row_email_phone').hide();
+        } else {
+            $('#wrapper_type_personne').show();
+            $('#row_nature_nom').show();
+            $('#row_email_phone').show();
+        }
+
+        return hasExistingPerson;
+    }
+
     /* ===================== SELECT2 ===================== */
     var select2Inited = false;
 
@@ -1389,7 +1459,6 @@ a[id^="voir_profil_"] + * {
         if (select2Inited) return;
         if (typeof $.fn.select2 === 'undefined') return;
 
-        // Personne
         $('#personne').select2({
             placeholder: '-- Sélectionner une personne --',
             allowClear: true,
@@ -1402,7 +1471,6 @@ a[id^="voir_profil_"] + * {
             }
         });
 
-        // Type de personne
         $('#type_personne').select2({
             placeholder: '-- Sélectionner un type --',
             allowClear: true,
@@ -1415,7 +1483,6 @@ a[id^="voir_profil_"] + * {
             }
         });
 
-        // Nature
         $('#nature').select2({
             placeholder: '-- Sélectionner une nature --',
             allowClear: true,
@@ -1428,7 +1495,6 @@ a[id^="voir_profil_"] + * {
             }
         });
 
-        // Motif
         $('#motif').select2({
             placeholder: '-- Sélectionner un motif --',
             allowClear: true,
@@ -1441,7 +1507,6 @@ a[id^="voir_profil_"] + * {
             }
         });
 
-        // Service
         $('#service').select2({
             placeholder: '-- Sélectionner un service --',
             allowClear: true,
@@ -1458,9 +1523,7 @@ a[id^="voir_profil_"] + * {
     }
 
     /* ============================================================
-       ✅ PRÉCHARGEMENT DE TOUTES LES PERSONNES AU LANCEMENT DE LA PAGE
-       Appel unique à /get_personnes_by_type sans paramètre → renvoie tout
-       Les options sont ensuite filtrées côté client selon le type choisi.
+       ✅ PRÉCHARGEMENT DE TOUTES LES PERSONNES
     ============================================================ */
     function preloadPersonnes() {
         $.ajax({
@@ -1468,15 +1531,13 @@ a[id^="voir_profil_"] + * {
             url: "{{ url('/get_personnes_by_type') }}",
             dataType: "json",
             success: function(data) {
-                // Construire toutes les options avec data-type
                 var options = '<option value=""></option>';
                 $.each(data, function(i, item) {
                     options += '<option value="' + item.id + '" data-type="' + item.type + '">' + item.label + '</option>';
                 });
 
                 $('#personne').html(options);
-                // Sauvegarder toutes les options dans le cache
-                $('#personne').data('allOptions', $('#personne').find('option').clone());
+                togglePersonFields();
             },
             error: function() {
                 $('#personne').html('<option value="">Erreur de chargement</option>');
@@ -1484,43 +1545,33 @@ a[id^="voir_profil_"] + * {
         });
     }
 
-    /* ===================== FILTRE : Type → filtre la liste Personne côté client ===================== */
+    /* ============================================================
+       ✅ Select #personne pilote #type_personne
+    ============================================================ */
+    $(document).on('change', '#personne', function() {
+        var hasExistingPerson = togglePersonFields();
+
+        var val = $(this).val();
+        if (val === null || val === '' || val === undefined) return;
+
+        var $selected = $(this).find('option:selected');
+        var type = $selected.data('type');
+
+        if (val == 0 || type === -1 || type === undefined || type === null) {
+            $('#type_personne').val(null).trigger('change');
+
+            $('#msg').html('<i class="zmdi zmdi-info"></i> Veuillez sélectionner un type de personne');
+            setTimeout(function() { $('#msg').html(""); }, 6000);
+            return;
+        }
+
+        if (hasExistingPerson) {
+            $('#type_personne').val(type).trigger('change');
+        }
+    });
+
     $(document).on('change', '#type_personne', function() {
-        var type = $(this).val();
-        var $personne = $('#personne');
-
-        // Détruire select2 temporairement pour manipuler les options
-        if ($personne.data('select2')) {
-            $personne.select2('destroy');
-        }
-
-        // Récupérer toutes les options cachées
-        if (!$personne.data('allOptions')) {
-            $personne.data('allOptions', $personne.find('option').clone());
-        }
-        var $allOptions = $personne.data('allOptions');
-
-        // Reset le select
-        $personne.empty().append('<option value=""></option>');
-
-        if (type !== null && type !== '') {
-            // Filtrer par type
-            $allOptions.each(function() {
-                var $opt = $(this);
-                if ($opt.data('type') == type) {
-                    $personne.append($opt.clone());
-                }
-            });
-        } else {
-            // Aucun type → remettre toutes les options
-            $personne.append($allOptions.clone());
-        }
-
-        $personne.val('');
-
-        // Ré-init select2
-        select2Inited = false;
-        initSelect2();
+        // Aucun filtrage
     });
 
     /* ===================== FLATPICKR ===================== */
@@ -1653,6 +1704,7 @@ a[id^="voir_profil_"] + * {
             initSignatureCanvas();
             initSelect2();
             initFlatpickr();
+            togglePersonFields();
         }, 100);
     });
 
@@ -1675,158 +1727,109 @@ a[id^="voir_profil_"] + * {
         setTimeout(function() { filterUsers(); }, 100);
     });
 
-    /* ===================== ENREGISTREMENT ===================== */
+    /* ============================================================
+       ✅ ENREGISTREMENT — Appel UNIQUE à /add_personne
+       ✅ Chargement (spinner) sur le bouton Enregistrer
+       ✅ Messages (succès ET erreur) dans #msg
+    ============================================================ */
     $("#save").click(function(e) {
         e.preventDefault();
 
-        var personne     = $("#personne").val();
-        var typePersonne = $("#type_personne").val();
-        var nature       = $("#nature").val();
-        var nom          = $("#nom").val();
-        var email        = $("#email").val();
-        var phone        = $("#phone").val();
-        var motif        = $("#motif").val();
-        var service      = $("#service").val();
-        var heure        = $("#heure").val();
-        var note         = $("#note").val();
-        var page         = "<?= $ressource_id_1 ?>";
+        var btn = $(this);
+        var originalBtnHtml = 'Enregister <i class="zmdi zmdi-save"></i>';
 
-        if (personne === null || personne.trim().length == 0) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Sélectionnez une personne');
-            setTimeout(function() { $('#msg').html(""); }, 9000);
-            return;
-        }
-        if (typePersonne === null || typePersonne.trim().length == 0) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Sélectionnez un type de personne');
-            setTimeout(function() { $('#msg').html(""); }, 9000);
-            return;
-        }
-        if (nature === null || nature.trim().length == 0) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Sélectionnez une nature');
-            setTimeout(function() { $('#msg').html(""); }, 9000);
-            return;
-        }
-        if (motif === null || motif.trim().length == 0) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Sélectionnez un motif');
-            setTimeout(function() { $('#msg').html(""); }, 9000);
-            return;
-        }
-        if (service === null || service.trim().length == 0) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Sélectionnez un service');
-            setTimeout(function() { $('#msg').html(""); }, 9000);
-            return;
-        }
+        // ✅ Désactiver le bouton + afficher le spinner
+        btn.prop('disabled', true)
+           .html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...');
 
-        if (!hasSignature) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Veuillez signer avant d\'enregistrer');
-            setTimeout(function() { $('#msg').html(""); }, 9000);
-            return;
+        function resetButton() {
+            btn.prop('disabled', false).html(originalBtnHtml);
         }
 
         var signature = canvas.toDataURL('image/png');
+        var page      = "<?= $ressource_id_1 ?>";
 
-        var formData = $("#form_add").serialize() + "&page=" + encodeURIComponent(page) + "&signature=" + encodeURIComponent(signature);
-        var data = $("#form_add").serialize();
+        // Nettoyer le message avant l'envoi
+        $('#msg').html("");
 
-        if (nom.trim().length == 0) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le nom');
-            setTimeout(function() { $('#msg').html(""); }, 9000);
-            return;
-        }
-        if (email.trim().length == 0) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez l\'adresse e-mail');
-            setTimeout(function() { $('#msg').html(""); }, 9000);
-            return;
-        }
-        var regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-        if (!regex.test(email)) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> L\'email est invalide');
-            setTimeout(function() { $('#msg').html(""); }, 9000);
-            return;
-        }
-        if (phone.trim().length == 0) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le numero de telephone');
-            setTimeout(function() { $('#msg').html(""); }, 9000);
-            return;
-        }
-        if (!Number(phone.trim())) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez un bon numero de telephone');
-            setTimeout(function() { $('#msg').html(""); }, 9000);
-            return;
-        }
-        if (heure === null || heure.trim().length == 0) {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Sélectionnez la date et l\'heure d\'entrée');
-            setTimeout(function() { $('#msg').html(""); }, 9000);
-            return;
-        }
+        var formData = $("#form_add").serialize()
+                     + "&page="      + encodeURIComponent(page)
+                     + "&signature=" + encodeURIComponent(signature);
 
         $.ajax({
             type: "POST",
-            url: "/check_email_utilisateur",
-            data: data,
-            success: function(response) {
-                if (response == 1) {
-                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Cette adresse e-mail existe déjà');
-                    setTimeout(function() { $('#msg').html(""); }, 9000);
-                    return;
-                }
-                $.ajax({
-                    type: "POST",
-                    url: "/check_phone_utilisateur",
-                    data: data,
-                    success: function(response2) {
-                        if (response2 == 1) {
-                            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Ce numero de telephone existe déjà');
-                            setTimeout(function() { $('#msg').html(""); }, 9000);
-                            return;
-                        }
-                        $("#save").attr("disabled", true);
-                        $.ajax({
-                            type: "POST",
-                            url: "/add_utilisateur",
-                            data: formData,
-                            success: function(resp) {
-                                $("#save").attr("disabled", false);
-                                $("#nom").val("");
-                                $("#email").val("");
-                                $("#phone").val("");
-                                if (typeof $.fn.select2 !== 'undefined') {
-                                    $("#personne").val(null).trigger("change");
-                                    $("#type_personne").val(null).trigger("change");
-                                    $("#nature").val(null).trigger("change");
-                                    $("#motif").val(null).trigger("change");
-                                    $("#service").val(null).trigger("change");
-                                } else {
-                                    $("#personne").val("");
-                                    $("#type_personne").val("");
-                                    $("#nature").val("");
-                                    $("#motif").val("");
-                                    $("#service").val("");
-                                }
-                                if (heurePicker) {
-                                    var now = new Date();
-                                    heurePicker.setDate(now, true);
-                                    $("#heure").val(heurePicker.formatDate(now, "Y-m-d H:i"));
-                                } else {
-                                    $("#heure").val("");
-                                }
-                                $("#note").val("");
-                                if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-                                hasSignature = false;
-                                if (placeholder) placeholder.style.display = 'flex';
+            url: "/add_personne",
+            data: formData,
 
-                                $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Enregistrement effectué avec succès');
-                                $("#content_utilisateur").html(resp);
-                                setTimeout(function() { $('#msg').html(""); }, 9000);
-                                saveUserFiltersToStorage();
-                                setTimeout(function() {
-                                    loadUserFiltersFromStorage();
-                                    filterUsers();
-                                }, 100);
-                            }
-                        });
-                    }
-                });
+            // ✅ SUCCÈS : afficher le message dans #msg
+            success: function(resp) {
+                resetButton();
+
+                // Reset du formulaire
+                $("#motif").val(null).trigger("change");
+                $("#service").val(null).trigger("change");
+                $("#note").val("");
+                $("#nom").val("");
+                $("#email").val("");
+                $("#phone").val("");
+
+                if (heurePicker) {
+                    var now = new Date();
+                    heurePicker.setDate(now, true);
+                    $("#heure").val(heurePicker.formatDate(now, "Y-m-d H:i"));
+                } else {
+                    $("#heure").val("");
+                }
+                if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+                hasSignature = false;
+                if (placeholder) placeholder.style.display = 'flex';
+
+                if (typeof $.fn.select2 !== 'undefined') {
+                    $("#personne").val(null).trigger("change");
+                    $("#type_personne").val(null).trigger("change");
+                    $("#nature").val(null).trigger("change");
+                } else {
+                    $("#personne").val("");
+                    $("#type_personne").val("");
+                    $("#nature").val("");
+                }
+                togglePersonFields();
+
+                // ✅ Afficher le message de succès dans #msg
+                $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Enregistrement effectué avec succès');
+                setTimeout(function() { $('#msg').html(""); }, 9000);
+
+                // Rafraîchir le tableau
+                $("#content_utilisateur").html(resp);
+                saveUserFiltersToStorage();
+                setTimeout(function() {
+                    loadUserFiltersFromStorage();
+                    filterUsers();
+                }, 100);
+            },
+
+            // ✅ ERREUR : afficher le message du backend dans #msg
+            error: function(xhr) {
+                resetButton();
+
+                var msg = 'Erreur lors de l\'enregistrement';
+
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                } else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    var errors = xhr.responseJSON.errors;
+                    var firstKey = Object.keys(errors)[0];
+                    msg = errors[firstKey][0];
+                }
+
+                // ✅ Afficher le message d'erreur dans #msg
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> ' + msg);
+                setTimeout(function() { $('#msg').html(""); }, 9000);
+            },
+
+            // ✅ Dans tous les cas, on remet le bouton dans son état initial
+            complete: function() {
+                resetButton();
             }
         });
     });
@@ -2034,8 +2037,8 @@ a[id^="voir_profil_"] + * {
     }
 
     $(document).ready(function() {
-        // ✅ PRÉCHARGEMENT de toutes les personnes dès le chargement de la page
         preloadPersonnes();
+        togglePersonFields();
 
         const totalUsers = $('#content_utilisateur tbody tr').length;
         $('#userCount').text(totalUsers);
@@ -2062,7 +2065,7 @@ a[id^="voir_profil_"] + * {
     });
 
     $(document).ajaxComplete(function(event, xhr, settings) {
-        if (settings.url && (settings.url.includes('refresh_') || settings.url.includes('add_utilisateur'))) {
+        if (settings.url && (settings.url.includes('refresh_') || settings.url.includes('add_personne'))) {
             setTimeout(function() {
                 const totalUsers = $('#content_utilisateur tbody tr').length;
                 $('#userCount').text(totalUsers);

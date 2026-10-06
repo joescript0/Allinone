@@ -72,6 +72,7 @@ use App\Models\Mesures;
 use App\Models\Notifications;
 use App\Models\Paiementsfactures;
 use App\Models\Paiesfactures;
+use App\Models\registreaccueil;
 use App\Models\Pointdeventes;
 use App\Models\Stocks;
 use App\Models\detailsaffectationspointventes;
@@ -119,7 +120,7 @@ use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 
 use DateTime;
-
+use Dotenv\Validator;
 
 class AjaxController extends Controller
 {
@@ -5363,7 +5364,7 @@ class AjaxController extends Controller
                         if (strlen($digits) > 9) {
                             $last9 = substr($digits, -9);
                             $client->phone = '+243' . $last9;
-                            if ($client->sms_initial < 3) 
+                            if ($client->sms_initial < 3)
                             {
                                 $this->envoyer_sms($client->phone, "Bonjour cher client, les 300 hommes vous disent merci pour votre confiance et votre fidélité." );
                                 $client->sms_initial = $client->sms_initial + 1;
@@ -16916,33 +16917,325 @@ class AjaxController extends Controller
     }
 
     public function get_personnes_by_type(Request $request)
-{
-    $type = $request->input('type');
-    $personnes = [];
+    {
+        $personnes = [];
 
-    switch ($type) {
-        case 0:
-            $personnes = \App\Models\User::select('id', 'name', 'phone')->get()->map(function($u) {
-                return ['id' => $u->id, 'label' => $u->name . ($u->phone ? ' - ' . $u->phone : '') . ' (Utilisateur)'];
-            });
-            break;
-        case 1:
-            $personnes = \App\Models\Clients::select('id', 'name', 'phone')->get()->map(function($c) {
-                return ['id' => $c->id, 'label' => $c->name . ($c->phone ? ' - ' . $c->phone : '') . ' (Client)'];
-            });
-            break;
-        case 2:
-            $personnes = \App\Models\Patients::select('id', 'name', 'phone')->get()->map(function($p) {
-                return ['id' => $p->id, 'label' => $p->name . ($p->phone ? ' - ' . $p->phone : '') . ' (Patient)'];
-            });
-            break;
-        case 3:
-            $personnes = \App\Models\Visiteurs::select('id', 'name', 'phone')->get()->map(function($v) {
-                return ['id' => $v->id, 'label' => $v->name . ($v->phone ? ' - ' . $v->phone : '') . ' (Visiteur)'];
-            });
-            break;
+        $personnes[] = [
+            "id" => 0, 
+            "label" => "🔴 Personne inexistante - Ajouter cette personne",
+            "type" => -1
+        ];
+
+        // ✅ Type 0 → Utilisateurs (table users)
+        foreach (User::select('id', 'name', 'phone')->where('etat', 1)->get() as $u) 
+        {
+            $label = $u->name ?? 'N/A';
+            if ($u->phone) $label .= ' - ' . $u->phone;
+            $label .= ' (Utilisateur)';
+
+            $personnes[] = [
+                'id'    => $u->id,
+                'label' => '🟢 '. $label,
+                'type'  => 0,
+            ];
+        }
+
+        // ✅ Type 1 → Clients (table clients)
+        foreach (Clients::select('id', 'name', 'phone')->where('etat', 1)->get() as $c) {
+            $label = $c->name ?? 'N/A';
+            if ($c->phone) $label .= ' - ' . $c->phone;
+            $label .= ' (Client)';
+
+            $personnes[] = [
+                'id'    => $c->id,
+                'label' => '🟢 '. $label,
+                'type'  => 1,
+            ];
+        }
+
+        // ✅ Type 2 → Patients (table patients)
+        foreach (Patients::select('id', 'name', 'phone')->where('etat', 1)->get() as $p) {
+            $label = $p->name ?? 'N/A';
+            if ($p->phone) $label .= ' - ' . $p->phone;
+            $label .= ' (Patient)';
+
+            $personnes[] = [
+                'id'    => $p->id,
+                'label' => '🟢 '. $label,
+                'type'  => 2,
+            ];
+        }
+
+        // ✅ Type 3 → Visiteurs (table visiteurs)
+        foreach (Visiteurs::select('id', 'name', 'phone')->where('etat', 1)->get() as $v) {
+            $label = $v->name ?? 'N/A';
+            if ($v->phone) $label .= ' - ' . $v->phone;
+            $label .= ' (Visiteur)';
+
+            $personnes[] = [
+                'id'    => $v->id,
+                'label' => '🟢 '. $label,
+                'type'  => 3,
+            ];
+        }
+
+        return response()->json($personnes);
     }
 
-    return response()->json($personnes);
-}
+    public function add_personne(Request $request)
+    {
+        // ---------------- Données ----------------
+        $personne     = $request->input('personne');
+        $typePersonne = $request->input('type_personne');
+        $nature       = $request->input('nature');
+        $nom          = trim($request->input('nom', ''));
+        $email        = trim($request->input('email', ''));
+        $phone        = trim($request->input('phone', ''));
+        $motif        = $request->input('motif');
+        $service      = $request->input('service');
+        $heure        = $request->input('heure');
+        $note         = $request->input('note', '');
+        $image        = $request->input('image');
+        $signature    = $request->input('signature');
+        $page         = $request->input('page');
+
+        $isExistingPerson = ($personne !== null && $personne !== '' && (int)$personne > 0);
+
+        // ============================================================
+        // ÉTAPE 1 : VALIDATION PERSONNE
+        // ============================================================
+        if (empty($personne) && $personne !== '0') {
+            return response()->json(['ok' => false, 'message' => 'Sélectionnez une personne'], 422);
+        }
+
+        // ============================================================
+        // ÉTAPE 2 : VALIDATION CONDITIONNELLE
+        // ============================================================
+        if ($isExistingPerson) {
+            $rules = [
+                'motif'     => 'required',
+                'service'   => 'required',
+                'heure'     => 'required',
+                'signature' => 'required',
+            ];
+            $messages = [
+                'motif.required'     => 'Sélectionnez un motif',
+                'service.required'   => 'Sélectionnez un service',
+                'heure.required'     => 'Sélectionnez la date et l\'heure d\'entrée',
+                'signature.required' => 'Veuillez signer avant d\'enregistrer',
+            ];
+        } else {
+            $rules = [
+                'type_personne' => 'required',
+                'nature'        => 'required',
+                'nom'           => 'required|string|min:2',
+                'motif'         => 'required',
+                'service'       => 'required',
+                'heure'         => 'required',
+                'signature'     => 'required',
+            ];
+            $messages = [
+                'type_personne.required' => 'Sélectionnez un type de personne',
+                'nature.required'        => 'Sélectionnez une nature',
+                'nom.required'           => 'Completez le nom',
+                'nom.min'                => 'Le nom doit contenir au moins 2 caractères',
+                'motif.required'         => 'Sélectionnez un motif',
+                'service.required'       => 'Sélectionnez un service',
+                'heure.required'         => 'Sélectionnez la date et l\'heure d\'entrée',
+                'signature.required'     => 'Veuillez signer avant d\'enregistrer',
+            ];
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), $rules, $messages);
+        if ($validator->fails()) {
+            return response()->json([
+                'ok'      => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        // ============================================================
+        // ÉTAPE 3 : VÉRIFICATIONS EMAIL / TÉLÉPHONE (nouvelle personne)
+        // ============================================================
+        if (!$isExistingPerson) {
+
+            if ($email !== '') {
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    return response()->json(['ok' => false, 'message' => 'L\'email est invalide'], 422);
+                }
+                if (User::where('email', $email)->exists()) {
+                    return response()->json(['ok' => false, 'message' => 'Cette adresse e-mail existe déjà dans la table utilisateurs'], 422);
+                }
+                if (class_exists(\App\Models\Clients::class) && \App\Models\Clients::where('email', $email)->exists()) {
+                    return response()->json(['ok' => false, 'message' => 'Cette adresse e-mail existe déjà dans la table clients'], 422);
+                }
+                if (class_exists(\App\Models\Visiteurs::class) && \App\Models\Visiteurs::where('email', $email)->exists()) {
+                    return response()->json(['ok' => false, 'message' => 'Cette adresse e-mail existe déjà dans la table visiteurs'], 422);
+                }
+                if (class_exists(\App\Models\Patients::class) && \App\Models\Patients::where('email', $email)->exists()) {
+                    return response()->json(['ok' => false, 'message' => 'Cette adresse e-mail existe déjà dans la table patients'], 422);
+                }
+            }
+
+            if ($phone !== '') {
+                if (!preg_match('/^[0-9+\s\-()]{6,20}$/', $phone)) {
+                    return response()->json(['ok' => false, 'message' => 'Numéro de téléphone invalide'], 422);
+                }
+                if (User::where('phone', $phone)->exists()) {
+                    return response()->json(['ok' => false, 'message' => 'Ce numero de telephone existe déjà dans la table utilisateurs'], 422);
+                }
+                if (class_exists(\App\Models\Clients::class) && \App\Models\Clients::where('phone', $phone)->exists()) {
+                    return response()->json(['ok' => false, 'message' => 'Ce numero de telephone existe déjà dans la table clients'], 422);
+                }
+                if (class_exists(\App\Models\Visiteurs::class) && \App\Models\Visiteurs::where('phone', $phone)->exists()) {
+                    return response()->json(['ok' => false, 'message' => 'Ce numero de telephone existe déjà dans la table visiteurs'], 422);
+                }
+                if (class_exists(\App\Models\Patients::class) && \App\Models\Patients::where('phone', $phone)->exists()) {
+                    return response()->json(['ok' => false, 'message' => 'Ce numero de telephone existe déjà dans la table patients'], 422);
+                }
+            }
+        }
+
+        // ============================================================
+        // ÉTAPE 4 : ENREGISTREMENT
+        //   4.1 : table spécifique (users/clients/visiteurs/patients)
+        //   4.2 : table personne
+        //   4.3 : table registreaccueil
+        // ============================================================
+        try {
+            DB::beginTransaction();
+
+            // ---------------------------------------------------------
+            // 4.1 : GESTION DE LA PERSONNE
+            // ---------------------------------------------------------
+            if ($isExistingPerson) {
+
+                // Personne existante → on prend son ID dans la table "personne"
+                $personneId = (int) $personne;
+
+            } else {
+
+                $type    = strtolower(trim($typePersonne));
+                $emailDb = $email !== '' ? $email : null;
+                $phoneDb = $phone !== '' ? $phone : null;
+
+                $userLinkedId  = null;
+                $typeNumerique = null;
+
+                switch ($type) {
+
+                    // ---------- UTILISATEUR ----------
+                    case 'user':
+                    case 'users':
+                    case 'utilisateur':
+                    case 'utilisateurs':
+                        $nouvellePersonne = new User();
+                        $nouvellePersonne->name     = $nom;
+                        $nouvellePersonne->email    = $emailDb;
+                        $nouvellePersonne->phone    = $phoneDb;
+                        $nouvellePersonne->image    = $image;
+                        $nouvellePersonne->password = \Illuminate\Support\Facades\Hash::make("12345");
+                        $nouvellePersonne->save();
+                        $userLinkedId  = $nouvellePersonne->id;
+                        $typeNumerique = 0;
+                        break;
+
+                    // ---------- CLIENT ----------
+                    case 'client':
+                    case 'clients':
+                        $nouvellePersonne = new \App\Models\Clients();
+                        $nouvellePersonne->nom      = $nom;
+                        $nouvellePersonne->email    = $emailDb;
+                        $nouvellePersonne->phone    = $phoneDb;
+                        $nouvellePersonne->image    = $image;
+                        $nouvellePersonne->password = \Illuminate\Support\Facades\Hash::make("12345");
+                        $nouvellePersonne->save();
+                        $userLinkedId  = $nouvellePersonne->id;
+                        $typeNumerique = 1;
+                        break;
+
+                    // ---------- VISITEUR ----------
+                    case 'visiteur':
+                    case 'visiteurs':
+                        $nouvellePersonne = new \App\Models\Visiteurs();
+                        $nouvellePersonne->nom      = $nom;
+                        $nouvellePersonne->email    = $emailDb;
+                        $nouvellePersonne->phone    = $phoneDb;
+                        $nouvellePersonne->image    = $image;
+                        $nouvellePersonne->password = \Illuminate\Support\Facades\Hash::make("12345");
+                        $nouvellePersonne->save();
+                        $userLinkedId  = $nouvellePersonne->id;
+                        $typeNumerique = 2;
+                        break;
+
+                    // ---------- PATIENT ----------
+                    case 'patient':
+                    case 'patients':
+                        $nouvellePersonne = new \App\Models\Patients();
+                        $nouvellePersonne->nom      = $nom;
+                        $nouvellePersonne->email    = $emailDb;
+                        $nouvellePersonne->phone    = $phoneDb;
+                        $nouvellePersonne->image    = $image;
+                        $nouvellePersonne->password = \Illuminate\Support\Facades\Hash::make("12345");
+                        $nouvellePersonne->save();
+                        $userLinkedId  = $nouvellePersonne->id;
+                        $typeNumerique = 3;
+                        break;
+
+                    default:
+                        throw new \Exception("Type de personne inconnu : " . $typePersonne);
+                }
+
+                // 2️⃣ Enregistrement dans la table "personne"
+                $personneRecord = new \App\Models\Personne();
+                $personneRecord->user_id  = $userLinkedId;     // ID dans la table spécifique
+                $personneRecord->type     = $typeNumerique;    // 0=user, 1=client, 2=visiteur, 3=patient
+                $personneRecord->etat     = 1;
+                $personneRecord->poste_id = 0;
+                $personneRecord->save();
+
+                // 3️⃣ ID de la table personne
+                $personneId = $personneRecord->id;
+            }
+
+            // ---------------------------------------------------------
+            // 4.2 : Signature (base64 → PNG)
+            // ---------------------------------------------------------
+            $signaturePath = null;
+            if (!empty($signature) && strpos($signature, 'data:image') === 0) {
+                $data = explode(',', $signature);
+                if (count($data) >= 2) {
+                    $imageData = base64_decode($data[1]);
+                    $filename  = 'signatures_' . time() . '_' . uniqid() . '.png';
+                    Storage::disk('public')->put('images/signatures/' . $filename, $imageData);
+                    $signaturePath = 'storage/images/signatures/' . $filename;
+                }
+            }
+
+            // ---------------------------------------------------------
+            // 4.3 : Registre d'accueil
+            // ---------------------------------------------------------
+            $registre = new registreaccueil();
+            $registre->personne_id       = $personneId;
+            $registre->type_personne     = $typePersonne;
+            $registre->motif_id          = $motif;
+            $registre->service_id        = $service;
+            $registre->date_heure_entree = $heure;
+            $registre->note              = $note;
+            $registre->signature         = $signaturePath;
+            $registre->user_id           = Auth::id();
+            $registre->save();
+
+            DB::commit();
+
+            return $this->renderTableauHtml($page);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'ok'      => false,
+                'message' => 'Erreur : ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

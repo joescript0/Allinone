@@ -361,6 +361,7 @@ Route::get('/print_qr_code', [AjaxController::class, 'print_qr_code'])->name('pr
 Route::get('/get_facture_montants', [AjaxController::class, 'get_facture_montants'])->name('get_facture_montants');
 Route::get('/get_fidelite_data', [AjaxController::class, 'get_fidelite_data'])->name('get_fidelite_data');
 Route::get('/get_personnes_by_type', [AjaxController::class, 'get_personnes_by_type'])->name('get_personnes_by_type');
+Route::post('/add_personne', [AjaxController::class, 'add_personne'])->name('add_personne');
 
 // Route::get('/', function () {
 //     $user = new User();
