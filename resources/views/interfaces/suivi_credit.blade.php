@@ -369,6 +369,42 @@ select.form-control {
 }
 
 /* ============================================================
+   ✅ SELECT2 – Bordure visible sur tout le contour
+   ============================================================ */
+.select2-container--bootstrap .select2-selection {
+    height: 38px !important;
+    border-radius: 14px !important;
+    border: 1.5px solid #94a3b8 !important;   /* Bordure grise visible sur tout le contour */
+    background: #ffffff !important;
+    box-shadow: none !important;
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 0 12px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.select2-container--bootstrap .select2-selection:hover {
+    border-color: #64748b !important;
+}
+.select2-container--bootstrap.select2-container--focus .select2-selection,
+.select2-container--bootstrap.select2-container--open .select2-selection {
+    border-color: #3B82F6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+.select2-container--bootstrap .select2-selection__arrow { height: 36px !important; }
+.select2-container--bootstrap .select2-selection__rendered {
+    line-height: 35px !important; padding-left: 0; color: #1e2a3e;
+}
+.select2-container--bootstrap .select2-selection__placeholder { color: #6c757d; }
+.select2-dropdown {
+    border-radius: 14px !important;
+    border: 1.5px solid #94a3b8 !important;
+    box-shadow: var(--shadow-light);
+}
+.select2-results__option { padding: 8px 12px; font-size: 0.85rem; }
+.select2-results__option--highlighted { background: #e6f0ff !important; color: #0a192f !important; }
+.select2-container--bootstrap .select2-results__options { max-height: 200px !important; overflow-y: auto !important; }
+
+/* ============================================================
    MODALE PDF
    ============================================================ */
 .modal.fade#pdfModal .modal-dialog { max-width: 100%; width: 60%; margin: 1.75rem auto; }
@@ -963,7 +999,6 @@ select.form-control {
     box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
     outline: none;
 }
-#rapportModal #rapport_user_filter,
 #rapportModal #rapport_client_filter {
     width: 100%;
     height: 38px;
@@ -974,16 +1009,33 @@ select.form-control {
     font-size: 0.85rem;
     background: #fff;
 }
-#rapportModal #rapport_user_filter:focus,
 #rapportModal #rapport_client_filter:focus {
     border-color: #dc2626 !important;
     box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
     outline: none;
 }
-#rapportModal #rapport_user_filter:disabled {
-    background: #f1f5f9 !important;
-    cursor: not-allowed;
-    opacity: 0.85;
+
+/* ✅ Bordure rouge sur le Select2 "Utilisateur" de la modale Rapport */
+#rapportModal .select2-container--bootstrap .select2-selection {
+    border: 1.5px solid #dc2626 !important;
+    border-radius: 14px !important;
+    height: 38px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    padding: 0 12px;
+}
+#rapportModal .select2-container--bootstrap .select2-selection:hover {
+    border-color: #b91c1c !important;
+}
+#rapportModal .select2-container--bootstrap.select2-container--focus .select2-selection,
+#rapportModal .select2-container--bootstrap.select2-container--open .select2-selection {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18) !important;
+}
+#rapportModal .select2-container--bootstrap .select2-selection__arrow { height: 36px !important; }
+#rapportModal .select2-container--bootstrap .select2-selection__rendered {
+    line-height: 35px !important;
+    padding-left: 0;
 }
 #rapport_table thead th {
     background: #FEE2E2 !important;
@@ -1150,7 +1202,6 @@ select.form-control {
         align-items: stretch !important;
     }
     #rapportModal #rapport_date_range,
-    #rapportModal #rapport_user_filter,
     #rapportModal #rapport_client_filter {
         height: 42px;
         font-size: 0.85rem;
@@ -1672,14 +1723,22 @@ body.modal-open { overflow: hidden; }
                                                     ];
                                                 }
 
+                                                // ✅ Utilisateur du PAIEMENT (detailpaiessachats.user_id)
                                                 $paiements_json = [];
                                                 foreach ($paiements as $p) {
                                                     $isUSD = ($p->devise_recu == 0);
+
+                                                    $payeur_id  = $p->user_id ?? null;
+                                                    $payeur_nom = $payeur_id
+                                                        ? (User::where('id', $payeur_id)->first()['name'] ?? 'N/A')
+                                                        : 'N/A';
+
                                                     $paiements_json[] = [
                                                         'id'               => $p->id,
                                                         'date'             => date('d/m/Y à H:i', strtotime($p->created_at)),
                                                         'payer'            => $p->payer,
-                                                        'payer_nom'        => User::where('id', $data->user_id)->first()['name'] ?? 'N/A',
+                                                        'payer_nom'        => $payeur_nom,
+                                                        'payer_id'         => $payeur_id,
                                                         'montant_recu'     => $p->montant_recu,
                                                         'devise_label'     => $isUSD ? 'USD' : 'CDF',
                                                         'mode_de_paiement' => $p->mode_de_paiement,
@@ -2861,8 +2920,9 @@ body.modal-open { overflow: hidden; }
         var USER_ROLE = {{ Auth::user()->role ?? 1 }};
         var CURRENT_USER_NAME = "{{ addslashes(Auth::user()->name ?? '') }}";
 
-        var ALL_ACTIVE_USERS = [
-            @foreach(\App\Models\User::where('etat', 1)->orderBy('name')->get() as $u)
+        // ✅ Tous les utilisateurs (actifs + désactivés)
+        var ALL_USERS = [
+            @foreach(\App\Models\User::orderBy('name')->get() as $u)
                 "{{ addslashes($u->name) }}",
             @endforeach
         ];
@@ -4375,24 +4435,50 @@ body.modal-open { overflow: hidden; }
                 return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
             }
 
+            // ✅ Select2 avec recherche activée pour le select Utilisateur du rapport
             function populateRapportUsers() {
                 var $sel = $('#rapport_user_filter');
+
+                if ($sel.hasClass('select2-hidden-accessible')) {
+                    $sel.select2('destroy');
+                }
+
                 $sel.empty();
 
                 if (USER_ROLE == 0) {
                     $sel.append('<option value="all">Tous les utilisateurs</option>');
-                    ALL_ACTIVE_USERS.forEach(function (u) {
+                    ALL_USERS.forEach(function (u) {
                         $sel.append('<option value="' + u + '">' + u + '</option>');
                     });
                     $sel.prop('disabled', false);
+
+                    $sel.select2({
+                        placeholder: "Rechercher un utilisateur...",
+                        allowClear: false,
+                        theme: 'bootstrap',
+                        width: '100%',
+                        dropdownParent: $('#rapportModal'),
+                        language: {
+                            noResults: function () { return "Aucun utilisateur trouvé"; },
+                            searching: function () { return "Recherche..."; }
+                        }
+                    });
                 } else {
                     var nom = CURRENT_USER_NAME || 'Utilisateur';
                     $sel.append('<option value="' + nom + '" selected>' + nom + '</option>');
                     $sel.val(nom);
                     $sel.prop('disabled', true);
+
+                    $sel.select2({
+                        theme: 'bootstrap',
+                        width: '100%',
+                        dropdownParent: $('#rapportModal'),
+                        disabled: true
+                    });
                 }
             }
 
+            // ✅ Le filtre Utilisateur porte sur le PAYEUR du paiement (detailpaiessachats.user_id)
             function buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
                 var totalUSD = 0, totalCDF = 0, nbTransactions = 0;
                 var html = '';
@@ -4410,12 +4496,10 @@ body.modal-open { overflow: hidden; }
 
                     var numero = $row.data('numero') || '-';
                     var client = $row.data('client') || '-';
-                    var user_nom = $row.data('user') || 'N/A';
                     var dateFacture = $row.data('date') || '-';
                     var tauxFacture = parseFloat($row.data('taux')) || 1;
                     if (tauxFacture <= 0) tauxFacture = 1;
 
-                    if (effectiveUserFilter && effectiveUserFilter !== 'all' && user_nom !== effectiveUserFilter) return;
                     if (effectiveClientFilter && !String(client).toLowerCase().includes(effectiveClientFilter)) return;
 
                     var paiements = safeParseJSON($row.attr('data-paiements'));
@@ -4427,6 +4511,10 @@ body.modal-open { overflow: hidden; }
                             if (!payISO) return;
                             if (payISO < dateDebutISO || payISO > dateFinISO) return;
                         }
+
+                        var user_nom = p.payer_nom || 'N/A';
+
+                        if (effectiveUserFilter && effectiveUserFilter !== 'all' && user_nom !== effectiveUserFilter) return;
 
                         var montant = parseFloat(p.montant_recu) || 0;
                         var devise  = p.devise_label || 'USD';
@@ -4556,8 +4644,6 @@ body.modal-open { overflow: hidden; }
             $("#rapport").click(function (e) {
                 e.preventDefault();
 
-                populateRapportUsers();
-
                 var filterRange = $('#filterDateRange').val() || '';
                 $('#rapport_date_range').val(filterRange);
 
@@ -4570,13 +4656,19 @@ body.modal-open { overflow: hidden; }
                     }
                 }
 
-                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
-                var clientFilter = $('#rapport_client_filter').val() || '';
-
-                $('#rapport_periode_label').text(filterRange || 'Toutes les dates');
-                buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
-
                 $('#rapportModal').modal('show');
+
+                $('#rapportModal').off('shown.bs.modal.rapportUser');
+
+                $('#rapportModal').on('shown.bs.modal.rapportUser', function () {
+                    populateRapportUsers();
+
+                    var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                    var clientFilter = $('#rapport_client_filter').val() || '';
+
+                    $('#rapport_periode_label').text(filterRange || 'Toutes les dates');
+                    buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+                });
             });
 
             $(document).on('click', '#rapport_apply_btn', function (e) {
@@ -4642,9 +4734,9 @@ body.modal-open { overflow: hidden; }
                 }
 
                 if (USER_ROLE == 0) {
-                    $('#rapport_user_filter').val('all');
+                    $('#rapport_user_filter').val('all').trigger('change.select2');
                 } else {
-                    $('#rapport_user_filter').val(CURRENT_USER_NAME);
+                    $('#rapport_user_filter').val(CURRENT_USER_NAME).trigger('change.select2');
                 }
 
                 $('#rapport_periode_label').text('Toutes les dates');

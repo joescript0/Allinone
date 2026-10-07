@@ -1,4 +1,4 @@
-Cette page est bien : @php
+@php
     use App\Models\appnames;
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
@@ -1880,14 +1880,22 @@ select.form-control {
                                                     ];
                                                 }
 
+                                                // ✅ Utilisateur du PAIEMENT (detailpaiessachats.user_id)
                                                 $paiements_json = [];
                                                 foreach ($paiements as $p) {
                                                     $isUSD = ($p->devise_recu == 0);
+
+                                                    $payeur_id  = $p->user_id ?? null;
+                                                    $payeur_nom = $payeur_id
+                                                        ? (User::where('id', $payeur_id)->first()['name'] ?? 'N/A')
+                                                        : 'N/A';
+
                                                     $paiements_json[] = [
                                                         'id'               => $p->id,
                                                         'date'             => date('d/m/Y à H:i', strtotime($p->created_at)),
                                                         'payer'            => $p->payer,
-                                                        'payer_nom'        => User::where('id', $data->user_id)->first()['name'] ?? 'N/A',
+                                                        'payer_nom'        => $payeur_nom,
+                                                        'payer_id'         => $payeur_id,
                                                         'montant_recu'     => $p->montant_recu,
                                                         'devise_label'     => $isUSD ? 'USD' : 'CDF',
                                                         'mode_de_paiement' => $p->mode_de_paiement,
@@ -2922,8 +2930,9 @@ select.form-control {
         var USER_ROLE = {{ Auth::user()->role ?? 1 }};
         var CURRENT_USER_NAME = "{{ addslashes(Auth::user()->name ?? '') }}";
 
-        var ALL_ACTIVE_USERS = [
-            @foreach(\App\Models\User::where('etat', 1)->orderBy('name')->get() as $u)
+        // ✅ Tous les utilisateurs (actifs ET désactivés) car un user désactivé peut avoir enregistré des paiements
+        var ALL_USERS = [
+            @foreach(\App\Models\User::orderBy('name')->get() as $u)
                 "{{ addslashes($u->name) }}",
             @endforeach
         ];
@@ -4020,24 +4029,52 @@ select.form-control {
                 return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
             }
 
+            // ✅ Select2 avec recherche activée pour le select Utilisateur du rapport
             function populateRapportUsers() {
                 var $sel = $('#rapport_user_filter');
+
+                // Détruire select2 s'il est déjà initialisé
+                if ($sel.hasClass('select2-hidden-accessible')) {
+                    $sel.select2('destroy');
+                }
+
                 $sel.empty();
 
                 if (USER_ROLE == 0) {
                     $sel.append('<option value="all">Tous les utilisateurs</option>');
-                    ALL_ACTIVE_USERS.forEach(function (u) {
+                    ALL_USERS.forEach(function (u) {
                         $sel.append('<option value="' + u + '">' + u + '</option>');
                     });
                     $sel.prop('disabled', false);
+
+                    // Initialiser Select2 avec recherche
+                    $sel.select2({
+                        placeholder: "Rechercher un utilisateur...",
+                        allowClear: false,
+                        theme: 'bootstrap',
+                        width: '100%',
+                        dropdownParent: $('#rapportModal'),
+                        language: {
+                            noResults: function () { return "Aucun utilisateur trouvé"; },
+                            searching: function () { return "Recherche..."; }
+                        }
+                    });
                 } else {
                     var nom = CURRENT_USER_NAME || 'Utilisateur';
                     $sel.append('<option value="' + nom + '" selected>' + nom + '</option>');
                     $sel.val(nom);
                     $sel.prop('disabled', true);
+
+                    $sel.select2({
+                        theme: 'bootstrap',
+                        width: '100%',
+                        dropdownParent: $('#rapportModal'),
+                        disabled: true
+                    });
                 }
             }
 
+            // ✅ Filtre utilisateur porte sur detailpaiessachats.user_id
             function buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
                 var totalUSD = 0, totalCDF = 0, nbTransactions = 0;
                 var html = '';
@@ -4056,15 +4093,11 @@ select.form-control {
 
                     var numero = $row.data('numero') || '-';
                     var client = $row.data('client') || '-';
-                    var user_nom = $row.data('user') || 'N/A';
                     var dateFacture = $row.data('date') || '-';
                     var tauxFacture = parseFloat($row.data('taux')) || 1;
                     if (tauxFacture <= 0) tauxFacture = 1;
 
-                    if (effectiveUserFilter && effectiveUserFilter !== 'all' && user_nom !== effectiveUserFilter) {
-                        return;
-                    }
-
+                    // Filtre CLIENT au niveau de la facture
                     if (effectiveClientFilter && !String(client).toLowerCase().includes(effectiveClientFilter)) {
                         return;
                     }
@@ -4074,9 +4107,18 @@ select.form-control {
                     paiements.forEach(function (p) {
                         var payISO = parsePaymentDateToISO(p.date);
 
+                        // Filtre PÉRIODE au niveau du paiement
                         if (dateDebutISO && dateFinISO) {
                             if (!payISO) return;
                             if (payISO < dateDebutISO || payISO > dateFinISO) return;
+                        }
+
+                        // Utilisateur du PAIEMENT
+                        var user_nom = p.payer_nom || 'N/A';
+
+                        // Filtre UTILISATEUR sur le payeur du paiement
+                        if (effectiveUserFilter && effectiveUserFilter !== 'all' && user_nom !== effectiveUserFilter) {
+                            return;
                         }
 
                         var montant = parseFloat(p.montant_recu) || 0;
@@ -4202,8 +4244,6 @@ select.form-control {
             $("#rapport").click(function (e) {
                 e.preventDefault();
 
-                populateRapportUsers();
-
                 var filterRange = $('#filterDateRange').val() || '';
                 $('#rapport_date_range').val(filterRange);
 
@@ -4216,13 +4256,22 @@ select.form-control {
                     }
                 }
 
-                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
-                var clientFilter = $('#rapport_client_filter').val() || '';
-
-                $('#rapport_periode_label').text(filterRange || 'Toutes les dates');
-                buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
-
+                // ✅ Afficher d'abord la modale, puis initialiser Select2 sur l'événement shown.bs.modal
                 $('#rapportModal').modal('show');
+
+                // Nettoyer un éventuel ancien handler pour éviter les doublons
+                $('#rapportModal').off('shown.bs.modal.rapportUser');
+
+                // Initialiser le select Utilisateur après affichage de la modale
+                $('#rapportModal').on('shown.bs.modal.rapportUser', function () {
+                    populateRapportUsers();
+
+                    var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                    var clientFilter = $('#rapport_client_filter').val() || '';
+
+                    $('#rapport_periode_label').text(filterRange || 'Toutes les dates');
+                    buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+                });
             });
 
             $(document).on('click', '#rapport_apply_btn', function (e) {
@@ -4288,9 +4337,9 @@ select.form-control {
                 }
 
                 if (USER_ROLE == 0) {
-                    $('#rapport_user_filter').val('all');
+                    $('#rapport_user_filter').val('all').trigger('change.select2');
                 } else {
-                    $('#rapport_user_filter').val(CURRENT_USER_NAME);
+                    $('#rapport_user_filter').val(CURRENT_USER_NAME).trigger('change.select2');
                 }
 
                 $('#rapport_periode_label').text('Toutes les dates');

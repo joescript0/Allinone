@@ -81,6 +81,8 @@ use App\Models\Communiquerclients;
 use App\Models\listesdesinvites;
 use App\Models\Patients;
 use App\Models\Personnes;
+use App\Models\Motifs;
+use App\Models\Services;
 use App\Models\Rappelscredits;
 use App\Models\Tables;
 use App\Models\transfertstocks;
@@ -91,6 +93,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use PhpParser\Node\Expr\New_;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 use Fpdf\Fpdf;
 use Illuminate\Support\Facades\Storage;
 
@@ -129,6 +132,7 @@ class AjaxController extends Controller
         $this->client_to_prospect();
         $this->calculer_commission();
         $this->all_user_to_personne();
+        $this->user_get_paiement();
     }
     public function envoyer_sms($telephone, $msg)
     {
@@ -2308,6 +2312,7 @@ class AjaxController extends Controller
             $detail->date_creation = date("d/m/Y à H:i:s");
             $detail->montant_recu = $montant_a_ajouter;
             $detail->mode_de_paiement = 1;
+            $detail->user_id = Auth::user()->id;
             $detail->reste = $monnaie_a_rendre;
             $detail->save();
 
@@ -16921,13 +16926,13 @@ class AjaxController extends Controller
         $personnes = [];
 
         $personnes[] = [
-            "id" => 0, 
+            "id" => 0,
             "label" => "🔴 Personne inexistante - Ajouter cette personne",
             "type" => -1
         ];
 
         // ✅ Type 0 → Utilisateurs (table users)
-        foreach (User::select('id', 'name', 'phone')->where('etat', 1)->get() as $u) 
+        foreach (User::select('id', 'name', 'phone')->where('etat', 1)->get() as $u)
         {
             $label = $u->name ?? 'N/A';
             if ($u->phone) $label .= ' - ' . $u->phone;
@@ -16984,17 +16989,19 @@ class AjaxController extends Controller
 
     public function add_personne(Request $request)
     {
-        // ---------------- Données ----------------
+        // ============================================================
+        // ÉTAPE 0 : RÉCUPÉRATION DES DONNÉES
+        // ============================================================
         $personne     = $request->input('personne');
         $typePersonne = $request->input('type_personne');
         $nature       = $request->input('nature');
-        $nom          = trim($request->input('nom', ''));
-        $email        = trim($request->input('email', ''));
-        $phone        = trim($request->input('phone', ''));
+        $nom          = trim((string) $request->input('nom', ''));
+        $email        = trim((string) $request->input('email', ''));
+        $phone        = trim((string) $request->input('phone', ''));
         $motif        = $request->input('motif');
         $service      = $request->input('service');
         $heure        = $request->input('heure');
-        $note         = $request->input('note', '');
+        $note         = (string) $request->input('note', '');
         $image        = $request->input('image');
         $signature    = $request->input('signature');
         $page         = $request->input('page');
@@ -17002,10 +17009,38 @@ class AjaxController extends Controller
         $isExistingPerson = ($personne !== null && $personne !== '' && (int)$personne > 0);
 
         // ============================================================
+        // MAPPING TYPE
+        // ============================================================
+        $typeMap = [
+            '0' => 0, '1' => 1, '2' => 2, '3' => 3,
+            0   => 0, 1   => 1, 2   => 2, 3   => 3,
+            'user'         => 0,
+            'users'        => 0,
+            'utilisateur'  => 0,
+            'utilisateurs' => 0,
+            'client'       => 1,
+            'clients'      => 1,
+            'patient'      => 2,
+            'patients'     => 2,
+            'visiteur'     => 3,
+            'visiteurs'    => 3,
+        ];
+
+        $typeReverseMap = [
+            0 => 'user',
+            1 => 'client',
+            2 => 'patient',
+            3 => 'visiteur',
+        ];
+
+        // ============================================================
         // ÉTAPE 1 : VALIDATION PERSONNE
         // ============================================================
         if (empty($personne) && $personne !== '0') {
-            return response()->json(['ok' => false, 'message' => 'Sélectionnez une personne'], 422);
+            return response()->json([
+                'ok'      => false,
+                'message' => 'Sélectionnez une personne'
+            ], 422);
         }
 
         // ============================================================
@@ -17047,6 +17082,7 @@ class AjaxController extends Controller
         }
 
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), $rules, $messages);
+
         if ($validator->fails()) {
             return response()->json([
                 'ok'      => false,
@@ -17055,7 +17091,7 @@ class AjaxController extends Controller
         }
 
         // ============================================================
-        // ÉTAPE 3 : VÉRIFICATIONS EMAIL / TÉLÉPHONE (nouvelle personne)
+        // ÉTAPE 3 : VÉRIFICATIONS EMAIL / TÉLÉPHONE
         // ============================================================
         if (!$isExistingPerson) {
 
@@ -17098,144 +17134,289 @@ class AjaxController extends Controller
 
         // ============================================================
         // ÉTAPE 4 : ENREGISTREMENT
-        //   4.1 : table spécifique (users/clients/visiteurs/patients)
-        //   4.2 : table personne
-        //   4.3 : table registreaccueil
         // ============================================================
         try {
-            DB::beginTransaction();
+            \DB::beginTransaction();
 
             // ---------------------------------------------------------
             // 4.1 : GESTION DE LA PERSONNE
             // ---------------------------------------------------------
             if ($isExistingPerson) {
 
-                // Personne existante → on prend son ID dans la table "personne"
-                $personneId = (int) $personne;
+                $typeKey       = is_string($typePersonne) ? strtolower(trim($typePersonne)) : $typePersonne;
+                $typeNumerique = $typeMap[$typeKey] ?? null;
+
+                if ($typeNumerique === null) {
+                    \DB::rollBack();
+                    return response()->json([
+                        'ok'      => false,
+                        'message' => 'Type de personne invalide : ' . $typePersonne
+                    ], 422);
+                }
+
+                $personneRecordExistant = Personnes::where('user_id', (int) $personne)
+                                                ->where('type', $typeNumerique)
+                                                ->first();
+
+                if (!$personneRecordExistant) {
+                    \DB::rollBack();
+                    return response()->json([
+                        'ok'      => false,
+                        'message' => 'Personne introuvable pour user_id = ' . $personne
+                                . ' et type = ' . $typePersonne
+                    ], 422);
+                }
+
+                $personneId = $personneRecordExistant->id;
 
             } else {
 
-                $type    = strtolower(trim($typePersonne));
-                $emailDb = $email !== '' ? $email : null;
-                $phoneDb = $phone !== '' ? $phone : null;
+                $typeKey = is_string($typePersonne) ? strtolower(trim($typePersonne)) : $typePersonne;
 
-                $userLinkedId  = null;
-                $typeNumerique = null;
+                if (!isset($typeMap[$typeKey])) {
+                    throw new \Exception("Type de personne inconnu : " . $typePersonne);
+                }
+
+                $typeNumerique = $typeMap[$typeKey];
+                $type          = $typeReverseMap[$typeNumerique];
+
+                // ✅ phone vide = '' au lieu de null
+                $emailDb = $email !== '' ? $email : null;   // null → déclenche la génération d'email
+                $phoneDb = $phone !== '' ? $phone : '';     // '' pour éviter "cannot be null"
+
+                $userLinkedId = null;
 
                 switch ($type) {
 
                     // ---------- UTILISATEUR ----------
                     case 'user':
-                    case 'users':
-                    case 'utilisateur':
-                    case 'utilisateurs':
+                        $nextId = (User::max('id') ?? 0) + 1;
+
                         $nouvellePersonne = new User();
+                        $nouvellePersonne->id       = $nextId;
+                        $nouvellePersonne->user_id  = \Auth::id();
                         $nouvellePersonne->name     = $nom;
-                        $nouvellePersonne->email    = $emailDb;
                         $nouvellePersonne->phone    = $phoneDb;
                         $nouvellePersonne->image    = $image;
-                        $nouvellePersonne->password = \Illuminate\Support\Facades\Hash::make("12345");
+                        $nouvellePersonne->adresse  = '';
+                        $nouvellePersonne->recherche  = '';
+                        $nouvellePersonne->role  = Auth::user()->role;
+                        $nouvellePersonne->password = \Hash::make("12345");
+                        $nouvellePersonne->mdp = "12345";
+
+                        if ($emailDb === null) {
+                            $nouvellePersonne->email = 'user_' . $nextId . '@gmail.com';
+                        } else {
+                            $nouvellePersonne->email = $emailDb;
+                        }
+
                         $nouvellePersonne->save();
-                        $userLinkedId  = $nouvellePersonne->id;
-                        $typeNumerique = 0;
+                        $userLinkedId = $nextId;
                         break;
 
                     // ---------- CLIENT ----------
                     case 'client':
-                    case 'clients':
-                        $nouvellePersonne = new \App\Models\Clients();
-                        $nouvellePersonne->nom      = $nom;
-                        $nouvellePersonne->email    = $emailDb;
-                        $nouvellePersonne->phone    = $phoneDb;
-                        $nouvellePersonne->image    = $image;
-                        $nouvellePersonne->password = \Illuminate\Support\Facades\Hash::make("12345");
-                        $nouvellePersonne->save();
-                        $userLinkedId  = $nouvellePersonne->id;
-                        $typeNumerique = 1;
-                        break;
+                        $nextId = (\App\Models\Clients::max('id') ?? 0) + 1;
 
-                    // ---------- VISITEUR ----------
-                    case 'visiteur':
-                    case 'visiteurs':
-                        $nouvellePersonne = new \App\Models\Visiteurs();
-                        $nouvellePersonne->nom      = $nom;
-                        $nouvellePersonne->email    = $emailDb;
+                        $nouvellePersonne = new \App\Models\Clients();
+                        $nouvellePersonne->id       = $nextId;
+                        $nouvellePersonne->user_id  = \Auth::id();
+                        $nouvellePersonne->name     = $nom;
                         $nouvellePersonne->phone    = $phoneDb;
+                        $nouvellePersonne->type     = $nature;
                         $nouvellePersonne->image    = $image;
-                        $nouvellePersonne->password = \Illuminate\Support\Facades\Hash::make("12345");
+                        $nouvellePersonne->adresse  = '';
+                        $nouvellePersonne->password = \Hash::make("12345");
+                        $nouvellePersonne->mdp = "12345";
+
+                        if ($emailDb === null) {
+                            $nouvellePersonne->email = 'client_' . $nextId . '@gmail.com';
+                        } else {
+                            $nouvellePersonne->email = $emailDb;
+                        }
+
                         $nouvellePersonne->save();
-                        $userLinkedId  = $nouvellePersonne->id;
-                        $typeNumerique = 2;
+                        $userLinkedId = $nextId;
                         break;
 
                     // ---------- PATIENT ----------
                     case 'patient':
-                    case 'patients':
+                        $nextId = (\App\Models\Patients::max('id') ?? 0) + 1;
+
                         $nouvellePersonne = new \App\Models\Patients();
-                        $nouvellePersonne->nom      = $nom;
-                        $nouvellePersonne->email    = $emailDb;
+                        $nouvellePersonne->id       = $nextId;
+                        $nouvellePersonne->user_id  = \Auth::id();
+                        $nouvellePersonne->name     = $nom;
                         $nouvellePersonne->phone    = $phoneDb;
+                        $nouvellePersonne->type     = $nature;
                         $nouvellePersonne->image    = $image;
-                        $nouvellePersonne->password = \Illuminate\Support\Facades\Hash::make("12345");
+                        $nouvellePersonne->adresse  = '';
+                        $nouvellePersonne->password = \Hash::make("12345");
+                        $nouvellePersonne->mdp = "12345";
+
+                        if ($emailDb === null) {
+                            $nouvellePersonne->email = 'patient_' . $nextId . '@gmail.com';
+                        } else {
+                            $nouvellePersonne->email = $emailDb;
+                        }
+
                         $nouvellePersonne->save();
-                        $userLinkedId  = $nouvellePersonne->id;
-                        $typeNumerique = 3;
+                        $userLinkedId = $nextId;
                         break;
 
-                    default:
-                        throw new \Exception("Type de personne inconnu : " . $typePersonne);
+                    // ---------- VISITEUR ----------
+                    case 'visiteur':
+                        $nextId = (\App\Models\Visiteurs::max('id') ?? 0) + 1;
+
+                        $nouvellePersonne = new \App\Models\Visiteurs();
+                        $nouvellePersonne->id       = $nextId;
+                        $nouvellePersonne->user_id  = \Auth::id();
+                        $nouvellePersonne->name     = $nom;
+                        $nouvellePersonne->phone    = $phoneDb;
+                        $nouvellePersonne->type     = $nature;
+                        $nouvellePersonne->image    = $image;
+                        $nouvellePersonne->adresse  = '';
+                        $nouvellePersonne->password = \Hash::make("12345");
+                        $nouvellePersonne->mdp = "12345";
+
+                        if ($emailDb === null) {
+                            $nouvellePersonne->email = 'visiteur_' . $nextId . '@gmail.com';
+                        } else {
+                            $nouvellePersonne->email = $emailDb;
+                        }
+
+                        $nouvellePersonne->save();
+                        $userLinkedId = $nextId;
+                        break;
                 }
 
-                // 2️⃣ Enregistrement dans la table "personne"
-                $personneRecord = new \App\Models\Personne();
-                $personneRecord->user_id  = $userLinkedId;     // ID dans la table spécifique
-                $personneRecord->type     = $typeNumerique;    // 0=user, 1=client, 2=visiteur, 3=patient
+                // ✅ Enregistrement dans la table "personne"
+                $nextPersonneId = (Personnes::max('id') ?? 0) + 1;
+
+                $personneRecord = new Personnes();
+                $personneRecord->id       = $nextPersonneId;
+                $personneRecord->user_id  = $userLinkedId;
+                $personneRecord->type     = $typeNumerique;
                 $personneRecord->etat     = 1;
                 $personneRecord->poste_id = 0;
                 $personneRecord->save();
 
-                // 3️⃣ ID de la table personne
-                $personneId = $personneRecord->id;
+                $personneId = $nextPersonneId;
             }
 
             // ---------------------------------------------------------
-            // 4.2 : Signature (base64 → PNG)
+            // 4.2 : SIGNATURE
             // ---------------------------------------------------------
             $signaturePath = null;
+
+            $target_dir = "./storage/images/fichiers/";
+
+            if (!file_exists($target_dir)) {
+                mkdir($target_dir, 0777, true);
+            }
+
+            \Log::info('SIGNATURE REÇUE', [
+                'has'    => !empty($signature),
+                'length' => strlen((string) $signature),
+                'prefix' => substr((string) $signature, 0, 30),
+            ]);
+
             if (!empty($signature) && strpos($signature, 'data:image') === 0) {
+
                 $data = explode(',', $signature);
+
                 if (count($data) >= 2) {
+
                     $imageData = base64_decode($data[1]);
-                    $filename  = 'signatures_' . time() . '_' . uniqid() . '.png';
-                    Storage::disk('public')->put('images/signatures/' . $filename, $imageData);
-                    $signaturePath = 'storage/images/signatures/' . $filename;
+
+                    if ($imageData !== false && strlen($imageData) > 1500) {
+
+                        $nomFinal = uniqid() . "_" . time() . ".png";
+                        $cheminComplet = $target_dir . $nomFinal;
+
+                        $saved = file_put_contents($cheminComplet, $imageData);
+
+                        \Log::info('SAUVEGARDE SIGNATURE', [
+                            'ok'       => $saved !== false,
+                            'filename' => $nomFinal,
+                            'path'     => $cheminComplet,
+                            'size'     => strlen($imageData),
+                            'exists'   => file_exists($cheminComplet),
+                        ]);
+
+                        if ($saved !== false) {
+                            $signaturePath = $nomFinal;
+                        }
+                    }
                 }
             }
 
             // ---------------------------------------------------------
-            // 4.3 : Registre d'accueil
+            // 4.3 : REGISTRE D'ACCUEIL
             // ---------------------------------------------------------
             $registre = new registreaccueil();
-            $registre->personne_id       = $personneId;
-            $registre->type_personne     = $typePersonne;
-            $registre->motif_id          = $motif;
-            $registre->service_id        = $service;
-            $registre->date_heure_entree = $heure;
-            $registre->note              = $note;
-            $registre->signature         = $signaturePath;
-            $registre->user_id           = Auth::id();
+            $registre->personne_id  = $personneId;
+            $registre->motif_id     = $motif;
+            $registre->service_id   = $service;
+            $registre->heure_entree = $heure;
+            $registre->heure_sortie = "0000/00/00 00:00";
+            $registre->note         = $note;
+            $registre->signature    = $signaturePath;
+            $registre->user_id      = \Auth::id();
             $registre->save();
 
-            DB::commit();
+            \DB::commit();
 
-            return $this->renderTableauHtml($page);
+            // ---------------------------------------------------------
+            // 4.4 : RECHARGER LES DONNÉES POUR LA VUE
+            // ---------------------------------------------------------
+            $ressource_id_1 = $page;
+            $groupe_user_id = \Auth::user()->role;
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+            $registres = registreaccueil::where('etat', 1)->get();
+            $groupes   = Groupes::all();
+            $postes    = Postes::all();
+            $motifs    = Motifs::all();
+            $services  = Services::all();
+
+            $data = [
+                'registres'      => $registres,
+                'groupes'        => $groupes,
+                'postes'         => $postes,
+                'motifs'         => $motifs,
+                'services'       => $services,
+                'ressource_id_1' => $ressource_id_1,
+                'groupe_user_id' => $groupe_user_id,
+            ];
+
+            return view('include.refresh_registreaccueils', $data);
+
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            \Log::error('ERREUR add_personne', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+            ]);
             return response()->json([
                 'ok'      => false,
                 'message' => 'Erreur : ' . $e->getMessage()
             ], 500);
+        }
+    }
+    public function user_get_paiement()
+    {
+        $factures = Factureass::where('etat', 0)->get();
+
+        foreach ($factures as $facture) {
+            $detailpaiessachats = detailpaiessachats::where('facture_id', $facture->id)->get();
+
+            foreach ($detailpaiessachats as $detail) {
+                if ($detail->user_id == 0) {
+                    $detail->user_id = $facture->user_id;
+                    $detail->save();
+                }
+            }
         }
     }
 }

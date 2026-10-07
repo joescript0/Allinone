@@ -4,7 +4,6 @@
 @endphp
 
 <?php
-
 use App\Models\Writes;
 use App\Models\Postes;
 use App\Models\Mois;
@@ -12,7 +11,6 @@ use App\Models\Groupes;
 use App\Models\Clients;
 use App\Models\Lieux;
 use Illuminate\Support\Facades\Auth;
-
 ?>
 @extends('layouts.main')
 @section('title', $nom_app)
@@ -26,7 +24,7 @@ use Illuminate\Support\Facades\Auth;
 {{-- ===================== SELECT2 CSS ===================== --}}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-{{-- ===================== FLATPICKR CSS (Date picker) ===================== --}}
+{{-- ===================== FLATPICKR CSS ===================== --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
 
@@ -34,12 +32,7 @@ use Illuminate\Support\Facades\Auth;
 /* ============================================================
    DESIGN PREMIUM – UNIFIÉ AVEC LES AUTRES PAGES
    ============================================================ */
-
-body {
-    margin: 0;
-    padding: 0;
-    background: #f0f4f8;
-}
+body { margin: 0; padding: 0; background: #f0f4f8; }
 
 .content .container {
     max-width: 100% !important;
@@ -48,16 +41,8 @@ body {
     margin: 0 auto;
     background: #f8fafc;
 }
-
-.content .container .row {
-    margin-left: 0;
-    margin-right: 0;
-}
-
-.content .container [class*="col-"] {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-}
+.content .container .row { margin-left: 0; margin-right: 0; }
+.content .container [class*="col-"] { padding-left: 0.75rem; padding-right: 0.75rem; }
 
 :root {
     --bleu-nuit: #0a192f;
@@ -90,7 +75,6 @@ h4 {
     margin-top: 0;
     color: var(--bleu-nuit);
 }
-
 h4 i.zmdi {
     background: var(--bleu-nuit-gradient);
     background-clip: text;
@@ -99,280 +83,130 @@ h4 i.zmdi {
 }
 
 /* ========== TABLEAU ========== */
-.table-responsive {
-    overflow-x: auto;
-    overflow-y: visible;
-    border-radius: var(--border-radius-lg);
-}
-
+.table-responsive { overflow-x: auto; overflow-y: visible; border-radius: var(--border-radius-lg); }
 .table {
-    width: 100%;
-    min-width: 800px;
-    background: white;
-    border-collapse: collapse;
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-light);
-    table-layout: auto;
+    width: 100%; min-width: 800px; background: white; border-collapse: collapse;
+    border-radius: var(--border-radius-lg); overflow: hidden;
+    box-shadow: var(--shadow-light); table-layout: auto;
 }
-
 .table thead th {
-    background: #E7F5FE !important;
-    color: #0a192f;
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 14px 12px !important;
-    border-bottom: 2px solid #cbd5e1 !important;
-    border-right: 1px solid #d0e2f2;
-    white-space: normal;
-    word-break: break-word;
+    background: #E7F5FE !important; color: #0a192f; font-weight: 700; font-size: 0.85rem;
+    text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 12px !important;
+    border-bottom: 2px solid #cbd5e1 !important; border-right: 1px solid #d0e2f2;
+    white-space: normal; word-break: break-word;
 }
-
-.table tbody tr {
-    transition: all 0.15s ease;
-    border-bottom: 1px solid #e2e8f0;
-}
-
+.table tbody tr { transition: all 0.15s ease; border-bottom: 1px solid #e2e8f0; }
 .table tbody tr:nth-child(even) { background-color: #f8fafc; }
 .table tbody tr:nth-child(odd)  { background-color: #ffffff; }
 .table tbody tr:hover { background: #e6f0ff !important; cursor: default; }
-
 .table tbody td {
-    padding: 10px 12px !important;
-    vertical-align: middle !important;
-    font-weight: 500;
-    font-size: 0.85rem;
-    color: #1e2a3e;
-    word-break: break-word;
-    border-bottom: 1px solid #eef2f6;
-    line-height: 1.4;
+    padding: 10px 12px !important; vertical-align: middle !important; font-weight: 500;
+    font-size: 0.85rem; color: #1e2a3e; word-break: break-word;
+    border-bottom: 1px solid #eef2f6; line-height: 1.4;
 }
-
-.table tbody td:last-child {
-    text-align: center;
-    vertical-align: middle;
-}
+.table tbody td:last-child { text-align: center; vertical-align: middle; }
 
 /* ========== BOUTONS ========== */
-#bloc_1 button,
-#bloc_2 button,
-#bloc_3 button,
-#bloc_4 button,
-#liste,
-#add,
-#add_r,
-#save,
-#save_r,
-#annuler,
-#edit_save,
-#edit_annuler,
-.btn-primary,
-.btn-info,
-.btn-danger,
-.btn-secondary {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 6px 16px !important;
-    font-weight: 600;
-    font-size: 0.85rem;
-    border-radius: 40px !important;
-    transition: all 0.25s ease;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    box-shadow: var(--shadow-light);
-    white-space: nowrap;
-    line-height: 1.5;
+#bloc_1 button, #bloc_2 button, #bloc_3 button, #bloc_4 button,
+#liste, #add, #add_r, #save, #save_r, #annuler, #edit_save, #edit_annuler,
+.btn-primary, .btn-info, .btn-danger, .btn-secondary {
+    display: inline-flex !important; align-items: center; justify-content: center;
+    gap: 8px; padding: 6px 16px !important; font-weight: 600; font-size: 0.85rem;
+    border-radius: 40px !important; transition: all 0.25s ease;
+    border: none; cursor: pointer; text-decoration: none;
+    box-shadow: var(--shadow-light); white-space: nowrap; line-height: 1.5;
 }
-
-#liste,
-.btn-primary {
-    background: #3B82F6 !important;
-    color: white !important;
-}
-#liste:hover,
-.btn-primary:hover {
+#liste, .btn-primary { background: #3B82F6 !important; color: white !important; }
+#liste:hover, .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
     background: #2563eb !important;
 }
-
-#add,
-.btn-info {
-    background: var(--bleu-nuit-gradient) !important;
-    color: white !important;
-}
-#add:hover,
-.btn-info:hover {
+#add, .btn-info { background: var(--bleu-nuit-gradient) !important; color: white !important; }
+#add:hover, .btn-info:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
 }
-
-#save,
-#edit_save {
-    background: var(--bleu-secondaire-gradient) !important;
-    color: white;
-}
-#save:hover,
-#edit_save:hover {
+#save, #edit_save { background: var(--bleu-secondaire-gradient) !important; color: white; }
+#save:hover, #edit_save:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3);
 }
-
-#annuler,
-#edit_annuler,
-.btn-danger {
-    background: var(--rouge-gradient) !important;
-    color: white;
-}
-#annuler:hover,
-#edit_annuler:hover,
-.btn-danger:hover {
+#annuler, #edit_annuler, .btn-danger { background: var(--rouge-gradient) !important; color: white; }
+#annuler:hover, #edit_annuler:hover, .btn-danger:hover {
     transform: translateY(-2px);
     background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
     box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
 }
-
-#resetFilters {
-    background: #64748b !important;
-    color: white !important;
-}
+#resetFilters { background: #64748b !important; color: white !important; }
 #resetFilters:hover {
     transform: translateY(-2px);
     background: #475569 !important;
     box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
 }
-
-#add_r,
-#save_r {
-    background: #cbd5e1 !important;
-    color: #475569 !important;
-    cursor: not-allowed !important;
-    opacity: 0.7;
-    transform: none !important;
-    box-shadow: none !important;
+#add_r, #save_r {
+    background: #cbd5e1 !important; color: #475569 !important;
+    cursor: not-allowed !important; opacity: 0.7;
+    transform: none !important; box-shadow: none !important;
 }
-
-/* ========== SPINNER SUR LE BOUTON ========== */
-#save .spinner-border,
-#edit_save .spinner-border {
-    width: 0.95rem;
-    height: 0.95rem;
-    border-width: 0.15em;
-    margin-right: 4px;
+#save .spinner-border, #edit_save .spinner-border {
+    width: 0.95rem; height: 0.95rem;
+    border-width: 0.15em; margin-right: 4px;
 }
 
 /* ========== FILTRES ========== */
 .filters-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 16px;
-    background: white;
-    padding: 0.8rem 1.2rem;
+    display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+    background: white; padding: 0.8rem 1.2rem;
     border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-light);
-    align-items: flex-end;
+    box-shadow: var(--shadow-light); align-items: flex-end;
 }
-
 .filter-group { flex: 1; min-width: 150px; }
 .filter-group label {
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: var(--bleu-nuit);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    font-weight: 600; margin-bottom: 4px; color: var(--bleu-nuit);
+    font-size: 0.7rem; text-transform: uppercase;
+    display: flex; align-items: center; gap: 5px;
 }
 .filter-group .form-control { height: 36px; }
-
 .user-count-badge {
-    background: var(--rouge-gradient);
-    color: white;
-    border-radius: 50px;
-    padding: 4px 12px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    background: var(--rouge-gradient); color: white;
+    border-radius: 50px; padding: 4px 12px;
+    font-size: 0.75rem; font-weight: bold;
+    display: inline-flex; align-items: center; gap: 6px;
     margin-bottom: 12px;
 }
 
 /* ========== FORMULAIRES ========== */
-#form_add .row,
-#form_edit .row {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-#form_add .col-6,
-#form_edit .col-6 {
-    margin-bottom: 0.8rem;
-}
-
-.form-group {
-    width: 100%;
-    margin-bottom: 0;
-    position: relative;
-}
-
+#form_add .row, #form_edit .row { display: flex; flex-wrap: wrap; }
+#form_add .col-6, #form_edit .col-6 { margin-bottom: 0.8rem; }
+.form-group { width: 100%; margin-bottom: 0; position: relative; }
 .form-group label {
-    display: block;
-    font-weight: 700;
-    color: var(--bleu-nuit);
-    margin-bottom: 4px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
+    display: block; font-weight: 700; color: var(--bleu-nuit);
+    margin-bottom: 4px; font-size: 0.75rem;
+    text-transform: uppercase; letter-spacing: 0.4px;
 }
-
-.form-group label i {
-    color: #e31b23;
-    margin-right: 6px;
-}
-
-.form-control,
-input.form-control,
-select.form-control,
-textarea.form-control,
-.input-mask {
-    width: 100% !important;
-    background: #ffffff !important;
+.form-group label i { color: #e31b23; margin-right: 6px; }
+.form-control, input.form-control, select.form-control, textarea.form-control, .input-mask {
+    width: 100% !important; background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 14px !important;
     padding: 8px 12px !important;
-    font-weight: 500;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-    box-sizing: border-box;
-    height: 38px !important;
-    line-height: 1.4;
+    font-weight: 500; font-size: 0.85rem;
+    transition: all 0.2s; box-sizing: border-box;
+    height: 38px !important; line-height: 1.4;
 }
-
 textarea.form-control {
     resize: vertical;
     height: 38px !important;
     min-height: 38px !important;
     line-height: 1.4;
-    padding-top: 8px;
-    padding-bottom: 8px;
+    padding-top: 8px; padding-bottom: 8px;
 }
-
-.form-control:focus,
-select.form-control:focus,
-textarea.form-control:focus {
+.form-control:focus, select.form-control:focus, textarea.form-control:focus {
     border-color: var(--bleu-nuit) !important;
     box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
     transform: translateY(-1px);
 }
-
 select.form-control {
     appearance: none;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
@@ -380,55 +214,29 @@ select.form-control {
     background-position: right 14px center;
 }
 
-/* ========== FORMULAIRE AJOUT – ALIGNEMENT RESPONSIVE ========== */
+/* ========== FORMULAIRE AJOUT ========== */
 #form_add .form-row-custom {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-bottom: 16px;
+    display: flex; flex-wrap: wrap;
+    gap: 16px; margin-bottom: 16px;
 }
-
 #form_add .form-row-custom > [class*="col-"] {
     flex: 1 1 calc(50% - 8px);
-    min-width: 260px;
-    max-width: 100%;
-    padding: 0;
-    margin: 0;
+    min-width: 260px; max-width: 100%;
+    padding: 0; margin: 0;
 }
-
-#form_add .form-row-custom .form-group {
-    margin: 0;
-}
-
+#form_add .form-row-custom .form-group { margin: 0; }
 #form_add .form-row-custom .form-group label {
-    margin-top: 0 !important;
-    min-height: 20px;
-    display: flex;
-    align-items: center;
+    margin-top: 0 !important; min-height: 20px;
+    display: flex; align-items: center;
 }
-
-#form_add .row {
-    margin-left: 0;
-    margin-right: 0;
-}
-
-#form_add .row + .row {
-    margin-top: 0 !important;
-}
-
+#form_add .row { margin-left: 0; margin-right: 0; }
+#form_add .row + .row { margin-top: 0 !important; }
 @media (max-width: 768px) {
-    #form_add .form-row-custom > [class*="col-"] {
-        flex: 1 1 100%;
-        min-width: 100%;
-    }
+    #form_add .form-row-custom > [class*="col-"] { flex: 1 1 100%; min-width: 100%; }
 }
 
 /* ========== SELECT2 ========== */
-.select2-container {
-    width: 100% !important;
-    max-width: 100% !important;
-}
-
+.select2-container { width: 100% !important; max-width: 100% !important; }
 .select2-container--default .select2-selection--single {
     height: 38px !important;
     border: 1px solid #e2e8f0 !important;
@@ -440,17 +248,12 @@ select.form-control {
     display: flex !important;
     align-items: center;
 }
-
 .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: normal !important;
-    color: #1e293b !important;
-    font-weight: 500;
-    font-size: 0.85rem;
+    line-height: normal !important; color: #1e293b !important;
+    font-weight: 500; font-size: 0.85rem;
     text-align: left !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    padding-left: 14px !important;
-    padding-right: 40px !important;
+    width: 100% !important; max-width: 100% !important;
+    padding-left: 14px !important; padding-right: 40px !important;
     box-sizing: border-box;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -459,10 +262,8 @@ select.form-control {
     align-items: center;
     height: 100%;
 }
-
 .select2-container--default .select2-selection--single .select2-selection__placeholder {
-    color: #94a3b8;
-    font-weight: 500;
+    color: #94a3b8; font-weight: 500;
     text-align: left !important;
     display: flex !important;
     align-items: center;
@@ -471,11 +272,9 @@ select.form-control {
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
 }
-
 .select2-container--default .select2-selection--single .select2-selection__arrow {
     height: 100% !important;
-    right: 12px;
-    top: 0;
+    right: 12px; top: 0;
     position: absolute;
     display: flex !important;
     align-items: center;
@@ -487,13 +286,11 @@ select.form-control {
     transform: translateY(-50%);
     position: absolute;
 }
-
 .select2-container--default.select2-container--focus .select2-selection--single,
 .select2-container--default.select2-container--open .select2-selection--single {
     border-color: #0a192f !important;
     box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
 }
-
 .select2-dropdown {
     border: 1px solid #e2e8f0 !important;
     border-radius: 14px !important;
@@ -503,18 +300,7 @@ select.form-control {
     max-width: 100% !important;
     box-sizing: border-box;
 }
-
-.select2-container--open .select2-dropdown--below,
-.select2-container--open .select2-dropdown--above {
-    max-width: 100% !important;
-}
-
-.select2-search--dropdown {
-    padding: 8px;
-    background: #f8fafc;
-    box-sizing: border-box;
-    width: 100%;
-}
+.select2-search--dropdown { padding: 8px; background: #f8fafc; box-sizing: border-box; width: 100%; }
 .select2-search--dropdown .select2-search__field {
     border: 1px solid #e2e8f0 !important;
     border-radius: 10px !important;
@@ -529,21 +315,12 @@ select.form-control {
     border-color: #3B82F6 !important;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
 }
-
-.select2-results {
+.select2-results, .select2-results__options {
     max-height: 260px;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     box-sizing: border-box;
 }
-
-.select2-results__options {
-    max-height: 260px;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    box-sizing: border-box;
-}
-
 .select2-results__option {
     padding: 9px 14px;
     font-size: 0.85rem;
@@ -556,7 +333,6 @@ select.form-control {
     white-space: nowrap !important;
     word-break: break-word;
 }
-
 .select2-container--default .select2-results__option--highlighted[aria-selected] {
     background-color: #3B82F6 !important;
     color: white !important;
@@ -567,8 +343,7 @@ select.form-control {
 }
 
 /* ========== FLATPICKR ========== */
-.flatpickr-input,
-.flatpickr-alt-input,
+.flatpickr-input, .flatpickr-alt-input,
 input.flatpickr-input.form-control[readonly],
 input.flatpickr-input + input.form-control {
     background: #ffffff !important;
@@ -582,8 +357,7 @@ input.flatpickr-input + input.form-control {
     color: #1e293b !important;
     text-align: left !important;
 }
-.flatpickr-input:focus,
-.flatpickr-alt-input:focus,
+.flatpickr-input:focus, .flatpickr-alt-input:focus,
 input.flatpickr-input + input.form-control:focus {
     border-color: #0a192f !important;
     box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
@@ -608,10 +382,7 @@ input.flatpickr-input + input.form-control:focus {
     color: white;
     fill: white;
 }
-.flatpickr-calendar .flatpickr-current-month {
-    font-weight: 700;
-    font-size: 1rem;
-}
+.flatpickr-calendar .flatpickr-current-month { font-weight: 700; font-size: 1rem; }
 .flatpickr-calendar .flatpickr-weekday {
     color: #e31b23 !important;
     font-weight: 700;
@@ -640,27 +411,16 @@ input.flatpickr-input + input.form-control:focus {
     color: #e31b23;
     font-weight: 700;
 }
-.flatpickr-calendar .flatpickr-day.today.selected {
-    color: white !important;
-}
-.flatpickr-time {
-    border-top: 1px solid #e2e8f0;
-}
+.flatpickr-calendar .flatpickr-day.today.selected { color: white !important; }
+.flatpickr-time { border-top: 1px solid #e2e8f0; }
 .flatpickr-time input {
     font-weight: 700 !important;
     color: #0a192f !important;
     font-size: 0.95rem !important;
 }
-.flatpickr-time .flatpickr-am-pm {
-    font-weight: 700;
-    color: #0a192f;
-}
-.flatpickr-time .numInputWrapper span.arrowUp:after {
-    border-bottom-color: #e31b23;
-}
-.flatpickr-time .numInputWrapper span.arrowDown:after {
-    border-top-color: #e31b23;
-}
+.flatpickr-time .flatpickr-am-pm { font-weight: 700; color: #0a192f; }
+.flatpickr-time .numInputWrapper span.arrowUp:after { border-bottom-color: #e31b23; }
+.flatpickr-time .numInputWrapper span.arrowDown:after { border-top-color: #e31b23; }
 
 /* ========== SIGNATURE ========== */
 .signature-section {
@@ -668,7 +428,6 @@ input.flatpickr-input + input.form-control:focus {
     padding-top: 18px;
     border-top: 1px dashed #e2e8f0;
 }
-
 .signature-wrap {
     position: relative;
     border: 2px dashed #cbd5e1;
@@ -680,7 +439,6 @@ input.flatpickr-input + input.form-control:focus {
     width: 100%;
     margin-top: 8px;
 }
-
 #signatureCanvas {
     width: 100%;
     height: 100%;
@@ -688,7 +446,6 @@ input.flatpickr-input + input.form-control:focus {
     cursor: crosshair;
     touch-action: none;
 }
-
 .signature-placeholder {
     position: absolute;
     inset: 0;
@@ -700,13 +457,7 @@ input.flatpickr-input + input.form-control:focus {
     pointer-events: none;
     font-style: italic;
 }
-
-.signature-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 10px;
-}
-
+.signature-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
 .btn-clear-sig {
     background: #fff;
     border: 1px solid #cbd5e1;
@@ -728,8 +479,7 @@ input.flatpickr-input + input.form-control:focus {
 }
 
 /* ========== MESSAGES ========== */
-#msg,
-#edit_msg {
+#msg, #edit_msg {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
@@ -742,9 +492,7 @@ input.flatpickr-input + input.form-control:focus {
     height: 0 !important;
     overflow: hidden !important;
 }
-
-#msg:not(:empty),
-#edit_msg:not(:empty) {
+#msg:not(:empty), #edit_msg:not(:empty) {
     display: inline-flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -759,28 +507,24 @@ input.flatpickr-input + input.form-control:focus {
     font-size: 0.8rem;
     animation: slideInMsg 0.3s ease-out;
 }
-
 #msg:not(:empty):has(i.zmdi-check-circle),
 #edit_msg:not(:empty):has(i.zmdi-check-circle) {
     background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
     color: #065f46;
     border-left: 4px solid #10b981;
 }
-
 #msg:not(:empty):has(i.zmdi-close-circle),
 #edit_msg:not(:empty):has(i.zmdi-close-circle) {
     background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
     color: #991b1b;
     border-left: 4px solid #ef4444;
 }
-
 #msg:not(:empty):has(i.zmdi-info),
 #edit_msg:not(:empty):has(i.zmdi-info) {
     background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important;
     color: #1e3a8a;
     border-left: 4px solid #3b82f6;
 }
-
 @keyframes slideInMsg {
     from { opacity: 0; transform: translateY(-8px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -831,7 +575,6 @@ input.flatpickr-input + input.form-control:focus {
     box-shadow: none;
     transition: none;
 }
-
 a[id^="voir_profil_"] {
     display: inline-block;
     vertical-align: middle;
@@ -843,10 +586,7 @@ a[id^="voir_profil_"] {
     outline: none !important;
     box-shadow: none !important;
 }
-
-a[id^="voir_profil_"]:hover,
-a[id^="voir_profil_"]:focus,
-a[id^="voir_profil_"]:active {
+a[id^="voir_profil_"]:hover, a[id^="voir_profil_"]:focus, a[id^="voir_profil_"]:active {
     background: transparent !important;
     color: inherit !important;
     transform: none !important;
@@ -856,10 +596,7 @@ a[id^="voir_profil_"]:active {
     opacity: 1 !important;
     filter: none !important;
 }
-
-.profile-thumb:hover,
-.profile-thumb:focus,
-.profile-thumb:active {
+.profile-thumb:hover, .profile-thumb:focus, .profile-thumb:active {
     transform: none;
     opacity: 1;
     filter: none;
@@ -868,9 +605,7 @@ a[id^="voir_profil_"]:active {
     border: none;
     outline: none;
 }
-
 .table tbody td:has(a[id^="voir_profil_"]) { white-space: nowrap; }
-
 a[id^="voir_profil_"] + * {
     display: inline-block;
     vertical-align: middle;
@@ -885,7 +620,6 @@ a[id^="voir_profil_"] + * {
     .content .container { padding: 0.5rem 1rem !important; }
     #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 1rem !important; }
 }
-
 @media (max-width: 768px) {
     .content .container { padding: 0.4rem 0.6rem !important; }
     #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 0.8rem !important; }
@@ -894,12 +628,7 @@ a[id^="voir_profil_"] + * {
         padding: 4px 12px !important;
         font-size: 0.7rem;
     }
-    .filters-container {
-        flex-direction: column;
-        gap: 8px;
-        padding: 0.6rem 0.8rem;
-        margin-bottom: 12px;
-    }
+    .filters-container { flex-direction: column; gap: 8px; padding: 0.6rem 0.8rem; margin-bottom: 12px; }
     .filter-group { width: 100%; min-width: 100%; }
     .filter-group .form-control { height: 34px !important; }
     .user-count-badge { font-size: 0.65rem; padding: 3px 10px; }
@@ -907,8 +636,7 @@ a[id^="voir_profil_"] + * {
     .table tbody td { padding: 8px 10px !important; font-size: 0.75rem; line-height: 1.3; }
     .form-group label { font-size: 0.65rem; }
     .form-control, input.form-control, select.form-control, textarea.form-control {
-        height: 34px !important;
-        font-size: 0.75rem;
+        height: 34px !important; font-size: 0.75rem;
     }
     textarea.form-control { height: 34px !important; min-height: 34px !important; }
     [style*="background-color: rgba(0, 0, 0, 0.1)"] { justify-content: center; gap: 8px; }
@@ -916,24 +644,29 @@ a[id^="voir_profil_"] + * {
     a[id^="voir_profil_"] { margin-right: 6px; }
     .signature-wrap { height: 260px; min-height: 260px; }
     .select2-container--default .select2-selection--single { height: 34px !important; }
-    .select2-container--default .select2-selection--single .select2-selection__rendered { font-size: 0.75rem; padding-left: 12px !important; padding-right: 36px !important; }
-    .flatpickr-input, input.flatpickr-input + input.form-control { height: 34px !important; font-size: 0.75rem !important; }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        font-size: 0.75rem;
+        padding-left: 12px !important;
+        padding-right: 36px !important;
+    }
+    .flatpickr-input, input.flatpickr-input + input.form-control {
+        height: 34px !important; font-size: 0.75rem !important;
+    }
 }
-
 @media (max-width: 480px) {
     .content .container { padding: 0.3rem !important; }
     #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 0.6rem !important; }
     h4 { font-size: 1.1rem; margin-bottom: 12px; }
     h4 i { font-size: 24px !important; }
     #liste, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters {
-        padding: 3px 8px !important;
-        font-size: 0.65rem;
+        padding: 3px 8px !important; font-size: 0.65rem;
     }
     .table thead th { font-size: 0.62rem; padding: 8px 4px !important; }
     .table tbody td { padding: 6px 8px !important; font-size: 0.7rem; line-height: 1.2; }
     .signature-wrap { height: 220px; min-height: 220px; }
 }
 </style>
+
 <section class="content">
     <div class="container">
         <div class="row">
@@ -989,10 +722,6 @@ a[id^="voir_profil_"] + * {
                 <!-- SECTION FILTRES -->
                 <div class="filters-container">
                     <div class="filter-group">
-                        <label><i class="zmdi zmdi-label text-danger"></i> Matricule</label>
-                        <input type="text" id="filterMatricule" class="form-control" placeholder="Rechercher par matricule...">
-                    </div>
-                    <div class="filter-group">
                         <label><i class="zmdi zmdi-account text-danger"></i> Nom</label>
                         <input type="text" id="filterNom" class="form-control" placeholder="Rechercher par nom...">
                     </div>
@@ -1003,28 +732,6 @@ a[id^="voir_profil_"] + * {
                     <div class="filter-group">
                         <label><i class="zmdi zmdi-phone text-danger"></i> Téléphone</label>
                         <input type="text" id="filterPhone" class="form-control" placeholder="Rechercher par téléphone...">
-                    </div>
-                    <div class="filter-group">
-                        <label><i class="zmdi zmdi-settings text-danger"></i> Rôle</label>
-                        <select id="filterRole" class="form-control">
-                            <option value="all">Tous les rôles</option>
-                            @foreach ($groupes as $groupe)
-                                <option value="{{ $groupe->id }}">{{ $groupe->nom }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label><i class="zmdi zmdi-pin text-danger"></i> Poste</label>
-                        <select id="filterPoste" class="form-control">
-                            <option value="all">Tous les postes</option>
-                            @foreach ($postes as $poste)
-                                <option value="{{ $poste->id }}">{{ $poste->nom }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label><i class="zmdi zmdi-money text-danger"></i> Salaire</label>
-                        <input type="number" id="filterSalaire" class="form-control" placeholder="Salaire exact" step="0.01">
                     </div>
                     @if(Auth::user()->role == 0)
                     <div class="filter-group">
@@ -1058,13 +765,9 @@ a[id^="voir_profil_"] + * {
                                 <thead>
                                     <tr>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">N°</th>
-                                        <th style="padding-top: 5px;padding-bottom: 5px;">Matricule</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Nom</th>
-                                        <th style="padding-top: 5px;padding-bottom: 5px;">Salaire</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Email</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Telephone</th>
-                                        <th style="padding-top: 5px;padding-bottom: 5px;">Role / Fonction</th>
-                                        <th style="padding-top: 5px;padding-bottom: 5px;">Poste / Lieux</th>
                                         <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                                     </tr>
                                 </thead>
@@ -1073,44 +776,13 @@ a[id^="voir_profil_"] + * {
                                     @foreach ($utilisateurs as $data)
                                         <tr id="row_{{ $data->id }}" data-user-id="{{ $data->user_id }}">
                                             <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">{{ $i }}</td>
-                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="matricule-cell" data-matricule="{{ $data->matricule }}">{{ $data->matricule }}</td>
                                             <td class="align-middle nom-cell" data-nom="{{ $data->name }}" style="padding-top: 5px;padding-bottom: 5px;">
                                                 <a id="voir_profil_<?= $i ?>" href="#">
                                                     <img src="{{ asset($data->image) }}" alt="avatar" class="profile-thumb">
                                                 </a> {{ $data->name }}
                                             </td>
-                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="salaire-cell" data-salaire="{{ $data->salaire }}" data-devise="{{ $data->devise }}">
-                                                @if (Auth::user()->role == 0)
-                                                    @if ($data->devise == 0)
-                                                        {{ number_format($data->salaire, 2, ',', ' ') .'USD'; }}
-                                                    @else
-                                                        {{ number_format($data->salaire, 2, ',', ' ') .'CDF'; }}
-                                                    @endif
-                                                @else
-                                                    @if ($data->devise == 0)
-                                                        {{ number_format(0, 2, ',', ' ') .'USD'; }}
-                                                    @else
-                                                        {{ number_format(0, 2, ',', ' ') .'CDF'; }}
-                                                    @endif
-                                                @endif
-                                            </td>
                                             <td style="padding-top: 5px;padding-bottom: 5px;" class="email-cell" data-email="{{ $data->email }}">{{ $data->email }}</td>
                                             <td style="padding-top: 5px;padding-bottom: 5px;" class="phone-cell" data-phone="{{ $data->phone }}">{{ $data->phone }}</td>
-                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="role-cell" data-role="{{ $data->role }}">
-                                                @if ($groupes->count()!= 0)
-                                                    <?= Groupes::where('id', $data->role)->first()["nom"] ?? 'N/A'; ?>
-                                                @endif
-                                            </td>
-                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="poste-cell" data-poste="{{ $data->poste_id }}">
-                                                <?php
-                                                    $potess = Postes::where('id', $data->poste_id)->first()
-                                                ?>
-                                                @if ($data->poste_id == 0)
-                                                    <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">{{ 'Aucun' }} </span>
-                                                @else
-                                                    <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success"><?= $potess["nom"] ?? 'N/A'; ?>, <?= Lieux::where(["id" => $potess["lieuxe_id"] ?? 0])->first()["nom"] ?? 'N/A'; ?>.</span>
-                                                @endif
-                                            </td>
                                             <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                                                 <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                                                     <?php
@@ -1145,14 +817,8 @@ a[id^="voir_profil_"] + * {
                                                             $("#bloc_3").html(refresh_editutilisateur);
                                                         });
                                                     });
-                                                    $("#edit_r<?= $i ?>").click(function(e) {
-                                                        e.preventDefault();
-                                                        $("#btn_refus").trigger("click");
-                                                    });
-                                                    $("#delete_r<?= $i ?>").click(function(e) {
-                                                        e.preventDefault();
-                                                        $("#btn_refus").trigger("click");
-                                                    });
+                                                    $("#edit_r<?= $i ?>").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
+                                                    $("#delete_r<?= $i ?>").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
                                                     $("#delete_<?= $i ?>").click(function(e) {
                                                         e.preventDefault();
                                                         $("#element").html("<?= $data->name ?>");
@@ -1164,9 +830,7 @@ a[id^="voir_profil_"] + * {
                                                         $("#nom_profil").html("<?= $data->name ?>");
                                                         $("#data_id").html("<?= $data->id ?>");
                                                         var url = "<?= $data->image ?>";
-                                                        $("#contenu_voir_profil").html('<img src="' + url +
-                                                            '" class="img-fluid" style="max-height:100%;width: 100%;" />'
-                                                        );
+                                                        $("#contenu_voir_profil").html('<img src="' + url + '" class="img-fluid" style="max-height:100%;width: 100%;" />');
                                                         $("#btn_voir_profil").trigger("click");
                                                     });
                                                 </script>
@@ -1199,7 +863,7 @@ a[id^="voir_profil_"] + * {
                     <input type="file" name="input_user_img_profil" id="input_user_img_profil" style="display:none;">
                     <input type="text" name="image" id="image" value="{{ asset('storage/images/user/profil_defaut.png') }}" style="display:none;">
 
-                    {{-- ========== LIGNE 1 : Personne + Type de personne ========== --}}
+                    {{-- LIGNE 1 --}}
                     <div class="form-row-custom">
                         <div class="col-6">
                             <div class="form-group">
@@ -1223,7 +887,7 @@ a[id^="voir_profil_"] + * {
                         </div>
                     </div>
 
-                    {{-- ========== LIGNE 2 : Nature + Nom ========== --}}
+                    {{-- LIGNE 2 --}}
                     <div class="form-row-custom" id="row_nature_nom">
                         <div class="col-6">
                             <div class="form-group">
@@ -1243,7 +907,7 @@ a[id^="voir_profil_"] + * {
                         </div>
                     </div>
 
-                    {{-- ========== LIGNE 3 : E-mail + Téléphone ========== --}}
+                    {{-- LIGNE 3 --}}
                     <div class="form-row-custom" id="row_email_phone">
                         <div class="col-6">
                             <div class="form-group">
@@ -1259,7 +923,7 @@ a[id^="voir_profil_"] + * {
                         </div>
                     </div>
 
-                    {{-- ========== LIGNE 4 : Motif + Service ========== --}}
+                    {{-- LIGNE 4 --}}
                     <div class="form-row-custom">
                         <div class="col-6">
                             <div class="form-group">
@@ -1291,7 +955,7 @@ a[id^="voir_profil_"] + * {
                         </div>
                     </div>
 
-                    {{-- ========== LIGNE 5 : Date et heure + Note ========== --}}
+                    {{-- LIGNE 5 --}}
                     <div class="form-row-custom">
                         <div class="col-6">
                             <div class="form-group">
@@ -1308,7 +972,7 @@ a[id^="voir_profil_"] + * {
                         </div>
                     </div>
 
-                    {{-- ===================== ZONE SIGNATURE ===================== --}}
+                    {{-- ZONE SIGNATURE --}}
                     <div class="signature-section">
                         <div class="row">
                             <div class="col-12">
@@ -1358,16 +1022,17 @@ a[id^="voir_profil_"] + * {
                 </form>
             </div>
 
-            <div id="bloc_3" style="margin-top: 12px;display: none;" class="col-lg-12">
-            </div>
+            <div id="bloc_3" style="margin-top: 12px;display: none;" class="col-lg-12"></div>
             <div id="bloc_4" style="margin-top: 12px;display: none;" class="col-lg-12">
                 <iframe style="width: 100%;height: 1500px;" id="data_liste" src="" frameborder="0"></iframe>
             </div>
         </div>
     </div>
 </section>
+
 <span id="data_id" style="display: none;"></span>
 <button style="display: none;" data-toggle="modal" data-target="#suppression" id="btn_sup">Sup</button>
+
 <div class="modal fade" id="suppression" tabindex="-1">
     <div class="modal-dialog modal-dialog modal-sm">
         <div class="modal-content">
@@ -1386,6 +1051,7 @@ a[id^="voir_profil_"] + * {
         </div>
     </div>
 </div>
+
 <button style="display: none;" data-toggle="modal" data-target="#profil_utilisateur" id="btn_voir_profil">Sup</button>
 <div class="modal fade" id="profil_utilisateur" tabindex="-1">
     <div class="modal-dialog modal-dialog modal-sm">
@@ -1404,6 +1070,7 @@ a[id^="voir_profil_"] + * {
         </div>
     </div>
 </div>
+
 @section('js-code')
 <script src="{{ asset('assets/vendors/flot/jquery.flot.js') }} "></script>
 <script src="{{ asset('assets/vendors/flot/jquery.flot.pie.js') }}"></script>
@@ -1417,10 +1084,10 @@ a[id^="voir_profil_"] + * {
 <script src="{{ asset('assets/demo/js/flot-charts/pie.js') }}"></script>
 <script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
 
-{{-- ===================== SELECT2 JS ===================== --}}
+{{-- SELECT2 JS --}}
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-{{-- ===================== FLATPICKR JS ===================== --}}
+{{-- FLATPICKR JS --}}
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
 
@@ -1432,9 +1099,7 @@ a[id^="voir_profil_"] + * {
         $("#dropzone-upload").trigger("click");
     });
 
-    /* ============================================================
-       ✅ togglePersonFields() - cache/affiche les champs
-    ============================================================ */
+    /* ===================== TOGGLE CHAMPS ===================== */
     function togglePersonFields() {
         var val = $('#personne').val();
         var hasExistingPerson = (val !== null && val !== '' && val !== undefined && parseInt(val, 10) > 0);
@@ -1448,7 +1113,6 @@ a[id^="voir_profil_"] + * {
             $('#row_nature_nom').show();
             $('#row_email_phone').show();
         }
-
         return hasExistingPerson;
     }
 
@@ -1461,8 +1125,7 @@ a[id^="voir_profil_"] + * {
 
         $('#personne').select2({
             placeholder: '-- Sélectionner une personne --',
-            allowClear: true,
-            width: '100%',
+            allowClear: true, width: '100%',
             dropdownParent: $('#personne').closest('.form-group'),
             language: {
                 noResults: function() { return "Aucun résultat trouvé"; },
@@ -1473,8 +1136,7 @@ a[id^="voir_profil_"] + * {
 
         $('#type_personne').select2({
             placeholder: '-- Sélectionner un type --',
-            allowClear: true,
-            width: '100%',
+            allowClear: true, width: '100%',
             dropdownParent: $('#type_personne').closest('.form-group'),
             language: {
                 noResults: function() { return "Aucun résultat trouvé"; },
@@ -1485,8 +1147,7 @@ a[id^="voir_profil_"] + * {
 
         $('#nature').select2({
             placeholder: '-- Sélectionner une nature --',
-            allowClear: true,
-            width: '100%',
+            allowClear: true, width: '100%',
             dropdownParent: $('#nature').closest('.form-group'),
             language: {
                 noResults: function() { return "Aucun résultat trouvé"; },
@@ -1497,8 +1158,7 @@ a[id^="voir_profil_"] + * {
 
         $('#motif').select2({
             placeholder: '-- Sélectionner un motif --',
-            allowClear: true,
-            width: '100%',
+            allowClear: true, width: '100%',
             dropdownParent: $('#motif').closest('.form-group'),
             language: {
                 noResults: function() { return "Aucun résultat trouvé"; },
@@ -1509,8 +1169,7 @@ a[id^="voir_profil_"] + * {
 
         $('#service').select2({
             placeholder: '-- Sélectionner un service --',
-            allowClear: true,
-            width: '100%',
+            allowClear: true, width: '100%',
             dropdownParent: $('#service').closest('.form-group'),
             language: {
                 noResults: function() { return "Aucun résultat trouvé"; },
@@ -1522,9 +1181,7 @@ a[id^="voir_profil_"] + * {
         select2Inited = true;
     }
 
-    /* ============================================================
-       ✅ PRÉCHARGEMENT DE TOUTES LES PERSONNES
-    ============================================================ */
+    /* ===================== PRÉCHARGEMENT PERSONNES ===================== */
     function preloadPersonnes() {
         $.ajax({
             type: "GET",
@@ -1535,7 +1192,6 @@ a[id^="voir_profil_"] + * {
                 $.each(data, function(i, item) {
                     options += '<option value="' + item.id + '" data-type="' + item.type + '">' + item.label + '</option>';
                 });
-
                 $('#personne').html(options);
                 togglePersonFields();
             },
@@ -1545,12 +1201,9 @@ a[id^="voir_profil_"] + * {
         });
     }
 
-    /* ============================================================
-       ✅ Select #personne pilote #type_personne
-    ============================================================ */
+    /* ===================== #personne pilote #type_personne ===================== */
     $(document).on('change', '#personne', function() {
         var hasExistingPerson = togglePersonFields();
-
         var val = $(this).val();
         if (val === null || val === '' || val === undefined) return;
 
@@ -1559,7 +1212,6 @@ a[id^="voir_profil_"] + * {
 
         if (val == 0 || type === -1 || type === undefined || type === null) {
             $('#type_personne').val(null).trigger('change');
-
             $('#msg').html('<i class="zmdi zmdi-info"></i> Veuillez sélectionner un type de personne');
             setTimeout(function() { $('#msg').html(""); }, 6000);
             return;
@@ -1568,10 +1220,6 @@ a[id^="voir_profil_"] + * {
         if (hasExistingPerson) {
             $('#type_personne').val(type).trigger('change');
         }
-    });
-
-    $(document).on('change', '#type_personne', function() {
-        // Aucun filtrage
     });
 
     /* ===================== FLATPICKR ===================== */
@@ -1618,6 +1266,7 @@ a[id^="voir_profil_"] + * {
         var ratio = window.devicePixelRatio || 1;
         var rect = canvas.getBoundingClientRect();
         if (rect.width === 0) return;
+
         canvas.width = rect.width * ratio;
         canvas.height = rect.height * ratio;
         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1671,8 +1320,8 @@ a[id^="voir_profil_"] + * {
     function sigStop() { drawing = false; }
 
     window.addEventListener('resize', function() {
-        if (!canvas) return;
-        var data = hasSignature ? canvas.toDataURL() : null;
+        if (!canvas || typeof canvas.toDataURL !== 'function') return;
+        var data = hasSignature ? canvas.toDataURL('image/png') : null;
         initSignatureCanvas();
         if (data) {
             var img = new Image();
@@ -1687,19 +1336,15 @@ a[id^="voir_profil_"] + * {
     /* ===================== NAVIGATION BLOCS ===================== */
     $("#liste").click(function(e) {
         e.preventDefault();
-        $("#bloc_1").show();
-        $("#bloc_2").hide();
-        $("#bloc_3").hide();
-        $("#bloc_4").hide();
+        $("#bloc_1").show(); $("#bloc_2").hide();
+        $("#bloc_3").hide(); $("#bloc_4").hide();
         setTimeout(function() { filterUsers(); }, 100);
     });
 
     $("#add").click(function(e) {
         e.preventDefault();
-        $("#bloc_1").hide();
-        $("#bloc_2").show();
-        $("#bloc_3").hide();
-        $("#bloc_4").hide();
+        $("#bloc_1").hide(); $("#bloc_2").show();
+        $("#bloc_3").hide(); $("#bloc_4").hide();
         setTimeout(function() {
             initSignatureCanvas();
             initSelect2();
@@ -1708,29 +1353,18 @@ a[id^="voir_profil_"] + * {
         }, 100);
     });
 
-    $("#add_r").click(function(e) {
-        e.preventDefault();
-        $("#btn_refus").trigger("click");
-    });
-
-    $("#save_r").click(function(e) {
-        e.preventDefault();
-        $("#btn_refus").trigger("click");
-    });
+    $("#add_r").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
+    $("#save_r").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
 
     $("#annuler").click(function(e) {
         e.preventDefault();
-        $("#bloc_1").show();
-        $("#bloc_2").hide();
-        $("#bloc_3").hide();
-        $("#bloc_4").hide();
+        $("#bloc_1").show(); $("#bloc_2").hide();
+        $("#bloc_3").hide(); $("#bloc_4").hide();
         setTimeout(function() { filterUsers(); }, 100);
     });
 
     /* ============================================================
-       ✅ ENREGISTREMENT — Appel UNIQUE à /add_personne
-       ✅ Chargement (spinner) sur le bouton Enregistrer
-       ✅ Messages (succès ET erreur) dans #msg
+       ✅ ENREGISTREMENT — Signature sécurisée + Spinner
     ============================================================ */
     $("#save").click(function(e) {
         e.preventDefault();
@@ -1738,7 +1372,33 @@ a[id^="voir_profil_"] + * {
         var btn = $(this);
         var originalBtnHtml = 'Enregister <i class="zmdi zmdi-save"></i>';
 
-        // ✅ Désactiver le bouton + afficher le spinner
+        // Sécurité canvas
+        if (!canvas || typeof canvas.toDataURL !== 'function') {
+            initSignatureCanvas();
+        }
+        if (!canvas || typeof canvas.toDataURL !== 'function') {
+            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Canvas signature introuvable');
+            setTimeout(function() { $('#msg').html(""); }, 6000);
+            return;
+        }
+
+        // Récupérer la signature
+        var signature = '';
+        try {
+            if (hasSignature) {
+                signature = canvas.toDataURL('image/png');
+            }
+        } catch (err) {
+            console.error('Erreur toDataURL:', err);
+        }
+
+        if (!signature || signature.length < 500) {
+            $('#msg').html('<i class="zmdi zmdi-info"></i> Veuillez signer avant d\'enregistrer');
+            setTimeout(function() { $('#msg').html(""); }, 6000);
+            return;
+        }
+
+        // Spinner
         btn.prop('disabled', true)
            .html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...');
 
@@ -1746,26 +1406,24 @@ a[id^="voir_profil_"] + * {
             btn.prop('disabled', false).html(originalBtnHtml);
         }
 
-        var signature = canvas.toDataURL('image/png');
-        var page      = "<?= $ressource_id_1 ?>";
-
-        // Nettoyer le message avant l'envoi
+        var page = "<?= $ressource_id_1 ?>";
         $('#msg').html("");
 
-        var formData = $("#form_add").serialize()
-                     + "&page="      + encodeURIComponent(page)
-                     + "&signature=" + encodeURIComponent(signature);
+        // Payload propre
+        var formData = $("#form_add").serializeArray();
+        formData.push({ name: 'page',      value: page });
+        formData.push({ name: 'signature', value: signature });
 
         $.ajax({
             type: "POST",
             url: "/add_personne",
-            data: formData,
+            data: $.param(formData),
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
 
-            // ✅ SUCCÈS : afficher le message dans #msg
             success: function(resp) {
                 resetButton();
 
-                // Reset du formulaire
+                // Reset champs
                 $("#motif").val(null).trigger("change");
                 $("#service").val(null).trigger("change");
                 $("#note").val("");
@@ -1780,6 +1438,8 @@ a[id^="voir_profil_"] + * {
                 } else {
                     $("#heure").val("");
                 }
+
+                // Reset canvas
                 if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
                 hasSignature = false;
                 if (placeholder) placeholder.style.display = 'flex';
@@ -1795,12 +1455,12 @@ a[id^="voir_profil_"] + * {
                 }
                 togglePersonFields();
 
-                // ✅ Afficher le message de succès dans #msg
                 $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Enregistrement effectué avec succès');
                 setTimeout(function() { $('#msg').html(""); }, 9000);
 
-                // Rafraîchir le tableau
-                $("#content_utilisateur").html(resp);
+                if (typeof resp === 'string') {
+                    $("#content_utilisateur").html(resp);
+                }
                 saveUserFiltersToStorage();
                 setTimeout(function() {
                     loadUserFiltersFromStorage();
@@ -1808,10 +1468,8 @@ a[id^="voir_profil_"] + * {
                 }, 100);
             },
 
-            // ✅ ERREUR : afficher le message du backend dans #msg
             error: function(xhr) {
                 resetButton();
-
                 var msg = 'Erreur lors de l\'enregistrement';
 
                 if (xhr.responseJSON && xhr.responseJSON.message) {
@@ -1820,28 +1478,24 @@ a[id^="voir_profil_"] + * {
                     var errors = xhr.responseJSON.errors;
                     var firstKey = Object.keys(errors)[0];
                     msg = errors[firstKey][0];
+                } else if (xhr.status === 413) {
+                    msg = 'Signature trop volumineuse — augmentez post_max_size dans php.ini';
                 }
 
-                // ✅ Afficher le message d'erreur dans #msg
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> ' + msg);
                 setTimeout(function() { $('#msg').html(""); }, 9000);
             },
 
-            // ✅ Dans tous les cas, on remet le bouton dans son état initial
-            complete: function() {
-                resetButton();
-            }
+            complete: function() { resetButton(); }
         });
     });
 
+    /* ===================== SUPPRESSION ===================== */
     $("#oui").click(function(e) {
         e.preventDefault();
         var id = $("#data_id").html();
         var page = "<?= $ressource_id_1 ?>";
-        $.get("{{ url('/refresh_deleteutilisateur') }}", {
-            id: id,
-            page: page
-        }, function(refresh_editutilisateur) {
+        $.get("{{ url('/refresh_deleteutilisateur') }}", { id: id, page: page }, function(refresh_editutilisateur) {
             $("#content_utilisateur").html(refresh_editutilisateur);
             $("#non").trigger("click");
             saveUserFiltersToStorage();
@@ -1852,6 +1506,7 @@ a[id^="voir_profil_"] + * {
         });
     });
 
+    /* ===================== UPLOAD IMAGE PROFIL ===================== */
     $("#user_img_profil").click(function(e) {
         e.preventDefault();
         $("#input_user_img_profil").trigger("click");
@@ -1905,17 +1560,11 @@ a[id^="voir_profil_"] + * {
 
     function saveUserFiltersToStorage() {
         let userId = 'all';
-        if ($('#filterUserId').length) {
-            userId = $('#filterUserId').val();
-        }
+        if ($('#filterUserId').length) userId = $('#filterUserId').val();
         const filters = {
-            matricule: $('#filterMatricule').val(),
             nom: $('#filterNom').val(),
             email: $('#filterEmail').val(),
             phone: $('#filterPhone').val(),
-            role: $('#filterRole').val(),
-            poste: $('#filterPoste').val(),
-            salaire: $('#filterSalaire').val(),
             userId: userId
         };
         localStorage.setItem('userFilters', JSON.stringify(filters));
@@ -1925,13 +1574,9 @@ a[id^="voir_profil_"] + * {
         const savedFilters = localStorage.getItem('userFilters');
         if (savedFilters) {
             const filters = JSON.parse(savedFilters);
-            $('#filterMatricule').val(filters.matricule || '');
             $('#filterNom').val(filters.nom || '');
             $('#filterEmail').val(filters.email || '');
             $('#filterPhone').val(filters.phone || '');
-            $('#filterRole').val(filters.role || 'all');
-            $('#filterPoste').val(filters.poste || 'all');
-            $('#filterSalaire').val(filters.salaire || '');
             if ($('#filterUserId').length) {
                 $('#filterUserId').val(filters.userId || 'all');
             }
@@ -1941,13 +1586,9 @@ a[id^="voir_profil_"] + * {
     }
 
     function filterUsers() {
-        const filterMatricule = $('#filterMatricule').val().toLowerCase();
         const filterNom = $('#filterNom').val().toLowerCase();
         const filterEmail = $('#filterEmail').val().toLowerCase();
         const filterPhone = $('#filterPhone').val().toLowerCase();
-        const filterRole = $('#filterRole').val();
-        const filterPoste = $('#filterPoste').val();
-        const filterSalaire = parseFloat($('#filterSalaire').val());
         const filterUserId = $('#filterUserId').length ? $('#filterUserId').val() : 'all';
 
         let visibleCount = 0;
@@ -1957,22 +1598,14 @@ a[id^="voir_profil_"] + * {
             const $row = $(this);
             let showRow = true;
 
-            const matriculeValue = ($row.find('.matricule-cell').data('matricule') || '').toLowerCase();
             const nomValue = ($row.find('.nom-cell').data('nom') || '').toLowerCase();
             const emailValue = ($row.find('.email-cell').data('email') || '').toLowerCase();
             const phoneValue = ($row.find('.phone-cell').data('phone') || '').toLowerCase();
-            const roleValue = $row.find('.role-cell').data('role') || '';
-            const posteValue = $row.find('.poste-cell').data('poste') || '';
-            const salaireValue = parseFloat($row.find('.salaire-cell').data('salaire') || 0);
             const userId = $row.data('userId');
 
-            if (filterMatricule && !matriculeValue.includes(filterMatricule)) showRow = false;
-            if (showRow && filterNom && !nomValue.includes(filterNom)) showRow = false;
+            if (filterNom && !nomValue.includes(filterNom)) showRow = false;
             if (showRow && filterEmail && !emailValue.includes(filterEmail)) showRow = false;
             if (showRow && filterPhone && !phoneValue.includes(filterPhone)) showRow = false;
-            if (showRow && filterRole !== 'all' && roleValue != filterRole) showRow = false;
-            if (showRow && filterPoste !== 'all' && posteValue != filterPoste) showRow = false;
-            if (showRow && !isNaN(filterSalaire) && salaireValue != filterSalaire) showRow = false;
             if (showRow && filterUserId !== 'all' && userId != filterUserId) showRow = false;
 
             if (showRow) {
@@ -1987,7 +1620,7 @@ a[id^="voir_profil_"] + * {
 
         $('#userCount').text(visibleCount);
 
-        if (visibleCount === 0 && (filterMatricule || filterNom || filterEmail || filterPhone || filterRole !== 'all' || filterPoste !== 'all' || !isNaN(filterSalaire) || filterUserId !== 'all')) {
+        if (visibleCount === 0 && (filterNom || filterEmail || filterPhone || filterUserId !== 'all')) {
             $('#msg').html('<i class="zmdi zmdi-info"></i> Aucun utilisateur ne correspond aux critères de recherche');
             $('#msg').css('display', 'flex');
             setTimeout(function() {
@@ -1998,16 +1631,10 @@ a[id^="voir_profil_"] + * {
     }
 
     function resetUserFilters() {
-        $('#filterMatricule').val('');
         $('#filterNom').val('');
         $('#filterEmail').val('');
         $('#filterPhone').val('');
-        $('#filterRole').val('all');
-        $('#filterPoste').val('all');
-        $('#filterSalaire').val('');
-        if ($('#filterUserId').length) {
-            $('#filterUserId').val('all');
-        }
+        if ($('#filterUserId').length) $('#filterUserId').val('all');
 
         saveUserFiltersToStorage();
 
@@ -2045,13 +1672,11 @@ a[id^="voir_profil_"] + * {
 
         const hasSavedFilters = loadUserFiltersFromStorage();
 
-        $('#filterMatricule, #filterNom, #filterEmail, #filterPhone, #filterRole, #filterPoste, #filterSalaire').on('input change', function() {
+        $('#filterNom, #filterEmail, #filterPhone').on('input change', function() {
             debouncedUserFilter();
         });
         if ($('#filterUserId').length) {
-            $('#filterUserId').on('change', function() {
-                debouncedUserFilter();
-            });
+            $('#filterUserId').on('change', function() { debouncedUserFilter(); });
         }
 
         $('#resetFilters').click(function(e) {
