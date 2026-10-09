@@ -369,12 +369,12 @@ select.form-control {
 }
 
 /* ============================================================
-   ✅ SELECT2 – Bordure visible sur tout le contour
+   ✅ SELECT2 – Bordure visible sur tout le contour (couleur grise unifiée)
    ============================================================ */
 .select2-container--bootstrap .select2-selection {
     height: 38px !important;
     border-radius: 14px !important;
-    border: 1.5px solid #94a3b8 !important;   /* Bordure grise visible sur tout le contour */
+    border: 1.5px solid #94a3b8 !important;
     background: #ffffff !important;
     box-shadow: none !important;
     font-weight: 500;
@@ -979,64 +979,58 @@ select.form-control {
 }
 
 /* ============================================================
-   ✅ MODALE RAPPORT DES MONTANTS REÇUS
+   ✅ MODALE RAPPORT DES MONTANTS REÇUS — BORDURES UNIFIÉES
+   Tous les champs (Période, Utilisateur, Client) ont la MÊME
+   bordure grise par défaut, et le MÊME focus bleu.
    ============================================================ */
 #rapportModal .modal-header {
     background: linear-gradient(135deg, #ef4444, #dc2626) !important;
 }
-#rapportModal #rapport_date_range {
-    width: 100%;
-    height: 38px;
-    border-radius: 14px !important;
-    border: 1px solid #e2e8f0 !important;
-    padding: 8px 12px;
-    font-weight: 500;
-    font-size: 0.85rem;
-    background: #fff;
-}
-#rapportModal #rapport_date_range:focus {
-    border-color: #dc2626 !important;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
-    outline: none;
-}
+
+#rapportModal #rapport_date_range,
 #rapportModal #rapport_client_filter {
     width: 100%;
     height: 38px;
     border-radius: 14px !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid #e2e8f0 !important;   /* Bordure grise par défaut */
     padding: 8px 12px;
     font-weight: 500;
     font-size: 0.85rem;
     background: #fff;
+    box-shadow: none;
+    transition: all 0.2s ease;
 }
+#rapportModal #rapport_date_range:focus,
 #rapportModal #rapport_client_filter:focus {
-    border-color: #dc2626 !important;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    border-color: #3B82F6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
     outline: none;
 }
 
-/* ✅ Bordure rouge sur le Select2 "Utilisateur" de la modale Rapport */
+/* ✅ Select2 "Utilisateur" — même bordure grise que les autres champs */
 #rapportModal .select2-container--bootstrap .select2-selection {
-    border: 1.5px solid #dc2626 !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 14px !important;
     height: 38px !important;
     background: #fff !important;
     box-shadow: none !important;
     padding: 0 12px;
+    transition: all 0.2s ease;
 }
 #rapportModal .select2-container--bootstrap .select2-selection:hover {
-    border-color: #b91c1c !important;
+    border-color: #cbd5e1 !important;
 }
 #rapportModal .select2-container--bootstrap.select2-container--focus .select2-selection,
 #rapportModal .select2-container--bootstrap.select2-container--open .select2-selection {
-    border-color: #dc2626 !important;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18) !important;
+    border-color: #3B82F6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
 }
 #rapportModal .select2-container--bootstrap .select2-selection__arrow { height: 36px !important; }
 #rapportModal .select2-container--bootstrap .select2-selection__rendered {
     line-height: 35px !important;
     padding-left: 0;
 }
+
 #rapport_table thead th {
     background: #FEE2E2 !important;
     color: #7f1d1d;
@@ -1723,7 +1717,6 @@ body.modal-open { overflow: hidden; }
                                                     ];
                                                 }
 
-                                                // ✅ Utilisateur du PAIEMENT (detailpaiessachats.user_id)
                                                 $paiements_json = [];
                                                 foreach ($paiements as $p) {
                                                     $isUSD = ($p->devise_recu == 0);
@@ -2920,7 +2913,6 @@ body.modal-open { overflow: hidden; }
         var USER_ROLE = {{ Auth::user()->role ?? 1 }};
         var CURRENT_USER_NAME = "{{ addslashes(Auth::user()->name ?? '') }}";
 
-        // ✅ Tous les utilisateurs (actifs + désactivés)
         var ALL_USERS = [
             @foreach(\App\Models\User::orderBy('name')->get() as $u)
                 "{{ addslashes($u->name) }}",
@@ -4435,7 +4427,6 @@ body.modal-open { overflow: hidden; }
                 return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
             }
 
-            // ✅ Select2 avec recherche activée pour le select Utilisateur du rapport
             function populateRapportUsers() {
                 var $sel = $('#rapport_user_filter');
 
@@ -4478,7 +4469,6 @@ body.modal-open { overflow: hidden; }
                 }
             }
 
-            // ✅ Le filtre Utilisateur porte sur le PAYEUR du paiement (detailpaiessachats.user_id)
             function buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
                 var totalUSD = 0, totalCDF = 0, nbTransactions = 0;
                 var html = '';

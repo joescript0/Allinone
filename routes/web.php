@@ -202,6 +202,8 @@ Route::get('/get_print_listes_factures', [AjaxController::class , 'get_print_lis
 Route::get('/send_factures_e', [AjaxController::class , 'send_factures_e'])->name('send_factures_e');
 Route::get('/send_factures_w', [AjaxController::class , 'send_factures_w'])->name('send_factures_w');
 Route::get('/refresh_deleteutilisateur', [AjaxController::class , 'refresh_deleteutilisateur'])->name('refresh_deleteutilisateur');
+Route::get('/refresh_deleteaccueil', [AjaxController::class, 'refresh_deleteaccueil'])->name('refresh_deleteaccueil');
+Route::get('/refresh_updatesortie', [AjaxController::class, 'refresh_updatesortie'])->name('refresh_updatesortie');
 Route::get('/refresh_deleteposte', [AjaxController::class , 'refresh_deleteposte'])->name('refresh_deleteposte');
 Route::get('/refresh_deleteecole', [AjaxController::class , 'refresh_deleteecole'])->name('refresh_deleteecole');
 Route::get('/refresh_deleteeleve', [AjaxController::class , 'refresh_deleteeleve'])->name('refresh_deleteeleve');

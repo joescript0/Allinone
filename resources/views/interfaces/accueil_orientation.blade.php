@@ -21,37 +21,22 @@ use Illuminate\Support\Facades\Auth;
 @include('composants.sidebar')
 @include('composants.chat')
 
-{{-- ===================== SELECT2 CSS ===================== --}}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-{{-- ===================== FLATPICKR CSS ===================== --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" />
 
 <style>
-/* ============================================================
-   DESIGN PREMIUM – UNIFIÉ AVEC LES AUTRES PAGES
-   ============================================================ */
 body { margin: 0; padding: 0; background: #f0f4f8; }
-
-.content .container {
-    max-width: 100% !important;
-    width: 100%;
-    padding: 0.5rem 1.5rem !important;
-    margin: 0 auto;
-    background: #f8fafc;
-}
+.content .container { max-width: 100% !important; width: 100%; padding: 0.5rem 1.5rem !important; margin: 0 auto; background: #f8fafc; }
 .content .container .row { margin-left: 0; margin-right: 0; }
 .content .container [class*="col-"] { padding-left: 0.75rem; padding-right: 0.75rem; }
 
 :root {
     --bleu-nuit: #0a192f;
-    --bleu-nuit-clair: #112240;
     --bleu-nuit-gradient: linear-gradient(135deg, #0a192f, #1e3a5f);
-    --bleu-secondaire: #2c5282;
     --bleu-secondaire-gradient: linear-gradient(135deg, #2c5282, #1a365d);
     --rouge-gradient: linear-gradient(135deg, #ef4444, #dc2626);
-    --vert-gradient: linear-gradient(135deg, #10b981, #059669);
     --shadow-premium: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
     --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
     --border-radius-xl: 20px;
@@ -64,51 +49,165 @@ body { margin: 0; padding: 0; background: #f0f4f8; }
     box-shadow: var(--shadow-premium);
     padding: 1rem 1.5rem !important;
     margin-bottom: 1rem;
-    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-h4 {
-    font-weight: 700;
-    border-left: 6px solid #e31b23;
-    padding-left: 18px;
-    margin-bottom: 16px;
-    margin-top: 0;
-    color: var(--bleu-nuit);
-}
-h4 i.zmdi {
-    background: var(--bleu-nuit-gradient);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent !important;
-}
+h4 { font-weight: 700; border-left: 6px solid #e31b23; padding-left: 18px; margin-bottom: 16px; margin-top: 0; color: var(--bleu-nuit); }
+h4 i.zmdi { background: var(--bleu-nuit-gradient); background-clip: text; -webkit-background-clip: text; color: transparent !important; }
 
-/* ========== TABLEAU ========== */
 .table-responsive { overflow-x: auto; overflow-y: visible; border-radius: var(--border-radius-lg); }
-.table {
-    width: 100%; min-width: 800px; background: white; border-collapse: collapse;
-    border-radius: var(--border-radius-lg); overflow: hidden;
-    box-shadow: var(--shadow-light); table-layout: auto;
-}
-.table thead th {
-    background: #E7F5FE !important; color: #0a192f; font-weight: 700; font-size: 0.85rem;
-    text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 12px !important;
-    border-bottom: 2px solid #cbd5e1 !important; border-right: 1px solid #d0e2f2;
-    white-space: normal; word-break: break-word;
-}
+.table { width: 100%; min-width: 800px; background: white; border-collapse: collapse; border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--shadow-light); table-layout: auto; }
+.table thead th { background: #E7F5FE !important; color: #0a192f; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 12px !important; border-bottom: 2px solid #cbd5e1 !important; border-right: 1px solid #d0e2f2; }
 .table tbody tr { transition: all 0.15s ease; border-bottom: 1px solid #e2e8f0; }
 .table tbody tr:nth-child(even) { background-color: #f8fafc; }
 .table tbody tr:nth-child(odd)  { background-color: #ffffff; }
-.table tbody tr:hover { background: #e6f0ff !important; cursor: default; }
-.table tbody td {
-    padding: 10px 12px !important; vertical-align: middle !important; font-weight: 500;
-    font-size: 0.85rem; color: #1e2a3e; word-break: break-word;
-    border-bottom: 1px solid #eef2f6; line-height: 1.4;
-}
+.table tbody tr:hover { background: #e6f0ff !important; }
+.table tbody td { padding: 10px 12px !important; vertical-align: middle !important; font-weight: 500; font-size: 0.85rem; color: #1e2a3e; border-bottom: 1px solid #eef2f6; line-height: 1.4; }
 .table tbody td:last-child { text-align: center; vertical-align: middle; }
 
-/* ========== BOUTONS ========== */
+.numero-cell {
+    font-weight: 700;
+    color: #0a192f;
+    font-family: 'Courier New', monospace;
+    font-size: 0.82rem;
+    letter-spacing: 0.3px;
+}
+
+.phone-cell-display {
+    font-weight: 600;
+    color: #0a192f;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+.phone-cell-display i {
+    color: #10b981;
+    margin-right: 4px;
+    font-size: 0.9rem;
+}
+
+/* ========== BOUTON D'APPEL (tableau + modal) ========== */
+.phone-call-link {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white !important;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    white-space: nowrap;
+}
+.phone-call-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white !important;
+}
+.phone-call-link i { font-size: 1.05rem; }
+.phone-call-link .phone-num { font-family: 'Courier New', monospace; letter-spacing: 0.4px; }
+
+/* ===== ICÔNE TÉLÉPHONE EN BLANC PARTOUT (tableau + modal) ===== */
+.phone-call-link i,
+.phone-call-link i.zmdi,
+.phone-call-link i.zmdi-phone,
+.phone-call-link i.zmdi-phone-in-talk {
+    color: #ffffff !important;
+}
+.phone-call-link:hover i,
+.phone-call-link:hover i.zmdi,
+.phone-call-link:hover i.zmdi-phone,
+.phone-call-link:hover i.zmdi-phone-in-talk {
+    color: #ffffff !important;
+}
+
+/* Version compacte dans le tableau */
+.table .phone-cell-display .phone-call-link {
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    gap: 5px;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+}
+.table .phone-cell-display .phone-call-link i {
+    font-size: 0.95rem;
+}
+.table .phone-cell-display .phone-call-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.35);
+}
+
+/* Icône téléphone en blanc dans le tableau (override du vert par défaut) */
+.table .phone-cell-display .phone-call-link i,
+.table .phone-cell-display .phone-call-link i.zmdi,
+.table .phone-cell-display .phone-call-link i.zmdi-phone-in-talk {
+    color: #ffffff !important;
+}
+.table .phone-cell-display .phone-call-link:hover i,
+.table .phone-cell-display .phone-call-link:hover i.zmdi,
+.table .phone-cell-display .phone-call-link:hover i.zmdi-phone-in-talk {
+    color: #ffffff !important;
+}
+
+/* Bouton Appeler du modal */
+.btn-call-modal {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 22px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white !important;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: none !important;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+}
+.btn-call-modal i,
+.btn-call-modal i.zmdi {
+    color: #ffffff !important;
+}
+.btn-call-modal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(16, 185, 129, 0.45);
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white !important;
+}
+.btn-call-modal.disabled {
+    background: #cbd5e1 !important;
+    color: #64748b !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    transform: none !important;
+    pointer-events: none;
+}
+.btn-call-modal.disabled i,
+.btn-call-modal.disabled i.zmdi {
+    color: #64748b !important;
+}
+
+.sortie-manquante {
+    color: #dc2626 !important; font-weight: 700 !important; font-size: 0.78rem;
+    font-style: italic; display: inline-flex; align-items: center; gap: 5px;
+    background: #fee2e2; padding: 4px 10px; border-radius: 40px; white-space: nowrap;
+}
+.sortie-manquante i { font-size: 1rem; }
+.sortie-ok { color: #065f46; font-weight: 600; font-size: 0.82rem; }
+
+.sortie-non-renseignee {
+    color: #dc2626 !important; font-weight: 700 !important; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+    border-radius: 40px; background: #fee2e2; transition: all 0.2s;
+    border: 1px solid #fca5a5; font-size: 0.85rem;
+}
+.sortie-non-renseignee:hover { background: #fecaca; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25); color: #b91c1c !important; }
+
 #bloc_1 button, #bloc_2 button, #bloc_3 button, #bloc_4 button,
-#liste, #add, #add_r, #save, #save_r, #annuler, #edit_save, #edit_annuler,
+#liste, #add, #add_r, #save, #save_r, #annuler,
 .btn-primary, .btn-info, .btn-danger, .btn-secondary {
     display: inline-flex !important; align-items: center; justify-content: center;
     gap: 8px; padding: 6px 16px !important; font-weight: 600; font-size: 0.85rem;
@@ -117,553 +216,162 @@ h4 i.zmdi {
     box-shadow: var(--shadow-light); white-space: nowrap; line-height: 1.5;
 }
 #liste, .btn-primary { background: #3B82F6 !important; color: white !important; }
-#liste:hover, .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
-    background: #2563eb !important;
-}
+#liste:hover, .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3); background: #2563eb !important; }
 #add, .btn-info { background: var(--bleu-nuit-gradient) !important; color: white !important; }
-#add:hover, .btn-info:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
-}
-#save, #edit_save { background: var(--bleu-secondaire-gradient) !important; color: white; }
-#save:hover, #edit_save:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3);
-}
-#annuler, #edit_annuler, .btn-danger { background: var(--rouge-gradient) !important; color: white; }
-#annuler:hover, #edit_annuler:hover, .btn-danger:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
-    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
-}
+#add:hover, .btn-info:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3); }
+#save { background: var(--bleu-secondaire-gradient) !important; color: white; }
+#save:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3); }
+#annuler, .btn-danger { background: var(--rouge-gradient) !important; color: white; }
+#annuler:hover, .btn-danger:hover { transform: translateY(-2px); background: linear-gradient(135deg, #dc2626, #b91c1c) !important; box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3); }
 #resetFilters { background: #64748b !important; color: white !important; }
-#resetFilters:hover {
-    transform: translateY(-2px);
-    background: #475569 !important;
-    box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
-}
-#add_r, #save_r {
-    background: #cbd5e1 !important; color: #475569 !important;
-    cursor: not-allowed !important; opacity: 0.7;
-    transform: none !important; box-shadow: none !important;
-}
-#save .spinner-border, #edit_save .spinner-border {
-    width: 0.95rem; height: 0.95rem;
-    border-width: 0.15em; margin-right: 4px;
-}
+#resetFilters:hover { transform: translateY(-2px); background: #475569 !important; }
+#add_r, #save_r { background: #cbd5e1 !important; color: #475569 !important; cursor: not-allowed !important; opacity: 0.7; transform: none !important; box-shadow: none !important; }
 
-/* ========== FILTRES ========== */
-.filters-container {
-    display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
-    background: white; padding: 0.8rem 1.2rem;
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-light); align-items: flex-end;
-}
+.filters-container { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; background: white; padding: 0.8rem 1.2rem; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-light); align-items: flex-end; }
 .filter-group { flex: 1; min-width: 150px; }
-.filter-group label {
-    font-weight: 600; margin-bottom: 4px; color: var(--bleu-nuit);
-    font-size: 0.7rem; text-transform: uppercase;
-    display: flex; align-items: center; gap: 5px;
-}
+.filter-group label { font-weight: 600; margin-bottom: 4px; color: var(--bleu-nuit); font-size: 0.7rem; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
 .filter-group .form-control { height: 36px; }
-.user-count-badge {
-    background: var(--rouge-gradient); color: white;
-    border-radius: 50px; padding: 4px 12px;
-    font-size: 0.75rem; font-weight: bold;
-    display: inline-flex; align-items: center; gap: 6px;
-    margin-bottom: 12px;
-}
+.user-count-badge { background: var(--rouge-gradient); color: white; border-radius: 50px; padding: 4px 12px; font-size: 0.75rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; }
 
-/* ========== FORMULAIRES ========== */
-#form_add .row, #form_edit .row { display: flex; flex-wrap: wrap; }
-#form_add .col-6, #form_edit .col-6 { margin-bottom: 0.8rem; }
 .form-group { width: 100%; margin-bottom: 0; position: relative; }
-.form-group label {
-    display: block; font-weight: 700; color: var(--bleu-nuit);
-    margin-bottom: 4px; font-size: 0.75rem;
-    text-transform: uppercase; letter-spacing: 0.4px;
-}
+.form-group label { display: block; font-weight: 700; color: var(--bleu-nuit); margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px; }
 .form-group label i { color: #e31b23; margin-right: 6px; }
-.form-control, input.form-control, select.form-control, textarea.form-control, .input-mask {
-    width: 100% !important; background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    padding: 8px 12px !important;
-    font-weight: 500; font-size: 0.85rem;
-    transition: all 0.2s; box-sizing: border-box;
-    height: 38px !important; line-height: 1.4;
+.form-control, input.form-control, select.form-control, textarea.form-control {
+    width: 100% !important; background: #ffffff !important; border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important; padding: 8px 12px !important; font-weight: 500; font-size: 0.85rem;
+    transition: all 0.2s; box-sizing: border-box; height: 38px !important; line-height: 1.4;
 }
-textarea.form-control {
-    resize: vertical;
-    height: 38px !important;
-    min-height: 38px !important;
-    line-height: 1.4;
-    padding-top: 8px; padding-bottom: 8px;
-}
-.form-control:focus, select.form-control:focus, textarea.form-control:focus {
-    border-color: var(--bleu-nuit) !important;
-    box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
-    transform: translateY(-1px);
-}
-select.form-control {
-    appearance: none;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-}
+textarea.form-control { resize: vertical; height: 38px !important; min-height: 38px !important; }
+.form-control:focus, select.form-control:focus, textarea.form-control:focus { border-color: var(--bleu-nuit) !important; box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important; }
 
-/* ========== FORMULAIRE AJOUT ========== */
-#form_add .form-row-custom {
-    display: flex; flex-wrap: wrap;
-    gap: 16px; margin-bottom: 16px;
-}
-#form_add .form-row-custom > [class*="col-"] {
-    flex: 1 1 calc(50% - 8px);
-    min-width: 260px; max-width: 100%;
-    padding: 0; margin: 0;
-}
-#form_add .form-row-custom .form-group { margin: 0; }
-#form_add .form-row-custom .form-group label {
-    margin-top: 0 !important; min-height: 20px;
-    display: flex; align-items: center;
-}
-#form_add .row { margin-left: 0; margin-right: 0; }
-#form_add .row + .row { margin-top: 0 !important; }
-@media (max-width: 768px) {
-    #form_add .form-row-custom > [class*="col-"] { flex: 1 1 100%; min-width: 100%; }
-}
+#form_add .form-row-custom { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+#form_add .form-row-custom > [class*="col-"] { flex: 1 1 calc(50% - 8px); min-width: 260px; max-width: 100%; padding: 0; margin: 0; }
 
-/* ========== SELECT2 ========== */
-.select2-container { width: 100% !important; max-width: 100% !important; }
-.select2-container--default .select2-selection--single {
-    height: 38px !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    background: #ffffff !important;
-    padding: 0 !important;
-    transition: all 0.2s;
-    position: relative;
-    display: flex !important;
-    align-items: center;
-}
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: normal !important; color: #1e293b !important;
-    font-weight: 500; font-size: 0.85rem;
-    text-align: left !important;
-    width: 100% !important; max-width: 100% !important;
-    padding-left: 14px !important; padding-right: 40px !important;
-    box-sizing: border-box;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    display: flex !important;
-    align-items: center;
-    height: 100%;
-}
-.select2-container--default .select2-selection--single .select2-selection__placeholder {
-    color: #94a3b8; font-weight: 500;
-    text-align: left !important;
-    display: flex !important;
-    align-items: center;
-    height: 100%;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-}
-.select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 100% !important;
-    right: 12px; top: 0;
-    position: absolute;
-    display: flex !important;
-    align-items: center;
-}
-.select2-container--default .select2-selection--single .select2-selection__arrow b {
-    border-color: #e31b23 transparent transparent transparent !important;
-    margin-top: 0 !important;
-    top: 50% !important;
-    transform: translateY(-50%);
-    position: absolute;
-}
-.select2-container--default.select2-container--focus .select2-selection--single,
-.select2-container--default.select2-container--open .select2-selection--single {
-    border-color: #0a192f !important;
-    box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
-}
-.select2-dropdown {
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
-    z-index: 9999;
-    max-width: 100% !important;
-    box-sizing: border-box;
-}
-.select2-search--dropdown { padding: 8px; background: #f8fafc; box-sizing: border-box; width: 100%; }
-.select2-search--dropdown .select2-search__field {
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 10px !important;
-    padding: 6px 10px !important;
-    outline: none;
-    font-size: 0.82rem;
-    text-align: left !important;
-    width: 100% !important;
-    box-sizing: border-box;
-}
-.select2-search--dropdown .select2-search__field:focus {
-    border-color: #3B82F6 !important;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
-}
-.select2-results, .select2-results__options {
-    max-height: 260px;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    box-sizing: border-box;
-}
-.select2-results__option {
-    padding: 9px 14px;
-    font-size: 0.85rem;
-    text-align: left !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    word-break: break-word;
-}
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: #3B82F6 !important;
-    color: white !important;
-}
-.select2-container--default .select2-results__option[aria-selected=true] {
-    background-color: #dbeafe !important;
-    color: #1e40af !important;
-}
+.select2-container { width: 100% !important; }
+.select2-container--default .select2-selection--single { height: 38px !important; border: 1px solid #e2e8f0 !important; border-radius: 14px !important; background: #ffffff !important; display: flex !important; align-items: center; }
+.select2-container--default .select2-selection--single .select2-selection__rendered { line-height: normal !important; padding-left: 14px !important; padding-right: 40px !important; font-weight: 500; font-size: 0.85rem; }
+.select2-dropdown { border: 1px solid #e2e8f0 !important; border-radius: 14px !important; }
 
-/* ========== FLATPICKR ========== */
-.flatpickr-input, .flatpickr-alt-input,
-input.flatpickr-input.form-control[readonly],
-input.flatpickr-input + input.form-control {
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    padding: 8px 12px !important;
-    font-weight: 600 !important;
-    font-size: 0.85rem !important;
-    height: 38px !important;
-    cursor: pointer;
-    color: #1e293b !important;
-    text-align: left !important;
-}
-.flatpickr-input:focus, .flatpickr-alt-input:focus,
-input.flatpickr-input + input.form-control:focus {
-    border-color: #0a192f !important;
-    box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
-    outline: none;
-}
-.flatpickr-calendar {
-    border-radius: 14px !important;
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18) !important;
-    border: 1px solid #e2e8f0 !important;
-    font-family: 'Segoe UI', Roboto, sans-serif !important;
-    padding: 8px;
-}
-.flatpickr-calendar .flatpickr-months {
-    background: linear-gradient(135deg, #0a192f, #1e3a5f);
-    border-radius: 10px 10px 0 0;
-    color: white;
-    padding: 6px 0;
-}
-.flatpickr-calendar .flatpickr-months .flatpickr-month,
-.flatpickr-calendar .flatpickr-months .flatpickr-prev-month,
-.flatpickr-calendar .flatpickr-months .flatpickr-next-month {
-    color: white;
-    fill: white;
-}
-.flatpickr-calendar .flatpickr-current-month { font-weight: 700; font-size: 1rem; }
-.flatpickr-calendar .flatpickr-weekday {
-    color: #e31b23 !important;
-    font-weight: 700;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-}
-.flatpickr-calendar .flatpickr-day {
-    border-radius: 8px;
-    font-weight: 500;
-    font-size: 0.82rem;
-}
-.flatpickr-calendar .flatpickr-day:hover {
-    background: #dbeafe;
-    border-color: #dbeafe;
-    color: #1e40af;
-}
-.flatpickr-calendar .flatpickr-day.selected,
-.flatpickr-calendar .flatpickr-day.selected:hover {
-    background: #3B82F6 !important;
-    border-color: #3B82F6 !important;
-    color: white !important;
-    font-weight: 700;
-}
-.flatpickr-calendar .flatpickr-day.today {
-    border-color: #e31b23;
-    color: #e31b23;
-    font-weight: 700;
-}
-.flatpickr-calendar .flatpickr-day.today.selected { color: white !important; }
-.flatpickr-time { border-top: 1px solid #e2e8f0; }
-.flatpickr-time input {
-    font-weight: 700 !important;
-    color: #0a192f !important;
-    font-size: 0.95rem !important;
-}
-.flatpickr-time .flatpickr-am-pm { font-weight: 700; color: #0a192f; }
-.flatpickr-time .numInputWrapper span.arrowUp:after { border-bottom-color: #e31b23; }
-.flatpickr-time .numInputWrapper span.arrowDown:after { border-top-color: #e31b23; }
+.flatpickr-input, input.flatpickr-input + input.form-control { background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 14px !important; padding: 8px 12px !important; font-weight: 600 !important; font-size: 0.85rem !important; height: 38px !important; color: #1e293b !important; }
+.flatpickr-calendar { border-radius: 14px !important; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18) !important; }
+.flatpickr-calendar .flatpickr-months { background: linear-gradient(135deg, #0a192f, #1e3a5f); border-radius: 10px 10px 0 0; color: white; }
+.flatpickr-calendar .flatpickr-day.selected { background: #3B82F6 !important; border-color: #3B82F6 !important; }
 
-/* ========== SIGNATURE ========== */
-.signature-section {
-    margin-top: 28px;
-    padding-top: 18px;
-    border-top: 1px dashed #e2e8f0;
-}
-.signature-wrap {
-    position: relative;
-    border: 2px dashed #cbd5e1;
-    border-radius: 14px;
-    background: #f8fafc;
-    height: 340px;
-    min-height: 340px;
-    overflow: hidden;
-    width: 100%;
-    margin-top: 8px;
-}
-#signatureCanvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-    cursor: crosshair;
-    touch-action: none;
-}
-.signature-placeholder {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #94a3b8;
-    font-size: 15px;
-    pointer-events: none;
-    font-style: italic;
-}
+.daterangepicker { z-index: 10050 !important; border-radius: 14px !important; box-shadow: 0 20px 45px rgba(0,0,0,0.18) !important; border: 1px solid #e2e8f0 !important; }
+.daterangepicker .ranges li.active { background: #3B82F6 !important; color: #fff !important; }
+.daterangepicker td.active, .daterangepicker td.active:hover { background: #3B82F6 !important; }
+.daterangepicker .drp-buttons .btn { border-radius: 40px !important; padding: 6px 16px !important; font-weight: 600 !important; font-size: 0.8rem !important; }
+.daterangepicker .drp-buttons .btn-primary { background: #3B82F6 !important; border-color: #3B82F6 !important; }
+.daterangepicker .drp-buttons .btn-default { background: #64748b !important; color: white !important; border-color: #64748b !important; }
+
+.signature-section { margin-top: 28px; padding-top: 18px; border-top: 1px dashed #e2e8f0; }
+.signature-wrap { position: relative; border: 2px dashed #cbd5e1; border-radius: 14px; background: #f8fafc; height: 340px; min-height: 340px; overflow: hidden; width: 100%; margin-top: 8px; }
+#signatureCanvas { width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: none; }
+.signature-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 15px; pointer-events: none; font-style: italic; }
 .signature-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
-.btn-clear-sig {
-    background: #fff;
-    border: 1px solid #cbd5e1;
-    color: #475569;
-    padding: 6px 14px;
-    border-radius: 40px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: .15s;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-.btn-clear-sig:hover {
-    background: #f1f5f9;
-    color: #dc2626;
-    border-color: #fca5a5;
-}
+.btn-clear-sig { background: #fff; border: 1px solid #cbd5e1; color: #475569; padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 
-/* ========== MESSAGES ========== */
-#msg, #edit_msg {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    min-height: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-}
-#msg:not(:empty), #edit_msg:not(:empty) {
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    height: auto !important;
-    margin-top: 16px !important;
-    padding: 10px 18px !important;
-    background: white !important;
-    border-radius: 50px !important;
-    box-shadow: var(--shadow-light) !important;
-    gap: 10px;
-    font-weight: 600;
-    font-size: 0.8rem;
-    animation: slideInMsg 0.3s ease-out;
-}
-#msg:not(:empty):has(i.zmdi-check-circle),
-#edit_msg:not(:empty):has(i.zmdi-check-circle) {
-    background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
-    color: #065f46;
-    border-left: 4px solid #10b981;
-}
-#msg:not(:empty):has(i.zmdi-close-circle),
-#edit_msg:not(:empty):has(i.zmdi-close-circle) {
-    background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
-    color: #991b1b;
-    border-left: 4px solid #ef4444;
-}
-#msg:not(:empty):has(i.zmdi-info),
-#edit_msg:not(:empty):has(i.zmdi-info) {
-    background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important;
-    color: #1e3a8a;
-    border-left: 4px solid #3b82f6;
-}
-@keyframes slideInMsg {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
+#msg, #edit_msg { display: none !important; }
+#msg:not(:empty), #edit_msg:not(:empty) { display: inline-flex !important; margin-top: 16px !important; padding: 10px 18px !important; background: white !important; border-radius: 50px !important; box-shadow: var(--shadow-light) !important; gap: 10px; font-weight: 600; font-size: 0.8rem; }
+#msg:not(:empty):has(i.zmdi-check-circle) { background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important; color: #065f46; border-left: 4px solid #10b981; }
+#msg:not(:empty):has(i.zmdi-close-circle) { background: linear-gradient(95deg, #fee2e2, #fecaca) !important; color: #991b1b; border-left: 4px solid #ef4444; }
+#msg:not(:empty):has(i.zmdi-info) { background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important; color: #1e3a8a; border-left: 4px solid #3b82f6; }
 
-/* ========== ACTIONS TABLEAU ========== */
-.table tbody td a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50% !important;
-    background: #f1f5f9;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    margin: 0 2px;
-}
+.table tbody td a { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50% !important; background: #f1f5f9; transition: all 0.2s ease; text-decoration: none; margin: 0 2px; }
 .table tbody td a i.zmdi { font-size: 1.1rem; margin: 0; }
-.table tbody td a i.zmdi-edit { color: #10b981; }
 .table tbody td a i.zmdi-delete { color: #ef4444; }
-.table tbody td a:hover { background: #e0f2fe; transform: translateY(-2px); }
-.table tbody td a:hover i.zmdi-delete { color: #b91c1c; }
-.table tbody td a:hover i.zmdi-edit { color: #059669; }
+.table tbody td a i.zmdi-eye { color: #3B82F6; }
+.table tbody td a:hover { transform: translateY(-2px); }
+.table tbody td a:hover i.zmdi-delete { color: #b91c1c; background: #fee2e2; }
+.table tbody td a.btn-details:hover { background: #dbeafe; }
 
-/* ========== BARRE D'ACTIONS ========== */
-[style*="background-color: rgba(0, 0, 0, 0.1)"] {
-    background: #eef3fc !important;
-    border-radius: 60px;
-    padding: 10px 24px !important;
-    margin-bottom: 20px;
-    display: flex !important;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: flex-start;
+/* Exception : le lien téléphone garde son style propre (pas le style rond gris) */
+.table tbody td .phone-call-link {
+    width: auto !important;
+    height: auto !important;
+    border-radius: 40px !important;
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    margin: 0 !important;
+}
+.table tbody td .phone-call-link:hover {
+    background: linear-gradient(135deg, #059669, #047857) !important;
 }
 
-/* ========== IMAGE PROFIL ========== */
-.profile-thumb {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    display: inline-block;
-    vertical-align: middle;
-    border: none;
-    background: transparent;
-    box-shadow: none;
-    transition: none;
-}
-a[id^="voir_profil_"] {
-    display: inline-block;
-    vertical-align: middle;
-    line-height: 0;
-    margin-right: 8px;
-    background: transparent !important;
-    text-decoration: none !important;
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
-}
-a[id^="voir_profil_"]:hover, a[id^="voir_profil_"]:focus, a[id^="voir_profil_"]:active {
-    background: transparent !important;
-    color: inherit !important;
-    transform: none !important;
-    box-shadow: none !important;
-    border: none !important;
-    outline: none !important;
-    opacity: 1 !important;
-    filter: none !important;
-}
-.profile-thumb:hover, .profile-thumb:focus, .profile-thumb:active {
-    transform: none;
-    opacity: 1;
-    filter: none;
-    background: transparent;
-    box-shadow: none;
-    border: none;
-    outline: none;
-}
+[style*="background-color: rgba(0, 0, 0, 0.1)"] { background: #eef3fc !important; border-radius: 60px; padding: 10px 24px !important; margin-bottom: 20px; display: flex !important; flex-wrap: wrap; gap: 12px; justify-content: flex-start; }
+
+.profile-thumb { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; display: inline-block; vertical-align: middle; border: none; }
+a[id^="voir_profil_"] { display: inline-block; vertical-align: middle; line-height: 0; margin-right: 8px; background: transparent !important; text-decoration: none !important; }
 .table tbody td:has(a[id^="voir_profil_"]) { white-space: nowrap; }
-a[id^="voir_profil_"] + * {
-    display: inline-block;
-    vertical-align: middle;
-    line-height: 1.4;
-    max-width: calc(100% - 45px);
-    white-space: normal;
-    word-break: break-word;
-}
+a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-height: 1.4; max-width: calc(100% - 45px); }
 
-/* ========== RESPONSIVE ========== */
-@media (max-width: 992px) {
-    .content .container { padding: 0.5rem 1rem !important; }
-    #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 1rem !important; }
-}
+#modal_signature .modal-dialog { max-width: 90% !important; width: 90%; margin: 2rem auto; }
+#modal_signature .modal-content { border-radius: 20px !important; border: none !important; overflow: hidden; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35) !important; }
+#modal_signature .modal-header { background: linear-gradient(135deg, #0a192f, #1e3a5f) !important; color: white !important; border-bottom: none !important; padding: 14px 22px !important; }
+#modal_signature .modal-header h5 { font-weight: 700; font-size: 1.05rem; color: white !important; margin: 0; display: flex; align-items: center; gap: 8px; }
+#modal_signature .modal-header .close { color: white !important; opacity: 0.9; font-size: 1.6rem; outline: none !important; }
+#modal_signature .modal-body { background: #f8fafc; padding: 20px !important; text-align: center; }
+#signature_modal_img { max-width: 100%; max-height: 75vh; border-radius: 12px; background: #ffffff; border: 1px solid #e2e8f0; }
+#modal_signature .modal-footer { background: #ffffff; border-top: 1px solid #e2e8f0; padding: 12px 20px !important; justify-content: center; }
+#signature_download_btn { background: var(--bleu-nuit-gradient) !important; color: white !important; border-radius: 40px !important; padding: 8px 22px !important; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+
+#suppression .modal-content { border-radius: 18px; border: none; overflow: hidden; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25); }
+#suppression .modal-header { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-bottom: none; padding: 16px 22px; }
+#suppression .modal-header h5 { font-weight: 700; font-size: 1rem; color: white; display: flex; align-items: center; gap: 8px; margin: 0; }
+#suppression .modal-header .close { color: white; opacity: .9; font-size: 1.6rem; outline: none; }
+#suppression .modal-body { padding: 22px; background: #f8fafc; }
+#suppression .modal-footer { background: #ffffff; border-top: 1px solid #e2e8f0; padding: 14px 20px; justify-content: center; gap: 12px; }
+
+#modal_details .modal-dialog { max-width: 720px; width: 92%; margin: 1.8rem auto; }
+#modal_details .modal-content { border-radius: 22px !important; border: none !important; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.35) !important; }
+#modal_details .fiche-header { background: linear-gradient(135deg, #0a192f, #1e3a5f); color: white; padding: 22px 26px; position: relative; overflow: hidden; }
+#modal_details .fiche-header::after { content: ''; position: absolute; right: -60px; top: -60px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(59,130,246,.35), transparent 70%); border-radius: 50%; pointer-events: none; }
+#modal_details .fiche-header .close { position: absolute; top: 12px; right: 16px; color: white; opacity: .9; font-size: 1.7rem; outline: none; z-index: 2; background: transparent; border: none; }
+#modal_details .fiche-avatar { width: 62px; height: 62px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,.35); background: rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.35rem; color: white; flex-shrink: 0; }
+#modal_details .fiche-name { font-weight: 700; font-size: 1.15rem; color: white; margin: 0 0 6px 0; line-height: 1.2; }
+#modal_details .fiche-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,.18); color: white; padding: 3px 12px; border-radius: 40px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; }
+#modal_details .fiche-body { background: #f8fafc; padding: 22px 26px; max-height: 68vh; overflow-y: auto; }
+#modal_details .fiche-section-title { color: #0a192f; font-weight: 700; font-size: 0.74rem; text-transform: uppercase; letter-spacing: .9px; margin: 0 0 10px 0; padding-left: 12px; border-left: 3px solid #3B82F6; display: flex; align-items: center; gap: 8px; }
+#modal_details .fiche-section-title.visit { border-color: #10b981; }
+#modal_details .fiche-section-title.sig   { border-color: #ef4444; }
+#modal_details .fiche-card { background: #ffffff; border-radius: 14px; padding: 4px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.04); border: 1px solid #eef2f6; margin-bottom: 20px; }
+#modal_details .fiche-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px dashed #e2e8f0; }
+#modal_details .fiche-row:last-child { border-bottom: none; }
+#modal_details .fiche-row .fiche-label { display: flex; align-items: center; gap: 7px; min-width: 125px; flex-shrink: 0; }
+#modal_details .fiche-row .fiche-label i { font-size: 1.05rem; }
+#modal_details .fiche-row .fiche-label span { color: #64748b; font-size: 0.7rem; text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+#modal_details .fiche-row .fiche-value { flex: 1; color: #0a192f; font-weight: 600; font-size: 0.88rem; text-align: right; word-break: break-word; line-height: 1.4; }
+#modal_details .fiche-row .fiche-value.empty { color: #94a3b8; font-style: italic; font-weight: 500; }
+#modal_details .fiche-signature-box { background: #ffffff; border-radius: 14px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.04); border: 1px solid #eef2f6; min-height: 140px; display: flex; align-items: center; justify-content: center; }
+#modal_details .fiche-signature-box img { max-width: 100%; max-height: 220px; border-radius: 8px; }
+#modal_details .fiche-signature-box .no-sig { color: #94a3b8; font-style: italic; font-size: 0.85rem; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+#modal_details .fiche-signature-box .no-sig i { font-size: 2rem; opacity: .5; }
+#modal_details .fiche-footer { background: #ffffff; border-top: 1px solid #e2e8f0; padding: 14px 22px; display: flex; justify-content: center; gap: 12px; }
+
+#modal_sortie .modal-dialog { max-width: 480px; width: 92%; }
+#modal_sortie .modal-content { border-radius: 20px !important; border: none !important; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.3) !important; }
+#modal_sortie .modal-header { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border-bottom: none; padding: 16px 22px; }
+#modal_sortie .modal-header h5 { font-weight: 700; font-size: 1rem; color: white; display: flex; align-items: center; gap: 8px; margin: 0; }
+#modal_sortie .modal-header .close { color: white; opacity: .9; font-size: 1.6rem; outline: none; background: transparent; border: none; }
+#modal_sortie .modal-body { padding: 22px; background: #f8fafc; }
+#modal_sortie .modal-footer { background: #ffffff; border-top: 1px solid #e2e8f0; padding: 14px 20px; justify-content: center; gap: 12px; }
+#save_sortie { border-radius: 40px; padding: 8px 22px; font-weight: 600; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s; }
+#save_sortie:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(245, 158, 11, 0.35); }
+#save_sortie:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
 @media (max-width: 768px) {
     .content .container { padding: 0.4rem 0.6rem !important; }
     #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 0.8rem !important; }
-    #liste, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters,
-    .btn-primary, .btn-info, .btn-danger {
-        padding: 4px 12px !important;
-        font-size: 0.7rem;
-    }
-    .filters-container { flex-direction: column; gap: 8px; padding: 0.6rem 0.8rem; margin-bottom: 12px; }
+    #liste, #add, #save, #annuler, #resetFilters, .btn-primary, .btn-info, .btn-danger { padding: 4px 12px !important; font-size: 0.7rem; }
+    .filters-container { flex-direction: column; gap: 8px; padding: 0.6rem 0.8rem; }
     .filter-group { width: 100%; min-width: 100%; }
-    .filter-group .form-control { height: 34px !important; }
-    .user-count-badge { font-size: 0.65rem; padding: 3px 10px; }
-    .table thead th { font-size: 0.72rem; padding: 10px 6px !important; letter-spacing: 0.05em; }
-    .table tbody td { padding: 8px 10px !important; font-size: 0.75rem; line-height: 1.3; }
-    .form-group label { font-size: 0.65rem; }
-    .form-control, input.form-control, select.form-control, textarea.form-control {
-        height: 34px !important; font-size: 0.75rem;
-    }
-    textarea.form-control { height: 34px !important; min-height: 34px !important; }
-    [style*="background-color: rgba(0, 0, 0, 0.1)"] { justify-content: center; gap: 8px; }
-    .profile-thumb { width: 28px; height: 28px; }
-    a[id^="voir_profil_"] { margin-right: 6px; }
-    .signature-wrap { height: 260px; min-height: 260px; }
-    .select2-container--default .select2-selection--single { height: 34px !important; }
-    .select2-container--default .select2-selection--single .select2-selection__rendered {
-        font-size: 0.75rem;
-        padding-left: 12px !important;
-        padding-right: 36px !important;
-    }
-    .flatpickr-input, input.flatpickr-input + input.form-control {
-        height: 34px !important; font-size: 0.75rem !important;
-    }
-}
-@media (max-width: 480px) {
-    .content .container { padding: 0.3rem !important; }
-    #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 0.6rem !important; }
-    h4 { font-size: 1.1rem; margin-bottom: 12px; }
-    h4 i { font-size: 24px !important; }
-    #liste, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters {
-        padding: 3px 8px !important; font-size: 0.65rem;
-    }
-    .table thead th { font-size: 0.62rem; padding: 8px 4px !important; }
-    .table tbody td { padding: 6px 8px !important; font-size: 0.7rem; line-height: 1.2; }
-    .signature-wrap { height: 220px; min-height: 220px; }
+    .table thead th { font-size: 0.72rem; padding: 10px 6px !important; }
+    .table tbody td { padding: 8px 10px !important; font-size: 0.75rem; }
+    .sortie-manquante { font-size: 0.68rem; padding: 3px 8px; }
+    .table .phone-cell-display .phone-call-link { font-size: 0.7rem; padding: 3px 8px; }
+    #modal_details .fiche-row .fiche-label { min-width: 100px; }
+    #modal_details .fiche-row .fiche-label span { font-size: 0.62rem; }
+    #modal_details .fiche-row .fiche-value { font-size: 0.8rem; }
+    #modal_details .fiche-body { padding: 16px; }
 }
 </style>
 
@@ -715,11 +423,10 @@ a[id^="voir_profil_"] + * {
                     <i style="font-size: 40px;" class="zmdi zmdi-accounts text-info"></i>
                     Liste
                     <span class="user-count-badge">
-                        <i class="zmdi zmdi-view-list"></i> Total utilisateurs : <span id="userCount">0</span>
+                        <i class="zmdi zmdi-view-list"></i> Total personne : <span id="userCount">0</span>
                     </span>
                 </h4>
 
-                <!-- SECTION FILTRES -->
                 <div class="filters-container">
                     <div class="filter-group">
                         <label><i class="zmdi zmdi-account text-danger"></i> Nom</label>
@@ -733,24 +440,14 @@ a[id^="voir_profil_"] + * {
                         <label><i class="zmdi zmdi-phone text-danger"></i> Téléphone</label>
                         <input type="text" id="filterPhone" class="form-control" placeholder="Rechercher par téléphone...">
                     </div>
-                    @if(Auth::user()->role == 0)
                     <div class="filter-group">
-                        <label><i class="zmdi zmdi-account-circle text-danger"></i> Utilisateur</label>
-                        <select id="filterUserId" class="form-control">
-                            <option value="all">Tous les utilisateurs</option>
-                            @php $allUsers = \App\Models\User::all(); @endphp
-                            @foreach ($allUsers as $user)
-                                <option value="{{ $user->id }}">
-                                    @if($user->id == Auth::user()->id)
-                                        Vous
-                                    @else
-                                        {{ $user->name }} ({{ $user->matricule ?? 'N/A' }})
-                                    @endif
-                                </option>
-                            @endforeach
-                        </select>
+                        <label><i class="zmdi zmdi-calendar text-danger"></i> Période d'entrée</label>
+                        <input type="text" id="filterEntreeRange" class="form-control" placeholder="Sélectionner une période (ou Tout)">
                     </div>
-                    @endif
+                    <div class="filter-group">
+                        <label><i class="zmdi zmdi-calendar-check text-danger"></i> Période de sortie</label>
+                        <input type="text" id="filterSortieRange" class="form-control" placeholder="Sélectionner une période (ou Tout)">
+                    </div>
                     <div class="filter-group">
                         <button id="resetFilters" class="btn btn-secondary btn-sm" style="border-radius: 40px; padding: 8px 18px;">
                             <i class="zmdi zmdi-refresh"></i> Réinitialiser
@@ -764,75 +461,218 @@ a[id^="voir_profil_"] + * {
                             <table class="table table-bordered mb-0">
                                 <thead>
                                     <tr>
-                                        <th style="padding-top: 5px;padding-bottom: 5px;">N°</th>
-                                        <th style="padding-top: 5px;padding-bottom: 5px;">Nom</th>
-                                        <th style="padding-top: 5px;padding-bottom: 5px;">Email</th>
-                                        <th style="padding-top: 5px;padding-bottom: 5px;">Telephone</th>
-                                        <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
+                                        <th>N°</th>
+                                        <th>Nom</th>
+                                        <th>Contact</th>
+                                        <th>Type</th>
+                                        <th>Nature</th>
+                                        <th>Motif</th>
+                                        <th>Service</th>
+                                        <th>Entrée</th>
+                                        <th>Sortie</th>
+                                        <th>Control</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {{! $i = 1; }}
-                                    @foreach ($utilisateurs as $data)
-                                        <tr id="row_{{ $data->id }}" data-user-id="{{ $data->user_id }}">
-                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="row-num">{{ $i }}</td>
-                                            <td class="align-middle nom-cell" data-nom="{{ $data->name }}" style="padding-top: 5px;padding-bottom: 5px;">
-                                                <a id="voir_profil_<?= $i ?>" href="#">
-                                                    <img src="{{ asset($data->image) }}" alt="avatar" class="profile-thumb">
-                                                </a> {{ $data->name }}
+                                    @foreach ($registreaccueils as $data)
+                                        @php
+                                            $personneRec = \App\Models\Personnes::find($data->personne_id);
+                                            $typeNumerique = $personneRec->type ?? null;
+
+                                            $typeLabels = [0 => 'Utilisateur', 1 => 'Client', 2 => 'Patient', 3 => 'Visiteur'];
+                                            $typeLabel = $typeLabels[$typeNumerique] ?? '—';
+
+                                            $nom = ''; $email = ''; $phone = ''; $image = ''; $nature = null;
+
+                                            if ($personneRec && $personneRec->user_id) {
+                                                $p = null;
+                                                switch ($typeNumerique) {
+                                                    case 0: $p = \App\Models\User::find($personneRec->user_id); break;
+                                                    case 1: $p = \App\Models\Clients::find($personneRec->user_id); break;
+                                                    case 2: $p = \App\Models\Patients::find($personneRec->user_id); break;
+                                                    case 3: $p = \App\Models\Visiteurs::find($personneRec->user_id); break;
+                                                }
+                                                if ($p) {
+                                                    $nom    = $p->name  ?? '';
+                                                    $email  = $p->email ?? '';
+                                                    $phone  = $p->phone ?? '';
+                                                    $image  = $p->image ?? '';
+                                                    $nature = $p->type  ?? null;
+                                                }
+                                            }
+
+                                            if (!empty($data->motif_id) && $data->motif_id != 0) {
+                                                $motifNom = optional(\App\Models\Motifs::find($data->motif_id))->nom ?? '';
+                                                if ($motifNom === '') $motifNom = 'Aucun motif';
+                                            } else { $motifNom = 'Aucun motif'; }
+
+                                            if (!empty($data->service_id) && $data->service_id != 0) {
+                                                $serviceNom = optional(\App\Models\Services::find($data->service_id))->nom ?? '';
+                                                if ($serviceNom === '') $serviceNom = 'Aucun service';
+                                            } else { $serviceNom = 'Aucun service'; }
+
+                                            $natureLabels = [0 => 'Privé', 1 => 'Entreprise'];
+                                            $natureLabel = ($nature !== null && isset($natureLabels[$nature])) ? $natureLabels[$nature] : 'Entreprise';
+
+                                            $numeroAffiche = !empty($data->numero) ? $data->numero : ('ACC-' . str_pad($data->id, 5, '0', STR_PAD_LEFT));
+
+                                            $heureFormatee = '';
+                                            $entreeYmd = '';
+                                            if (!empty($data->heure_entree) && $data->heure_entree !== '0000/00/00 00:00' && $data->heure_entree !== '0000-00-00 00:00:00') {
+                                                $dt = \Carbon\Carbon::parse($data->heure_entree);
+                                                $heureFormatee = $dt->format('d/m/Y') . ' à ' . $dt->format('H:i');
+                                                $entreeYmd = $dt->format('Y-m-d');
+                                            }
+
+                                            $heureSortieFormatee = '';
+                                            $aSorti = false;
+                                            $sortieYmd = '';
+                                            if (!empty($data->heure_sortie)
+                                                && $data->heure_sortie !== '0000/00/00 00:00'
+                                                && $data->heure_sortie !== '0000-00-00 00:00:00') {
+                                                $dtS = \Carbon\Carbon::parse($data->heure_sortie);
+                                                $heureSortieFormatee = $dtS->format('d/m/Y') . ' à ' . $dtS->format('H:i');
+                                                $sortieYmd = $dtS->format('Y-m-d');
+                                                $aSorti = true;
+                                            }
+
+                                            $signatureUrl = !empty($data->signature)
+                                                ? asset('storage/images/fichiers/' . $data->signature)
+                                                : '';
+                                        @endphp
+
+                                        <tr id="row_{{ $data->id }}"
+                                            data-user-id="{{ $data->user_id ?? '' }}"
+                                            data-personne-id="{{ $data->personne_id ?? '' }}"
+                                            data-numero="{{ $numeroAffiche }}"
+                                            data-nom="{{ $nom }}"
+                                            data-email="{{ $email }}"
+                                            data-phone="{{ $phone }}"
+                                            data-entree-ymd="{{ $entreeYmd }}"
+                                            data-sortie-ymd="{{ $sortieYmd }}"
+                                            data-sortie-ok="{{ $aSorti ? '1' : '0' }}">
+
+                                            <td class="row-num">{{ $i }}</td>
+
+                                            {{-- Nom --}}
+                                            <td class="nom-cell align-middle">
+                                                @if(!empty($image))
+                                                    <a id="voir_profil_<?= $i ?>" href="#">
+                                                        <img src="{{ asset($image) }}" alt="avatar" class="profile-thumb">
+                                                    </a>
+                                                @endif
+                                                {{ $nom }}
                                             </td>
-                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="email-cell" data-email="{{ $data->email }}">{{ $data->email }}</td>
-                                            <td style="padding-top: 5px;padding-bottom: 5px;" class="phone-cell" data-phone="{{ $data->phone }}">{{ $data->phone }}</td>
-                                            <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
+
+                                            {{-- Contact (cliquable pour appel) --}}
+                                            <td class="phone-cell-display">
+                                                @if(!empty($phone))
+                                                    <a href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}"
+                                                       class="phone-call-link"
+                                                       title="Appeler {{ $phone }}">
+                                                        <i class="zmdi zmdi-phone-in-talk"></i>
+                                                        <span class="phone-num">{{ $phone }}</span>
+                                                    </a>
+                                                @else
+                                                    <span style="color:#94a3b8;font-style:italic;">Non renseigné</span>
+                                                @endif
+                                            </td>
+
+                                            <td>{{ $typeLabel }}</td>
+                                            <td>{{ $natureLabel }}</td>
+
+                                            <td>
+                                                @if($motifNom === 'Aucun motif')
+                                                    <span style="color:#94a3b8;font-style:italic;">{{ $motifNom }}</span>
+                                                @else
+                                                    {{ $motifNom }}
+                                                @endif
+                                            </td>
+
+                                            <td>
+                                                @if($serviceNom === 'Aucun service')
+                                                    <span style="color:#94a3b8;font-style:italic;">{{ $serviceNom }}</span>
+                                                @else
+                                                    {{ $serviceNom }}
+                                                @endif
+                                            </td>
+
+                                            <td>{{ $heureFormatee }}</td>
+
+                                            <td class="sortie-cell">
+                                                @if($aSorti)
+                                                    <span class="sortie-ok">{{ $heureSortieFormatee }}</span>
+                                                @else
+                                                    <span class="sortie-manquante" title="La sortie n'a pas encore été mentionnée">
+                                                        <i class="zmdi zmdi-alert-circle"></i>
+                                                        Non renseignée
+                                                    </span>
+                                                @endif
+                                            </td>
+
+                                            <td style="text-align: center; white-space: nowrap;">
                                                 <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                                                     <?php
-                                                    $edit = 0;
                                                     $delete = 0;
                                                     if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
-                                                        $edit = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->edit;
                                                         $delete = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->delete;
                                                     }
                                                     ?>
                                                 <?php } ?>
-                                                <?php if ((($edit == 1) && ($data->user_id == Auth::user()->id)) || (Auth::user()->role == 0)) { ?>
-                                                    <a id="edit_<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
-                                                <?php } else { ?>
-                                                    <a id="edit_r<?= $i ?>" href="#"><i class="zmdi zmdi-edit text-success"></i></a> &nbsp;
-                                                <?php } ?>
+
+                                                <a href="#"
+                                                   class="btn-details"
+                                                   data-id="{{ $data->id }}"
+                                                   data-numero="{{ $numeroAffiche }}"
+                                                   data-nom="{{ $nom }}"
+                                                   data-email="{{ $email }}"
+                                                   data-phone="{{ $phone }}"
+                                                   data-image="{{ !empty($image) ? asset($image) : '' }}"
+                                                   data-type="{{ $typeLabel }}"
+                                                   data-nature="{{ $natureLabel }}"
+                                                   data-motif="{{ $motifNom }}"
+                                                   data-service="{{ $serviceNom }}"
+                                                   data-entree="{{ $heureFormatee }}"
+                                                   data-sortie="{{ $heureSortieFormatee }}"
+                                                   data-a-sorti="{{ $aSorti ? '1' : '0' }}"
+                                                   data-note="{{ $data->note ?? '' }}"
+                                                   data-signature="{{ $signatureUrl }}"
+                                                   title="Voir les détails">
+                                                    <i class="zmdi zmdi-eye"></i>
+                                                </a>
+
                                                 <?php if (($delete == 1 && $data->user_id == Auth::user()->id) || (Auth::user()->role == 0)) { ?>
-                                                    <a id="delete_<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
+                                                    <a id="delete_<?= $i ?>" href="#" title="Supprimer">
+                                                        <i class="zmdi zmdi-delete text-danger"></i>
+                                                    </a>
                                                 <?php } else { ?>
-                                                    <a id="delete_r<?= $i ?>" href="#"><i class="zmdi zmdi-delete text-danger"></i></a>
+                                                    <a id="delete_r<?= $i ?>" href="#" title="Supprimer">
+                                                        <i class="zmdi zmdi-delete text-danger"></i>
+                                                    </a>
                                                 <?php } ?>
+
                                                 <script>
-                                                    $("#edit_<?= $i ?>").click(function(e) {
+                                                    $("#delete_r<?= $i ?>").click(function(e) {
                                                         e.preventDefault();
-                                                        $.get("{{ url('/refresh_editutilisateur') }}", {
-                                                            user_id: <?= $data->id ?>,
-                                                            page: <?= $ressource_id_1 ?>,
-                                                        }, function(refresh_editutilisateur) {
-                                                            $("#bloc_1").hide();
-                                                            $("#bloc_2").hide();
-                                                            $("#bloc_3").show();
-                                                            $("#bloc_3").html(refresh_editutilisateur);
-                                                        });
+                                                        $("#btn_refus").trigger("click");
                                                     });
-                                                    $("#edit_r<?= $i ?>").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
-                                                    $("#delete_r<?= $i ?>").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
                                                     $("#delete_<?= $i ?>").click(function(e) {
                                                         e.preventDefault();
-                                                        $("#element").html("<?= $data->name ?>");
+                                                        $("#sup_nom").text({!! json_encode($nom ?: 'Non renseigné') !!});
+                                                        $("#sup_phone").text({!! json_encode($phone ?: 'Non renseigné') !!});
                                                         $("#data_id").html("<?= $data->id ?>");
                                                         $("#btn_sup").trigger("click");
                                                     });
+                                                    @if(!empty($image))
                                                     $("#voir_profil_<?= $i ?>").click(function(e) {
                                                         e.preventDefault();
-                                                        $("#nom_profil").html("<?= $data->name ?>");
-                                                        $("#data_id").html("<?= $data->id ?>");
-                                                        var url = "<?= $data->image ?>";
+                                                        $("#nom_profil").html("<?= $nom ?>");
+                                                        var url = "<?= asset($image) ?>";
                                                         $("#contenu_voir_profil").html('<img src="' + url + '" class="img-fluid" style="max-height:100%;width: 100%;" />');
                                                         $("#btn_voir_profil").trigger("click");
                                                     });
+                                                    @endif
                                                 </script>
                                             </td>
                                         </tr>
@@ -856,21 +696,18 @@ a[id^="voir_profil_"] + * {
                         </a>
                     </p>
                     <div class="progress-container" style="display:none; margin-top: 10px;">
-                        <div class="progress-bar" style="width:0%; height:5px; background-color:#32c787; transition: width 0.3s;"></div>
+                        <div class="progress-bar" style="width:0%; height:5px; background-color:#32c787;"></div>
                         <span class="progress-text" style="font-size:12px;">0%</span>
                     </div>
 
                     <input type="file" name="input_user_img_profil" id="input_user_img_profil" style="display:none;">
                     <input type="text" name="image" id="image" value="{{ asset('storage/images/user/profil_defaut.png') }}" style="display:none;">
 
-                    {{-- LIGNE 1 --}}
                     <div class="form-row-custom">
                         <div class="col-6">
                             <div class="form-group">
                                 <label class="text-info"><i class="zmdi zmdi-account-box"></i> Personne</label>
-                                <select id="personne" name="personne" class="form-control">
-                                    <option value=""></option>
-                                </select>
+                                <select id="personne" name="personne" class="form-control"><option value=""></option></select>
                             </div>
                         </div>
                         <div class="col-6" id="wrapper_type_personne">
@@ -887,7 +724,6 @@ a[id^="voir_profil_"] + * {
                         </div>
                     </div>
 
-                    {{-- LIGNE 2 --}}
                     <div class="form-row-custom" id="row_nature_nom">
                         <div class="col-6">
                             <div class="form-group">
@@ -907,7 +743,6 @@ a[id^="voir_profil_"] + * {
                         </div>
                     </div>
 
-                    {{-- LIGNE 3 --}}
                     <div class="form-row-custom" id="row_email_phone">
                         <div class="col-6">
                             <div class="form-group">
@@ -923,7 +758,6 @@ a[id^="voir_profil_"] + * {
                         </div>
                     </div>
 
-                    {{-- LIGNE 4 --}}
                     <div class="form-row-custom">
                         <div class="col-6">
                             <div class="form-group">
@@ -955,7 +789,6 @@ a[id^="voir_profil_"] + * {
                         </div>
                     </div>
 
-                    {{-- LIGNE 5 --}}
                     <div class="form-row-custom">
                         <div class="col-6">
                             <div class="form-group">
@@ -972,7 +805,6 @@ a[id^="voir_profil_"] + * {
                         </div>
                     </div>
 
-                    {{-- ZONE SIGNATURE --}}
                     <div class="signature-section">
                         <div class="row">
                             <div class="col-12">
@@ -996,12 +828,8 @@ a[id^="voir_profil_"] + * {
                         <div class="col-12">
                             <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                                 <?php
-                                $edit = 0;
-                                $delete = 0;
                                 $add = 0;
                                 if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
-                                    $edit = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->edit;
-                                    $delete = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->delete;
                                     $add = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->add;
                                 }
                                 ?>
@@ -1033,20 +861,126 @@ a[id^="voir_profil_"] + * {
 <span id="data_id" style="display: none;"></span>
 <button style="display: none;" data-toggle="modal" data-target="#suppression" id="btn_sup">Sup</button>
 
-<div class="modal fade" id="suppression" tabindex="-1">
-    <div class="modal-dialog modal-dialog modal-sm">
+{{-- ===================== MODAL SUPPRESSION ===================== --}}
+<div class="modal fade" id="suppression" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title pull-left text-center" style="font-weight: bold;font-size: 16px;">Voulez-vous supprimez ? </h5>
+                <h5 class="modal-title"><i class="zmdi zmdi-alert-triangle" style="font-size: 1.4rem;"></i> Confirmation de suppression</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
-                <p id="element" style="text-align: center;"></p>
-            </div>
-            <div style="font-weight: bold;text-align: center;">
-                <p class="text-center" style="font-weight: bold;text-align: center;">
-                    <a style="color: white;font-weight: bold;" id="oui" href="#" class="btn btn-info btn-sm">Oui</a>
-                    <button style="font-weight: bold;" id="non" class="btn btn-danger btn-sm" data-dismiss="modal">Non</button>
+                <p style="text-align: center; font-weight: 600; color: #334155; margin: 0 0 16px 0; font-size: 0.9rem;">
+                    Voulez-vous vraiment supprimer cette entrée d'accueil&nbsp;?
                 </p>
+                <div style="background: #ffffff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-left: 4px solid #ef4444;">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed #e2e8f0;">
+                        <i class="zmdi zmdi-account-circle" style="color: #3B82F6; font-size: 1.15rem;"></i>
+                        <span style="color: #64748b; font-size: 0.72rem; text-transform: uppercase; font-weight: 700; min-width: 85px;">Nom</span>
+                        <span id="sup_nom" style="font-weight: 700; color: #0a192f; font-size: 0.9rem; flex: 1; text-align: right;"></span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0;">
+                        <i class="zmdi zmdi-phone" style="color: #10b981; font-size: 1.15rem;"></i>
+                        <span style="color: #64748b; font-size: 0.72rem; text-transform: uppercase; font-weight: 700; min-width: 85px;">Téléphone</span>
+                        <span id="sup_phone" style="font-weight: 700; color: #0a192f; font-size: 0.9rem; flex: 1; text-align: right;"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="non" class="btn btn-secondary btn-sm" data-dismiss="modal" style="border-radius: 40px; padding: 8px 22px; font-weight: 600; background: #64748b !important; color: white !important;">
+                    <i class="zmdi zmdi-close"></i> Annuler
+                </button>
+                <a id="oui" href="#" style="border-radius: 40px; padding: 8px 22px; font-weight: 600; background: linear-gradient(135deg, #ef4444, #dc2626); color: white !important; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="zmdi zmdi-delete"></i> Oui, supprimer
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ===================== MODAL DÉTAILS ===================== --}}
+<div class="modal fade" id="modal_details" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="fiche-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer"><span aria-hidden="true">&times;</span></button>
+                <div style="display: flex; align-items: center; gap: 16px; position: relative; z-index: 1;">
+                    <div id="details_avatar" class="fiche-avatar"></div>
+                    <div style="flex: 1; min-width: 0;">
+                        <h5 id="details_nom" class="fiche-name"></h5>
+                        <span id="details_type_badge" class="fiche-badge">
+                            <i class="zmdi zmdi-account-box"></i>
+                            <span id="details_type_text"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fiche-body">
+                <div class="fiche-section-title"><i class="zmdi zmdi-account" style="color: #3B82F6;"></i> Informations personnelles</div>
+                <div class="fiche-card">
+                    <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-label" style="color: #3B82F6;"></i><span>Numéro</span></div><div class="fiche-value" id="d_numero"></div></div>
+                    <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-account" style="color: #3B82F6;"></i><span>Nom</span></div><div class="fiche-value" id="d_nom"></div></div>
+                    <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-phone" style="color: #3B82F6;"></i><span>Contact</span></div><div class="fiche-value" id="d_phone"></div></div>
+                    <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-email" style="color: #3B82F6;"></i><span>Email</span></div><div class="fiche-value" id="d_email"></div></div>
+                </div>
+
+                <div class="fiche-section-title visit"><i class="zmdi zmdi-calendar-note" style="color: #10b981;"></i> Détails de la visite</div>
+                <div class="fiche-card">
+                    <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-city-alt" style="color: #10b981;"></i><span>Nature</span></div><div class="fiche-value" id="d_nature"></div></div>
+                    <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-tag" style="color: #10b981;"></i><span>Motif</span></div><div class="fiche-value" id="d_motif"></div></div>
+                    <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-balance" style="color: #10b981;"></i><span>Service</span></div><div class="fiche-value" id="d_service"></div></div>
+                    <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-time" style="color: #10b981;"></i><span>Entrée</span></div><div class="fiche-value" id="d_entree"></div></div>
+                    <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-time-restore" style="color: #10b981;"></i><span>Sortie</span></div><div class="fiche-value" id="d_sortie_fiche"></div></div>
+                    <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-comment-text" style="color: #10b981;"></i><span>Note</span></div><div class="fiche-value" id="d_note"></div></div>
+                </div>
+
+                <div class="fiche-section-title sig"><i class="zmdi zmdi-edit" style="color: #ef4444;"></i> Signature</div>
+                <div class="fiche-signature-box" id="d_signature_box"></div>
+            </div>
+
+            <div class="fiche-footer">
+                <a href="#" id="details_call_btn" class="btn-call-modal disabled" target="_self">
+                    <i class="zmdi zmdi-phone-in-talk"></i> Appeler
+                </a>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" style="border-radius: 40px; padding: 8px 22px; font-weight: 600;">
+                    <i class="zmdi zmdi-close"></i> Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ===================== MODAL SORTIE ===================== --}}
+<div class="modal fade" id="modal_sortie" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="zmdi zmdi-time-restore" style="font-size: 1.3rem;"></i> Compléter l'heure de sortie</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="sortie_data_id">
+                <p style="font-weight: 600; color: #334155; margin: 0 0 16px 0; font-size: 0.88rem; background: white; padding: 10px 14px; border-radius: 12px; border-left: 4px solid #3B82F6;">
+                    <i class="zmdi zmdi-account" style="color: #3B82F6;"></i>
+                    Personne : <span id="sortie_personne_nom" style="color: #0a192f; font-weight: 700;"></span>
+                </p>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 700; color: #0a192f; margin-bottom: 6px; font-size: 0.75rem; text-transform: uppercase;">
+                        <i class="zmdi zmdi-calendar" style="color: #e31b23; margin-right: 6px;"></i> Date et heure de sortie
+                    </label>
+                    <input type="hidden" id="sortie_heure_hidden">
+                    <input type="text" id="sortie_picker" class="form-control flatpickr-input" placeholder="Sélectionner la date et l'heure" readonly>
+                </div>
+                <p style="font-size: 0.75rem; color: #94a3b8; margin: 10px 0 0 0; font-style: italic;">
+                    <i class="zmdi zmdi-info-outline"></i> L'heure actuelle est proposée par défaut.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" style="border-radius: 40px; padding: 8px 22px; font-weight: 600; background: #64748b !important; color: white !important;">
+                    <i class="zmdi zmdi-close"></i> Annuler
+                </button>
+                <button type="button" id="save_sortie"><i class="zmdi zmdi-check"></i> Valider</button>
             </div>
         </div>
     </div>
@@ -1056,137 +990,334 @@ a[id^="voir_profil_"] + * {
 <div class="modal fade" id="profil_utilisateur" tabindex="-1">
     <div class="modal-dialog modal-dialog modal-sm">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title pull-left text-center" style="font-weight: bold;font-size: 16px;">Profil : <span id="nom_profil"></span> </h5>
-            </div>
-            <div class="modal-body">
-                <p id="contenu_voir_profil" style="text-align: center;"></p>
-            </div>
+            <div class="modal-header"><h5 class="modal-title pull-left text-center" style="font-weight: bold;font-size: 16px;">Profil : <span id="nom_profil"></span> </h5></div>
+            <div class="modal-body"><p id="contenu_voir_profil" style="text-align: center;"></p></div>
             <div style="font-weight: bold;text-align: center;">
                 <p class="text-center" style="font-weight: bold;text-align: center;">
-                    <button style="font-weight: bold;" id="non" class="btn btn-danger btn-sm" data-dismiss="modal">D'accord</button>
+                    <button style="font-weight: bold;" class="btn btn-danger btn-sm" data-dismiss="modal">D'accord</button>
                 </p>
             </div>
         </div>
     </div>
 </div>
 
+{{-- ===================== MODAL SIGNATURE ===================== --}}
+<div class="modal fade" id="modal_signature" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="zmdi zmdi-image"></i> Signature — <span id="signature_nom_label"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body"><img id="signature_modal_img" src="" alt="Signature"></div>
+            <div class="modal-footer">
+                <a id="signature_download_btn" href="" download="signature.png"><i class="zmdi zmdi-download"></i> Télécharger</a>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" style="border-radius: 40px; padding: 8px 22px;"><i class="zmdi zmdi-close"></i> Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section('js-code')
-<script src="{{ asset('assets/vendors/flot/jquery.flot.js') }} "></script>
-<script src="{{ asset('assets/vendors/flot/jquery.flot.pie.js') }}"></script>
-<script src="{{ asset('assets/vendors/flot/jquery.flot.resize.js') }}"></script>
-<script src="{{ asset('assets/vendors/flot.curvedlines/curvedLines.js') }}"></script>
-<script src="{{ asset('assets/vendors/flot.orderbars/jquery.flot.orderBars.js') }} "></script>
-<script src="{{ asset('assets/demo/js/flot-charts/curved-line.js') }}"></script>
-<script src="{{ asset('assets/demo/js/flot-charts/line.js') }}"></script>
-<script src="{{ asset('assets/demo/js/flot-charts/bar.js') }}"></script>
-<script src="{{ asset('assets/demo/js/flot-charts/dynamic.js') }}"></script>
-<script src="{{ asset('assets/demo/js/flot-charts/pie.js') }}"></script>
-<script src="{{ asset('assets/demo/js/flot-charts/chart-tooltips.js') }}"></script>
-
-{{-- SELECT2 JS --}}
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-{{-- FLATPICKR JS --}}
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
 
 <script>
     $("#link_59").addClass("active");
+    $("#upload").click(function(e) { e.preventDefault(); $("#dropzone-upload").trigger("click"); });
 
-    $("#upload").click(function(e) {
-        e.preventDefault();
-        $("#dropzone-upload").trigger("click");
-    });
-
-    /* ===================== TOGGLE CHAMPS ===================== */
-    function togglePersonFields() {
-        var val = $('#personne').val();
-        var hasExistingPerson = (val !== null && val !== '' && val !== undefined && parseInt(val, 10) > 0);
-
-        if (hasExistingPerson) {
-            $('#wrapper_type_personne').hide();
-            $('#row_nature_nom').hide();
-            $('#row_email_phone').hide();
-        } else {
-            $('#wrapper_type_personne').show();
-            $('#row_nature_nom').show();
-            $('#row_email_phone').show();
-        }
-        return hasExistingPerson;
+    function getInitials(name) {
+        if (!name || !name.trim()) return '?';
+        return name.trim().split(/\s+/).map(function(w) { return w[0]; }).slice(0, 2).join('').toUpperCase();
     }
 
-    /* ===================== SELECT2 ===================== */
-    var select2Inited = false;
+    function fillValue($el, value) {
+        if (value === null || value === undefined || String(value).trim() === '' ||
+            value === 'Aucun motif' || value === 'Aucun service') {
+            $el.addClass('empty').text(value && value !== 'Non renseigné' ? value : 'Non renseigné');
+        } else {
+            $el.removeClass('empty').text(value);
+        }
+    }
 
+    function parseDMY_to_ISO(str) {
+        if (!str) return null;
+        var p = String(str).trim().split('/');
+        if (p.length === 3 && p[0].length === 2 && p[1].length === 2 && p[2].length === 4) {
+            return p[2] + '-' + p[1] + '-' + p[0];
+        }
+        return null;
+    }
+    function parseRangeValue(val) {
+        if (!val) return { start: null, end: null };
+        var parts = String(val).split(' - ');
+        if (parts.length !== 2) return { start: null, end: null };
+        return { start: parseDMY_to_ISO(parts[0]), end: parseDMY_to_ISO(parts[1]) };
+    }
+
+    var DRP_CONFIG = {
+        autoUpdateInput: false,
+        locale: {
+            format: 'DD/MM/YYYY', separator: ' - ',
+            applyLabel: 'Appliquer', cancelLabel: 'Annuler',
+            fromLabel: 'Du', toLabel: 'Au', customRangeLabel: 'Personnalisé',
+            weekLabel: 'S',
+            daysOfWeek: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
+            monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+        },
+        opens: 'left',
+        ranges: {
+            'Tout':              [moment('2000-01-01'), moment('2100-12-31')],
+            'Aujourd\'hui':      [moment(), moment()],
+            'Hier':              [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            '7 derniers jours':  [moment().subtract(6, 'days'), moment()],
+            '30 derniers jours': [moment().subtract(29, 'days'), moment()],
+            'Ce mois-ci':        [moment().startOf('month'), moment().endOf('month')],
+            'Mois dernier':      [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'Cette année':       [moment().startOf('year'), moment().endOf('year')]
+        }
+    };
+
+    $(document).ready(function() {
+        $('#filterEntreeRange').daterangepicker(DRP_CONFIG, function(start, end, label) {
+            $('#filterEntreeRange').val(label === 'Tout' ? '' : start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+            filterUsers(); saveUserFiltersToStorage();
+        });
+        $('#filterEntreeRange').on('cancel.daterangepicker', function() { $(this).val(''); filterUsers(); saveUserFiltersToStorage(); });
+
+        $('#filterSortieRange').daterangepicker(DRP_CONFIG, function(start, end, label) {
+            $('#filterSortieRange').val(label === 'Tout' ? '' : start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+            filterUsers(); saveUserFiltersToStorage();
+        });
+        $('#filterSortieRange').on('cancel.daterangepicker', function() { $(this).val(''); filterUsers(); saveUserFiltersToStorage(); });
+    });
+
+    /* ============ FICHE DÉTAILS ============ */
+    $(document).on('click', '.btn-details', function(e) {
+        e.preventDefault();
+        var $b = $(this);
+
+        var id        = $b.data('id') || '';
+        var numero    = $b.data('numero') || '';
+        var nom       = $b.data('nom') || '';
+        var email     = $b.data('email') || '';
+        var phone     = $b.data('phone') || '';
+        var image     = $b.data('image') || '';
+        var type      = $b.data('type') || '';
+        var nature    = $b.data('nature') || '';
+        var motif     = $b.data('motif') || '';
+        var service   = $b.data('service') || '';
+        var entree    = $b.data('entree') || '';
+        var sortie    = $b.data('sortie') || '';
+        var aSorti    = String($b.data('a-sorti')) === '1';
+        var note      = $b.data('note') || '';
+        var signature = $b.data('signature') || '';
+
+        $('#details_nom').text(nom || 'Non renseigné');
+        $('#details_type_text').text(type || 'Type inconnu');
+        if (image) {
+            $('#details_avatar').html('<img src="' + image + '" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">');
+        } else {
+            $('#details_avatar').text(getInitials(nom));
+        }
+
+        fillValue($('#d_numero'), numero);
+        fillValue($('#d_nom'), nom);
+        fillValue($('#d_email'), email);
+        fillValue($('#d_nature'), nature);
+        fillValue($('#d_motif'), motif);
+        fillValue($('#d_service'), service);
+        fillValue($('#d_entree'), entree);
+        fillValue($('#d_note'), note);
+
+        // ========== TÉLÉPHONE CLIQUABLE (APPEL) DANS LE MODAL ==========
+        (function() {
+            var $p = $('#d_phone');
+            if (phone && String(phone).trim() !== '' && phone !== 'Non renseigné') {
+                var cleanPhone = String(phone).replace(/[^\d+]/g, '');
+                $p.removeClass('empty').html(
+                    '<a href="tel:' + cleanPhone + '" class="phone-call-link" title="Appeler ' + phone + '">' +
+                        '<i class="zmdi zmdi-phone-in-talk"></i>' +
+                        '<span class="phone-num">' + phone + '</span>' +
+                    '</a>'
+                );
+            } else {
+                $p.addClass('empty').text('Non renseigné');
+            }
+        })();
+
+        // ========== BOUTON APPELER DU FOOTER ==========
+        var $callBtn = $('#details_call_btn');
+        if (phone && String(phone).trim() !== '' && phone !== 'Non renseigné') {
+            var cleanPhoneFooter = String(phone).replace(/[^\d+]/g, '');
+            $callBtn.attr('href', 'tel:' + cleanPhoneFooter)
+                    .removeClass('disabled')
+                    .attr('title', 'Appeler ' + phone);
+        } else {
+            $callBtn.attr('href', '#')
+                    .addClass('disabled')
+                    .attr('title', 'Aucun numéro disponible');
+        }
+
+        var $s = $('#d_sortie_fiche');
+        if (aSorti && sortie) {
+            $s.removeClass('empty').html('<span style="color:#065f46;font-weight:600;">' + sortie + '</span>');
+        } else {
+            $s.addClass('empty').html(
+                '<span class="sortie-non-renseignee" data-id="' + id + '" data-nom="' + (nom || '').replace(/"/g, '&quot;') + '" title="Cliquez pour compléter l\'heure de sortie">' +
+                    '<i class="zmdi zmdi-alert-circle"></i> Non renseignée — Compléter' +
+                '</span>'
+            );
+        }
+
+        if (signature) {
+            $('#d_signature_box').html('<img src="' + signature + '" alt="Signature">');
+        } else {
+            $('#d_signature_box').html('<div class="no-sig"><i class="zmdi zmdi-edit"></i><span>Aucune signature disponible</span></div>');
+        }
+
+        $('#modal_details').modal('show');
+    });
+
+    $('#modal_details').on('hidden.bs.modal', function() {
+        $('#d_signature_box').html('');
+        $('#details_avatar').html('');
+        $('#details_call_btn').attr('href', '#').addClass('disabled').attr('title', '');
+    });
+
+    /* ============ MODAL SORTIE ============ */
+    var sortiePicker = null;
+    function initSortiePicker() {
+        if (sortiePicker) return;
+        if (typeof flatpickr === 'undefined') return;
+        if (flatpickr.l10ns && flatpickr.l10ns.fr) flatpickr.localize(flatpickr.l10ns.fr);
+        var now = new Date();
+        sortiePicker = flatpickr("#sortie_picker", {
+            enableTime: true, time_24hr: true, dateFormat: "Y-m-d H:i",
+            altInput: true, altFormat: "d/m/Y H:i", defaultDate: now,
+            minuteIncrement: 1, allowInput: false, disableMobile: true,
+            onChange: function(d, s) { $("#sortie_heure_hidden").val(s); }
+        });
+        $("#sortie_heure_hidden").val(sortiePicker.formatDate(now, "Y-m-d H:i"));
+    }
+
+    $(document).on('click', '.sortie-non-renseignee', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var id  = $(this).data('id');
+        var nom = $(this).data('nom');
+        $('#modal_details').modal('hide');
+        setTimeout(function() {
+            $('#sortie_data_id').val(id);
+            $('#sortie_personne_nom').text(nom || 'Non renseigné');
+            initSortiePicker();
+            var now = new Date();
+            if (sortiePicker) {
+                sortiePicker.setDate(now, true);
+                $('#sortie_heure_hidden').val(sortiePicker.formatDate(now, "Y-m-d H:i"));
+            }
+            $('#modal_sortie').modal('show');
+        }, 350);
+    });
+
+    $('#modal_sortie').on('hidden.bs.modal', function() {
+        $('#sortie_data_id').val('');
+        $('#sortie_personne_nom').text('');
+    });
+
+    $("#save_sortie").click(function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var originalHtml = '<i class="zmdi zmdi-check"></i> Valider';
+        if (btn.data('loading')) return;
+
+        var id    = $("#sortie_data_id").val();
+        var heure = $("#sortie_heure_hidden").val();
+        var page  = "<?= $ressource_id_1 ?>";
+
+        if (!id || !heure) {
+            $('#msg').html('<i class="zmdi zmdi-info"></i> Veuillez sélectionner une date et une heure');
+            setTimeout(function() { $('#msg').html(""); }, 5000);
+            return;
+        }
+
+        btn.data('loading', true).prop('disabled', true)
+           .html('<span class="spinner-border spinner-border-sm" style="width:.9rem;height:.9rem;border-width:.15em;"></span> Enregistrement...');
+
+        function resetBtn() { btn.data('loading', false).prop('disabled', false).html(originalHtml); }
+
+        $.ajax({
+            type: "GET",
+            url: "{{ url('/refresh_updatesortie') }}",
+            data: { id: id, heure_sortie: heure, page: page },
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function(resp) {
+                resetBtn();
+                $('#modal_sortie').modal('hide');
+                $("#content_utilisateur").html(resp);
+                saveUserFiltersToStorage();
+                setTimeout(function() { loadUserFiltersFromStorage(); filterUsers(); }, 100);
+                $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Heure de sortie enregistrée avec succès');
+                setTimeout(function() { $('#msg').html(""); }, 4000);
+            },
+            error: function(xhr) {
+                resetBtn();
+                var message = 'Erreur lors de l\'enregistrement';
+                if (xhr.responseJSON && xhr.responseJSON.message) message = xhr.responseJSON.message;
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> ' + message);
+                setTimeout(function() { $('#msg').html(""); }, 6000);
+            }
+        });
+    });
+
+    /* ============ SIGNATURE MODAL ============ */
+    $(document).on('click', '.btn-signature-modal', function(e) {
+        e.preventDefault();
+        var url = $(this).data('sig-url');
+        var nom = $(this).data('sig-nom') || '';
+        if (!url) return;
+        $('#signature_nom_label').text(nom);
+        $('#signature_modal_img').attr('src', url);
+        $('#signature_download_btn').attr('href', url);
+        $('#signature_download_btn').attr('download', 'signature_' + (nom || 'personne') + '.png');
+        $('#modal_signature').modal('show');
+    });
+
+    $('#modal_signature').on('hidden.bs.modal', function() {
+        $('#signature_modal_img').attr('src', '');
+        $('#signature_nom_label').text('');
+        $('#signature_download_btn').attr('href', '');
+    });
+
+    /* ============ TOGGLE ============ */
+    function togglePersonFields() {
+        var val = $('#personne').val();
+        var has = (val !== null && val !== '' && val !== undefined && parseInt(val, 10) > 0);
+        if (has) { $('#wrapper_type_personne').hide(); $('#row_nature_nom').hide(); $('#row_email_phone').hide(); }
+        else { $('#wrapper_type_personne').show(); $('#row_nature_nom').show(); $('#row_email_phone').show(); }
+        return has;
+    }
+
+    var select2Inited = false;
     function initSelect2() {
         if (select2Inited) return;
         if (typeof $.fn.select2 === 'undefined') return;
-
-        $('#personne').select2({
-            placeholder: '-- Sélectionner une personne --',
-            allowClear: true, width: '100%',
-            dropdownParent: $('#personne').closest('.form-group'),
-            language: {
-                noResults: function() { return "Aucun résultat trouvé"; },
-                searching: function() { return "Recherche..."; },
-                inputTooShort: function() { return "Saisissez un mot-clé"; }
-            }
-        });
-
-        $('#type_personne').select2({
-            placeholder: '-- Sélectionner un type --',
-            allowClear: true, width: '100%',
-            dropdownParent: $('#type_personne').closest('.form-group'),
-            language: {
-                noResults: function() { return "Aucun résultat trouvé"; },
-                searching: function() { return "Recherche..."; },
-                inputTooShort: function() { return "Saisissez un mot-clé"; }
-            }
-        });
-
-        $('#nature').select2({
-            placeholder: '-- Sélectionner une nature --',
-            allowClear: true, width: '100%',
-            dropdownParent: $('#nature').closest('.form-group'),
-            language: {
-                noResults: function() { return "Aucun résultat trouvé"; },
-                searching: function() { return "Recherche..."; },
-                inputTooShort: function() { return "Saisissez un mot-clé"; }
-            }
-        });
-
-        $('#motif').select2({
-            placeholder: '-- Sélectionner un motif --',
-            allowClear: true, width: '100%',
-            dropdownParent: $('#motif').closest('.form-group'),
-            language: {
-                noResults: function() { return "Aucun résultat trouvé"; },
-                searching: function() { return "Recherche..."; },
-                inputTooShort: function() { return "Saisissez un mot-clé"; }
-            }
-        });
-
-        $('#service').select2({
-            placeholder: '-- Sélectionner un service --',
-            allowClear: true, width: '100%',
-            dropdownParent: $('#service').closest('.form-group'),
-            language: {
-                noResults: function() { return "Aucun résultat trouvé"; },
-                searching: function() { return "Recherche..."; },
-                inputTooShort: function() { return "Saisissez un mot-clé"; }
-            }
-        });
-
+        var cfg = function(ph) { return { placeholder: ph, allowClear: true, width: '100%',
+            language: { noResults: function() { return "Aucun résultat"; }, searching: function() { return "Recherche..."; } } }; };
+        $('#personne').select2($.extend(cfg('-- Sélectionner une personne --'), { dropdownParent: $('#personne').closest('.form-group') }));
+        $('#type_personne').select2($.extend(cfg('-- Sélectionner un type --'), { dropdownParent: $('#type_personne').closest('.form-group') }));
+        $('#nature').select2($.extend(cfg('-- Sélectionner une nature --'), { dropdownParent: $('#nature').closest('.form-group') }));
+        $('#motif').select2($.extend(cfg('-- Sélectionner un motif --'), { dropdownParent: $('#motif').closest('.form-group') }));
+        $('#service').select2($.extend(cfg('-- Sélectionner un service --'), { dropdownParent: $('#service').closest('.form-group') }));
         select2Inited = true;
     }
 
-    /* ===================== PRÉCHARGEMENT PERSONNES ===================== */
     function preloadPersonnes() {
         $.ajax({
-            type: "GET",
-            url: "{{ url('/get_personnes_by_type') }}",
-            dataType: "json",
+            type: "GET", url: "{{ url('/get_personnes_by_type') }}", dataType: "json",
             success: function(data) {
                 var options = '<option value=""></option>';
                 $.each(data, function(i, item) {
@@ -1195,87 +1326,53 @@ a[id^="voir_profil_"] + * {
                 $('#personne').html(options);
                 togglePersonFields();
             },
-            error: function() {
-                $('#personne').html('<option value="">Erreur de chargement</option>');
-            }
+            error: function() { $('#personne').html('<option value="">Erreur</option>'); }
         });
     }
 
-    /* ===================== #personne pilote #type_personne ===================== */
     $(document).on('change', '#personne', function() {
-        var hasExistingPerson = togglePersonFields();
+        var has = togglePersonFields();
         var val = $(this).val();
         if (val === null || val === '' || val === undefined) return;
-
-        var $selected = $(this).find('option:selected');
-        var type = $selected.data('type');
-
+        var type = $(this).find('option:selected').data('type');
         if (val == 0 || type === -1 || type === undefined || type === null) {
             $('#type_personne').val(null).trigger('change');
             $('#msg').html('<i class="zmdi zmdi-info"></i> Veuillez sélectionner un type de personne');
             setTimeout(function() { $('#msg').html(""); }, 6000);
             return;
         }
-
-        if (hasExistingPerson) {
-            $('#type_personne').val(type).trigger('change');
-        }
+        if (has) $('#type_personne').val(type).trigger('change');
     });
 
-    /* ===================== FLATPICKR ===================== */
     var heurePicker = null;
-
     function initFlatpickr() {
         if (heurePicker) return;
         if (typeof flatpickr === 'undefined') return;
-
-        if (flatpickr.l10ns && flatpickr.l10ns.fr) {
-            flatpickr.localize(flatpickr.l10ns.fr);
-        }
-
+        if (flatpickr.l10ns && flatpickr.l10ns.fr) flatpickr.localize(flatpickr.l10ns.fr);
         var now = new Date();
-
         heurePicker = flatpickr("#heure_picker", {
-            enableTime: true,
-            time_24hr: true,
-            dateFormat: "Y-m-d H:i",
-            altInput: true,
-            altFormat: "d/m/Y H:i",
-            defaultDate: now,
-            minuteIncrement: 1,
-            allowInput: false,
-            disableMobile: true,
-            onChange: function(selectedDates, dateStr) {
-                $("#heure").val(dateStr);
-            }
+            enableTime: true, time_24hr: true, dateFormat: "Y-m-d H:i",
+            altInput: true, altFormat: "d/m/Y H:i", defaultDate: now,
+            minuteIncrement: 1, disableMobile: true,
+            onChange: function(d, s) { $("#heure").val(s); }
         });
-
         $("#heure").val(heurePicker.formatDate(now, "Y-m-d H:i"));
     }
 
-    /* ===================== SIGNATURE PAD ===================== */
-    var signatureInited = false;
-    var canvas, ctx, placeholder, drawing = false, hasSignature = false;
-
+    var signatureInited = false, canvas, ctx, placeholder, drawing = false, hasSignature = false;
     function initSignatureCanvas() {
         canvas = document.getElementById('signatureCanvas');
         if (!canvas) return;
         placeholder = document.getElementById('sigPlaceholder');
         ctx = canvas.getContext('2d');
-
         var ratio = window.devicePixelRatio || 1;
         var rect = canvas.getBoundingClientRect();
         if (rect.width === 0) return;
-
         canvas.width = rect.width * ratio;
         canvas.height = rect.height * ratio;
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.scale(ratio, ratio);
-        ctx.lineWidth = 2.4;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.strokeStyle = '#1e293b';
-
+        ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1e293b';
         if (!signatureInited) {
             canvas.addEventListener('mousedown', sigStart);
             canvas.addEventListener('mousemove', sigMove);
@@ -1284,7 +1381,6 @@ a[id^="voir_profil_"] + * {
             canvas.addEventListener('touchstart', sigStart, { passive: false });
             canvas.addEventListener('touchmove', sigMove, { passive: false });
             canvas.addEventListener('touchend', sigStop);
-
             document.getElementById('clearSig').addEventListener('click', function() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 hasSignature = false;
@@ -1293,254 +1389,154 @@ a[id^="voir_profil_"] + * {
             signatureInited = true;
         }
     }
-
     function sigGetPos(e) {
         var rect = canvas.getBoundingClientRect();
         var cx = e.touches ? e.touches[0].clientX : e.clientX;
         var cy = e.touches ? e.touches[0].clientY : e.clientY;
         return { x: cx - rect.left, y: cy - rect.top };
     }
-
-    function sigStart(e) {
-        e.preventDefault();
-        drawing = true;
-        hasSignature = true;
-        if (placeholder) placeholder.style.display = 'none';
-        var p = sigGetPos(e);
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-    }
-    function sigMove(e) {
-        if (!drawing) return;
-        e.preventDefault();
-        var p = sigGetPos(e);
-        ctx.lineTo(p.x, p.y);
-        ctx.stroke();
-    }
+    function sigStart(e) { e.preventDefault(); drawing = true; hasSignature = true; if (placeholder) placeholder.style.display = 'none'; var p = sigGetPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
+    function sigMove(e) { if (!drawing) return; e.preventDefault(); var p = sigGetPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }
     function sigStop() { drawing = false; }
 
-    window.addEventListener('resize', function() {
-        if (!canvas || typeof canvas.toDataURL !== 'function') return;
-        var data = hasSignature ? canvas.toDataURL('image/png') : null;
-        initSignatureCanvas();
-        if (data) {
-            var img = new Image();
-            img.onload = function() {
-                var ratio = window.devicePixelRatio || 1;
-                ctx.drawImage(img, 0, 0, canvas.width / ratio, canvas.height / ratio);
-            };
-            img.src = data;
-        }
-    });
-
-    /* ===================== NAVIGATION BLOCS ===================== */
     $("#liste").click(function(e) {
         e.preventDefault();
-        $("#bloc_1").show(); $("#bloc_2").hide();
-        $("#bloc_3").hide(); $("#bloc_4").hide();
+        $("#bloc_1").show(); $("#bloc_2").hide(); $("#bloc_3").hide(); $("#bloc_4").hide();
         setTimeout(function() { filterUsers(); }, 100);
     });
-
     $("#add").click(function(e) {
         e.preventDefault();
-        $("#bloc_1").hide(); $("#bloc_2").show();
-        $("#bloc_3").hide(); $("#bloc_4").hide();
-        setTimeout(function() {
-            initSignatureCanvas();
-            initSelect2();
-            initFlatpickr();
-            togglePersonFields();
-        }, 100);
+        $("#bloc_1").hide(); $("#bloc_2").show(); $("#bloc_3").hide(); $("#bloc_4").hide();
+        setTimeout(function() { initSignatureCanvas(); initSelect2(); initFlatpickr(); togglePersonFields(); }, 100);
     });
-
     $("#add_r").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
     $("#save_r").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
-
     $("#annuler").click(function(e) {
         e.preventDefault();
-        $("#bloc_1").show(); $("#bloc_2").hide();
-        $("#bloc_3").hide(); $("#bloc_4").hide();
+        $("#bloc_1").show(); $("#bloc_2").hide(); $("#bloc_3").hide(); $("#bloc_4").hide();
         setTimeout(function() { filterUsers(); }, 100);
     });
 
-    /* ============================================================
-       ✅ ENREGISTREMENT — Signature sécurisée + Spinner
-    ============================================================ */
     $("#save").click(function(e) {
         e.preventDefault();
-
         var btn = $(this);
         var originalBtnHtml = 'Enregister <i class="zmdi zmdi-save"></i>';
-
-        // Sécurité canvas
-        if (!canvas || typeof canvas.toDataURL !== 'function') {
-            initSignatureCanvas();
-        }
+        if (!canvas || typeof canvas.toDataURL !== 'function') initSignatureCanvas();
         if (!canvas || typeof canvas.toDataURL !== 'function') {
             $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Canvas signature introuvable');
-            setTimeout(function() { $('#msg').html(""); }, 6000);
-            return;
+            setTimeout(function() { $('#msg').html(""); }, 6000); return;
         }
-
-        // Récupérer la signature
         var signature = '';
-        try {
-            if (hasSignature) {
-                signature = canvas.toDataURL('image/png');
-            }
-        } catch (err) {
-            console.error('Erreur toDataURL:', err);
-        }
-
+        try { if (hasSignature) signature = canvas.toDataURL('image/png'); } catch (err) {}
         if (!signature || signature.length < 500) {
             $('#msg').html('<i class="zmdi zmdi-info"></i> Veuillez signer avant d\'enregistrer');
-            setTimeout(function() { $('#msg').html(""); }, 6000);
-            return;
+            setTimeout(function() { $('#msg').html(""); }, 6000); return;
         }
-
-        // Spinner
-        btn.prop('disabled', true)
-           .html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...');
-
-        function resetButton() {
-            btn.prop('disabled', false).html(originalBtnHtml);
-        }
-
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Enregistrement...');
+        function resetButton() { btn.prop('disabled', false).html(originalBtnHtml); }
         var page = "<?= $ressource_id_1 ?>";
         $('#msg').html("");
-
-        // Payload propre
         var formData = $("#form_add").serializeArray();
-        formData.push({ name: 'page',      value: page });
+        formData.push({ name: 'page', value: page });
         formData.push({ name: 'signature', value: signature });
-
         $.ajax({
-            type: "POST",
-            url: "/add_personne",
-            data: $.param(formData),
+            type: "POST", url: "/add_personne", data: $.param(formData),
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-
             success: function(resp) {
                 resetButton();
-
-                // Reset champs
                 $("#motif").val(null).trigger("change");
                 $("#service").val(null).trigger("change");
-                $("#note").val("");
-                $("#nom").val("");
-                $("#email").val("");
-                $("#phone").val("");
-
-                if (heurePicker) {
-                    var now = new Date();
-                    heurePicker.setDate(now, true);
-                    $("#heure").val(heurePicker.formatDate(now, "Y-m-d H:i"));
-                } else {
-                    $("#heure").val("");
-                }
-
-                // Reset canvas
+                $("#note").val(""); $("#nom").val(""); $("#email").val(""); $("#phone").val("");
+                if (heurePicker) { var now = new Date(); heurePicker.setDate(now, true); $("#heure").val(heurePicker.formatDate(now, "Y-m-d H:i")); }
                 if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-                hasSignature = false;
-                if (placeholder) placeholder.style.display = 'flex';
-
+                hasSignature = false; if (placeholder) placeholder.style.display = 'flex';
                 if (typeof $.fn.select2 !== 'undefined') {
                     $("#personne").val(null).trigger("change");
                     $("#type_personne").val(null).trigger("change");
                     $("#nature").val(null).trigger("change");
-                } else {
-                    $("#personne").val("");
-                    $("#type_personne").val("");
-                    $("#nature").val("");
                 }
                 togglePersonFields();
-
                 $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Enregistrement effectué avec succès');
                 setTimeout(function() { $('#msg').html(""); }, 9000);
-
-                if (typeof resp === 'string') {
-                    $("#content_utilisateur").html(resp);
-                }
+                if (typeof resp === 'string') $("#content_utilisateur").html(resp);
                 saveUserFiltersToStorage();
-                setTimeout(function() {
-                    loadUserFiltersFromStorage();
-                    filterUsers();
-                }, 100);
+                setTimeout(function() { loadUserFiltersFromStorage(); filterUsers(); }, 100);
             },
-
             error: function(xhr) {
                 resetButton();
                 var msg = 'Erreur lors de l\'enregistrement';
-
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    msg = xhr.responseJSON.message;
-                } else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
                     var errors = xhr.responseJSON.errors;
-                    var firstKey = Object.keys(errors)[0];
-                    msg = errors[firstKey][0];
-                } else if (xhr.status === 413) {
-                    msg = 'Signature trop volumineuse — augmentez post_max_size dans php.ini';
+                    msg = errors[Object.keys(errors)[0]][0];
                 }
-
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> ' + msg);
                 setTimeout(function() { $('#msg').html(""); }, 9000);
             },
-
             complete: function() { resetButton(); }
         });
     });
 
-    /* ===================== SUPPRESSION ===================== */
     $("#oui").click(function(e) {
         e.preventDefault();
+        var btn = $(this);
+        var originalHtml = '<i class="zmdi zmdi-delete"></i> Oui, supprimer';
+        if (btn.data('loading')) return;
+        btn.data('loading', true).css('pointer-events', 'none')
+           .html('<span class="spinner-border spinner-border-sm" style="width:.9rem;height:.9rem;border-width:.15em;"></span> Suppression...');
+        $("#non").css('pointer-events', 'none').css('opacity', '.6');
         var id = $("#data_id").html();
         var page = "<?= $ressource_id_1 ?>";
-        $.get("{{ url('/refresh_deleteutilisateur') }}", { id: id, page: page }, function(refresh_editutilisateur) {
-            $("#content_utilisateur").html(refresh_editutilisateur);
-            $("#non").trigger("click");
-            saveUserFiltersToStorage();
-            setTimeout(function() {
-                loadUserFiltersFromStorage();
-                filterUsers();
-            }, 100);
+        function resetBtn() {
+            btn.data('loading', false).css('pointer-events', 'auto').html(originalHtml);
+            $("#non").css('pointer-events', 'auto').css('opacity', '1');
+        }
+        $.ajax({
+            type: "GET", url: "{{ url('/refresh_deleteaccueil') }}",
+            data: { id: id, page: page },
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function(resp) {
+                resetBtn();
+                $("#content_utilisateur").html(resp);
+                $("#non").trigger("click");
+                saveUserFiltersToStorage();
+                setTimeout(function() { loadUserFiltersFromStorage(); filterUsers(); }, 100);
+                $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Entrée supprimée avec succès');
+                setTimeout(function() { $('#msg').html(""); }, 4000);
+            },
+            error: function(xhr) {
+                resetBtn();
+                $("#non").trigger("click");
+                var message = 'Erreur lors de la suppression';
+                if (xhr.responseJSON && xhr.responseJSON.message) message = xhr.responseJSON.message;
+                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> ' + message);
+                setTimeout(function() { $('#msg').html(""); }, 6000);
+            }
         });
     });
 
-    /* ===================== UPLOAD IMAGE PROFIL ===================== */
-    $("#user_img_profil").click(function(e) {
-        e.preventDefault();
-        $("#input_user_img_profil").trigger("click");
-    });
-
+    $("#user_img_profil").click(function(e) { e.preventDefault(); $("#input_user_img_profil").trigger("click"); });
     $("#input_user_img_profil").change(function(e) {
         e.preventDefault();
         var formData = new FormData();
         formData.append('input_user_img_profil', $('#input_user_img_profil')[0].files[0]);
         formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
         $('.progress-container').show();
-        $('.progress-bar').css('width', '0%');
-        $('.progress-text').text('0%');
-
         $.ajax({
-            type: "POST",
-            url: "/upload_profil_add",
-            data: formData,
-            processData: false,
-            contentType: false,
+            type: "POST", url: "/upload_profil_add",
+            data: formData, processData: false, contentType: false,
             xhr: function() {
                 var xhr = new window.XMLHttpRequest();
                 xhr.upload.addEventListener("progress", function(evt) {
                     if (evt.lengthComputable) {
-                        var percentComplete = Math.round((evt.loaded / evt.total) * 100);
-                        $('.progress-bar').css('width', percentComplete + '%');
-                        $('.progress-text').text(percentComplete + '%');
+                        var pc = Math.round((evt.loaded / evt.total) * 100);
+                        $('.progress-bar').css('width', pc + '%');
+                        $('.progress-text').text(pc + '%');
                     }
                 }, false);
                 return xhr;
             },
             success: function(response) {
-                $('.progress-bar').css('width', '100%');
-                $('.progress-text').text('100%');
                 setTimeout(function() { $('.progress-container').hide(); }, 1000);
                 $('#msg').html('Profil teléchargé avec succès');
                 $('#user_img_profil').attr('src', response);
@@ -1559,150 +1555,125 @@ a[id^="voir_profil_"] + * {
     let userFilterTimeout;
 
     function saveUserFiltersToStorage() {
-        let userId = 'all';
-        if ($('#filterUserId').length) userId = $('#filterUserId').val();
-        const filters = {
-            nom: $('#filterNom').val(),
-            email: $('#filterEmail').val(),
-            phone: $('#filterPhone').val(),
-            userId: userId
-        };
-        localStorage.setItem('userFilters', JSON.stringify(filters));
+        localStorage.setItem('userFilters', JSON.stringify({
+            nom: $('#filterNom').val() || '',
+            email: $('#filterEmail').val() || '',
+            phone: $('#filterPhone').val() || '',
+            entreeRange: $('#filterEntreeRange').val() || '',
+            sortieRange: $('#filterSortieRange').val() || ''
+        }));
     }
 
     function loadUserFiltersFromStorage() {
-        const savedFilters = localStorage.getItem('userFilters');
-        if (savedFilters) {
-            const filters = JSON.parse(savedFilters);
-            $('#filterNom').val(filters.nom || '');
-            $('#filterEmail').val(filters.email || '');
-            $('#filterPhone').val(filters.phone || '');
-            if ($('#filterUserId').length) {
-                $('#filterUserId').val(filters.userId || 'all');
-            }
+        const s = localStorage.getItem('userFilters');
+        if (s) {
+            const f = JSON.parse(s);
+            $('#filterNom').val(f.nom || '');
+            $('#filterEmail').val(f.email || '');
+            $('#filterPhone').val(f.phone || '');
+            $('#filterEntreeRange').val(f.entreeRange || '');
+            $('#filterSortieRange').val(f.sortieRange || '');
             return true;
         }
         return false;
     }
 
     function filterUsers() {
-        const filterNom = $('#filterNom').val().toLowerCase();
+        const filterNom   = $('#filterNom').val().toLowerCase();
         const filterEmail = $('#filterEmail').val().toLowerCase();
         const filterPhone = $('#filterPhone').val().toLowerCase();
-        const filterUserId = $('#filterUserId').length ? $('#filterUserId').val() : 'all';
 
-        let visibleCount = 0;
-        let newIndex = 1;
+        var entreeRange = parseRangeValue($('#filterEntreeRange').val());
+        var sortieRange = parseRangeValue($('#filterSortieRange').val());
+
+        let visibleCount = 0, newIndex = 1;
 
         $('#content_utilisateur tbody tr').each(function() {
             const $row = $(this);
             let showRow = true;
 
-            const nomValue = ($row.find('.nom-cell').data('nom') || '').toLowerCase();
-            const emailValue = ($row.find('.email-cell').data('email') || '').toLowerCase();
-            const phoneValue = ($row.find('.phone-cell').data('phone') || '').toLowerCase();
-            const userId = $row.data('userId');
+            const nomValue   = ($row.data('nom') || '').toString().toLowerCase();
+            const emailValue = ($row.data('email') || '').toString().toLowerCase();
+            const phoneValue = ($row.data('phone') || '').toString().toLowerCase();
+            const entreeYmd  = ($row.data('entree-ymd') || '').toString();
+            const sortieYmd  = ($row.data('sortie-ymd') || '').toString();
 
             if (filterNom && !nomValue.includes(filterNom)) showRow = false;
             if (showRow && filterEmail && !emailValue.includes(filterEmail)) showRow = false;
             if (showRow && filterPhone && !phoneValue.includes(filterPhone)) showRow = false;
-            if (showRow && filterUserId !== 'all' && userId != filterUserId) showRow = false;
+
+            if (showRow && entreeRange.start && entreeRange.end) {
+                if (!entreeYmd || entreeYmd < entreeRange.start || entreeYmd > entreeRange.end) showRow = false;
+            }
+            if (showRow && sortieRange.start && sortieRange.end) {
+                if (!sortieYmd || sortieYmd < sortieRange.start || sortieYmd > sortieRange.end) showRow = false;
+            }
 
             if (showRow) {
                 $row.show();
                 $row.find('.row-num').text(newIndex);
-                newIndex++;
-                visibleCount++;
-            } else {
-                $row.hide();
-            }
+                newIndex++; visibleCount++;
+            } else { $row.hide(); }
         });
-
         $('#userCount').text(visibleCount);
 
-        if (visibleCount === 0 && (filterNom || filterEmail || filterPhone || filterUserId !== 'all')) {
-            $('#msg').html('<i class="zmdi zmdi-info"></i> Aucun utilisateur ne correspond aux critères de recherche');
+        if (visibleCount === 0 && (filterNom || filterEmail || filterPhone || entreeRange.start || sortieRange.start)) {
+            $('#msg').html('<i class="zmdi zmdi-info"></i> Aucune personne ne correspond aux critères de recherche');
             $('#msg').css('display', 'flex');
-            setTimeout(function() {
-                $('#msg').html('');
-                $('#msg').css('display', 'none');
-            }, 3000);
+            setTimeout(function() { $('#msg').html(''); $('#msg').css('display', 'none'); }, 3000);
         }
     }
 
     function resetUserFilters() {
-        $('#filterNom').val('');
-        $('#filterEmail').val('');
-        $('#filterPhone').val('');
-        if ($('#filterUserId').length) $('#filterUserId').val('all');
+        $('#filterNom').val(''); $('#filterEmail').val(''); $('#filterPhone').val('');
+        $('#filterEntreeRange').val(''); $('#filterSortieRange').val('');
+
+        if ($('#filterEntreeRange').data('daterangepicker')) {
+            $('#filterEntreeRange').data('daterangepicker').setStartDate(moment());
+            $('#filterEntreeRange').data('daterangepicker').setEndDate(moment());
+        }
+        if ($('#filterSortieRange').data('daterangepicker')) {
+            $('#filterSortieRange').data('daterangepicker').setStartDate(moment());
+            $('#filterSortieRange').data('daterangepicker').setEndDate(moment());
+        }
 
         saveUserFiltersToStorage();
-
         $('#content_utilisateur tbody tr').show();
         let newIndex = 1;
         $('#content_utilisateur tbody tr:visible').each(function() {
-            $(this).find('.row-num').text(newIndex);
-            newIndex++;
+            $(this).find('.row-num').text(newIndex); newIndex++;
         });
-        const totalCount = $('#content_utilisateur tbody tr').length;
-        $('#userCount').text(totalCount);
-
-        $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Tous les filtres ont été réinitialisés');
-        $('#msg').css('display', 'flex');
-        setTimeout(function() {
-            $('#msg').html('');
-            $('#msg').css('display', 'none');
-        }, 3000);
+        $('#userCount').text($('#content_utilisateur tbody tr').length);
+        $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Filtres réinitialisés');
+        setTimeout(function() { $('#msg').html(""); }, 3000);
     }
 
     function debouncedUserFilter() {
         clearTimeout(userFilterTimeout);
-        userFilterTimeout = setTimeout(function() {
-            filterUsers();
-            saveUserFiltersToStorage();
-        }, 300);
+        userFilterTimeout = setTimeout(function() { filterUsers(); saveUserFiltersToStorage(); }, 300);
     }
 
     $(document).ready(function() {
         preloadPersonnes();
         togglePersonFields();
-
-        const totalUsers = $('#content_utilisateur tbody tr').length;
-        $('#userCount').text(totalUsers);
-
+        $('#userCount').text($('#content_utilisateur tbody tr').length);
         const hasSavedFilters = loadUserFiltersFromStorage();
-
-        $('#filterNom, #filterEmail, #filterPhone').on('input change', function() {
-            debouncedUserFilter();
-        });
-        if ($('#filterUserId').length) {
-            $('#filterUserId').on('change', function() { debouncedUserFilter(); });
-        }
-
-        $('#resetFilters').click(function(e) {
-            e.preventDefault();
-            resetUserFilters();
-        });
-
-        if (hasSavedFilters) {
-            setTimeout(function() { filterUsers(); }, 100);
-        }
+        $('#filterNom, #filterEmail, #filterPhone').on('input change', function() { debouncedUserFilter(); });
+        $('#resetFilters').click(function(e) { e.preventDefault(); resetUserFilters(); });
+        if (hasSavedFilters) setTimeout(function() { filterUsers(); }, 100);
     });
 
     $(document).ajaxComplete(function(event, xhr, settings) {
         if (settings.url && (settings.url.includes('refresh_') || settings.url.includes('add_personne'))) {
             setTimeout(function() {
-                const totalUsers = $('#content_utilisateur tbody tr').length;
-                $('#userCount').text(totalUsers);
+                $('#userCount').text($('#content_utilisateur tbody tr').length);
                 loadUserFiltersFromStorage();
                 filterUsers();
             }, 200);
         }
     });
 
-    window.addEventListener('beforeunload', function() {
-        saveUserFiltersToStorage();
-    });
+    window.addEventListener('beforeunload', function() { saveUserFiltersToStorage(); });
 </script>
 @endsection
 @endsection

@@ -17378,9 +17378,10 @@ class AjaxController extends Controller
             $postes    = Postes::all();
             $motifs    = Motifs::all();
             $services  = Services::all();
+                $data["registreaccueils"] = registreaccueil::where(["etat" => 1])->get();
 
             $data = [
-                'registres'      => $registres,
+                'registreaccueils'      => $registres,
                 'groupes'        => $groupes,
                 'postes'         => $postes,
                 'motifs'         => $motifs,
@@ -17418,5 +17419,69 @@ class AjaxController extends Controller
                 }
             }
         }
+    }
+    public function refresh_deleteaccueil(Request $request)
+    {
+        $page         = $request->input('page');
+        $ressource_id_1 = $page;
+        $groupe_user_id = Auth::user()->role;
+        $user = registreaccueil::where('id', $request->id)->first();
+        $user->etat = 0;
+        $user->save();
+        $registres = registreaccueil::where('etat', 1)->get();
+        $groupes   = Groupes::all();
+        $postes    = Postes::all();
+        $motifs    = Motifs::all();
+        $services  = Services::all();
+        $registres = registreaccueil::where(["etat" => 1])->get();
+
+        $data = [
+            'registreaccueils'      => $registres,
+            'groupes'        => $groupes,
+            'postes'         => $postes,
+            'motifs'         => $motifs,
+            'services'       => $services,
+            'ressource_id_1' => $ressource_id_1,
+            'groupe_user_id' => $groupe_user_id,
+        ];
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        $data["ressource_id_1"] = $request->page;
+        return view('include.refresh_registreaccueils', $data);
+    }
+    public function refresh_updatesortie(Request $request)
+    {
+        $page           = $request->input('page');
+        $ressource_id_1 = $page;
+        $groupe_user_id = Auth::user()->role;
+
+        // Récupération et mise à jour de l'heure de sortie
+        $user = registreaccueil::where('id', $request->id)->first();
+        $user->heure_sortie = $request->heure_sortie;
+        $user->save();
+
+        $registres = registreaccueil::where('etat', 1)->get();
+        $groupes   = Groupes::all();
+        $postes    = Postes::all();
+        $motifs    = Motifs::all();
+        $services  = Services::all();
+        $registres = registreaccueil::where(["etat" => 1])->get();
+
+        $data = [
+            'registreaccueils' => $registres,
+            'groupes'          => $groupes,
+            'postes'           => $postes,
+            'motifs'           => $motifs,
+            'services'         => $services,
+            'ressource_id_1'   => $ressource_id_1,
+            'groupe_user_id'   => $groupe_user_id,
+        ];
+        $data["groupes"]        = Groupes::where(["etat" => 1])->get();
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["acces"]          = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        $data["ressource_id_1"] = $request->page;
+
+        return view('include.refresh_registreaccueils', $data);
     }
 }
