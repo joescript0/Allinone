@@ -1307,7 +1307,6 @@ select.form-control {
     border-radius: 10px;
 }
 
-/* Élargir les grilles à l'intérieur pour profiter de l'espace */
 #paramFactureModal .param-info-grid {
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
 }
@@ -1318,7 +1317,6 @@ select.form-control {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
 }
 
-/* Tableau articles : police un peu plus grande puisque l'espace le permet */
 #paramFactureModal #param_articles_table thead th,
 #paramFactureModal #param_paiements_table thead th {
     font-size: 0.78rem !important;
@@ -1335,7 +1333,6 @@ select.form-control {
     font-size: 0.85rem !important;
 }
 
-/* Responsive : sur petit écran, on garde plein écran */
 @media (max-width: 992px) {
     #paramFactureModal .modal-dialog {
         max-width: 100vw !important;
@@ -1840,6 +1837,9 @@ select.form-control {
 
                                                 $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
 
+                                                // ✅ Nom du créateur de la facture (factures.user_id)
+                                                $facture_user_nom = User::where('id', $data->user_id)->first()['name'] ?? 'N/A';
+
                                                 $articles_json = [];
                                                 foreach ($ent as $e) {
                                                     $art = null;
@@ -1881,14 +1881,25 @@ select.form-control {
                                                 }
 
                                                 // ✅ Utilisateur du PAIEMENT (detailpaiessachats.user_id)
+                                                // C'est la personne qui a ENREGISTRÉ le paiement, pas celle qui a créé la facture.
+                                                // Si user_id est null (anciens paiements), on retombe sur le créateur de la facture.
                                                 $paiements_json = [];
                                                 foreach ($paiements as $p) {
                                                     $isUSD = ($p->devise_recu == 0);
 
-                                                    $payeur_id  = $p->user_id ?? null;
-                                                    $payeur_nom = $payeur_id
-                                                        ? (User::where('id', $payeur_id)->first()['name'] ?? 'N/A')
-                                                        : 'N/A';
+                                                    $payeur_id = $p->user_id ?? null;
+                                                    $payeur_source = 'paiement';
+
+                                                    if (empty($payeur_id)) {
+                                                        $payeur_id = $data->user_id ?? null;
+                                                        $payeur_source = 'facture';
+                                                    }
+
+                                                    $payeur_nom = 'N/A';
+                                                    if (!empty($payeur_id)) {
+                                                        $u = User::where('id', $payeur_id)->first();
+                                                        if ($u) $payeur_nom = $u->name;
+                                                    }
 
                                                     $paiements_json[] = [
                                                         'id'               => $p->id,
@@ -1896,6 +1907,7 @@ select.form-control {
                                                         'payer'            => $p->payer,
                                                         'payer_nom'        => $payeur_nom,
                                                         'payer_id'         => $payeur_id,
+                                                        'payer_source'     => $payeur_source,
                                                         'montant_recu'     => $p->montant_recu,
                                                         'devise_label'     => $isUSD ? 'USD' : 'CDF',
                                                         'mode_de_paiement' => $p->mode_de_paiement,
@@ -1920,7 +1932,8 @@ select.form-control {
                                                 data-numero="{{ $data->numero }}"
                                                 data-client="{{ $client_name }}"
                                                 data-client-id="{{ $data->client_id }}"
-                                                data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}"
+                                                data-user="{{ $facture_user_nom }}"
+                                                data-user-id="{{ $data->user_id }}"
                                                 data-table="{{ $data->table_id == 0 ? 'Aucune' : (Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A') }}"
                                                 data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
                                                 data-devise="{{ $data->devise }}"
@@ -1941,8 +1954,8 @@ select.form-control {
                                                 data-articles='@json($articles_json)'
                                                 data-paiements='@json($paiements_json)'>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell" data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
-                                                    {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ $facture_user_nom }}">
+                                                    {{ $facture_user_nom }}
                                                 </td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="client-cell" data-client="{{ $client_name }}">
                                                     @if ($data->client_id == 0)
@@ -2806,7 +2819,7 @@ select.form-control {
     </div>
 
     <div class="modal fade" id="rapportModal" tabindex="-1" role="dialog" aria-labelledby="rapportModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1100px;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1200px;">
             <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);">
 
                 <div class="modal-header" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-bottom: none; padding: 1.1rem 1.5rem;">
@@ -2831,7 +2844,7 @@ select.form-control {
                         </div>
                         <div style="flex:1; min-width: 200px;">
                             <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
-                                <i class="zmdi zmdi-account text-danger"></i> Utilisateur
+                                <i class="zmdi zmdi-account text-danger"></i> Utilisateur (payeur)
                             </label>
                             <select id="rapport_user_filter" class="form-control">
                                 <option value="all">Tous les utilisateurs</option>
@@ -2876,20 +2889,26 @@ select.form-control {
                     <div class="table-responsive" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background:white;">
                         <table class="table table-sm mb-0" id="rapport_table">
                             <thead style="background: #FEE2E2;">
+                                <!-- ✅ NOUVEAU — 2 colonnes distinctes : Enregistré par / Encaissé par -->
                                 <tr>
                                     <th style="font-size:0.72rem;">#</th>
-                                    <th style="font-size:0.72rem;">Date</th>
+                                    <th style="font-size:0.72rem;">Date paiement</th>
                                     <th style="font-size:0.72rem;">N° Facture</th>
                                     <th style="font-size:0.72rem;">Date facture</th>
                                     <th style="font-size:0.72rem;">Client / Libellé</th>
-                                    <th style="font-size:0.72rem;">Utilisateur</th>
+                                    <th style="font-size:0.72rem;" title="Utilisateur qui a créé la facture (factures.user_id)">
+                                        <i class="zmdi zmdi-edit"></i> Enregistré par
+                                    </th>
+                                    <th style="font-size:0.72rem;" title="Utilisateur qui a encaissé le paiement (detailpaiessachats.user_id)">
+                                        <i class="zmdi zmdi-money"></i> Encaissé par
+                                    </th>
                                     <th style="font-size:0.72rem;">Mode</th>
                                     <th style="font-size:0.72rem;">Devise</th>
                                     <th style="font-size:0.72rem; text-align:right;">Montant reçu</th>
                                 </tr>
                             </thead>
                             <tbody id="rapport_body">
-                                <tr><td colspan="9" class="text-center text-muted">Chargement...</td></tr>
+                                <tr><td colspan="10" class="text-center text-muted">Chargement...</td></tr>
                             </tbody>
                             <tfoot id="rapport_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
                         </table>
@@ -2927,13 +2946,16 @@ select.form-control {
     <script>
         $("#link_24").addClass("active");
 
-        var USER_ROLE = {{ Auth::user()->role ?? 1 }};
+        // ============================================================
+        // ✅ VARIABLES GLOBALES UTILISATEUR
+        // ============================================================
+        var USER_ROLE         = {{ Auth::user()->role ?? 1 }};
+        var CURRENT_USER_ID   = {{ Auth::user()->id }};
         var CURRENT_USER_NAME = "{{ addslashes(Auth::user()->name ?? '') }}";
 
-        // ✅ Tous les utilisateurs (actifs ET désactivés) car un user désactivé peut avoir enregistré des paiements
         var ALL_USERS = [
             @foreach(\App\Models\User::orderBy('name')->get() as $u)
-                "{{ addslashes($u->name) }}",
+                { id: {{ $u->id }}, name: "{{ addslashes($u->name) }}" },
             @endforeach
         ];
 
@@ -3062,7 +3084,8 @@ select.form-control {
                         setTimeout(() => { $('#msg').html(""); }, 9000);
                         resetButton();
                         return;
-                    } else if ((data_rep[0] == -1) && (data_rep[3] == 1)) {
+                    } else if ((data_rep[0] == -1) && (data_rep[3] == 1))
+                    {
                         $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le stock de cette article est vide');
                         setTimeout(() => { $('#msg').html(""); }, 9000);
                         resetButton();
@@ -4029,11 +4052,9 @@ select.form-control {
                 return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
             }
 
-            // ✅ Select2 avec recherche activée pour le select Utilisateur du rapport
             function populateRapportUsers() {
                 var $sel = $('#rapport_user_filter');
 
-                // Détruire select2 s'il est déjà initialisé
                 if ($sel.hasClass('select2-hidden-accessible')) {
                     $sel.select2('destroy');
                 }
@@ -4043,11 +4064,10 @@ select.form-control {
                 if (USER_ROLE == 0) {
                     $sel.append('<option value="all">Tous les utilisateurs</option>');
                     ALL_USERS.forEach(function (u) {
-                        $sel.append('<option value="' + u + '">' + u + '</option>');
+                        $sel.append('<option value="' + u.id + '">' + u.name + '</option>');
                     });
                     $sel.prop('disabled', false);
 
-                    // Initialiser Select2 avec recherche
                     $sel.select2({
                         placeholder: "Rechercher un utilisateur...",
                         allowClear: false,
@@ -4061,8 +4081,8 @@ select.form-control {
                     });
                 } else {
                     var nom = CURRENT_USER_NAME || 'Utilisateur';
-                    $sel.append('<option value="' + nom + '" selected>' + nom + '</option>');
-                    $sel.val(nom);
+                    $sel.append('<option value="' + CURRENT_USER_ID + '" selected>' + nom + '</option>');
+                    $sel.val(String(CURRENT_USER_ID));
                     $sel.prop('disabled', true);
 
                     $sel.select2({
@@ -4074,17 +4094,35 @@ select.form-control {
                 }
             }
 
-            // ✅ Filtre utilisateur porte sur detailpaiessachats.user_id
+            // ✅ MODIFIÉ — Rapport avec 2 colonnes : "Enregistré par" (factures.user_id)
+            //                                   et "Encaissé par" (detailpaiessachats.user_id)
+            // Le filtre Utilisateur porte sur detailpaiessachats.user_id → un utilisateur voit
+            // tous les paiements qu'il a ENCAISSÉS, même sur des factures créées par d'autres.
             function buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
                 var totalUSD = 0, totalCDF = 0, nbTransactions = 0;
                 var html = '';
                 var lignes = [];
 
-                var effectiveUserFilter = (USER_ROLE == 0)
-                    ? (userFilter || 'all')
-                    : CURRENT_USER_NAME;
+                // ✅ Filtre admin : 'all' ou un ID ; non-admin : son propre ID
+                var effectiveUserId;
+                if (USER_ROLE == 0) {
+                    if (!userFilter || userFilter === 'all') {
+                        effectiveUserId = 'all';
+                    } else {
+                        effectiveUserId = parseInt(userFilter);
+                        if (isNaN(effectiveUserId)) effectiveUserId = 'all';
+                    }
+                } else {
+                    effectiveUserId = CURRENT_USER_ID;
+                }
 
                 var effectiveClientFilter = (clientFilter || '').trim().toLowerCase();
+
+                var effectiveUserLabel = 'Tous';
+                if (effectiveUserId !== 'all') {
+                    var foundUser = ALL_USERS.find(function (u) { return u.id === effectiveUserId; });
+                    effectiveUserLabel = foundUser ? foundUser.name : ('ID ' + effectiveUserId);
+                }
 
                 $('#content_utilisateur tbody tr').each(function () {
                     var $row = $(this);
@@ -4096,6 +4134,9 @@ select.form-control {
                     var dateFacture = $row.data('date') || '-';
                     var tauxFacture = parseFloat($row.data('taux')) || 1;
                     if (tauxFacture <= 0) tauxFacture = 1;
+
+                    // ✅ Nom du créateur de la facture (depuis la ligne, factures.user_id)
+                    var enregistrePar = $row.data('user') || 'N/A';
 
                     // Filtre CLIENT au niveau de la facture
                     if (effectiveClientFilter && !String(client).toLowerCase().includes(effectiveClientFilter)) {
@@ -4113,14 +4154,13 @@ select.form-control {
                             if (payISO < dateDebutISO || payISO > dateFinISO) return;
                         }
 
-                        // Utilisateur du PAIEMENT
-                        var user_nom = p.payer_nom || 'N/A';
-
-                        // Filtre UTILISATEUR sur le payeur du paiement
-                        if (effectiveUserFilter && effectiveUserFilter !== 'all' && user_nom !== effectiveUserFilter) {
+                        // ✅ Filtre par ID du PAYEUR (detailpaiessachats.user_id)
+                        var payeurId = parseInt(p.payer_id) || 0;
+                        if (effectiveUserId !== 'all' && payeurId !== effectiveUserId) {
                             return;
                         }
 
+                        var encaissePar = p.payer_nom || 'N/A';
                         var montant = parseFloat(p.montant_recu) || 0;
                         var devise  = p.devise_label || 'USD';
                         var tauxP   = parseFloat(p.taux) || tauxFacture;
@@ -4130,22 +4170,22 @@ select.form-control {
                         if (devise === 'USD') {
                             montantUSD = montant;
                             montantCDF = montant * tauxP;
-                            totalUSD += montantUSD;
-                            totalCDF += montantCDF;
                         } else {
                             montantCDF = montant;
                             montantUSD = (tauxP > 0) ? (montant / tauxP) : 0;
-                            totalUSD += montantUSD;
-                            totalCDF += montantCDF;
                         }
-
+                        totalUSD += montantUSD;
+                        totalCDF += montantCDF;
                         nbTransactions++;
+
                         lignes.push({
                             date: p.date || '-',
                             numero: numero,
                             date_facture: dateFacture,
                             client: client,
-                            user_nom: user_nom,
+                            enregistre_par: enregistrePar,                 // ✅ factures.user_id
+                            encaisse_par: encaissePar,                     // ✅ detailpaiessachats.user_id
+                            encaisse_par_id: payeurId,
                             mode: p.mode_label || 'N/A',
                             devise: devise,
                             montant: montant,
@@ -4163,7 +4203,7 @@ select.form-control {
                 });
 
                 if (lignes.length === 0) {
-                    html = '<tr><td colspan="9" class="text-center text-muted">Aucun paiement trouvé dans cette période</td></tr>';
+                    html = '<tr><td colspan="10" class="text-center text-muted">Aucun paiement trouvé dans cette période</td></tr>';
                 } else {
                     lignes.forEach(function (l, idx) {
                         var badgeDevise = l.devise === 'USD' ? 'primary' : 'warning';
@@ -4173,7 +4213,14 @@ select.form-control {
                         html += '<td><b>' + l.numero + '</b></td>';
                         html += '<td style="font-size:0.78rem;">' + l.date_facture + '</td>';
                         html += '<td>' + l.client + '</td>';
-                        html += '<td><span class="badge badge-secondary"><i class="zmdi zmdi-account"></i> ' + l.user_nom + '</span></td>';
+                        // ✅ Colonne "Enregistré par" (créateur de la facture)
+                        html += '<td><span class="badge badge-secondary" title="Créateur de la facture">';
+                        html += '<i class="zmdi zmdi-edit"></i> ' + l.enregistre_par;
+                        html += '</span></td>';
+                        // ✅ Colonne "Encaissé par" (encodeur du paiement)
+                        html += '<td><span class="badge badge-success" title="ID payeur : ' + (l.encaisse_par_id || 'N/A') + '" style="background: linear-gradient(135deg, #10b981, #059669);">';
+                        html += '<i class="zmdi zmdi-money"></i> ' + l.encaisse_par;
+                        html += '</span></td>';
                         html += '<td><span class="badge badge-info">' + l.mode + '</span></td>';
                         html += '<td><span class="badge badge-' + badgeDevise + '">' + l.devise + '</span></td>';
                         html += '<td style="text-align:right;">';
@@ -4189,7 +4236,7 @@ select.form-control {
                 $('#rapport_body').html(html);
 
                 var footHtml = '<tr>';
-                footHtml += '<td colspan="8" class="text-right">TOTAL REÇU (' + nbTransactions + ' transaction' + (nbTransactions > 1 ? 's' : '') + ') :</td>';
+                footHtml += '<td colspan="9" class="text-right">TOTAL REÇU (' + nbTransactions + ' transaction' + (nbTransactions > 1 ? 's' : '') + ') :</td>';
                 footHtml += '<td style="text-align:right;">';
                 footHtml += '<span class="text-primary">' + formatRapportMoney(totalUSD) + ' USD</span><br>';
                 footHtml += '<span class="text-warning">' + formatRapportMoney(totalCDF) + ' CDF</span>';
@@ -4202,7 +4249,7 @@ select.form-control {
                 $('#rapport_nb').text(nbTransactions);
 
                 if (USER_ROLE == 0) {
-                    $('#rapport_user_label').text(effectiveUserFilter === 'all' ? 'Tous' : effectiveUserFilter);
+                    $('#rapport_user_label').text(effectiveUserLabel);
                 } else {
                     $('#rapport_user_label').text(CURRENT_USER_NAME + ' (vous)');
                 }
@@ -4256,17 +4303,14 @@ select.form-control {
                     }
                 }
 
-                // ✅ Afficher d'abord la modale, puis initialiser Select2 sur l'événement shown.bs.modal
                 $('#rapportModal').modal('show');
 
-                // Nettoyer un éventuel ancien handler pour éviter les doublons
                 $('#rapportModal').off('shown.bs.modal.rapportUser');
 
-                // Initialiser le select Utilisateur après affichage de la modale
                 $('#rapportModal').on('shown.bs.modal.rapportUser', function () {
                     populateRapportUsers();
 
-                    var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                    var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
                     var clientFilter = $('#rapport_client_filter').val() || '';
 
                     $('#rapport_periode_label').text(filterRange || 'Toutes les dates');
@@ -4285,7 +4329,7 @@ select.form-control {
                         dateFinISO   = parseDMY_to_ISO(parts[1]);
                     }
                 }
-                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
                 var clientFilter = $('#rapport_client_filter').val() || '';
                 $('#rapport_periode_label').text(range || 'Toutes les dates');
                 buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
@@ -4319,7 +4363,7 @@ select.form-control {
                             dateFinISO   = parseDMY_to_ISO(parts[1]);
                         }
                     }
-                    var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                    var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
                     var clientFilter = $('#rapport_client_filter').val() || '';
                     buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
                 }, 300);
@@ -4339,11 +4383,11 @@ select.form-control {
                 if (USER_ROLE == 0) {
                     $('#rapport_user_filter').val('all').trigger('change.select2');
                 } else {
-                    $('#rapport_user_filter').val(CURRENT_USER_NAME).trigger('change.select2');
+                    $('#rapport_user_filter').val(String(CURRENT_USER_ID)).trigger('change.select2');
                 }
 
                 $('#rapport_periode_label').text('Toutes les dates');
-                buildRapport(null, null, USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME, '');
+                buildRapport(null, null, USER_ROLE == 0 ? 'all' : CURRENT_USER_ID, '');
             });
         });
 

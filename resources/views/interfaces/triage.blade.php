@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 ?>
 @extends('layouts.main')
 @section('title', $nom_app)
-@section('name', 'ACCUEIL ORIENTATION')
+@section('name', 'TRIAGE')
 @section('body')
 @include('composants.preload')
 @include('composants.header')
@@ -64,23 +64,68 @@ h4 i.zmdi { background: var(--bleu-nuit-gradient); background-clip: text; -webki
 .table tbody td { padding: 10px 12px !important; vertical-align: middle !important; font-weight: 500; font-size: 0.85rem; color: #1e2a3e; border-bottom: 1px solid #eef2f6; line-height: 1.4; }
 .table tbody td:last-child { text-align: center; vertical-align: middle; }
 
-.numero-cell { font-weight: 700; color: #0a192f; font-family: 'Courier New', monospace; font-size: 0.82rem; letter-spacing: 0.3px; }
+.numero-cell {
+    font-weight: 700;
+    color: #0a192f;
+    font-family: 'Courier New', monospace;
+    font-size: 0.82rem;
+    letter-spacing: 0.3px;
+}
 
-.phone-cell-display { font-weight: 600; color: #0a192f; font-size: 0.82rem; white-space: nowrap; }
-.phone-cell-display i { color: #10b981; margin-right: 4px; font-size: 0.9rem; }
+.phone-cell-display {
+    font-weight: 600;
+    color: #0a192f;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+.phone-cell-display i {
+    color: #10b981;
+    margin-right: 4px;
+    font-size: 0.9rem;
+}
 
-.phone-call-link { display: inline-flex !important; align-items: center; gap: 8px; padding: 6px 14px; background: linear-gradient(135deg, #10b981, #059669); color: white !important; border-radius: 40px; font-weight: 700; font-size: 0.85rem; text-decoration: none !important; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); white-space: nowrap; }
-.phone-call-link:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(16, 185, 129, 0.4); background: linear-gradient(135deg, #059669, #047857); color: white !important; }
+.phone-call-link {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white !important;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    white-space: nowrap;
+}
+.phone-call-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white !important;
+}
 .phone-call-link i { font-size: 1.05rem; }
 .phone-call-link .phone-num { font-family: 'Courier New', monospace; letter-spacing: 0.4px; }
-.phone-call-link i, .phone-call-link i.zmdi, .phone-call-link i.zmdi-phone, .phone-call-link i.zmdi-phone-in-talk { color: #ffffff !important; }
-.phone-call-link:hover i, .phone-call-link:hover i.zmdi, .phone-call-link:hover i.zmdi-phone, .phone-call-link:hover i.zmdi-phone-in-talk { color: #ffffff !important; }
+
+.phone-call-link i,
+.phone-call-link i.zmdi,
+.phone-call-link i.zmdi-phone,
+.phone-call-link i.zmdi-phone-in-talk { color: #ffffff !important; }
+.phone-call-link:hover i,
+.phone-call-link:hover i.zmdi,
+.phone-call-link:hover i.zmdi-phone,
+.phone-call-link:hover i.zmdi-phone-in-talk { color: #ffffff !important; }
 
 .table .phone-cell-display .phone-call-link { padding: 4px 10px; font-size: 0.78rem; gap: 5px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2); }
 .table .phone-cell-display .phone-call-link i { font-size: 0.95rem; }
 .table .phone-cell-display .phone-call-link:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.35); }
-.table .phone-cell-display .phone-call-link i, .table .phone-cell-display .phone-call-link i.zmdi, .table .phone-cell-display .phone-call-link i.zmdi-phone-in-talk { color: #ffffff !important; }
-.table .phone-cell-display .phone-call-link:hover i, .table .phone-cell-display .phone-call-link:hover i.zmdi, .table .phone-cell-display .phone-call-link:hover i.zmdi-phone-in-talk { color: #ffffff !important; }
+.table .phone-cell-display .phone-call-link i,
+.table .phone-cell-display .phone-call-link i.zmdi,
+.table .phone-cell-display .phone-call-link i.zmdi-phone-in-talk { color: #ffffff !important; }
+.table .phone-cell-display .phone-call-link:hover i,
+.table .phone-cell-display .phone-call-link:hover i.zmdi,
+.table .phone-cell-display .phone-call-link:hover i.zmdi-phone-in-talk { color: #ffffff !important; }
 
 .btn-call-modal { display: inline-flex !important; align-items: center; gap: 8px; padding: 8px 22px; background: linear-gradient(135deg, #10b981, #059669); color: white !important; border-radius: 40px; font-weight: 700; font-size: 0.85rem; text-decoration: none !important; border: none; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3); }
 .btn-call-modal i, .btn-call-modal i.zmdi { color: #ffffff !important; }
@@ -129,9 +174,6 @@ h4 i.zmdi { background: var(--bleu-nuit-gradient); background-clip: text; -webki
 textarea.form-control { resize: vertical; height: 38px !important; min-height: 38px !important; }
 .form-control:focus, select.form-control:focus, textarea.form-control:focus { border-color: var(--bleu-nuit) !important; box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important; }
 
-#form_add .form-row-custom { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
-#form_add .form-row-custom > [class*="col-"] { flex: 1 1 calc(50% - 8px); min-width: 260px; max-width: 100%; padding: 0; margin: 0; }
-
 .select2-container { width: 100% !important; }
 .select2-container--default .select2-selection--single { height: 38px !important; border: 1px solid #e2e8f0 !important; border-radius: 14px !important; background: #ffffff !important; display: flex !important; align-items: center; }
 .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: normal !important; padding-left: 14px !important; padding-right: 40px !important; font-weight: 500; font-size: 0.85rem; }
@@ -148,14 +190,6 @@ textarea.form-control { resize: vertical; height: 38px !important; min-height: 3
 .daterangepicker .drp-buttons .btn { border-radius: 40px !important; padding: 6px 16px !important; font-weight: 600 !important; font-size: 0.8rem !important; }
 .daterangepicker .drp-buttons .btn-primary { background: #3B82F6 !important; border-color: #3B82F6 !important; }
 .daterangepicker .drp-buttons .btn-default { background: #64748b !important; color: white !important; border-color: #64748b !important; }
-
-.signature-section { margin-top: 28px; padding-top: 18px; border-top: 1px dashed #e2e8f0; }
-.signature-wrap { position: relative; border: 2px dashed #cbd5e1; border-radius: 14px; background: #f8fafc; height: 340px; min-height: 340px; overflow: hidden; width: 100%; margin-top: 8px; }
-#signatureCanvas { width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: none; background: #f8fafc; }
-.signature-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 15px; pointer-events: none; font-style: italic; }
-.signature-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
-.btn-clear-sig { background: #fff; border: 1px solid #cbd5e1; color: #475569; padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-.btn-clear-sig:hover { background: #f8fafc; color: #0a192f; border-color: #94a3b8; }
 
 #msg, #edit_msg { display: none !important; }
 #msg:not(:empty), #edit_msg:not(:empty) { display: inline-flex !important; margin-top: 16px !important; padding: 10px 18px !important; background: white !important; border-radius: 50px !important; box-shadow: var(--shadow-light) !important; gap: 10px; font-weight: 600; font-size: 0.8rem; }
@@ -263,26 +297,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                 <a class="btn-primary btn-sm" id="liste" href="">
                                     <i class="zmdi zmdi-accounts"></i> Liste
                                 </a>
-                                &nbsp;
-                                <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
-                                    <?php
-                                    $add = 0;
-                                    if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
-                                        $add = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->add;
-                                    }
-                                    ?>
-                                    <?php if (($add ==  1) || (Auth::user()->role == 0)) { ?>
-                                        <a id="add" class="btn-primary btn-sm" href="">
-                                            <i class="zmdi zmdi-accounts-add"></i> Ajouter
-                                        </a>
-                                        &nbsp;
-                                    <?php } else { ?>
-                                        <a id="add_r" href="">
-                                            <i class="zmdi zmdi-accounts-add"></i> Ajouter
-                                        </a>
-                                        &nbsp;
-                                    <?php } ?>
-                                <?php } ?>
                             </div>
                         </div>
                     </div>
@@ -293,14 +307,14 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     <div style="margin-top: 30px;" class="container">
         <div class="row">
             <div class="col-lg-12">
-                <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Accueil orientation</h6>
+                <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Triage</h6>
             </div>
             <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
                 <h4 style="color:rgba(0, 0, 0, 0.6);">
                     <i style="font-size: 40px;" class="zmdi zmdi-accounts text-info"></i>
-                    Liste
+                    Liste des patients
                     <span class="user-count-badge">
-                        <i class="zmdi zmdi-view-list"></i> Total personne : <span id="userCount">0</span>
+                        <i class="zmdi zmdi-view-list"></i> Total patient : <span id="userCount">0</span>
                     </span>
                 </h4>
 
@@ -341,7 +355,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                         <th>N°</th>
                                         <th>Nom</th>
                                         <th>Contact</th>
-                                        <th>Type</th>
                                         <th>Nature</th>
                                         <th>Motif</th>
                                         <th>Service</th>
@@ -356,6 +369,11 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                         @php
                                             $personneRec = \App\Models\Personnes::find($data->personne_id);
                                             $typeNumerique = $personneRec->type ?? null;
+
+                                            // FILTRE : on n'affiche QUE les patients (type = 2).
+                                            if ($typeNumerique !== 2) {
+                                                continue;
+                                            }
 
                                             $typeLabels = [0 => 'Utilisateur', 1 => 'Client', 2 => 'Patient', 3 => 'Visiteur'];
                                             $typeLabel = $typeLabels[$typeNumerique] ?? '—';
@@ -432,6 +450,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 
                                             <td class="row-num">{{ $i }}</td>
 
+                                            {{-- Nom --}}
                                             <td class="nom-cell align-middle">
                                                 @if(!empty($image))
                                                     <a id="voir_profil_<?= $i ?>" href="#">
@@ -441,6 +460,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                                 {{ $nom }}
                                             </td>
 
+                                            {{-- Contact (cliquable pour appel) --}}
                                             <td class="phone-cell-display">
                                                 @if(!empty($phone))
                                                     <a href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}"
@@ -454,7 +474,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                                 @endif
                                             </td>
 
-                                            <td>{{ $typeLabel }}</td>
                                             <td>{{ $natureLabel }}</td>
 
                                             <td>
@@ -560,177 +579,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                 </div>
             </div>
 
-            {{-- ===================== BLOC AJOUTER ===================== --}}
-            <div id="bloc_2" style="margin-top: 12px;display: none;margin-bottom: 100px;" class="col-lg-12">
-                <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-accounts-add text-info"></i> Ajouter</h4>
-                <form id="form_add" action="#" method="post">
-                    @csrf
-                    <p style="color:rgba(0, 0, 0, 0.6);" class="text-center">
-                        <a href="#">
-                            <img id="user_img_profil" class="user__img" src="{{ asset('storage/images/user/profil_defaut.png') }}" alt="" style="width: 100px; height: 100px; object-fit: cover;">
-                        </a>
-                    </p>
-                    <div class="progress-container" style="display:none; margin-top: 10px;">
-                        <div class="progress-bar" style="width:0%; height:5px; background-color:#32c787;"></div>
-                        <span class="progress-text" style="font-size:12px;">0%</span>
-                    </div>
-
-                    <input type="file" name="input_user_img_profil" id="input_user_img_profil" style="display:none;">
-                    <input type="text" name="image" id="image" value="{{ asset('storage/images/user/profil_defaut.png') }}" style="display:none;">
-
-                    <div class="form-row-custom">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="text-info"><i class="zmdi zmdi-account-box"></i> Personne</label>
-                                <select id="personne" name="personne" class="form-control"><option value=""></option></select>
-                            </div>
-                        </div>
-                        <div class="col-6" id="wrapper_type_personne">
-                            <div class="form-group">
-                                <label class="text-info"><i class="zmdi zmdi-accounts-list"></i> Type de personne</label>
-                                <select id="type_personne" name="type_personne" class="form-control">
-                                    <option value=""></option>
-                                    <option value="0">Utilisateurs</option>
-                                    <option value="1">Client</option>
-                                    <option value="2">Patient</option>
-                                    <option value="3">Visiteurs</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-row-custom" id="row_nature_nom">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="text-info"><i class="zmdi zmdi-city-alt"></i> Nature</label>
-                                <select id="nature" name="nature" class="form-control">
-                                    <option value=""></option>
-                                    <option value="0">Privé</option>
-                                    <option value="1">Entreprise</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="text-info"><i class="zmdi zmdi-account"></i> Nom</label>
-                                <input type="text" id="nom" name="nom" class="form-control" placeholder="Nom (Ex : Mgm congo)">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-row-custom" id="row_email_phone">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="text-info"><i class="zmdi zmdi-email"></i> E-mail</label>
-                                <input type="text" id="email" name="email" class="form-control" placeholder="Email (Ex : mgm@gmail.com)">
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="text-info"><i class="zmdi zmdi-phone"></i> Telephone</label>
-                                <input type="text" id="phone" name="phone" class="form-control" placeholder="Telephone (Ex : +243974743675)">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-row-custom">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="text-info"><i class="zmdi zmdi-tag"></i> Motif</label>
-                                <select id="motif" name="motif" class="form-control">
-                                    <option value=""></option>
-                                    <option value="0">Aucun motif</option>
-                                    @isset($motifs)
-                                        @foreach ($motifs as $motif)
-                                            <option value="{{ $motif->id }}">{{ $motif->nom }}</option>
-                                        @endforeach
-                                    @endisset
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="text-info"><i class="zmdi zmdi-balance"></i> Service</label>
-                                <select id="service" name="service" class="form-control">
-                                    <option value=""></option>
-                                    <option value="0">Aucun service</option>
-                                    @isset($services)
-                                        @foreach ($services as $service)
-                                            <option value="{{ $service->id }}">{{ $service->nom }}</option>
-                                        @endforeach
-                                    @endisset
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-row-custom">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="text-info"><i class="zmdi zmdi-calendar"></i> Date et heure d'entrée</label>
-                                <input type="hidden" id="heure" name="heure">
-                                <input type="text" id="heure_picker" class="form-control flatpickr-input" placeholder="Sélectionner la date et l'heure" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="text-info"><i class="zmdi zmdi-comment-text"></i> Note</label>
-                                <textarea id="note" name="note" class="form-control" rows="1" placeholder="Remarque éventuelle..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="signature-section">
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label class="text-info" style="font-weight: bold;"><i class="zmdi zmdi-edit"></i> Signature</label>
-
-                                    {{-- Conteneur re-créé à chaque effacement (label + wrap + canvas + placeholder) --}}
-                                    <div id="signature_container">
-                                        <div class="signature-wrap">
-                                            <canvas id="signatureCanvas"></canvas>
-                                            <span class="signature-placeholder" id="sigPlaceholder">Signez ici avec la souris ou le doigt</span>
-                                        </div>
-                                    </div>
-
-                                    {{-- Bouton EN DEHORS du conteneur (jamais recréé) --}}
-                                    <div class="signature-actions">
-                                        <button type="button" class="btn-clear-sig" id="clearSig">
-                                            <i class="zmdi zmdi-refresh"></i> Effacer la signature
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row" style="margin-top: 10px;">
-                        <div class="col-12">
-                            <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
-                                <?php
-                                $add = 0;
-                                if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) {
-                                    $add = Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()[0]->add;
-                                }
-                                ?>
-                            <?php } ?>
-                            <?php if (($add == 1) || (Auth::user()->role == 0)) { ?>
-                                <button id="save" class="btn btn-info btn-sm">Enregister <i class="zmdi zmdi-save"></i></button>
-                            <?php } else { ?>
-                                <button id="save_r" class="btn btn-info btn-sm">Enregister <i class="zmdi zmdi-save"></i></button>
-                            <?php } ?>
-                            <button id="annuler" class="btn btn-danger btn-sm">Annuler <i class="zmdi zmdi-close-circle"></i></button>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-12" style="text-align: center;">
-                            <span style="font-weight: bold;" id="msg"></span>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
             <div id="bloc_3" style="margin-top: 12px;display: none;" class="col-lg-12"></div>
             <div id="bloc_4" style="margin-top: 12px;display: none;" class="col-lg-12">
                 <iframe style="width: 100%;height: 1500px;" id="data_liste" src="" frameborder="0"></iframe>
@@ -742,7 +590,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 <span id="data_id" style="display: none;"></span>
 <button style="display: none;" data-toggle="modal" data-target="#suppression" id="btn_sup">Sup</button>
 
-{{-- MODAL SUPPRESSION --}}
+{{-- ===================== MODAL SUPPRESSION ===================== --}}
 <div class="modal fade" id="suppression" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -779,7 +627,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     </div>
 </div>
 
-{{-- MODAL DÉTAILS --}}
+{{-- ===================== MODAL DÉTAILS ===================== --}}
 <div class="modal fade" id="modal_details" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -832,7 +680,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     </div>
 </div>
 
-{{-- MODAL SORTIE --}}
+{{-- ===================== MODAL SORTIE ===================== --}}
 <div class="modal fade" id="modal_sortie" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -882,7 +730,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     </div>
 </div>
 
-{{-- MODAL SIGNATURE --}}
+{{-- ===================== MODAL SIGNATURE ===================== --}}
 <div class="modal fade" id="modal_signature" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -902,13 +750,11 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 @section('js-code')
 <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
 
 <script>
-    $("#link_59").addClass("active");
-    $("#upload").click(function(e) { e.preventDefault(); $("#dropzone-upload").trigger("click"); });
+    $("#link_61").addClass("active");
 
     function getInitials(name) {
         if (!name || !name.trim()) return '?';
@@ -1032,9 +878,13 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         var $callBtn = $('#details_call_btn');
         if (phone && String(phone).trim() !== '' && phone !== 'Non renseigné') {
             var cleanPhoneFooter = String(phone).replace(/[^\d+]/g, '');
-            $callBtn.attr('href', 'tel:' + cleanPhoneFooter).removeClass('disabled').attr('title', 'Appeler ' + phone);
+            $callBtn.attr('href', 'tel:' + cleanPhoneFooter)
+                    .removeClass('disabled')
+                    .attr('title', 'Appeler ' + phone);
         } else {
-            $callBtn.attr('href', '#').addClass('disabled').attr('title', 'Aucun numéro disponible');
+            $callBtn.attr('href', '#')
+                    .addClass('disabled')
+                    .attr('title', 'Aucun numéro disponible');
         }
 
         var $s = $('#d_sortie_fiche');
@@ -1167,283 +1017,10 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         $('#signature_download_btn').attr('href', '');
     });
 
-    /* ============ TOGGLE ============ */
-    function togglePersonFields() {
-        var val = $('#personne').val();
-        var has = (val !== null && val !== '' && val !== undefined && parseInt(val, 10) > 0);
-        if (has) { $('#wrapper_type_personne').hide(); $('#row_nature_nom').hide(); $('#row_email_phone').hide(); }
-        else { $('#wrapper_type_personne').show(); $('#row_nature_nom').show(); $('#row_email_phone').show(); }
-        return has;
-    }
-
-    var select2Inited = false;
-    function initSelect2() {
-        if (select2Inited) return;
-        if (typeof $.fn.select2 === 'undefined') return;
-        var cfg = function(ph) { return { placeholder: ph, allowClear: true, width: '100%',
-            language: { noResults: function() { return "Aucun résultat"; }, searching: function() { return "Recherche..."; } } }; };
-        $('#personne').select2($.extend(cfg('-- Sélectionner une personne --'), { dropdownParent: $('#personne').closest('.form-group') }));
-        $('#type_personne').select2($.extend(cfg('-- Sélectionner un type --'), { dropdownParent: $('#type_personne').closest('.form-group') }));
-        $('#nature').select2($.extend(cfg('-- Sélectionner une nature --'), { dropdownParent: $('#nature').closest('.form-group') }));
-        $('#motif').select2($.extend(cfg('-- Sélectionner un motif --'), { dropdownParent: $('#motif').closest('.form-group') }));
-        $('#service').select2($.extend(cfg('-- Sélectionner un service --'), { dropdownParent: $('#service').closest('.form-group') }));
-        select2Inited = true;
-    }
-
-    function preloadPersonnes() {
-        $.ajax({
-            type: "GET", url: "{{ url('/get_personnes_by_type') }}", dataType: "json",
-            success: function(data) {
-                var options = '<option value=""></option>';
-                $.each(data, function(i, item) {
-                    options += '<option value="' + item.id + '" data-type="' + item.type + '">' + item.label + '</option>';
-                });
-                $('#personne').html(options);
-                togglePersonFields();
-            },
-            error: function() { $('#personne').html('<option value="">Erreur</option>'); }
-        });
-    }
-
-    $(document).on('change', '#personne', function() {
-        var has = togglePersonFields();
-        var val = $(this).val();
-        if (val === null || val === '' || val === undefined) return;
-        var type = $(this).find('option:selected').data('type');
-        if (val == 0 || type === -1 || type === undefined || type === null) {
-            $('#type_personne').val(null).trigger('change');
-            $('#msg').html('<i class="zmdi zmdi-info"></i> Veuillez sélectionner un type de personne');
-            setTimeout(function() { $('#msg').html(""); }, 6000);
-            return;
-        }
-        if (has) $('#type_personne').val(type).trigger('change');
-    });
-
-    var heurePicker = null;
-    function initFlatpickr() {
-        if (heurePicker) return;
-        if (typeof flatpickr === 'undefined') return;
-        if (flatpickr.l10ns && flatpickr.l10ns.fr) flatpickr.localize(flatpickr.l10ns.fr);
-        var now = new Date();
-        heurePicker = flatpickr("#heure_picker", {
-            enableTime: true, time_24hr: true, dateFormat: "Y-m-d H:i",
-            altInput: true, altFormat: "d/m/Y H:i", defaultDate: now,
-            minuteIncrement: 1, disableMobile: true,
-            onChange: function(d, s) { $("#heure").val(s); }
-        });
-        $("#heure").val(heurePicker.formatDate(now, "Y-m-d H:i"));
-    }
-
-    /* =====================================================================
-       SIGNATURE : reconstruction TOTALE du contenu de #signature_container
-       ===================================================================== */
-    var signatureInited = false, canvas, ctx, placeholder, drawing = false, hasSignature = false;
-
-    /**
-     * Efface TOUT : on vide #signature_container et on reconstruit
-     * intégralement son contenu (wrap + canvas + placeholder).
-     * Le bouton #clearSig est EN DEHORS du container et n'est jamais recréé.
-     */
-    function clearSignatureCanvas() {
-        var container = document.getElementById('signature_container');
-        if (!container) return;
-
-        // Reset immédiat des drapeaux pour éviter tout dessin résiduel
-        drawing = false;
-        hasSignature = false;
-        signatureInited = false;
-        canvas = null;
-        ctx = null;
-        placeholder = null;
-
-        // Vide le conteneur (supprime l'ancien wrap + canvas + placeholder)
-        container.innerHTML = '';
-
-        // Crée un nouveau wrap
-        var newWrap = document.createElement('div');
-        newWrap.className = 'signature-wrap';
-
-        // Crée un nouveau canvas
-        var newCanvas = document.createElement('canvas');
-        newCanvas.id = 'signatureCanvas';
-        newWrap.appendChild(newCanvas);
-
-        // Crée un nouveau placeholder
-        var newPlaceholder = document.createElement('span');
-        newPlaceholder.className = 'signature-placeholder';
-        newPlaceholder.id = 'sigPlaceholder';
-        newPlaceholder.textContent = 'Signez ici avec la souris ou le doigt';
-        newWrap.appendChild(newPlaceholder);
-
-        container.appendChild(newWrap);
-
-        // Mise à jour des références globales
-        canvas = newCanvas;
-        placeholder = newPlaceholder;
-
-        // Force reflow
-        void container.offsetHeight;
-
-        // Initialise au prochain frame (mesure de la taille, styles, listeners)
-        requestAnimationFrame(function () {
-            requestAnimationFrame(function () {
-                initSignatureCanvas();
-            });
-        });
-    }
-
-    function initSignatureCanvas() {
-        canvas = document.getElementById('signatureCanvas');
-        if (!canvas) return;
-        placeholder = document.getElementById('sigPlaceholder');
-        ctx = canvas.getContext('2d');
-
-        var ratio = window.devicePixelRatio || 1;
-        var rect = canvas.getBoundingClientRect();
-        if (rect.width === 0 || rect.height === 0) {
-            // Le canvas n'a pas encore sa taille : on réessaie au prochain frame
-            requestAnimationFrame(function() { initSignatureCanvas(); });
-            return;
-        }
-
-        canvas.width  = Math.round(rect.width  * ratio);
-        canvas.height = Math.round(rect.height * ratio);
-
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.scale(ratio, ratio);
-        ctx.lineWidth = 2.4;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.strokeStyle = '#1e293b';
-
-        // Fond solide
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.fillStyle = '#f8fafc';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.restore();
-
-        // Branche les listeners UNE SEULE FOIS par canvas
-        canvas.addEventListener('mousedown', sigStart);
-        canvas.addEventListener('mousemove', sigMove);
-        canvas.addEventListener('mouseup', sigStop);
-        canvas.addEventListener('mouseleave', sigStop);
-        canvas.addEventListener('touchstart', sigStart, { passive: false });
-        canvas.addEventListener('touchmove', sigMove, { passive: false });
-        canvas.addEventListener('touchend', sigStop);
-        canvas.addEventListener('touchcancel', sigStop);
-
-        signatureInited = true;
-    }
-
-    /* Le bouton #clearSig n'est JAMAIS recréé : on utilise la délégation d'événement.
-       De cette façon, peu importe combien de fois le canvas est reconstruit,
-       le clic sur le bouton fonctionnera TOUJOURS. */
-    $(document).on('click', '#clearSig', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        clearSignatureCanvas();
-    });
-
-    function sigGetPos(e) {
-        var rect = canvas.getBoundingClientRect();
-        var cx = e.touches ? e.touches[0].clientX : e.clientX;
-        var cy = e.touches ? e.touches[0].clientY : e.clientY;
-        return { x: cx - rect.left, y: cy - rect.top };
-    }
-    function sigStart(e) {
-        e.preventDefault();
-        drawing = true;
-        hasSignature = true;
-        if (placeholder) placeholder.style.display = 'none';
-        var p = sigGetPos(e);
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-    }
-    function sigMove(e) {
-        if (!drawing) return;
-        e.preventDefault();
-        var p = sigGetPos(e);
-        ctx.lineTo(p.x, p.y);
-        ctx.stroke();
-    }
-    function sigStop() { drawing = false; }
-
     $("#liste").click(function(e) {
         e.preventDefault();
-        $("#bloc_1").show(); $("#bloc_2").hide(); $("#bloc_3").hide(); $("#bloc_4").hide();
+        $("#bloc_1").show(); $("#bloc_3").hide(); $("#bloc_4").hide();
         setTimeout(function() { filterUsers(); }, 100);
-    });
-    $("#add").click(function(e) {
-        e.preventDefault();
-        $("#bloc_1").hide(); $("#bloc_2").show(); $("#bloc_3").hide(); $("#bloc_4").hide();
-        setTimeout(function() { initSignatureCanvas(); initSelect2(); initFlatpickr(); togglePersonFields(); }, 100);
-    });
-    $("#add_r").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
-    $("#save_r").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
-    $("#annuler").click(function(e) {
-        e.preventDefault();
-        $("#bloc_1").show(); $("#bloc_2").hide(); $("#bloc_3").hide(); $("#bloc_4").hide();
-        setTimeout(function() { filterUsers(); }, 100);
-    });
-
-    $("#save").click(function(e) {
-        e.preventDefault();
-        var btn = $(this);
-        var originalBtnHtml = 'Enregister <i class="zmdi zmdi-save"></i>';
-        if (!canvas || typeof canvas.toDataURL !== 'function') initSignatureCanvas();
-        if (!canvas || typeof canvas.toDataURL !== 'function') {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Canvas signature introuvable');
-            setTimeout(function() { $('#msg').html(""); }, 6000); return;
-        }
-        var signature = '';
-        try { if (hasSignature) signature = canvas.toDataURL('image/png'); } catch (err) {}
-        if (!signature || signature.length < 500) {
-            $('#msg').html('<i class="zmdi zmdi-info"></i> Veuillez signer avant d\'enregistrer');
-            setTimeout(function() { $('#msg').html(""); }, 6000); return;
-        }
-        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Enregistrement...');
-        function resetButton() { btn.prop('disabled', false).html(originalBtnHtml); }
-        var page = "<?= $ressource_id_1 ?>";
-        $('#msg').html("");
-        var formData = $("#form_add").serializeArray();
-        formData.push({ name: 'page', value: page });
-        formData.push({ name: 'signature', value: signature });
-        $.ajax({
-            type: "POST", url: "/add_personne", data: $.param(formData),
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-            success: function(resp) {
-                resetButton();
-                $("#motif").val(null).trigger("change");
-                $("#service").val(null).trigger("change");
-                $("#note").val(""); $("#nom").val(""); $("#email").val(""); $("#phone").val("");
-                if (heurePicker) { var now = new Date(); heurePicker.setDate(now, true); $("#heure").val(heurePicker.formatDate(now, "Y-m-d H:i")); }
-                clearSignatureCanvas();
-                if (typeof $.fn.select2 !== 'undefined') {
-                    $("#personne").val(null).trigger("change");
-                    $("#type_personne").val(null).trigger("change");
-                    $("#nature").val(null).trigger("change");
-                }
-                togglePersonFields();
-                $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Enregistrement effectué avec succès');
-                setTimeout(function() { $('#msg').html(""); }, 9000);
-                if (typeof resp === 'string') $("#content_utilisateur").html(resp);
-                saveUserFiltersToStorage();
-                setTimeout(function() { loadUserFiltersFromStorage(); filterUsers(); }, 100);
-            },
-            error: function(xhr) {
-                resetButton();
-                var msg = 'Erreur lors de l\'enregistrement';
-                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
-                else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                    var errors = xhr.responseJSON.errors;
-                    msg = errors[Object.keys(errors)[0]][0];
-                }
-                $('#msg').html('<i class="zmdi zmdi-close-circle"></i> ' + msg);
-                setTimeout(function() { $('#msg').html(""); }, 9000);
-            },
-            complete: function() { resetButton(); }
-        });
     });
 
     $("#oui").click(function(e) {
@@ -1480,42 +1057,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                 if (xhr.responseJSON && xhr.responseJSON.message) message = xhr.responseJSON.message;
                 $('#msg').html('<i class="zmdi zmdi-close-circle"></i> ' + message);
                 setTimeout(function() { $('#msg').html(""); }, 6000);
-            }
-        });
-    });
-
-    $("#user_img_profil").click(function(e) { e.preventDefault(); $("#input_user_img_profil").trigger("click"); });
-    $("#input_user_img_profil").change(function(e) {
-        e.preventDefault();
-        var formData = new FormData();
-        formData.append('input_user_img_profil', $('#input_user_img_profil')[0].files[0]);
-        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-        $('.progress-container').show();
-        $.ajax({
-            type: "POST", url: "/upload_profil_add",
-            data: formData, processData: false, contentType: false,
-            xhr: function() {
-                var xhr = new window.XMLHttpRequest();
-                xhr.upload.addEventListener("progress", function(evt) {
-                    if (evt.lengthComputable) {
-                        var pc = Math.round((evt.loaded / evt.total) * 100);
-                        $('.progress-bar').css('width', pc + '%');
-                        $('.progress-text').text(pc + '%');
-                    }
-                }, false);
-                return xhr;
-            },
-            success: function(response) {
-                setTimeout(function() { $('.progress-container').hide(); }, 1000);
-                $('#msg').html('Profil teléchargé avec succès');
-                $('#user_img_profil').attr('src', response);
-                $("#image").val(response);
-                setTimeout(function() { $('#msg').html(""); }, 9000);
-            },
-            error: function(xhr) {
-                $('.progress-container').hide();
-                $('#msg').html(xhr.responseJSON.message);
-                setTimeout(function() { $('#msg').html(""); }, 9000);
             }
         });
     });
@@ -1618,14 +1159,11 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     }
 
     function debouncedUserFilter() {
-        clearTimeout(userFilterTimer);
+        clearTimeout(userFilterTimeout);
         userFilterTimeout = setTimeout(function() { filterUsers(); saveUserFiltersToStorage(); }, 300);
     }
-    var userFilterTimer;
 
     $(document).ready(function() {
-        preloadPersonnes();
-        togglePersonFields();
         $('#userCount').text($('#content_utilisateur tbody tr').length);
         const hasSavedFilters = loadUserFiltersFromStorage();
         $('#filterNom, #filterEmail, #filterPhone').on('input change', function() { debouncedUserFilter(); });

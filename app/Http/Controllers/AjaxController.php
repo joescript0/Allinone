@@ -2418,9 +2418,9 @@ class AjaxController extends Controller
     {
         // Récupération du stock via la table
         $stock_id = 0;
-        if($request->table_id)
+        if ($request->table_id) 
         {
-             $table_id = $request->table_id;
+            $table_id = $request->table_id;
             $table = Tables::where('id', $table_id)->first();
             $pointdeventes_id = $table->pointdeventes_id;
             $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
@@ -2430,23 +2430,21 @@ class AjaxController extends Controller
         $article_id = $request->article_id;
 
         // Récupération de l'article selon le stock
-        if ($stock_id == 0)
-        {
+        if ($stock_id == 0) {
             $article = Articles::where(['id' => $article_id, 'supprimer' => 0])->first();
         } else {
             $article = articlestocks::where([
                 'article_id' => $article_id,
-                'stock_id' => $stock_id,
+                'stock_id'   => $stock_id,
             ])->first();
         }
 
-        // Si l'article n'existe pas, on peut renvoyer une erreur (ou un echo particulier)
         if (!$article) {
             echo "error_article_introuvable";
             return;
         }
 
-        // Calcul des achats (prêts) – inchangé
+        // Calcul des prêts (type = 2)
         $achats = Achats::where(["article_id" => $article_id])->get();
         $total_pret = 0;
         foreach ($achats as $ee) {
@@ -2455,21 +2453,42 @@ class AjaxController extends Controller
             }
         }
 
-        // Utilisation des données de l'article récupéré
-        $stock = $article->stock;
-        $avoir_stock = $article->avoir_stock;
+        $stock        = $article->stock;
+        $avoir_stock  = $article->avoir_stock;
+        $quantite_a_deduire = $request->quantite * $request->taille_lot;
 
-        $check_seuil_minimum = ($stock + $total_pret) - ($request->quantite * $request->taille_lot);
+        // Stock disponible réel (stock + prêts)
+        $stock_disponible = $stock + $total_pret;
 
-        if ($stock == 0)
+        $check_seuil_minimum = $stock_disponible - $quantite_a_deduire;
+
+        if ($stock == 0) 
         {
             $seuil_minimum = $article->seuil_minimum;
-            echo -1 . '__________' . $seuil_minimum . '__________' . ($stock - $seuil_minimum) . '__________' . $avoir_stock;
-        } else
+            // Ici aussi on empêche un affichage négatif
+            $stock_restant = $stock - $seuil_minimum;
+            if ($stock_restant < 0) 
+            {
+                $stock_restant = 0;
+            }
+            echo -1 . '__________' . $seuil_minimum . '__________' . $stock_restant . '__________' . $avoir_stock;
+        }
+        elseif($quantite_a_deduire > $stock_disponible)
+        {
+            $seuil_minimum = $article->seuil_minimum;
+            // Ici aussi on empêche un affichage négatif
+            $stock_restant = $stock - $seuil_minimum;
+            if ($stock_restant < 0) 
+            {
+                $stock_restant = 0;
+            }
+            echo -1 . '__________' . $seuil_minimum . '__________' . $stock_restant . '__________' . $avoir_stock;
+        }
+        else 
         {
             $seuil_minimum = 0;
-            if ($check_seuil_minimum >= $seuil_minimum)
-            {
+
+            if ($check_seuil_minimum >= $seuil_minimum) {
                 echo 1 . '__________' . $seuil_minimum . '__________' . ($stock - $seuil_minimum) . '__________' . $avoir_stock;
             } else {
                 echo 0 . '__________' . $seuil_minimum . '__________' . ($stock - $seuil_minimum) . '__________' . $avoir_stock;
@@ -2886,6 +2905,7 @@ class AjaxController extends Controller
         $user->etat = 1;
         $user->recherche = "";
         $user->image = $request->image;
+        $user->adresse = "";
         $user->poste_id = $request->poste_id;
         $user->activite_id = $request->activite_id;
         $user->user_id =  Auth::user()->id;
@@ -2906,17 +2926,18 @@ class AjaxController extends Controller
         $data["groupes"] = Groupes::where(["etat" => 1])->get();
         $groupe_user_id = Auth::user()->role;
         $data["groupe_user_id"] = $groupe_user_id;
-        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
-        if($request->page == 19)
+        if($request->page == "19")
         {
             $data["ressource_id_1"] = 19;
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
             $data["utilisateurs"] = User::where('role', '<>', 0)
                           ->where('etat', '=', 1)
                           ->get();
         }
-        else if($request->page == 31)
+        else if($request->page == "31")
         {
             $data["ressource_id_1"] = 31;
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
             $data["utilisateurs"] = User::where('role', '<>', 0)
                           ->where('etat', '=', 1)
                           ->where('user_id', Auth::user()->id)

@@ -452,6 +452,7 @@ Route::get('/check_qr_code', [App\Http\Controllers\InvitationnumController::clas
 Route::get('/bulletin', [App\Http\Controllers\BulletinController::class, 'bulletin'])->name('bulletin');
 Route::get('/accueil_orientation', [App\Http\Controllers\HomeController::class, 'accueil_orientation'])->name('accueil_orientation');
 Route::get('/fidelite_client', [App\Http\Controllers\HomeController::class, 'fidelite_client'])->name('fidelite_client');
+Route::get('/triage', [App\Http\Controllers\HomeController::class, 'triage'])->name('triage');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

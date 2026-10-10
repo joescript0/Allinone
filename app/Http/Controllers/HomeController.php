@@ -772,6 +772,61 @@ class HomeController extends Controller
         }
     }
 
+    public function triage()
+    {
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = 40;
+        $data["groupe_user_id"] = $groupe_user_id;
+        if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0))
+        {
+            $display = 0;
+            if((Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()->count() != 0))
+            {
+                $display = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get()[0]->display;
+            }
+            $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+            if(($display ==  1) || (Auth::user()->role == 0))
+            {
+                $data["utilisateurs"] = User::where(function($query){
+                    $query->where('role', '<>', 0);
+                })->where(function($query){
+                    $query->where('etat', '=', 1);
+                })->get();
+                $data["groupes"] = Groupes::where(["etat" => 1])->get();
+                $data["personnes"] = Personnes::where(["etat" => 1])->get();
+                $data["motifs"] = Motifs::where(["etat" => 1])->get();
+                $data["services"] = Services::where(["etat" => 1])->get();
+                $data["registreaccueils"] = Registreaccueil::where(["etat" => 1])->get();
+                $data["postes"] = Postes::where(["supprimer" => 0])->get();
+                $data["activites"] = Activites::where(["supprimer" => 0])->get();
+                $nombre = 1;
+                $matricule = "";
+                foreach (User::get() as $ut)
+                {
+                    if(strlen(trim($ut->matricule)) == 0)
+                    {
+                        $user = User::where(["id" => $ut->id])->first();
+                        $matricule = 'CAC' . str_pad($nombre, 4, '0', STR_PAD_LEFT);
+                        $user->matricule = $matricule;
+                        $user->save();
+                    }
+                    $nombre++;
+                }
+                return view('interfaces.triage', $data);
+            }
+            else
+            {
+                Auth::guard('web')->logout();
+                return redirect('/');
+            }
+        }
+        else
+        {
+            Auth::guard('web')->logout();
+            return redirect('/');
+        }
+    }
+
     public function mes_clients()
     {
         $groupe_user_id = Auth::user()->role;

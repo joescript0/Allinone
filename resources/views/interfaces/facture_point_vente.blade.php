@@ -35,20 +35,8 @@ use Illuminate\Support\Facades\Auth;
    DESIGN PREMIUM – ADAPTÉ AUX FACTURES POINT DE VENTE
    ============================================================ */
 
-body {
-    margin: 0;
-    padding: 0;
-    background: #f0f4f8;
-}
-
-.content .container {
-    max-width: 100% !important;
-    width: 100%;
-    padding: 0.5rem 1.5rem !important;
-    margin: 0 auto;
-    background: #f8fafc;
-}
-
+body { margin: 0; padding: 0; background: #f0f4f8; }
+.content .container { max-width: 100% !important; width: 100%; padding: 0.5rem 1.5rem !important; margin: 0 auto; background: #f8fafc; }
 .content .container .row { margin-left: 0; margin-right: 0; }
 .content .container [class*="col-"] { padding-left: 0.75rem; padding-right: 0.75rem; }
 
@@ -76,55 +64,35 @@ body {
 }
 
 h4 {
-    font-weight: 700;
-    border-left: 6px solid #e31b23;
-    padding-left: 18px;
-    margin-bottom: 16px;
-    margin-top: 0;
-    color: var(--bleu-nuit);
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
+    font-weight: 700; border-left: 6px solid #e31b23;
+    padding-left: 18px; margin-bottom: 16px; margin-top: 0;
+    color: var(--bleu-nuit); display: flex;
+    align-items: center; flex-wrap: wrap; gap: 8px;
 }
-
 h4 i.zmdi {
     background: var(--bleu-nuit-gradient);
-    background-clip: text;
-    -webkit-background-clip: text;
+    background-clip: text; -webkit-background-clip: text;
     color: transparent !important;
 }
-
 h4 .badge-invoice {
     background: linear-gradient(135deg, #e31b23, #b91c1c);
-    color: white;
-    border-radius: 50px;
-    padding: 4px 12px;
-    font-size: 0.75rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    margin-left: 6px;
-    vertical-align: middle;
+    color: white; border-radius: 50px; padding: 4px 12px;
+    font-size: 0.75rem; display: inline-flex;
+    align-items: center; gap: 6px;
+    white-space: nowrap; margin-left: 6px; vertical-align: middle;
 }
 
 @media (max-width: 480px) {
-    h4 .badge-invoice {
-        font-size: 0.65rem; padding: 2px 10px; margin-left: 0;
-        white-space: normal; word-break: break-word;
-    }
+    h4 .badge-invoice { font-size: 0.65rem; padding: 2px 10px; margin-left: 0; white-space: normal; word-break: break-word; }
     h4 { flex-direction: column; align-items: flex-start; gap: 4px; }
 }
 
 .table-responsive { overflow-x: auto; overflow-y: visible; border-radius: var(--border-radius-lg); }
-
 .table {
     width: 100%; min-width: 800px; background: white;
     border-collapse: collapse; border-radius: var(--border-radius-lg);
     overflow: hidden; box-shadow: var(--shadow-light); table-layout: auto;
 }
-
 .table thead th {
     background: #E7F5FE !important; color: #0a192f;
     font-weight: 700; font-size: 0.85rem; text-transform: uppercase;
@@ -132,18 +100,15 @@ h4 .badge-invoice {
     border-bottom: 2px solid #cbd5e1 !important; border-right: 1px solid #d0e2f2;
     white-space: normal; word-break: break-word;
 }
-
 .table tbody tr { transition: all 0.15s ease; border-bottom: 1px solid #e2e8f0; }
 .table tbody tr:nth-child(even) { background-color: #f8fafc; }
 .table tbody tr:nth-child(odd)  { background-color: #ffffff; }
 .table tbody tr:hover { background: #e6f0ff !important; cursor: default; }
-
 .table tbody td {
     padding: 10px 12px !important; vertical-align: middle !important;
     font-weight: 500; font-size: 0.85rem; color: #1e2a3e;
     word-break: break-word; border-bottom: 1px solid #eef2f6; line-height: 1.4;
 }
-
 .table tbody td:last-child { text-align: center; vertical-align: middle; }
 
 #bloc_1 button, #bloc_2 button, #bloc_3 button,
@@ -156,89 +121,38 @@ h4 .badge-invoice {
     border: none; cursor: pointer; text-decoration: none;
     box-shadow: var(--shadow-light); white-space: nowrap; line-height: 1.5;
 }
-
 #liste, #add, #add_r, #rapport { min-width: 130px; justify-content: center; }
 
 #liste, .btn-primary { background: #3B82F6 !important; color: white !important; }
-#liste:hover, .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
-    background: #2563eb !important;
-}
+#liste:hover, .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3); background: #2563eb !important; }
 
 #add, .btn-info { background: var(--bleu-nuit-gradient) !important; color: white !important; }
-#add:hover, .btn-info:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
-}
+#add:hover, .btn-info:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3); }
 
 #save, #edit_save { background: var(--bleu-secondaire-gradient) !important; color: white; }
-#save:hover, #edit_save:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3);
-}
+#save:hover, #edit_save:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3); }
 
 #annuler, #edit_annuler, .btn-danger { background: var(--rouge-gradient) !important; color: white; }
-#annuler:hover, #edit_annuler:hover, .btn-danger:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
-    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
-}
+#annuler:hover, #edit_annuler:hover, .btn-danger:hover { transform: translateY(-2px); background: linear-gradient(135deg, #dc2626, #b91c1c) !important; box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3); }
 
 #resetFilters { background: #64748b !important; color: white !important; }
-#resetFilters:hover {
-    transform: translateY(-2px);
-    background: #475569 !important;
-    box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3);
-}
+#resetFilters:hover { transform: translateY(-2px); background: #475569 !important; box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3); }
 
-#add_r, #save_r, #print_r {
-    background: #cbd5e1 !important; color: #475569 !important;
-    cursor: not-allowed !important; opacity: 0.7;
-    transform: none !important; box-shadow: none !important;
-}
+#add_r, #save_r, #print_r { background: #cbd5e1 !important; color: #475569 !important; cursor: not-allowed !important; opacity: 0.7; transform: none !important; box-shadow: none !important; }
 
 #print { background: #3B82F6 !important; color: white !important; }
-#print:hover {
-    background: #2563eb !important; transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
-}
+#print:hover { background: #2563eb !important; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3); }
 
 #rapport { background: var(--rouge-gradient) !important; color: white !important; }
-#rapport:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
-    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
-}
+#rapport:hover { transform: translateY(-2px); background: linear-gradient(135deg, #dc2626, #b91c1c) !important; box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3); }
 
-.filters-container {
-    display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
-    background: white; padding: 0.8rem 1.2rem;
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-light); align-items: flex-end;
-}
-
+.filters-container { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; background: white; padding: 0.8rem 1.2rem; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-light); align-items: flex-end; }
 .filter-group { flex: 1; min-width: 150px; }
-
-.filter-group label {
-    font-weight: 600; margin-bottom: 4px; color: var(--bleu-nuit);
-    font-size: 0.7rem; text-transform: uppercase;
-    display: flex; align-items: center; gap: 5px;
-}
-
+.filter-group label { font-weight: 600; margin-bottom: 4px; color: var(--bleu-nuit); font-size: 0.7rem; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
 .filter-group .form-control { height: 36px; }
 
-.invoice-badges-container {
-    display: flex; flex-wrap: wrap; justify-content: flex-end;
-    gap: 8px 12px; margin-bottom: 15px;
-}
-
-.invoice-count-badge {
-    border-radius: 50px; padding: 4px 12px; font-size: 0.75rem;
-    font-weight: bold; display: inline-flex; align-items: center;
-    gap: 6px; white-space: nowrap; color: white;
-}
-
+.invoice-badges-container { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 12px; margin-bottom: 15px; }
+.invoice-count-badge { border-radius: 50px; padding: 4px 12px; font-size: 0.75rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: white; }
 .invoice-count-badge.usd-badge      { background: linear-gradient(135deg, #3B82F6, #2563eb); }
 .invoice-count-badge.cdf-badge      { background: linear-gradient(135deg, #3B82F6, #2563eb); }
 .invoice-count-badge.paye-usd       { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
@@ -250,73 +164,29 @@ h4 .badge-invoice {
 
 #form_add .row, #form_edit .row { display: flex; flex-wrap: wrap; }
 #form_add .col-6, #form_edit .col-6 { margin-bottom: 0.8rem; }
-
 .form-group { width: 100%; margin-bottom: 0; }
-
-.form-group label {
-    display: block; font-weight: 700; color: var(--bleu-nuit);
-    margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase;
-    letter-spacing: 0.4px;
-}
+.form-group label { display: block; font-weight: 700; color: var(--bleu-nuit); margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px; }
 .form-group label i { color: #e31b23; margin-right: 6px; }
 
-.form-control, input.form-control, select.form-control,
-textarea.form-control, .input-mask {
+.form-control, input.form-control, select.form-control, textarea.form-control, .input-mask {
     width: 100% !important; background: #ffffff !important;
     border: 1px solid #e2e8f0 !important; border-radius: 14px !important;
     padding: 8px 12px !important; font-weight: 500; font-size: 0.85rem;
-    transition: all 0.2s; box-sizing: border-box; height: 38px !important;
-    line-height: 1.4;
+    transition: all 0.2s; box-sizing: border-box; height: 38px !important; line-height: 1.4;
 }
-
 textarea.form-control { resize: vertical; height: 38px !important; }
-
-.form-control:focus, select.form-control:focus, textarea.form-control:focus {
-    border-color: var(--bleu-nuit) !important;
-    box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
-    transform: translateY(-1px);
-}
-
-select.form-control {
-    appearance: none;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-    background-repeat: no-repeat; background-position: right 14px center;
-}
-
+.form-control:focus, select.form-control:focus, textarea.form-control:focus { border-color: var(--bleu-nuit) !important; box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important; transform: translateY(-1px); }
+select.form-control { appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>'); background-repeat: no-repeat; background-position: right 14px center; }
 .input-mask { font-family: monospace; background: #fff9ef !important; }
 
-#msg, #edit_msg {
-    display: none !important; visibility: hidden !important;
-    opacity: 0 !important; margin: 0 !important; padding: 0 !important;
-    border: 0 !important; background: transparent !important;
-    box-shadow: none !important; min-height: 0 !important;
-    height: 0 !important; overflow: hidden !important;
-}
-
-#msg:not(:empty), #edit_msg:not(:empty) {
-    display: inline-flex !important; visibility: visible !important;
-    opacity: 1 !important; height: auto !important;
-    margin-top: 16px !important; padding: 10px 18px !important;
-    background: white !important; border-radius: 50px !important;
-    box-shadow: var(--shadow-light) !important; gap: 10px;
-    font-weight: 600; font-size: 0.8rem; animation: slideInMsg 0.3s ease-out;
-}
-
+#msg, #edit_msg { display: none !important; visibility: hidden !important; opacity: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; min-height: 0 !important; height: 0 !important; overflow: hidden !important; }
+#msg:not(:empty), #edit_msg:not(:empty) { display: inline-flex !important; visibility: visible !important; opacity: 1 !important; height: auto !important; margin-top: 16px !important; padding: 10px 18px !important; background: white !important; border-radius: 50px !important; box-shadow: var(--shadow-light) !important; gap: 10px; font-weight: 600; font-size: 0.8rem; animation: slideInMsg 0.3s ease-out; }
 #msg:not(:empty):has(i.zmdi-check-circle)  { background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important; color: #065f46; border-left: 4px solid #10b981; }
 #msg:not(:empty):has(i.zmdi-close-circle)  { background: linear-gradient(95deg, #fee2e2, #fecaca) !important; color: #991b1b; border-left: 4px solid #ef4444; }
 #msg:not(:empty):has(i.zmdi-info)          { background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important; color: #1e3a8a; border-left: 4px solid #3b82f6; }
+@keyframes slideInMsg { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
-@keyframes slideInMsg {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-.table tbody td a {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 32px; height: 32px; border-radius: 50% !important;
-    background: #f1f5f9; transition: all 0.2s ease;
-    text-decoration: none; margin: 0 2px;
-}
+.table tbody td a { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50% !important; background: #f1f5f9; transition: all 0.2s ease; text-decoration: none; margin: 0 2px; }
 .table tbody td a i.zmdi { font-size: 1.1rem; margin: 0; }
 .table tbody td a i.zmdi-eye, .table tbody td a i.zmdi-money { color: #2c7da0; }
 .table tbody td a i.zmdi-delete { color: #ef4444; }
@@ -326,16 +196,9 @@ select.form-control {
 .table tbody td a i.zmdi-settings { color: #17a2b8 !important; transition: all 0.2s ease; }
 .table tbody td a:hover i.zmdi-settings { color: #0f6674 !important; }
 
-[style*="background-color: rgba(0, 0, 0, 0.1)"] {
-    background: #eef3fc !important; border-radius: 60px;
-    padding: 10px 24px !important; margin-bottom: 20px;
-    display: flex !important; flex-wrap: wrap; gap: 12px;
-    justify-content: flex-start;
-}
+[style*="background-color: rgba(0, 0, 0, 0.1)"] { background: #eef3fc !important; border-radius: 60px; padding: 10px 24px !important; margin-bottom: 20px; display: flex !important; flex-wrap: wrap; gap: 12px; justify-content: flex-start; }
 
-/* ============================================================
-   MODALE PDF
-   ============================================================ */
+/* MODALE PDF */
 .modal.fade#pdfModal .modal-dialog { max-width: 100%; width: 60%; margin: 1.75rem auto; }
 .modal.fade#pdfModal .modal-content { border-radius: 20px; border: none; box-shadow: var(--shadow-premium); overflow: hidden; }
 .modal.fade#pdfModal .modal-header { background: var(--bleu-nuit-gradient) !important; border-bottom: none; padding: 1.2rem 1.5rem; }
@@ -345,109 +208,30 @@ select.form-control {
 .modal.fade#pdfModal .modal-body { padding: 0; background: #f8fafc; }
 .modal.fade#pdfModal .modal-footer { background: white; border-top: 1px solid #eef2f6; padding: 1.2rem 1.5rem; }
 .modal.fade#pdfModal #pdfIframe { width: 100%; height: 50vh; border: none; background: white; }
-
-.modal.fade#pdfModal #montant_recu,
-.modal.fade#pdfModal #devise_recu {
-    width: 100%; background: #ffffff; border: 1px solid #e2e8f0;
-    border-radius: 40px !important; padding: 10px 14px;
-    font-weight: 500; font-size: 0.85rem;
-    transition: all 0.2s; height: 44px; box-sizing: border-box;
-}
-
-.modal.fade#pdfModal #montant_recu:focus,
-.modal.fade#pdfModal #devise_recu:focus {
-    border-color: var(--bleu-nuit);
-    box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15);
-    outline: none;
-}
-
-.modal.fade#pdfModal #devise_recu {
-    appearance: none;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-    background-repeat: no-repeat; background-position: right 14px center;
-    cursor: pointer;
-}
-
-.modal.fade#pdfModal #btn_payer {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-    border: none; border-radius: 40px !important;
-    padding: 10px 24px; font-weight: 700; font-size: 0.85rem;
-    transition: all 0.2s ease; width: 100%; color: white;
-    cursor: pointer; display: inline-flex;
-    align-items: center; justify-content: center; gap: 8px;
-}
-
-.modal.fade#pdfModal #btn_payer:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3);
-}
-
-.modal.fade#pdfModal #msg_facture {
-    display: inline-block !important; font-weight: 600; font-size: 0.85rem;
-    padding: 10px 18px; border-radius: 50px; background: #f1f5f9;
-    color: #1e2a3e; margin-top: 12px; margin-bottom: 0;
-    text-align: center; animation: fadeInMsg 0.3s ease-out;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    max-width: 100%; word-wrap: break-word; line-height: 1.5;
-}
-.modal.fade#pdfModal #msg_facture:has(i.zmdi-close-circle),
-.modal.fade#pdfModal #msg_facture[style*="color: #dc3545"] {
-    background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
-    color: #991b1b !important; border-left: 4px solid #dc2626 !important;
-}
-.modal.fade#pdfModal #msg_facture:has(i.zmdi-check-circle),
-.modal.fade#pdfModal #msg_facture[style*="color: #28a745"] {
-    background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
-    color: #065f46 !important; border-left: 4px solid #10b981 !important;
-}
-.modal.fade#pdfModal #msg_facture:has(i.zmdi-alert),
-.modal.fade#pdfModal #msg_facture[style*="color: #ffc107"] {
-    background: linear-gradient(95deg, #fed7aa, #ffedcc) !important;
-    color: #9b4d00 !important; border-left: 4px solid #f59e0b !important;
-}
-@keyframes fadeInMsg {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-.modal.fade#pdfModal .btn-secondary {
-    background: #64748b; border: none; border-radius: 40px;
-    padding: 8px 20px; font-weight: 600; font-size: 0.8rem;
-    transition: all 0.2s ease; color: white;
-}
+.modal.fade#pdfModal #montant_recu, .modal.fade#pdfModal #devise_recu { width: 100%; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 40px !important; padding: 10px 14px; font-weight: 500; font-size: 0.85rem; transition: all 0.2s; height: 44px; box-sizing: border-box; }
+.modal.fade#pdfModal #montant_recu:focus, .modal.fade#pdfModal #devise_recu:focus { border-color: var(--bleu-nuit); box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15); outline: none; }
+.modal.fade#pdfModal #devise_recu { appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>'); background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; }
+.modal.fade#pdfModal #btn_payer { background: linear-gradient(135deg, #10b981, #059669) !important; border: none; border-radius: 40px !important; padding: 10px 24px; font-weight: 700; font-size: 0.85rem; transition: all 0.2s ease; width: 100%; color: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.modal.fade#pdfModal #btn_payer:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3); }
+.modal.fade#pdfModal #msg_facture { display: inline-block !important; font-weight: 600; font-size: 0.85rem; padding: 10px 18px; border-radius: 50px; background: #f1f5f9; color: #1e2a3e; margin-top: 12px; margin-bottom: 0; text-align: center; animation: fadeInMsg 0.3s ease-out; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); max-width: 100%; word-wrap: break-word; line-height: 1.5; }
+.modal.fade#pdfModal #msg_facture:has(i.zmdi-close-circle), .modal.fade#pdfModal #msg_facture[style*="color: #dc3545"] { background: linear-gradient(95deg, #fee2e2, #fecaca) !important; color: #991b1b !important; border-left: 4px solid #dc2626 !important; }
+.modal.fade#pdfModal #msg_facture:has(i.zmdi-check-circle), .modal.fade#pdfModal #msg_facture[style*="color: #28a745"] { background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important; color: #065f46 !important; border-left: 4px solid #10b981 !important; }
+.modal.fade#pdfModal #msg_facture:has(i.zmdi-alert), .modal.fade#pdfModal #msg_facture[style*="color: #ffc107"] { background: linear-gradient(95deg, #fed7aa, #ffedcc) !important; color: #9b4d00 !important; border-left: 4px solid #f59e0b !important; }
+@keyframes fadeInMsg { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.modal.fade#pdfModal .btn-secondary { background: #64748b; border: none; border-radius: 40px; padding: 8px 20px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s ease; color: white; }
 .modal.fade#pdfModal .btn-secondary:hover { background: #475569; transform: translateY(-2px); }
 .modal.fade#pdfModal hr { margin: 15px 0; border: 0; border-top: 1px solid #eef2f6; }
 
-/* ============================================================
-   BLOCS FORM
-   ============================================================ */
-#bloc_t {
-    display: flex; flex-wrap: wrap; align-items: stretch;
-    gap: 20px; width: 100%; margin: 0;
-}
-#bloc_2, #bloc_3 {
-    flex: 1 1 calc(50% - 20px); min-width: 280px; margin: 0 !important;
-}
-
-@media (max-width: 768px) {
-    #bloc_t { flex-direction: column; gap: 20px; align-items: center; }
-    #bloc_2, #bloc_3 { flex: 1 1 100%; width: 100%; min-width: auto; }
-}
-
-@media (max-width: 992px) {
-    .content .container { padding: 0.5rem 1rem !important; }
-    #bloc_1, #bloc_2, #bloc_3 { padding: 1rem !important; }
-}
-
+/* BLOCS FORM */
+#bloc_t { display: flex; flex-wrap: wrap; align-items: stretch; gap: 20px; width: 100%; margin: 0; }
+#bloc_2, #bloc_3 { flex: 1 1 calc(50% - 20px); min-width: 280px; margin: 0 !important; }
+@media (max-width: 768px) { #bloc_t { flex-direction: column; gap: 20px; align-items: center; } #bloc_2, #bloc_3 { flex: 1 1 100%; width: 100%; min-width: auto; } }
+@media (max-width: 992px) { .content .container { padding: 0.5rem 1rem !important; } #bloc_1, #bloc_2, #bloc_3 { padding: 1rem !important; } }
 @media (max-width: 768px) {
     .content .container { padding: 0.4rem 0.6rem !important; }
     #bloc_1, #bloc_2, #bloc_3 { padding: 0.8rem !important; }
-    #liste, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters,
-    .btn-primary, .btn-info, .btn-danger { padding: 4px 12px !important; font-size: 0.7rem; }
-
-    #liste, #add, #add_r, #rapport {
-        min-width: 90px; flex: 1 1 auto; justify-content: center;
-    }
-
+    #liste, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters, .btn-primary, .btn-info, .btn-danger { padding: 4px 12px !important; font-size: 0.7rem; }
+    #liste, #add, #add_r, #rapport { min-width: 90px; flex: 1 1 auto; justify-content: center; }
     .filters-container { flex-direction: column; gap: 8px; padding: 0.6rem 0.8rem; margin-bottom: 12px; }
     .filter-group { width: 100%; min-width: 100%; }
     .filter-group .form-control { height: 34px !important; }
@@ -457,9 +241,7 @@ select.form-control {
     .table tbody td { padding: 8px 10px !important; font-size: 0.75rem; line-height: 1.3; }
     #form_add .col-6, #form_edit .col-6 { flex: 0 0 100%; max-width: 100%; }
     .form-group label { font-size: 0.65rem; }
-    .form-control, input.form-control, select.form-control, textarea.form-control {
-        height: 34px !important; font-size: 0.75rem;
-    }
+    .form-control, input.form-control, select.form-control, textarea.form-control { height: 34px !important; font-size: 0.75rem; }
     .modal.fade#pdfModal .modal-dialog { width: 95%; margin: 1rem auto; }
     .modal.fade#pdfModal #pdfIframe { height: 40vh; }
     .modal.fade#pdfModal #boite_de_control .col-lg-4 { margin-bottom: 10px; }
@@ -469,9 +251,7 @@ select.form-control {
     .modal.fade#pdfModal #msg_facture { font-size: 0.75rem; padding: 8px 14px; }
     [style*="background-color: rgba(0, 0, 0, 0.1)"] { justify-content: center; gap: 8px; }
 }
-
 .badge-invoice i.zmdi { color: white !important; }
-
 @media (max-width: 480px) {
     .content .container { padding: 0.3rem !important; }
     #bloc_1, #bloc_2, #bloc_3 { padding: 0.6rem !important; }
@@ -486,79 +266,37 @@ select.form-control {
     .modal.fade#pdfModal #btn_payer { padding: 8px 16px; font-size: 0.75rem; }
     .modal.fade#pdfModal .btn-secondary { padding: 6px 16px; font-size: 0.7rem; }
     .modal.fade#pdfModal #msg_facture { font-size: 0.7rem; padding: 6px 12px; }
-
-    #liste, #add, #add_r, #rapport {
-        min-width: 70px; flex: 1 1 auto; justify-content: center;
-        padding: 4px 6px !important; font-size: 0.65rem !important;
-    }
+    #liste, #add, #add_r, #rapport { min-width: 70px; flex: 1 1 auto; justify-content: center; padding: 4px 6px !important; font-size: 0.65rem !important; }
 }
 
-.select2-container--bootstrap .select2-selection {
-    height: 38px !important; border-radius: 14px !important;
-    border: 1px solid #e2e8f0 !important; background: #ffffff !important;
-    box-shadow: none !important; font-weight: 500; font-size: 0.85rem;
-    padding: 0 12px;
-}
+.select2-container--bootstrap .select2-selection { height: 38px !important; border-radius: 14px !important; border: 1px solid #e2e8f0 !important; background: #ffffff !important; box-shadow: none !important; font-weight: 500; font-size: 0.85rem; padding: 0 12px; }
 .select2-container--bootstrap .select2-selection__arrow { height: 38px !important; }
-.select2-container--bootstrap .select2-selection__rendered {
-    line-height: 38px !important; padding-left: 0; color: #1e2a3e;
-}
+.select2-container--bootstrap .select2-selection__rendered { line-height: 38px !important; padding-left: 0; color: #1e2a3e; }
 .select2-container--bootstrap .select2-selection__placeholder { color: #6c757d; }
 .select2-dropdown { border-radius: 14px !important; border: 1px solid #e2e8f0 !important; box-shadow: var(--shadow-light); }
 .select2-results__option { padding: 8px 12px; font-size: 0.85rem; }
 .select2-results__option--highlighted { background: #e6f0ff !important; color: #0a192f !important; }
 .select2-container--bootstrap .select2-results__options { max-height: 200px !important; overflow-y: auto !important; }
 
-/* ============================================================
-   MODALE PARAMÈTRES FACTURE
-   ============================================================ */
-.param-nav-tabs .nav-link {
-    border: none; color: #64748b; font-weight: 600;
-    font-size: 0.9rem; padding: 16px 20px;
-    border-bottom: 3px solid transparent; transition: all 0.2s;
-    background: transparent;
-}
+/* MODALE PARAMÈTRES FACTURE */
+.param-nav-tabs .nav-link { border: none; color: #64748b; font-weight: 600; font-size: 0.9rem; padding: 16px 20px; border-bottom: 3px solid transparent; transition: all 0.2s; background: transparent; }
 .param-nav-tabs .nav-link i { margin-right: 6px; }
 .param-nav-tabs .nav-link:hover { color: #0a192f; border-bottom-color: #cbd5e1; }
 .param-nav-tabs .nav-link.active { color: #17a2b8; border-bottom-color: #17a2b8; background: transparent; }
-
-.param-section-title {
-    font-weight: 700; color: #0a192f; font-size: 0.95rem;
-    text-transform: uppercase; letter-spacing: 0.5px;
-    padding-left: 12px; border-left: 4px solid #17a2b8;
-    margin-bottom: 16px;
-}
-
+.param-section-title { font-weight: 700; color: #0a192f; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; padding-left: 12px; border-left: 4px solid #17a2b8; margin-bottom: 16px; }
 .param-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
-.param-info-item {
-    background: white; padding: 12px 16px; border-radius: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    display: flex; flex-direction: column; gap: 3px;
-}
-.param-info-label {
-    font-size: 0.72rem; color: #64748b; text-transform: uppercase;
-    font-weight: 600; letter-spacing: 0.3px;
-}
+.param-info-item { background: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 3px; }
+.param-info-label { font-size: 0.72rem; color: #64748b; text-transform: uppercase; font-weight: 600; letter-spacing: 0.3px; }
 .param-info-label i { color: #17a2b8; margin-right: 4px; }
 .param-info-value { font-size: 0.92rem; color: #0a192f; font-weight: 700; }
-
 .param-finance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
-.param-finance-card {
-    padding: 14px 16px; border-radius: 14px; color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12); transition: transform 0.2s;
-}
+.param-finance-card { padding: 14px 16px; border-radius: 14px; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.12); transition: transform 0.2s; }
 .param-finance-card:hover { transform: translateY(-2px); }
 .param-finance-card.usd-card      { background: linear-gradient(135deg, #3B82F6, #2563eb); }
 .param-finance-card.paye-card     { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
 .param-finance-card.credit-card   { background: linear-gradient(135deg, #dc3545, #b02a37); }
 .param-finance-card.benefice-card { background: linear-gradient(135deg, #198754, #146c43); }
-
-.param-statut-card {
-    padding: 16px 20px; border-radius: 14px; color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    display: flex; align-items: center; gap: 12px;
-    font-weight: 700; transition: transform 0.2s;
-}
+.param-statut-card { padding: 16px 20px; border-radius: 14px; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 12px; font-weight: 700; transition: transform 0.2s; }
 .param-statut-card:hover { transform: translateY(-2px); }
 .param-statut-card.paid    { background: linear-gradient(135deg, #198754, #146c43); }
 .param-statut-card.unpaid  { background: linear-gradient(135deg, #dc3545, #b02a37); }
@@ -569,115 +307,45 @@ select.form-control {
 .param-statut-card .param-statut-value { font-size: 1.3rem; font-weight: 800; }
 .param-statut-card .param-statut-sub { font-size: 0.78rem; opacity: 0.9; font-weight: 500; }
 
-/* ============================================================
-   MODALE PARAMÈTRES FACTURE – AGRANDISSEMENT
-   ============================================================ */
-#paramFactureModal .modal-dialog {
-    max-width: 98vw !important;
-    width: 98vw !important;
-    margin: 1vh auto !important;
-    height: 96vh;
-}
-#paramFactureModal .modal-content {
-    height: 96vh;
-    max-height: 96vh;
-    display: flex;
-    flex-direction: column;
-}
-#paramFactureModal .modal-body {
-    flex: 1 1 auto;
-    max-height: none !important;
-    overflow: hidden !important;
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-}
-#paramFactureModal .tab-content {
-    flex: 1 1 auto;
-    max-height: none !important;
-    overflow-y: auto !important;
-    padding: 1.75rem 2rem !important;
-}
+#paramFactureModal .modal-dialog { max-width: 98vw !important; width: 98vw !important; margin: 1vh auto !important; height: 96vh; }
+#paramFactureModal .modal-content { height: 96vh; max-height: 96vh; display: flex; flex-direction: column; }
+#paramFactureModal .modal-body { flex: 1 1 auto; max-height: none !important; overflow: hidden !important; display: flex; flex-direction: column; padding: 0; }
+#paramFactureModal .tab-content { flex: 1 1 auto; max-height: none !important; overflow-y: auto !important; padding: 1.75rem 2rem !important; }
 #paramFactureModal .modal-footer { flex-shrink: 0; }
-#paramFactureModal .modal-body::-webkit-scrollbar,
-#paramFactureModal .tab-content::-webkit-scrollbar { width: 10px; }
-#paramFactureModal .modal-body::-webkit-scrollbar-thumb,
-#paramFactureModal .tab-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
+#paramFactureModal .modal-body::-webkit-scrollbar, #paramFactureModal .tab-content::-webkit-scrollbar { width: 10px; }
+#paramFactureModal .modal-body::-webkit-scrollbar-thumb, #paramFactureModal .tab-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 #paramFactureModal .param-info-grid    { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important; }
 #paramFactureModal .param-finance-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important; }
 #paramFactureModal .param-totals-grid  { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; }
-
-#paramFactureModal #param_articles_table thead th,
-#paramFactureModal #param_paiements_table thead th {
-    font-size: 0.78rem !important; padding: 12px 10px !important;
-}
-#paramFactureModal #param_articles_table tbody td,
-#paramFactureModal #param_paiements_table tbody td {
-    font-size: 0.82rem !important; padding: 10px 10px !important;
-}
-#paramFactureModal .param-inline-input {
-    min-width: 110px !important; height: 38px !important; font-size: 0.85rem !important;
-}
+#paramFactureModal #param_articles_table thead th, #paramFactureModal #param_paiements_table thead th { font-size: 0.78rem !important; padding: 12px 10px !important; }
+#paramFactureModal #param_articles_table tbody td, #paramFactureModal #param_paiements_table tbody td { font-size: 0.82rem !important; padding: 10px 10px !important; }
+#paramFactureModal .param-inline-input { min-width: 110px !important; height: 38px !important; font-size: 0.85rem !important; }
 
 @media (max-width: 992px) {
-    #paramFactureModal .modal-dialog {
-        max-width: 100vw !important; width: 100vw !important;
-        margin: 0 !important; height: 100vh;
-    }
+    #paramFactureModal .modal-dialog { max-width: 100vw !important; width: 100vw !important; margin: 0 !important; height: 100vh; }
     #paramFactureModal .modal-content { height: 100vh; max-height: 100vh; border-radius: 0 !important; }
     #paramFactureModal .tab-content { padding: 1rem !important; }
 }
 
-/* ============================================================
-   NOUVELLES CARTES TOTAUX (prix achat / brut)
-   ============================================================ */
 .param-total-item.total-pa      .param-total-value { color: #6366f1; }
 .param-total-item.total-pa      .param-total-dot   { background: #6366f1; }
 .param-total-item.total-brut-pa .param-total-value { color: #6366f1; }
 .param-total-item.total-brut-pa .param-total-dot   { background: #6366f1; }
 .param-total-item.total-brut-pv .param-total-value { color: #3B82F6; }
 .param-total-item.total-brut-pv .param-total-dot   { background: #3B82F6; }
-
-#param_articles_table tbody tr:hover,
-#param_paiements_table tbody tr:hover { background: #e6f0ff !important; }
-
-.param-inline-input {
-    width: 100% !important; min-width: 90px;
-    height: 34px !important; font-size: 0.8rem !important;
-    padding: 4px 8px !important; border-radius: 8px !important;
-    text-align: right; font-weight: 600;
-}
-.param-inline-input.frais-input {
-    border-color: #f59e0b !important; background: #fffbeb !important; color: #92400e;
-}
-.param-inline-input.reduction-input {
-    border-color: #dc2626 !important; background: #fef2f2 !important; color: #991b1b;
-}
-
+#param_articles_table tbody tr:hover, #param_paiements_table tbody tr:hover { background: #e6f0ff !important; }
+.param-inline-input { width: 100% !important; min-width: 90px; height: 34px !important; font-size: 0.8rem !important; padding: 4px 8px !important; border-radius: 8px !important; text-align: right; font-weight: 600; }
+.param-inline-input.frais-input { border-color: #f59e0b !important; background: #fffbeb !important; color: #92400e; }
+.param-inline-input.reduction-input { border-color: #dc2626 !important; background: #fef2f2 !important; color: #991b1b; }
 .dual-currency b { display: block; font-size: 0.82rem; }
 .dual-currency small { display: block; font-size: 0.7rem; color: #64748b; font-weight: 500; }
-
 .param-totals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 10px; }
-
-.param-total-item {
-    background: white; padding: 12px 14px; border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-    border: 1px solid #eef2f6;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
+.param-total-item { background: white; padding: 12px 14px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06); border: 1px solid #eef2f6; transition: transform 0.15s ease, box-shadow 0.15s ease; }
 .param-total-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
-
-.param-total-label {
-    font-size: 0.65rem; color: #64748b; text-transform: uppercase;
-    font-weight: 700; letter-spacing: 0.4px;
-    margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
-}
-
+.param-total-label { font-size: 0.65rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.4px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
 .param-total-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
 .param-total-value { font-size: 0.92rem; font-weight: 800; line-height: 1.2; }
 .param-total-sub { font-size: 0.72rem; font-weight: 600; margin-top: 3px; color: #64748b; line-height: 1.2; }
-
 .param-total-item.total-qte   .param-total-value { color: #17a2b8; } .param-total-item.total-qte   .param-total-dot { background: #17a2b8; }
 .param-total-item.total-pv    .param-total-value { color: #3B82F6; } .param-total-item.total-pv    .param-total-dot { background: #3B82F6; }
 .param-total-item.total-gen   .param-total-value { color: #0a192f; } .param-total-item.total-gen   .param-total-dot { background: #0a192f; }
@@ -699,147 +367,52 @@ select.form-control {
     #paramFactureModal .param-totals-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ============================================================
-   MODALE RAPPORT DES MONTANTS REÇUS
-   ============================================================ */
+/* MODALE RAPPORT */
 #rapportModal .modal-header { background: linear-gradient(135deg, #ef4444, #dc2626) !important; }
-#rapportModal #rapport_date_range {
-    width: 100%; height: 38px; border-radius: 14px !important;
-    border: 1px solid #e2e8f0 !important; padding: 8px 12px;
-    font-weight: 500; font-size: 0.85rem; background: #fff;
-}
-#rapportModal #rapport_date_range:focus {
-    border-color: #dc2626 !important;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
-    outline: none;
-}
-#rapportModal #rapport_user_filter,
-#rapportModal #rapport_client_filter {
-    width: 100%; height: 38px; border-radius: 14px !important;
-    border: 1px solid #e2e8f0 !important; padding: 8px 12px;
-    font-weight: 500; font-size: 0.85rem; background: #fff;
-}
-#rapportModal #rapport_user_filter:focus,
-#rapportModal #rapport_client_filter:focus {
-    border-color: #dc2626 !important;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
-    outline: none;
-}
-#rapportModal #rapport_user_filter:disabled {
-    background: #f1f5f9 !important; cursor: not-allowed; opacity: 0.85;
-}
-#rapport_table thead th {
-    background: #FEE2E2 !important; color: #7f1d1d;
-    border-bottom: 2px solid #fca5a5 !important;
-}
+#rapportModal #rapport_date_range { width: 100%; height: 38px; border-radius: 14px !important; border: 1px solid #e2e8f0 !important; padding: 8px 12px; font-weight: 500; font-size: 0.85rem; background: #fff; }
+#rapportModal #rapport_date_range:focus { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important; outline: none; }
+#rapportModal #rapport_user_filter, #rapportModal #rapport_client_filter { width: 100%; height: 38px; border-radius: 14px !important; border: 1px solid #e2e8f0 !important; padding: 8px 12px; font-weight: 500; font-size: 0.85rem; background: #fff; }
+#rapportModal #rapport_user_filter:focus, #rapportModal #rapport_client_filter:focus { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important; outline: none; }
+#rapportModal #rapport_user_filter:disabled { background: #f1f5f9 !important; cursor: not-allowed; opacity: 0.85; }
+#rapport_table thead th { background: #FEE2E2 !important; color: #7f1d1d; border-bottom: 2px solid #fca5a5 !important; }
 #rapport_table tbody tr:hover { background: #fef2f2 !important; }
-#rapport_table tfoot td {
-    background: #f1f5f9; border-top: 2px solid #cbd5e1 !important; font-size: 0.82rem;
-}
+#rapport_table tfoot td { background: #f1f5f9; border-top: 2px solid #cbd5e1 !important; font-size: 0.82rem; }
 
-/* ============================================================
-   TOUTES LES MODALES
-   ============================================================ */
-.modal-dialog {
-    display: flex !important; align-items: center !important;
-    min-height: calc(100vh - 3.5rem) !important;
-    margin: 1.75rem auto !important;
-}
-.modal-content {
-    max-height: calc(100vh - 3.5rem) !important;
-    display: flex !important; flex-direction: column !important; overflow: hidden !important;
-}
+/* TOUTES LES MODALES */
+.modal-dialog { display: flex !important; align-items: center !important; min-height: calc(100vh - 3.5rem) !important; margin: 1.75rem auto !important; }
+.modal-content { max-height: calc(100vh - 3.5rem) !important; display: flex !important; flex-direction: column !important; overflow: hidden !important; }
 .modal-header { flex-shrink: 0 !important; }
-.modal-body {
-    overflow-y: auto; flex: 1 1 auto;
-    -webkit-overflow-scrolling: touch;
-}
+.modal-body { overflow-y: auto; flex: 1 1 auto; -webkit-overflow-scrolling: touch; }
 .modal-footer { flex-shrink: 0 !important; }
 
 @media (max-width: 768px) {
     .modal-dialog { min-height: calc(100vh - 1rem) !important; margin: 0.5rem auto !important; }
     .modal-content { max-height: calc(100vh - 1rem) !important; }
-
-    #deleteFactureModal .modal-content > div:last-child,
-    #suppression .modal-content > div:last-child,
-    #pret .modal-content > div:last-child,
-    #c_frais .modal-content > div:last-child {
-        flex-shrink: 0 !important; padding: 12px !important;
-        background: white; border-top: 1px solid #eef2f6;
-    }
+    #deleteFactureModal .modal-content > div:last-child, #suppression .modal-content > div:last-child, #pret .modal-content > div:last-child, #c_frais .modal-content > div:last-child { flex-shrink: 0 !important; padding: 12px !important; background: white; border-top: 1px solid #eef2f6; }
 }
-
 .daterangepicker { z-index: 10050 !important; }
 
-/* ============================================================
-   BOUTON QR CODE / PAYER
-   ============================================================ */
-#qr_btn {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 6px 16px !important;
-    font-weight: 600;
-    font-size: 0.85rem;
-    border-radius: 40px !important;
-    transition: all 0.25s ease;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    box-shadow: var(--shadow-light);
-    white-space: nowrap;
-    line-height: 1.5;
-    min-width: 130px;
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-    color: white !important;
-}
-#qr_btn:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, #059669, #047857) !important;
-    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.3);
-}
+/* BOUTON QR CODE */
+#qr_btn { display: inline-flex !important; align-items: center; justify-content: center; gap: 8px; padding: 6px 16px !important; font-weight: 600; font-size: 0.85rem; border-radius: 40px !important; transition: all 0.25s ease; border: none; cursor: pointer; text-decoration: none; box-shadow: var(--shadow-light); white-space: nowrap; line-height: 1.5; min-width: 130px; background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; }
+#qr_btn:hover { transform: translateY(-2px); background: linear-gradient(135deg, #059669, #047857) !important; box-shadow: 0 8px 18px rgba(16, 185, 129, 0.3); }
 #qr_btn i.zmdi { color: white !important; }
+@media (max-width: 768px) { #qr_btn { padding: 4px 12px !important; font-size: 0.7rem; min-width: 90px; flex: 1 1 auto; } }
+@media (max-width: 480px) { #qr_btn { padding: 4px 6px !important; font-size: 0.65rem !important; min-width: 70px; flex: 1 1 auto; } }
 
-@media (max-width: 768px) {
-    #qr_btn { padding: 4px 12px !important; font-size: 0.7rem; min-width: 90px; flex: 1 1 auto; }
-}
-@media (max-width: 480px) {
-    #qr_btn { padding: 4px 6px !important; font-size: 0.65rem !important; min-width: 70px; flex: 1 1 auto; }
-}
-
-/* ============================================================
-   MODALE QR CODE
-   ============================================================ */
+/* MODALE QR CODE */
 .modal.fade#qrModal .modal-dialog { max-width: 100%; width: 60%; margin: 1.75rem auto; }
 .modal.fade#qrModal .modal-content { border-radius: 20px; border: none; box-shadow: var(--shadow-premium); overflow: hidden; }
-.modal.fade#qrModal .modal-header {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-    border-bottom: none; padding: 1.2rem 1.5rem;
-}
+.modal.fade#qrModal .modal-header { background: linear-gradient(135deg, #10b981, #059669) !important; border-bottom: none; padding: 1.2rem 1.5rem; }
 .modal.fade#qrModal .modal-header .modal-title { font-weight: 700; font-size: 1.2rem; color: white; }
 .modal.fade#qrModal .modal-header .close { color: white; opacity: 0.8; text-shadow: none; }
 .modal.fade#qrModal .modal-header .close:hover { opacity: 1; }
 .modal.fade#qrModal .modal-body { padding: 0; background: #f8fafc; }
 .modal.fade#qrModal .modal-footer { background: white; border-top: 1px solid #eef2f6; padding: 1.2rem 1.5rem; }
 .modal.fade#qrModal #qrIframe { width: 100%; height: 60vh; border: none; background: white; }
-.modal.fade#qrModal .btn-secondary {
-    background: #64748b; border: none; border-radius: 40px;
-    padding: 8px 20px; font-weight: 600; font-size: 0.8rem;
-    transition: all 0.2s ease; color: white;
-}
+.modal.fade#qrModal .btn-secondary { background: #64748b; border: none; border-radius: 40px; padding: 8px 20px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s ease; color: white; }
 .modal.fade#qrModal .btn-secondary:hover { background: #475569; transform: translateY(-2px); }
-
-@media (max-width: 768px) {
-    .modal.fade#qrModal .modal-dialog { width: 95%; margin: 1rem auto; }
-    .modal.fade#qrModal #qrIframe { height: 45vh; }
-    .modal.fade#qrModal .modal-footer { padding: 1rem; }
-}
-@media (max-width: 480px) {
-    .modal.fade#qrModal .modal-header { padding: 0.8rem 1rem; }
-    .modal.fade#qrModal .modal-header .modal-title { font-size: 1rem; }
-    .modal.fade#qrModal #qrIframe { height: 40vh; }
-}
+@media (max-width: 768px) { .modal.fade#qrModal .modal-dialog { width: 95%; margin: 1rem auto; } .modal.fade#qrModal #qrIframe { height: 45vh; } .modal.fade#qrModal .modal-footer { padding: 1rem; } }
+@media (max-width: 480px) { .modal.fade#qrModal .modal-header { padding: 0.8rem 1rem; } .modal.fade#qrModal .modal-header .modal-title { font-size: 1rem; } .modal.fade#qrModal #qrIframe { height: 40vh; } }
     </style>
 
     <section class="content">
@@ -850,9 +423,7 @@ select.form-control {
                         <div class="container">
                             <div class="row">
                                 <div class="col-12" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                                    <a class="btn-primary btn-sm" id="liste" href="">
-                                        <i class="zmdi zmdi-email-open"></i> Liste
-                                    </a>
+                                    <a class="btn-primary btn-sm" id="liste" href=""><i class="zmdi zmdi-email-open"></i> Liste</a>
                                     <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                                     <?php
                                     $add = 0;
@@ -861,21 +432,13 @@ select.form-control {
                                     }
                                     ?>
                                     <?php if ((($add == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($add == 0) && (Auth::user()->role == 0))) { ?>
-                                    <a class="btn-primary btn-sm" id="add" href="">
-                                        <i class="zmdi zmdi-email"></i> Ajouter
-                                    </a>
+                                    <a class="btn-primary btn-sm" id="add" href=""><i class="zmdi zmdi-email"></i> Ajouter</a>
                                     <?php } else { ?>
-                                    <a class="btn-primary btn-sm" id="add_r" href="">
-                                        <i class="zmdi zmdi-accounts-add"></i> Ajouter
-                                    </a>
+                                    <a class="btn-primary btn-sm" id="add_r" href=""><i class="zmdi zmdi-accounts-add"></i> Ajouter</a>
                                     <?php } ?>
                                     <?php } ?>
-                                    <a class="btn-danger btn-sm" id="rapport" href="#">
-                                        <i class="zmdi zmdi-chart"></i> Rapport
-                                    </a>
-                                    <a class="btn-sm" id="qr_btn" href="#">
-                                        <i class="fas fa-hand-holding-usd"></i> Payer
-                                    </a>
+                                    <a class="btn-danger btn-sm" id="rapport" href="#"><i class="zmdi zmdi-chart"></i> Rapport</a>
+                                    <a class="btn-sm" id="qr_btn" href="#"><i class="fas fa-hand-holding-usd"></i> Payer</a>
                                 </div>
                             </div>
                         </div>
@@ -886,8 +449,7 @@ select.form-control {
         <div style="margin-top: 30px;" class="container">
             <div class="row">
                 <div class="col-lg-12">
-                    <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i
-                            class="zmdi zmdi-chevron-right"></i> &nbsp; Facture point de vente</h6>
+                    <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Facture point de vente</h6>
                 </div>
 
                 <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
@@ -983,14 +545,9 @@ select.form-control {
                                                     $reduction_orig = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
                                                     $net_orig = $e->total - $reduction_orig;
                                                     if ($net_orig < 0) $net_orig = 0;
-
-                                                    if ($devise_achat_orig == $data->devise) {
-                                                        $total_original += $net_orig;
-                                                    } elseif ($data->devise == 0) {
-                                                        $total_original += ($taux > 0) ? ($net_orig / $taux) : 0;
-                                                    } else {
-                                                        $total_original += $net_orig * $taux;
-                                                    }
+                                                    if ($devise_achat_orig == $data->devise) { $total_original += $net_orig; }
+                                                    elseif ($data->devise == 0) { $total_original += ($taux > 0) ? ($net_orig / $taux) : 0; }
+                                                    else { $total_original += $net_orig * $taux; }
                                                 }
 
                                                 $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
@@ -1042,18 +599,12 @@ select.form-control {
                                                 $achat_total_cdf = 0;
                                                 foreach ($ent as $e) {
                                                     $total += $e->total + ($e->frais_credit ?? 0) - ($e->reduction ?? 0);
-
                                                     $prix_achat = $e->prix_achat ?? 0;
                                                     $quantite = $e->quantite ?? 1;
                                                     $prix_achat_total = $prix_achat * $quantite;
                                                     $devise_achat = $e->devise_achat ?? $data->devise;
-                                                    if ($devise_achat == 0) {
-                                                        $achat_total_usd += $prix_achat_total;
-                                                        $achat_total_cdf += $prix_achat_total * $taux;
-                                                    } else {
-                                                        $achat_total_cdf += $prix_achat_total;
-                                                        $achat_total_usd += $prix_achat_total / $taux;
-                                                    }
+                                                    if ($devise_achat == 0) { $achat_total_usd += $prix_achat_total; $achat_total_cdf += $prix_achat_total * $taux; }
+                                                    else { $achat_total_cdf += $prix_achat_total; $achat_total_usd += $prix_achat_total / $taux; }
                                                 }
 
                                                 if ($data->devise == 0) {
@@ -1068,10 +619,8 @@ select.form-control {
 
                                                 $benefice_usd = $montant_usd - $achat_total_usd;
                                                 $benefice_cdf = $montant_cdf - $achat_total_cdf;
-
                                                 $reste_usd = $montant_usd - $montant_usd_paye;
                                                 $reste_cdf = $montant_cdf - $montant_cdf_paye;
-
                                                 $paye_affichage = number_format($montant_usd_paye, 2, ',', ' ') . ' USD (' . number_format($montant_cdf_paye, 2, ',', ' ') . ' CDF)';
                                                 $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
                                                 $statut_text = $reste_usd > 0 ? 'Impayé' : 'Payé';
@@ -1083,6 +632,9 @@ select.form-control {
 
                                                 $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
 
+                                                // ✅ NOUVEAU — Nom du créateur de la facture (factures.user_id)
+                                                $facture_user_nom = User::where('id', $data->user_id)->first()['name'] ?? 'N/A';
+
                                                 $articles_json = [];
                                                 foreach ($ent as $e) {
                                                     $art = null;
@@ -1092,14 +644,12 @@ select.form-control {
                                                             if ($art) break;
                                                         }
                                                     }
-
                                                     $nom_article_aff = $art->nom_article ?? $e->nom_article ?? $e->nom ?? $art->name ?? ('Article #' . $e->id);
                                                     $pa = $e->prix_achat ?? 0;
                                                     $qt = $e->quantite ?? 1;
                                                     $prix_unit = $e->prix_vente ?? ($art->prix_detail ?? null) ?? ($qt > 0 ? ($e->total / $qt) : $e->total);
                                                     $devise_achat_json = $e->devise_achat ?? $data->devise;
                                                     $reduction_ligne   = $e->reduction ?? 0;
-
                                                     $articles_json[] = [
                                                         'id' => $e->id,
                                                         'nom' => $nom_article_aff,
@@ -1115,14 +665,34 @@ select.form-control {
                                                     ];
                                                 }
 
+                                                // ✅ MODIFIÉ — Utilisateur du PAIEMENT (detailpaiessachats.user_id)
+                                                // C'est la personne qui a ENREGISTRÉ le paiement, pas celle qui a créé la facture.
+                                                // Si user_id est null (anciens paiements), fallback sur le créateur de la facture.
                                                 $paiements_json = [];
                                                 foreach ($paiements as $p) {
                                                     $isUSD = ($p->devise_recu == 0);
+
+                                                    $payeur_id = $p->user_id ?? null;
+                                                    $payeur_source = 'paiement';
+
+                                                    if (empty($payeur_id)) {
+                                                        $payeur_id = $data->user_id ?? null;
+                                                        $payeur_source = 'facture';
+                                                    }
+
+                                                    $payeur_nom = 'N/A';
+                                                    if (!empty($payeur_id)) {
+                                                        $u = User::where('id', $payeur_id)->first();
+                                                        if ($u) $payeur_nom = $u->name;
+                                                    }
+
                                                     $paiements_json[] = [
                                                         'id' => $p->id,
                                                         'date' => date('d/m/Y à H:i', strtotime($p->created_at)),
                                                         'payer' => $p->payer,
-                                                        'payer_nom' => User::where('id', $data->user_id)->first()['name'] ?? 'N/A',
+                                                        'payer_nom' => $payeur_nom,
+                                                        'payer_id' => $payeur_id,
+                                                        'payer_source' => $payeur_source,
                                                         'montant_recu' => $p->montant_recu,
                                                         'devise_label' => $isUSD ? 'USD' : 'CDF',
                                                         'mode_de_paiement' => $p->mode_de_paiement,
@@ -1147,7 +717,8 @@ select.form-control {
                                                 data-numero="{{ $data->numero }}"
                                                 data-client="{{ $client_name }}"
                                                 data-client-id="{{ $data->client_id }}"
-                                                data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}"
+                                                data-user="{{ $facture_user_nom }}"
+                                                data-user-id="{{ $data->user_id }}"
                                                 data-table="{{ $data->table_id == 0 ? 'Aucune' : (Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A') }}"
                                                 data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
                                                 data-devise="{{ $data->devise }}"
@@ -1168,8 +739,8 @@ select.form-control {
                                                 data-articles='@json($articles_json)'
                                                 data-paiements='@json($paiements_json)'>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell" data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
-                                                    {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ $facture_user_nom }}">
+                                                    {{ $facture_user_nom }}
                                                 </td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="client-cell" data-client="{{ $client_name }}">
                                                     @if ($data->client_id == 0)
@@ -1191,15 +762,9 @@ select.form-control {
                                                         @endif
                                                     @endif
                                                 </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="{{ $total }}">
-                                                    {{ $montant_affichage }}
-                                                </td>
-                                                <td class="paye-cell {{ $reste_usd > 0 ? 'text-danger' : 'text-success' }}">
-                                                    {{ $paye_affichage }}
-                                                </td>
-                                                <td class="reste-cell {{ $reste_usd > 0 ? 'text-danger' : 'text-success' }}">
-                                                    {{ $reste_affichage }}
-                                                </td>
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="{{ $total }}">{{ $montant_affichage }}</td>
+                                                <td class="paye-cell {{ $reste_usd > 0 ? 'text-danger' : 'text-success' }}">{{ $paye_affichage }}</td>
+                                                <td class="reste-cell {{ $reste_usd > 0 ? 'text-danger' : 'text-success' }}">{{ $reste_affichage }}</td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell" data-date="{{ $data->created_at }}">
                                                     @php
                                                         $date = $data->created_at;
@@ -1252,9 +817,7 @@ select.form-control {
                                                     <?php } ?>
 
                                                     <?php if ((($edit == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($delete == 0) && (Auth::user()->role == 0))) { ?>
-                                                        <a href="#" class="param-facture-btn"
-                                                           data-id="{{ $data->id }}"
-                                                           title="Paramètres de la facture">
+                                                        <a href="#" class="param-facture-btn" data-id="{{ $data->id }}" title="Paramètres de la facture">
                                                             <i class="zmdi zmdi-settings text-info"></i>
                                                         </a>
                                                     <?php } ?>
@@ -1331,8 +894,7 @@ select.form-control {
 
                 <div id="bloc_t" class="row" style="width: 100%; margin: 0;">
                     <div id="bloc_2" style="margin-top: 12px;display: none;" class="col-lg-5">
-                        <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-plus-circle text-info"></i>
-                            Ajouter un article</h4>
+                        <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-plus-circle text-info"></i> Ajouter un article</h4>
                         <form id="form_add" action="#" method="post">
                             @csrf
                             <div class="row">
@@ -1831,7 +1393,7 @@ select.form-control {
 
     {{-- MODALE RAPPORT DES MONTANTS REÇUS --}}
     <div class="modal fade" id="rapportModal" tabindex="-1" role="dialog" aria-labelledby="rapportModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1100px;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1200px;">
             <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);">
                 <div class="modal-header" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-bottom: none; padding: 1.1rem 1.5rem;">
                     <h5 class="modal-title" id="rapportModalLabel" style="font-weight: 700;">
@@ -1853,7 +1415,7 @@ select.form-control {
                         </div>
                         <div style="flex:1; min-width: 200px;">
                             <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
-                                <i class="zmdi zmdi-account text-danger"></i> Utilisateur
+                                <i class="zmdi zmdi-account text-danger"></i> Utilisateur (payeur)
                             </label>
                             <select id="rapport_user_filter" class="form-control">
                                 <option value="all">Tous les utilisateurs</option>
@@ -1889,20 +1451,26 @@ select.form-control {
                     <div class="table-responsive" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background:white;">
                         <table class="table table-sm mb-0" id="rapport_table">
                             <thead style="background: #FEE2E2;">
+                                <!-- ✅ NOUVEAU — 2 colonnes distinctes : Enregistré par / Encaissé par -->
                                 <tr>
                                     <th style="font-size:0.72rem;">#</th>
-                                    <th style="font-size:0.72rem;">Date</th>
+                                    <th style="font-size:0.72rem;">Date paiement</th>
                                     <th style="font-size:0.72rem;">N° Facture</th>
                                     <th style="font-size:0.72rem;">Date facture</th>
                                     <th style="font-size:0.72rem;">Client / Libellé</th>
-                                    <th style="font-size:0.72rem;">Utilisateur</th>
+                                    <th style="font-size:0.72rem;" title="Utilisateur qui a créé la facture (factures.user_id)">
+                                        <i class="zmdi zmdi-edit"></i> Enregistré par
+                                    </th>
+                                    <th style="font-size:0.72rem;" title="Utilisateur qui a encaissé le paiement (detailpaiessachats.user_id)">
+                                        <i class="zmdi zmdi-money"></i> Encaissé par
+                                    </th>
                                     <th style="font-size:0.72rem;">Mode</th>
                                     <th style="font-size:0.72rem;">Devise</th>
                                     <th style="font-size:0.72rem; text-align:right;">Montant reçu</th>
                                 </tr>
                             </thead>
                             <tbody id="rapport_body">
-                                <tr><td colspan="9" class="text-center text-muted">Chargement...</td></tr>
+                                <tr><td colspan="10" class="text-center text-muted">Chargement...</td></tr>
                             </tbody>
                             <tfoot id="rapport_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
                         </table>
@@ -1937,14 +1505,18 @@ select.form-control {
     <script>
     $("#link_48").addClass("active");
 
-    var USER_ROLE = {{ Auth::user()->role ?? 1 }};
+    // ============================================================
+    // ✅ VARIABLES GLOBALES UTILISATEUR
+    // ============================================================
+    var USER_ROLE         = {{ Auth::user()->role ?? 1 }};
+    var CURRENT_USER_ID   = {{ Auth::user()->id }};
     var CURRENT_USER_NAME = "{{ addslashes(Auth::user()->name ?? '') }}";
     var currentPdfUrl = "";
 
-    // 🔹 Liste de TOUS les utilisateurs actifs (etat = 1) — chargée depuis le serveur
-    var ALL_ACTIVE_USERS = [
-        @foreach(\App\Models\User::where('etat', 1)->orderBy('name')->get() as $u)
-            "{{ addslashes($u->name) }}",
+    // ✅ Tous les utilisateurs (actifs ET désactivés) avec leur ID
+    var ALL_USERS = [
+        @foreach(\App\Models\User::orderBy('name')->get() as $u)
+            { id: {{ $u->id }}, name: "{{ addslashes($u->name) }}" },
         @endforeach
     ];
 
@@ -2635,43 +2207,84 @@ select.form-control {
         }
         function formatRMoney(v) { return (parseFloat(v) || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
 
+        // ✅ Select2 — utilise maintenant les IDs utilisateur
         function populateRapportUsers() {
             var $sel = $('#rapport_user_filter');
+
+            if ($sel.hasClass('select2-hidden-accessible')) {
+                $sel.select2('destroy');
+            }
+
             $sel.empty();
 
             if (USER_ROLE == 0) {
                 $sel.append('<option value="all">Tous les utilisateurs</option>');
-                ALL_ACTIVE_USERS.forEach(function (u) {
-                    $sel.append('<option value="' + u + '">' + u + '</option>');
+                ALL_USERS.forEach(function (u) {
+                    $sel.append('<option value="' + u.id + '">' + u.name + '</option>');
                 });
                 $sel.prop('disabled', false);
+
+                $sel.select2({
+                    placeholder: "Rechercher un utilisateur...",
+                    allowClear: false,
+                    theme: 'bootstrap',
+                    width: '100%',
+                    dropdownParent: $('#rapportModal'),
+                    language: {
+                        noResults: function () { return "Aucun utilisateur trouvé"; },
+                        searching: function () { return "Recherche..."; }
+                    }
+                });
             } else {
                 var nom = CURRENT_USER_NAME || 'Utilisateur';
-                $sel.append('<option value="' + nom + '" selected>' + nom + '</option>');
-                $sel.val(nom);
+                $sel.append('<option value="' + CURRENT_USER_ID + '" selected>' + nom + '</option>');
+                $sel.val(String(CURRENT_USER_ID));
                 $sel.prop('disabled', true);
+
+                $sel.select2({
+                    theme: 'bootstrap',
+                    width: '100%',
+                    dropdownParent: $('#rapportModal'),
+                    disabled: true
+                });
             }
         }
 
+        // ✅ MODIFIÉ — Filtre par ID du payeur (detailpaiessachats.user_id) + 2 colonnes
         function buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
             var totalUSD = 0, totalCDF = 0, nb = 0;
             var html = '', lignes = [];
 
-            var effectiveUserFilter = (USER_ROLE == 0)
-                ? (userFilter || 'all')
-                : CURRENT_USER_NAME;
+            var effectiveUserId;
+            if (USER_ROLE == 0) {
+                if (!userFilter || userFilter === 'all') {
+                    effectiveUserId = 'all';
+                } else {
+                    effectiveUserId = parseInt(userFilter);
+                    if (isNaN(effectiveUserId)) effectiveUserId = 'all';
+                }
+            } else {
+                effectiveUserId = CURRENT_USER_ID;
+            }
+
             var effectiveClientFilter = (clientFilter || '').trim().toLowerCase();
+
+            var effectiveUserLabel = 'Tous';
+            if (effectiveUserId !== 'all') {
+                var foundUser = ALL_USERS.find(function (u) { return u.id === effectiveUserId; });
+                effectiveUserLabel = foundUser ? foundUser.name : ('ID ' + effectiveUserId);
+            }
 
             $('#content_utilisateur tbody tr').each(function() {
                 var $r = $(this);
                 var fid = $r.data('facture-id'); if (!fid) return;
                 var num = $r.data('numero') || '-';
                 var cli = $r.data('client') || '-';
-                var usr = $r.data('user') || 'N/A';
+                // ✅ Créateur de la facture (factures.user_id)
+                var enregistrePar = $r.data('user') || 'N/A';
                 var dateFacture = $r.data('date') || '-';
                 var tx = parseFloat($r.data('taux')) || 1; if (tx <= 0) tx = 1;
 
-                if (effectiveUserFilter && effectiveUserFilter !== 'all' && usr !== effectiveUserFilter) return;
                 if (effectiveClientFilter && !String(cli).toLowerCase().includes(effectiveClientFilter)) return;
 
                 var pai = safeParseJSON($r.attr('data-paiements'));
@@ -2682,6 +2295,12 @@ select.form-control {
                         if (!iso) return;
                         if (iso < dateDebutISO || iso > dateFinISO) return;
                     }
+
+                    // ✅ Filtre par ID du PAYEUR (detailpaiessachats.user_id)
+                    var payeurId = parseInt(p.payer_id) || 0;
+                    if (effectiveUserId !== 'all' && payeurId !== effectiveUserId) return;
+
+                    var encaissePar = p.payer_nom || 'N/A';
                     var m = parseFloat(p.montant_recu) || 0;
                     var dev = p.devise_label || 'USD';
                     var tp = parseFloat(p.taux) || tx; if (tp <= 0) tp = 1;
@@ -2693,7 +2312,9 @@ select.form-control {
                         numero: num,
                         date_facture: dateFacture,
                         client: cli,
-                        user_nom: usr,
+                        enregistre_par: enregistrePar,   // ✅ factures.user_id
+                        encaisse_par: encaissePar,       // ✅ detailpaiessachats.user_id
+                        encaisse_par_id: payeurId,
                         mode: p.mode_label||'N/A',
                         devise: dev,
                         montant_usd: mUSD,
@@ -2706,7 +2327,7 @@ select.form-control {
             lignes.sort(function(a,b) { return a.iso < b.iso ? -1 : a.iso > b.iso ? 1 : 0; });
 
             if (lignes.length === 0) {
-                html = '<tr><td colspan="9" class="text-center text-muted">Aucun paiement trouvé dans cette période</td></tr>';
+                html = '<tr><td colspan="10" class="text-center text-muted">Aucun paiement trouvé dans cette période</td></tr>';
             } else {
                 lignes.forEach(function(l, idx) {
                     var bd = l.devise === 'USD' ? 'primary' : 'warning';
@@ -2715,7 +2336,10 @@ select.form-control {
                     html += '<td><b>' + l.numero + '</b></td>';
                     html += '<td style="font-size:0.78rem;">' + l.date_facture + '</td>';
                     html += '<td>' + l.client + '</td>';
-                    html += '<td><span class="badge badge-secondary"><i class="zmdi zmdi-account"></i> ' + l.user_nom + '</span></td>';
+                    // ✅ Colonne "Enregistré par" (créateur facture)
+                    html += '<td><span class="badge badge-secondary" title="Créateur de la facture"><i class="zmdi zmdi-edit"></i> ' + l.enregistre_par + '</span></td>';
+                    // ✅ Colonne "Encaissé par" (payeur)
+                    html += '<td><span class="badge badge-success" title="ID payeur : ' + (l.encaisse_par_id || 'N/A') + '" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="zmdi zmdi-money"></i> ' + l.encaisse_par + '</span></td>';
                     html += '<td><span class="badge badge-info">' + l.mode + '</span></td>';
                     html += '<td><span class="badge badge-' + bd + '">' + l.devise + '</span></td>';
                     html += '<td style="text-align:right;"><div class="dual-currency"><b class="text-primary">' + formatRMoney(l.montant_usd) + ' USD</b><small class="text-warning">' + formatRMoney(l.montant_cdf) + ' CDF</small></div></td>';
@@ -2723,13 +2347,13 @@ select.form-control {
                 });
             }
             $('#rapport_body').html(html);
-            $('#rapport_foot').html('<tr><td colspan="8" class="text-right">TOTAL REÇU (' + nb + ' transaction' + (nb>1?'s':'') + ') :</td><td style="text-align:right;"><span class="text-primary">' + formatRMoney(totalUSD) + ' USD</span><br><span class="text-warning">' + formatRMoney(totalCDF) + ' CDF</span></td></tr>');
+            $('#rapport_foot').html('<tr><td colspan="9" class="text-right">TOTAL REÇU (' + nb + ' transaction' + (nb>1?'s':'') + ') :</td><td style="text-align:right;"><span class="text-primary">' + formatRMoney(totalUSD) + ' USD</span><br><span class="text-warning">' + formatRMoney(totalCDF) + ' CDF</span></td></tr>');
             $('#rapport_total_usd').text(formatRMoney(totalUSD));
             $('#rapport_total_cdf').text(formatRMoney(totalCDF));
             $('#rapport_nb').text(nb);
 
             if (USER_ROLE == 0) {
-                $('#rapport_user_label').text(effectiveUserFilter === 'all' ? 'Tous' : effectiveUserFilter);
+                $('#rapport_user_label').text(effectiveUserLabel);
             } else {
                 $('#rapport_user_label').text(CURRENT_USER_NAME + ' (vous)');
             }
@@ -2768,7 +2392,6 @@ select.form-control {
 
         $("#rapport").click(function(e) {
             e.preventDefault();
-            populateRapportUsers();
 
             var fr = $('#filterDateRange').val() || '';
             $('#rapport_date_range').val(fr);
@@ -2777,12 +2400,19 @@ select.form-control {
                 var p = fr.split(' - ');
                 if (p.length === 2) { d1 = parseDMY_to_ISO(p[0]); d2 = parseDMY_to_ISO(p[1]); }
             }
-            var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
-            var clientFilter = $('#rapport_client_filter').val() || '';
 
-            $('#rapport_periode_label').text(fr || 'Toutes les dates');
-            buildRapport(d1, d2, userFilter, clientFilter);
             $('#rapportModal').modal('show');
+
+            $('#rapportModal').off('shown.bs.modal.rapportUser');
+            $('#rapportModal').on('shown.bs.modal.rapportUser', function() {
+                populateRapportUsers();
+
+                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
+                var clientFilter = $('#rapport_client_filter').val() || '';
+
+                $('#rapport_periode_label').text(fr || 'Toutes les dates');
+                buildRapport(d1, d2, userFilter, clientFilter);
+            });
         });
 
         $(document).on('click', '#rapport_apply_btn', function(e) {
@@ -2793,7 +2423,7 @@ select.form-control {
                 var p = r.split(' - ');
                 if (p.length === 2) { d1 = parseDMY_to_ISO(p[0]); d2 = parseDMY_to_ISO(p[1]); }
             }
-            var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+            var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
             var clientFilter = $('#rapport_client_filter').val() || '';
             $('#rapport_periode_label').text(r || 'Toutes les dates');
             buildRapport(d1, d2, userFilter, clientFilter);
@@ -2821,7 +2451,7 @@ select.form-control {
                     var p = r.split(' - ');
                     if (p.length === 2) { d1 = parseDMY_to_ISO(p[0]); d2 = parseDMY_to_ISO(p[1]); }
                 }
-                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
                 var clientFilter = $('#rapport_client_filter').val() || '';
                 buildRapport(d1, d2, userFilter, clientFilter);
             }, 300);
@@ -2836,12 +2466,12 @@ select.form-control {
                 $('#rapport_date_range').data('daterangepicker').setEndDate(moment());
             }
             if (USER_ROLE == 0) {
-                $('#rapport_user_filter').val('all');
+                $('#rapport_user_filter').val('all').trigger('change.select2');
             } else {
-                $('#rapport_user_filter').val(CURRENT_USER_NAME);
+                $('#rapport_user_filter').val(String(CURRENT_USER_ID)).trigger('change.select2');
             }
             $('#rapport_periode_label').text('Toutes les dates');
-            buildRapport(null, null, USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME, '');
+            buildRapport(null, null, USER_ROLE == 0 ? 'all' : CURRENT_USER_ID, '');
         });
 
         var initialPdv = $("#pointdeventes_id").val();

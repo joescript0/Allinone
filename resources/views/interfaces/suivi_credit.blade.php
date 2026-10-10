@@ -368,9 +368,6 @@ select.form-control {
     justify-content: flex-start;
 }
 
-/* ============================================================
-   ✅ SELECT2 – Bordure visible sur tout le contour (couleur grise unifiée)
-   ============================================================ */
 .select2-container--bootstrap .select2-selection {
     height: 38px !important;
     border-radius: 14px !important;
@@ -382,9 +379,7 @@ select.form-control {
     padding: 0 12px;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.select2-container--bootstrap .select2-selection:hover {
-    border-color: #64748b !important;
-}
+.select2-container--bootstrap .select2-selection:hover { border-color: #64748b !important; }
 .select2-container--bootstrap.select2-container--focus .select2-selection,
 .select2-container--bootstrap.select2-container--open .select2-selection {
     border-color: #3B82F6 !important;
@@ -404,9 +399,6 @@ select.form-control {
 .select2-results__option--highlighted { background: #e6f0ff !important; color: #0a192f !important; }
 .select2-container--bootstrap .select2-results__options { max-height: 200px !important; overflow-y: auto !important; }
 
-/* ============================================================
-   MODALE PDF
-   ============================================================ */
 .modal.fade#pdfModal .modal-dialog { max-width: 100%; width: 60%; margin: 1.75rem auto; }
 .modal.fade#pdfModal .modal-content { border-radius: 20px; border: none; box-shadow: var(--shadow-premium); overflow: hidden; }
 .modal.fade#pdfModal .modal-header { background: var(--bleu-nuit-gradient) !important; border-bottom: none; padding: 1.2rem 1.5rem; }
@@ -482,9 +474,6 @@ select.form-control {
 .modal.fade#pdfModal .btn-secondary:hover { background: #475569; transform: translateY(-2px); }
 .modal.fade#pdfModal hr { margin: 15px 0; border: 0; border-top: 1px solid #eef2f6; }
 
-/* ============================================================
-   MODALE TRANCHES
-   ============================================================ */
 #tranchesModal .modal-content {
     border-radius: var(--border-radius-xl); border: none;
     box-shadow: var(--shadow-premium);
@@ -642,9 +631,6 @@ select.form-control {
     #add { display: none !important; }
 }
 
-/* ============================================================
-   MODALE PARAMÈTRES FACTURE – STYLES COMPLETS
-   ============================================================ */
 .param-nav-tabs .nav-link {
     border: none; color: #64748b; font-weight: 600;
     font-size: 0.9rem; padding: 16px 20px;
@@ -712,9 +698,6 @@ select.form-control {
     display: block; margin-bottom: 8px;
 }
 
-/* ============================================================
-   MODALE PARAMÈTRES FACTURE – AGRANDISSEMENT
-   ============================================================ */
 #paramFactureModal .modal-dialog {
     max-width: 98vw !important;
     width: 98vw !important;
@@ -818,9 +801,6 @@ select.form-control {
 .param-total-item.total-benef .param-total-value { color: #198754; } .param-total-item.total-benef .param-total-dot { background: #198754; }
 .param-total-item.total-benef .param-total-sub   { color: #146c43; }
 
-/* ============================================================
-   MODALE RAPPEL CRÉDIT
-   ============================================================ */
 #rappelModal .modal-content {
     border-radius: 20px; border: none;
     box-shadow: 0 20px 35px -12px rgba(0,0,0,0.25);
@@ -978,21 +958,14 @@ select.form-control {
     color: #991b1b; border-left: 4px solid #ef4444;
 }
 
-/* ============================================================
-   ✅ MODALE RAPPORT DES MONTANTS REÇUS — BORDURES UNIFIÉES
-   Tous les champs (Période, Utilisateur, Client) ont la MÊME
-   bordure grise par défaut, et le MÊME focus bleu.
-   ============================================================ */
-#rapportModal .modal-header {
-    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
-}
+#rapportModal .modal-header { background: linear-gradient(135deg, #ef4444, #dc2626) !important; }
 
 #rapportModal #rapport_date_range,
 #rapportModal #rapport_client_filter {
     width: 100%;
     height: 38px;
     border-radius: 14px !important;
-    border: 1px solid #e2e8f0 !important;   /* Bordure grise par défaut */
+    border: 1px solid #e2e8f0 !important;
     padding: 8px 12px;
     font-weight: 500;
     font-size: 0.85rem;
@@ -1007,7 +980,6 @@ select.form-control {
     outline: none;
 }
 
-/* ✅ Select2 "Utilisateur" — même bordure grise que les autres champs */
 #rapportModal .select2-container--bootstrap .select2-selection {
     border: 1px solid #e2e8f0 !important;
     border-radius: 14px !important;
@@ -1017,9 +989,7 @@ select.form-control {
     padding: 0 12px;
     transition: all 0.2s ease;
 }
-#rapportModal .select2-container--bootstrap .select2-selection:hover {
-    border-color: #cbd5e1 !important;
-}
+#rapportModal .select2-container--bootstrap .select2-selection:hover { border-color: #cbd5e1 !important; }
 #rapportModal .select2-container--bootstrap.select2-container--focus .select2-selection,
 #rapportModal .select2-container--bootstrap.select2-container--open .select2-selection {
     border-color: #3B82F6 !important;
@@ -1036,18 +1006,13 @@ select.form-control {
     color: #7f1d1d;
     border-bottom: 2px solid #fca5a5 !important;
 }
-#rapport_table tbody tr:hover {
-    background: #fef2f2 !important;
-}
+#rapport_table tbody tr:hover { background: #fef2f2 !important; }
 #rapport_table tfoot td {
     background: #f1f5f9;
     border-top: 2px solid #cbd5e1 !important;
     font-size: 0.82rem;
 }
 
-/* ============================================================
-   ✅ TOUTES LES MODALES : comportement IDENTIQUE à la page FACTURES
-   ============================================================ */
 .modal-dialog {
     display: flex !important;
     align-items: center !important;
@@ -1061,18 +1026,11 @@ select.form-control {
     overflow: hidden !important;
 }
 .modal-header { flex-shrink: 0 !important; }
-.modal-body {
-    overflow-y: auto;
-    flex: 1 1 auto;
-    -webkit-overflow-scrolling: touch;
-}
+.modal-body { overflow-y: auto; flex: 1 1 auto; -webkit-overflow-scrolling: touch; }
 .modal-footer { flex-shrink: 0 !important; }
 
 @media (max-width: 768px) {
-    .modal-dialog {
-        min-height: calc(100vh - 1rem) !important;
-        margin: 0.5rem auto !important;
-    }
+    .modal-dialog { min-height: calc(100vh - 1rem) !important; margin: 0.5rem auto !important; }
     .modal-content { max-height: calc(100vh - 1rem) !important; }
 
     #deleteFactureModal .modal-content > div:last-child,
@@ -1085,66 +1043,34 @@ select.form-control {
         border-top: 1px solid #eef2f6;
     }
 
-    /* --- RAPPEL --- */
     #rappelModal .modal-dialog {
-        max-width: 96% !important;
-        width: 96% !important;
-        margin: 1rem auto !important;
-        height: auto !important;
+        max-width: 96% !important; width: 96% !important;
+        margin: 1rem auto !important; height: auto !important;
         max-height: calc(100vh - 2rem);
     }
     #rappelModal .modal-content {
         border-radius: 16px !important;
         max-height: calc(100vh - 2rem);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
+        display: flex; flex-direction: column; overflow: hidden;
     }
-    #rappelModal .modal-header {
-        padding: 0.85rem 1rem !important;
-        flex-shrink: 0;
-        border-radius: 16px 16px 0 0 !important;
-    }
+    #rappelModal .modal-header { padding: 0.85rem 1rem !important; flex-shrink: 0; border-radius: 16px 16px 0 0 !important; }
     #rappelModal .modal-header .modal-title { font-size: 0.9rem; gap: 6px; }
     #rappelModal .modal-header .badge-invoice { font-size: 0.62rem; padding: 2px 8px; }
-    #rappelModal .modal-body {
-        padding: 0.9rem !important;
-        flex: 1 1 auto;
-        overflow-y: auto;
-        max-height: none !important;
-        -webkit-overflow-scrolling: touch;
-    }
+    #rappelModal .modal-body { padding: 0.9rem !important; flex: 1 1 auto; overflow-y: auto; max-height: none !important; }
     #rappelModal .modal-footer {
-        padding: 0.7rem 1rem !important;
-        flex-shrink: 0;
+        padding: 0.7rem 1rem !important; flex-shrink: 0;
         border-radius: 0 0 16px 16px !important;
-        flex-direction: column;
-        align-items: stretch !important;
-        gap: 6px;
+        flex-direction: column; align-items: stretch !important; gap: 6px;
     }
-    #rappelModal .modal-footer > * {
-        width: 100%; justify-content: center; text-align: center;
-    }
+    #rappelModal .modal-footer > * { width: 100%; justify-content: center; text-align: center; }
 
-    .rappel-filters {
-        flex-direction: column !important;
-        gap: 8px !important;
-        padding: 10px 12px !important;
-    }
-    .rappel-filters .filter-group {
-        width: 100% !important;
-        min-width: 0 !important;
-        flex: none !important;
-    }
+    .rappel-filters { flex-direction: column !important; gap: 8px !important; padding: 10px 12px !important; }
+    .rappel-filters .filter-group { width: 100% !important; min-width: 0 !important; flex: none !important; }
     .rappel-filters .filter-group label { font-size: 0.62rem; }
     .rappel-filters .filter-group .form-control { height: 38px !important; font-size: 0.8rem; }
     .rappel-reset-btn { width: 100%; justify-content: center; height: 38px; }
 
-    #rappel_table_wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        border-radius: 12px;
-    }
+    #rappel_table_wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
     #rappel_table { min-width: 560px; font-size: 0.75rem; }
     #rappel_table thead th { font-size: 0.66rem !important; padding: 7px 5px !important; }
     #rappel_table tbody td { font-size: 0.72rem !important; padding: 7px 5px !important; }
@@ -1155,112 +1081,64 @@ select.form-control {
     .rappel-message-box textarea { min-height: 75px; font-size: 0.8rem; }
     #rappel_send_btn { width: 100%; justify-content: center; height: 42px; }
 
-    /* --- RAPPORT --- */
     #rapportModal .modal-dialog {
-        max-width: 96% !important;
-        width: 96% !important;
-        margin: 1rem auto !important;
-        height: auto !important;
+        max-width: 96% !important; width: 96% !important;
+        margin: 1rem auto !important; height: auto !important;
         max-height: calc(100vh - 2rem);
     }
     #rapportModal .modal-content {
         border-radius: 16px !important;
         max-height: calc(100vh - 2rem);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
+        display: flex; flex-direction: column; overflow: hidden;
     }
-    #rapportModal .modal-header {
-        padding: 0.85rem 1rem !important;
-        flex-shrink: 0;
-        border-radius: 16px 16px 0 0 !important;
-    }
+    #rapportModal .modal-header { padding: 0.85rem 1rem !important; flex-shrink: 0; border-radius: 16px 16px 0 0 !important; }
     #rapportModal .modal-header .modal-title { font-size: 0.95rem; }
-    #rapportModal .modal-body {
-        padding: 0.9rem !important;
-        flex: 1 1 auto;
-        overflow-y: auto;
-        max-height: none !important;
-        -webkit-overflow-scrolling: touch;
-    }
-    #rapportModal .modal-footer {
-        padding: 0.7rem 1rem !important;
-        flex-shrink: 0;
-        border-radius: 0 0 16px 16px !important;
-    }
+    #rapportModal .modal-body { padding: 0.9rem !important; flex: 1 1 auto; overflow-y: auto; max-height: none !important; }
+    #rapportModal .modal-footer { padding: 0.7rem 1rem !important; flex-shrink: 0; border-radius: 0 0 16px 16px !important; }
     #rapportModal .modal-footer button { width: 100%; height: 42px; }
 
-    #rapportModal .rapport-filter-section {
-        flex-direction: column !important;
-        gap: 8px !important;
-        align-items: stretch !important;
-    }
+    #rapportModal .rapport-filter-section { flex-direction: column !important; gap: 8px !important; align-items: stretch !important; }
     #rapportModal #rapport_date_range,
-    #rapportModal #rapport_client_filter {
-        height: 42px;
-        font-size: 0.85rem;
-        padding: 10px 12px;
-    }
+    #rapportModal #rapport_client_filter { height: 42px; font-size: 0.85rem; padding: 10px 12px; }
 
     #rapportModal .rapport-filter-buttons {
-        display: flex !important;
-        flex-direction: row !important;
-        gap: 8px !important;
-        width: 100% !important;
+        display: flex !important; flex-direction: row !important;
+        gap: 8px !important; width: 100% !important;
         flex-wrap: nowrap !important;
         justify-content: flex-start !important;
         align-items: center !important;
     }
     #rapportModal #rapport_apply_btn,
     #rapportModal #rapport_reset_btn {
-        flex: 0 0 auto !important;
-        width: auto !important;
-        min-width: 90px !important;
-        height: auto !important;
-        padding: 4px 12px !important;
-        font-size: 0.7rem !important;
-        font-weight: 600 !important;
-        white-space: nowrap !important;
-        border-radius: 40px !important;
-        gap: 8px !important;
+        flex: 0 0 auto !important; width: auto !important;
+        min-width: 90px !important; height: auto !important;
+        padding: 4px 12px !important; font-size: 0.7rem !important;
+        font-weight: 600 !important; white-space: nowrap !important;
+        border-radius: 40px !important; gap: 8px !important;
     }
     #rapportModal #rapport_apply_btn i,
     #rapportModal #rapport_reset_btn i { font-size: inherit !important; }
 
     #rapport_summary_badges {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: wrap !important;
-        gap: 6px 8px !important;
+        display: flex !important; flex-direction: row !important;
+        flex-wrap: wrap !important; gap: 6px 8px !important;
         justify-content: flex-start !important;
         align-items: center !important;
     }
     #rapport_summary_badges .invoice-count-badge {
-        font-size: 0.65rem !important;
-        padding: 3px 10px !important;
-        width: auto !important;
-        height: auto !important;
-        border-radius: 50px !important;
-        font-weight: bold !important;
-        gap: 6px !important;
-        white-space: nowrap !important;
+        font-size: 0.65rem !important; padding: 3px 10px !important;
+        width: auto !important; height: auto !important;
+        border-radius: 50px !important; font-weight: bold !important;
+        gap: 6px !important; white-space: nowrap !important;
     }
     #rapport_summary_badges .usd-badge,
     #rapport_summary_badges .cdf-badge {
-        flex: 1 1 calc(50% - 4px) !important;
-        min-width: 0 !important;
+        flex: 1 1 calc(50% - 4px) !important; min-width: 0 !important;
         justify-content: center !important;
     }
-    #rapport_summary_badges .paye-usd {
-        flex: 0 0 auto !important;
-        width: auto !important;
-    }
+    #rapport_summary_badges .paye-usd { flex: 0 0 auto !important; width: auto !important; }
 
-    #rapportModal .table-responsive {
-        -webkit-overflow-scrolling: touch;
-        border-radius: 10px;
-        overflow-x: auto;
-    }
+    #rapportModal .table-responsive { -webkit-overflow-scrolling: touch; border-radius: 10px; overflow-x: auto; }
     #rapport_table { min-width: 720px; font-size: 0.75rem; }
     #rapport_table thead th { font-size: 0.66rem !important; padding: 7px 5px !important; }
     #rapport_table tbody td,
@@ -1270,22 +1148,16 @@ select.form-control {
 @media (max-width: 480px) {
     #rapportModal #rapport_apply_btn,
     #rapportModal #rapport_reset_btn {
-        min-width: 70px !important;
-        padding: 3px 8px !important;
-        font-size: 0.65rem !important;
+        min-width: 70px !important; padding: 3px 8px !important; font-size: 0.65rem !important;
     }
     #rapport_summary_badges .invoice-count-badge {
-        font-size: 0.6rem !important;
-        padding: 3px 8px !important;
+        font-size: 0.6rem !important; padding: 3px 8px !important;
     }
 }
 
 .daterangepicker { z-index: 10050 !important; }
 body.modal-open { overflow: hidden; }
 
-/* ============================================================
-   MODALE QR CODE / PAYER
-   ============================================================ */
 .modal.fade#qrModal .modal-dialog { max-width: 100%; width: 60%; margin: 1.75rem auto; }
 .modal.fade#qrModal .modal-content { border-radius: 20px; border: none; box-shadow: var(--shadow-premium); overflow: hidden; }
 .modal.fade#qrModal .modal-header {
@@ -1677,6 +1549,9 @@ body.modal-open { overflow: hidden; }
 
                                                 $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
 
+                                                // ✅ NOUVEAU — Nom du créateur de la facture (factures.user_id)
+                                                $facture_user_nom = User::where('id', $data->user_id)->first()['name'] ?? 'N/A';
+
                                                 $articles_json = [];
                                                 foreach ($ent as $e) {
                                                     $art = null;
@@ -1717,14 +1592,24 @@ body.modal-open { overflow: hidden; }
                                                     ];
                                                 }
 
+                                                // ✅ MODIFIÉ — Utilisateur du PAIEMENT (detailpaiessachats.user_id)
                                                 $paiements_json = [];
                                                 foreach ($paiements as $p) {
                                                     $isUSD = ($p->devise_recu == 0);
 
                                                     $payeur_id  = $p->user_id ?? null;
-                                                    $payeur_nom = $payeur_id
-                                                        ? (User::where('id', $payeur_id)->first()['name'] ?? 'N/A')
-                                                        : 'N/A';
+                                                    $payeur_source = 'paiement';
+
+                                                    if (empty($payeur_id)) {
+                                                        $payeur_id = $data->user_id ?? null;
+                                                        $payeur_source = 'facture';
+                                                    }
+
+                                                    $payeur_nom = 'N/A';
+                                                    if (!empty($payeur_id)) {
+                                                        $u = User::where('id', $payeur_id)->first();
+                                                        if ($u) $payeur_nom = $u->name;
+                                                    }
 
                                                     $paiements_json[] = [
                                                         'id'               => $p->id,
@@ -1732,6 +1617,7 @@ body.modal-open { overflow: hidden; }
                                                         'payer'            => $p->payer,
                                                         'payer_nom'        => $payeur_nom,
                                                         'payer_id'         => $payeur_id,
+                                                        'payer_source'     => $payeur_source,
                                                         'montant_recu'     => $p->montant_recu,
                                                         'devise_label'     => $isUSD ? 'USD' : 'CDF',
                                                         'mode_de_paiement' => $p->mode_de_paiement,
@@ -1772,7 +1658,8 @@ body.modal-open { overflow: hidden; }
                                                 data-numero="{{ $data->numero }}"
                                                 data-client="{{ $client_name }}"
                                                 data-client-id="{{ $data->client_id }}"
-                                                data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}"
+                                                data-user="{{ $facture_user_nom }}"
+                                                data-user-id="{{ $data->user_id }}"
                                                 data-table="{{ $table_name_param }}"
                                                 data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
                                                 data-devise="{{ $data->devise }}"
@@ -1785,8 +1672,8 @@ body.modal-open { overflow: hidden; }
                                                 data-articles='@json($articles_json)'
                                                 data-paiements='@json($paiements_json)'>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell" data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}">
-                                                    {{ User::where('id', $data->user_id)->first()['name'] ?? 'N/A' }}
+                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ $facture_user_nom }}">
+                                                    {{ $facture_user_nom }}
                                                 </td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;" class="client-cell" data-client="{{ $client_name }}">
                                                     @if ($data->client_id == 0)
@@ -2405,7 +2292,6 @@ body.modal-open { overflow: hidden; }
         </div>
     </div>
 
-    {{-- ========== MODALE QR CODE / PAYER ========== --}}
     <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 100%; width: 60%;">
             <div class="modal-content">
@@ -2427,7 +2313,6 @@ body.modal-open { overflow: hidden; }
         </div>
     </div>
 
-    {{-- ========== MODALE PARAMÈTRES FACTURE ========== --}}
     <div class="modal fade" id="paramFactureModal" tabindex="-1" role="dialog" aria-labelledby="paramFactureLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden;">
@@ -2671,7 +2556,6 @@ body.modal-open { overflow: hidden; }
         </div>
     </div>
 
-    {{-- ========== MODALE RAPPEL CRÉDIT ========== --}}
     <div class="modal fade" id="rappelModal" tabindex="-1" role="dialog" aria-labelledby="rappelModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 980px;">
             <div class="modal-content">
@@ -2787,9 +2671,9 @@ body.modal-open { overflow: hidden; }
         </div>
     </div>
 
-    {{-- ========== MODALE RAPPORT DES MONTANTS REÇUS ========== --}}
+    {{-- MODALE RAPPORT DES MONTANTS REÇUS --}}
     <div class="modal fade" id="rapportModal" tabindex="-1" role="dialog" aria-labelledby="rapportModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1100px;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1200px;">
             <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);">
 
                 <div class="modal-header" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-bottom: none; padding: 1.1rem 1.5rem;">
@@ -2814,7 +2698,7 @@ body.modal-open { overflow: hidden; }
                         </div>
                         <div style="flex:1; min-width: 200px;">
                             <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
-                                <i class="zmdi zmdi-account text-danger"></i> Utilisateur
+                                <i class="zmdi zmdi-account text-danger"></i> Utilisateur (payeur)
                             </label>
                             <select id="rapport_user_filter" class="form-control">
                                 <option value="all">Tous les utilisateurs</option>
@@ -2859,20 +2743,26 @@ body.modal-open { overflow: hidden; }
                     <div class="table-responsive" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background:white;">
                         <table class="table table-sm mb-0" id="rapport_table">
                             <thead style="background: #FEE2E2;">
+                                <!-- ✅ NOUVEAU — 2 colonnes : Enregistré par / Encaissé par -->
                                 <tr>
                                     <th style="font-size:0.72rem;">#</th>
-                                    <th style="font-size:0.72rem;">Date</th>
+                                    <th style="font-size:0.72rem;">Date paiement</th>
                                     <th style="font-size:0.72rem;">N° Facture</th>
                                     <th style="font-size:0.72rem;">Date facture</th>
                                     <th style="font-size:0.72rem;">Client / Libellé</th>
-                                    <th style="font-size:0.72rem;">Utilisateur</th>
+                                    <th style="font-size:0.72rem;" title="Utilisateur qui a créé la facture (factures.user_id)">
+                                        <i class="zmdi zmdi-edit"></i> Enregistré par
+                                    </th>
+                                    <th style="font-size:0.72rem;" title="Utilisateur qui a encaissé le paiement (detailpaiessachats.user_id)">
+                                        <i class="zmdi zmdi-money"></i> Encaissé par
+                                    </th>
                                     <th style="font-size:0.72rem;">Mode</th>
                                     <th style="font-size:0.72rem;">Devise</th>
                                     <th style="font-size:0.72rem; text-align:right;">Montant reçu</th>
                                 </tr>
                             </thead>
                             <tbody id="rapport_body">
-                                <tr><td colspan="9" class="text-center text-muted">Chargement...</td></tr>
+                                <tr><td colspan="10" class="text-center text-muted">Chargement...</td></tr>
                             </tbody>
                             <tfoot id="rapport_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
                         </table>
@@ -2910,12 +2800,17 @@ body.modal-open { overflow: hidden; }
     <script>
         $("#link_47").addClass("active");
 
-        var USER_ROLE = {{ Auth::user()->role ?? 1 }};
+        // ============================================================
+        // ✅ VARIABLES GLOBALES UTILISATEUR
+        // ============================================================
+        var USER_ROLE         = {{ Auth::user()->role ?? 1 }};
+        var CURRENT_USER_ID   = {{ Auth::user()->id }};
         var CURRENT_USER_NAME = "{{ addslashes(Auth::user()->name ?? '') }}";
 
+        // ✅ Tous les utilisateurs avec leur ID
         var ALL_USERS = [
             @foreach(\App\Models\User::orderBy('name')->get() as $u)
-                "{{ addslashes($u->name) }}",
+                { id: {{ $u->id }}, name: "{{ addslashes($u->name) }}" },
             @endforeach
         ];
 
@@ -3479,49 +3374,34 @@ body.modal-open { overflow: hidden; }
                 var v = parseFloat(val) || 0;
                 if (deviseAchat === undefined || deviseAchat === null) deviseAchat = isFactureUSD ? 0 : 1;
                 var usd, cdf;
-                if (deviseAchat == 0) {
-                    usd = v; cdf = v * tauxFacture;
-                } else {
-                    cdf = v; usd = (tauxFacture > 0) ? (v / tauxFacture) : 0;
-                }
+                if (deviseAchat == 0) { usd = v; cdf = v * tauxFacture; }
+                else { cdf = v; usd = (tauxFacture > 0) ? (v / tauxFacture) : 0; }
                 return '<div class="dual-currency"><b>' + formatMoney(usd) + ' USD</b><small>' + formatMoney(cdf) + ' CDF</small></div>';
             }
 
             function formatBothShort(val, deviseAchat) {
                 var v = parseFloat(val) || 0;
                 if (deviseAchat === undefined || deviseAchat === null) deviseAchat = isFactureUSD ? 0 : 1;
-                if (deviseAchat == 0) {
-                    return formatMoney(v) + ' USD (' + formatMoney(v * tauxFacture) + ' CDF)';
-                } else {
-                    var usd = (tauxFacture > 0) ? (v / tauxFacture) : 0;
-                    return formatMoney(v) + ' CDF (' + formatMoney(usd) + ' USD)';
-                }
+                if (deviseAchat == 0) return formatMoney(v) + ' USD (' + formatMoney(v * tauxFacture) + ' CDF)';
+                var usd = (tauxFacture > 0) ? (v / tauxFacture) : 0;
+                return formatMoney(v) + ' CDF (' + formatMoney(usd) + ' USD)';
             }
 
             function splitBoth(val, deviseAchat) {
                 var v = parseFloat(val) || 0;
                 if (deviseAchat === undefined || deviseAchat === null) deviseAchat = isFactureUSD ? 0 : 1;
-                if (deviseAchat == 0) {
-                    return { usd: v, cdf: v * tauxFacture };
-                } else {
-                    return { usd: (tauxFacture > 0) ? (v / tauxFacture) : 0, cdf: v };
-                }
+                if (deviseAchat == 0) return { usd: v, cdf: v * tauxFacture };
+                else return { usd: (tauxFacture > 0) ? (v / tauxFacture) : 0, cdf: v };
             }
 
             var rowsHtml = '';
-            var totalQte = 0;
-            var totalPrixVente = 0;
-            var totalPrixAchat = 0;
-            var totalBrutAchat = 0;
-            var totalBrutVente = 0;
+            var totalQte = 0, totalPrixVente = 0, totalPrixAchat = 0, totalBrutAchat = 0, totalBrutVente = 0;
             var totalGeneral = 0, totalAchat = 0, totalBenef = 0, totalFrais = 0, totalReduction = 0;
 
             if (articles.length > 0) {
                 articles.forEach(function(a, idx) {
                     var deviseAchat = (a.devise_achat !== undefined && a.devise_achat !== null)
-                                        ? parseInt(a.devise_achat)
-                                        : (isFactureUSD ? 0 : 1);
-
+                                        ? parseInt(a.devise_achat) : (isFactureUSD ? 0 : 1);
                     var qte = parseFloat(a.quantite) || 0;
                     var prixAchat = parseFloat(a.prix_achat) || 0;
                     var prixVente = parseFloat(a.prix_unitaire) || 0;
@@ -3532,24 +3412,19 @@ body.modal-open { overflow: hidden; }
                     var totalNet = brutVenteLigne - reductionAchat;
                     var benef = totalNet - brutAchatLigne;
 
-                    var sPA    = splitBoth(prixAchat, deviseAchat);
-                    var sPV    = splitBoth(prixVente, deviseAchat);
-                    var sBPA   = splitBoth(brutAchatLigne, deviseAchat);
-                    var sBPV   = splitBoth(brutVenteLigne, deviseAchat);
-                    var sGen   = splitBoth(brutVenteLigne, deviseAchat);
-                    var sFra   = splitBoth(frais, deviseAchat);
-                    var sRed   = splitBoth(reductionAchat, deviseAchat);
-                    var sBen   = splitBoth(benef, deviseAchat);
+                    var sPA = splitBoth(prixAchat, deviseAchat);
+                    var sPV = splitBoth(prixVente, deviseAchat);
+                    var sBPA = splitBoth(brutAchatLigne, deviseAchat);
+                    var sBPV = splitBoth(brutVenteLigne, deviseAchat);
+                    var sGen = splitBoth(brutVenteLigne, deviseAchat);
+                    var sFra = splitBoth(frais, deviseAchat);
+                    var sRed = splitBoth(reductionAchat, deviseAchat);
+                    var sBen = splitBoth(benef, deviseAchat);
 
-                    totalQte       += qte;
-                    totalPrixAchat += sPA.usd;
-                    totalPrixVente += sPV.usd;
-                    totalBrutAchat += sBPA.usd;
-                    totalBrutVente += sBPV.usd;
-                    totalGeneral   += sGen.usd;
-                    totalFrais     += sFra.usd;
-                    totalReduction += sRed.usd;
-                    totalBenef     += sBen.usd;
+                    totalQte += qte; totalPrixAchat += sPA.usd; totalPrixVente += sPV.usd;
+                    totalBrutAchat += sBPA.usd; totalBrutVente += sBPV.usd;
+                    totalGeneral += sGen.usd; totalFrais += sFra.usd;
+                    totalReduction += sRed.usd; totalBenef += sBen.usd;
 
                     rowsHtml += '<tr data-achat-id="' + a.id + '" data-devise-achat="' + deviseAchat + '">';
                     rowsHtml += '<td>' + (idx + 1) + '</td>';
@@ -3568,55 +3443,30 @@ body.modal-open { overflow: hidden; }
 
                 function buildCard(cssClass, icon, label, value, sub) {
                     var html = '<div class="param-total-item ' + cssClass + '">';
-                    html += '<div class="param-total-label">';
-                    html += '<span class="param-total-dot"></span>';
-                    html += '<i class="zmdi ' + icon + '"></i> ' + label;
-                    html += '</div>';
+                    html += '<div class="param-total-label"><span class="param-total-dot"></span><i class="zmdi ' + icon + '"></i> ' + label + '</div>';
                     html += '<div class="param-total-value">' + value + '</div>';
                     if (sub) { html += '<div class="param-total-sub">' + sub + '</div>'; }
                     html += '</div>';
                     return html;
                 }
 
-                function usdPair(usdValue) {
-                    return { usd: usdValue, cdf: usdValue * tauxFacture };
-                }
+                function usdPair(usdValue) { return { usd: usdValue, cdf: usdValue * tauxFacture }; }
 
-                var tPA    = usdPair(totalPrixAchat);
-                var tPV    = usdPair(totalPrixVente);
-                var tBPA   = usdPair(totalBrutAchat);
-                var tBPV   = usdPair(totalBrutVente);
-                var tGen   = usdPair(totalGeneral);
-                var tFrais = usdPair(totalFrais);
-                var tRed   = usdPair(totalReduction);
-                var tBenef = usdPair(totalBenef);
+                var tPA = usdPair(totalPrixAchat), tPV = usdPair(totalPrixVente);
+                var tBPA = usdPair(totalBrutAchat), tBPV = usdPair(totalBrutVente);
+                var tGen = usdPair(totalGeneral), tFrais = usdPair(totalFrais);
+                var tRed = usdPair(totalReduction), tBenef = usdPair(totalBenef);
 
                 var cardsHtml = '';
-                cardsHtml += buildCard('total-qte',   'zmdi-format-list-numbered', 'Total Qté',           totalQte, null);
-                cardsHtml += buildCard('total-pa',    'zmdi-shopping-cart',        'Total Prix achat',
-                                        formatMoney(tPA.usd) + ' USD',
-                                        formatMoney(tPA.cdf) + ' CDF');
-                cardsHtml += buildCard('total-pv',    'zmdi-money',                'Total Prix vente',
-                                        formatMoney(tPV.usd) + ' USD',
-                                        formatMoney(tPV.cdf) + ' CDF');
-                cardsHtml += buildCard('total-brut-pa', 'zmdi-shopping-basket',    'Montant brut (prix achat)',
-                                        formatMoney(tBPA.usd) + ' USD',
-                                        formatMoney(tBPA.cdf) + ' CDF');
-                cardsHtml += buildCard('total-brut-pv', 'zmdi-shopping-basket',    'Montant brut (prix vente)',
-                                        formatMoney(tBPV.usd) + ' USD',
-                                        formatMoney(tBPV.cdf) + ' CDF');
-                cardsHtml += buildCard('total-gen',   'zmdi-balance-wallet',       'Total Général',
-                                        formatMoney(tGen.usd) + ' USD',
-                                        formatMoney(tGen.cdf) + ' CDF');
-                cardsHtml += buildCard('total-frais', 'zmdi-alert-circle',         'Total Frais crédit',
-                                        formatMoney(tFrais.usd) + ' USD',
-                                        formatMoney(tFrais.cdf) + ' CDF');
-                cardsHtml += buildCard('total-red',   'zmdi-minus-circle',         'Total Réduction',
-                                        formatMoney(tRed.usd) + ' USD',
-                                        formatMoney(tRed.cdf) + ' CDF');
-                cardsHtml += buildCard('total-benef', 'zmdi-trending-up',          'Total Bénéfice',
-                                        formatMoney(tBenef.usd) + ' USD',
-                                        formatMoney(tBenef.cdf) + ' CDF');
+                cardsHtml += buildCard('total-qte', 'zmdi-format-list-numbered', 'Total Qté', totalQte, null);
+                cardsHtml += buildCard('total-pa', 'zmdi-shopping-cart', 'Total Prix achat', formatMoney(tPA.usd) + ' USD', formatMoney(tPA.cdf) + ' CDF');
+                cardsHtml += buildCard('total-pv', 'zmdi-money', 'Total Prix vente', formatMoney(tPV.usd) + ' USD', formatMoney(tPV.cdf) + ' CDF');
+                cardsHtml += buildCard('total-brut-pa', 'zmdi-shopping-basket', 'Montant brut (prix achat)', formatMoney(tBPA.usd) + ' USD', formatMoney(tBPA.cdf) + ' CDF');
+                cardsHtml += buildCard('total-brut-pv', 'zmdi-shopping-basket', 'Montant brut (prix vente)', formatMoney(tBPV.usd) + ' USD', formatMoney(tBPV.cdf) + ' CDF');
+                cardsHtml += buildCard('total-gen', 'zmdi-balance-wallet', 'Total Général', formatMoney(tGen.usd) + ' USD', formatMoney(tGen.cdf) + ' CDF');
+                cardsHtml += buildCard('total-frais', 'zmdi-alert-circle', 'Total Frais crédit', formatMoney(tFrais.usd) + ' USD', formatMoney(tFrais.cdf) + ' CDF');
+                cardsHtml += buildCard('total-red', 'zmdi-minus-circle', 'Total Réduction', formatMoney(tRed.usd) + ' USD', formatMoney(tRed.cdf) + ' CDF');
+                cardsHtml += buildCard('total-benef', 'zmdi-trending-up', 'Total Bénéfice', formatMoney(tBenef.usd) + ' USD', formatMoney(tBenef.cdf) + ' CDF');
 
                 $('#param_totals_grid').html(cardsHtml);
             } else {
@@ -3636,32 +3486,24 @@ body.modal-open { overflow: hidden; }
             $('#param_lines_msg').html('');
 
             var paiements = safeParseJSON($row.attr('data-paiements'));
-
             var paiHtml = '';
-            var totalRecuUSD = 0, totalRecuCDF = 0;
-            var totalResteUSD = 0, totalResteCDF = 0;
+            var totalRecuUSD = 0, totalRecuCDF = 0, totalResteUSD = 0, totalResteCDF = 0;
 
             if (paiements.length > 0) {
                 paiements.forEach(function(p, idx) {
                     var isUSD = (p.devise_label === 'USD');
                     var montantRecu = parseFloat(p.montant_recu) || 0;
                     var reste = parseFloat(p.reste) || 0;
-
                     var recuUSD, recuCDF, resteUSD, resteCDF;
                     if (isUSD) {
                         recuUSD = montantRecu; recuCDF = montantRecu * tauxFacture;
                         resteUSD = reste; resteCDF = reste * tauxFacture;
                     } else {
-                        recuCDF = montantRecu;
-                        recuUSD = (tauxFacture > 0) ? (montantRecu / tauxFacture) : 0;
-                        resteCDF = reste;
-                        resteUSD = (tauxFacture > 0) ? (reste / tauxFacture) : 0;
+                        recuCDF = montantRecu; recuUSD = (tauxFacture > 0) ? (montantRecu / tauxFacture) : 0;
+                        resteCDF = reste; resteUSD = (tauxFacture > 0) ? (reste / tauxFacture) : 0;
                     }
-
-                    totalRecuUSD  += recuUSD;
-                    totalRecuCDF  += recuCDF;
-                    totalResteUSD += resteUSD;
-                    totalResteCDF += resteCDF;
+                    totalRecuUSD += recuUSD; totalRecuCDF += recuCDF;
+                    totalResteUSD += resteUSD; totalResteCDF += resteCDF;
 
                     paiHtml += '<tr>';
                     paiHtml += '<td>' + (idx + 1) + '</td>';
@@ -3710,11 +3552,8 @@ body.modal-open { overflow: hidden; }
                     'Cette année':       [moment().startOf('year'), moment().endOf('year')]
                 }
             }, function(start, end, label) {
-                if (label === 'Tout') {
-                    $('#filterDateRange').val('');
-                } else {
-                    $('#filterDateRange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
-                }
+                if (label === 'Tout') { $('#filterDateRange').val(''); }
+                else { $('#filterDateRange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY')); }
                 filterInvoices();
                 saveFiltersToStorage();
             });
@@ -3747,11 +3586,8 @@ body.modal-open { overflow: hidden; }
                     'Cette année':       [moment().startOf('year'), moment().endOf('year')]
                 }
             }, function(start, end, label) {
-                if (label === 'Tout') {
-                    $('#filterDatePaieRange').val('');
-                } else {
-                    $('#filterDatePaieRange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
-                }
+                if (label === 'Tout') { $('#filterDatePaieRange').val(''); }
+                else { $('#filterDatePaieRange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY')); }
                 filterInvoices();
                 saveFiltersToStorage();
             });
@@ -3805,20 +3641,14 @@ body.modal-open { overflow: hidden; }
                 e.preventDefault();
                 var btn = $(this);
                 var factureId = $('#deleteFactureModal').data('facture-id');
-                if (!factureId) {
-                    alert('Identifiant de facture manquant.');
-                    return;
-                }
+                if (!factureId) { alert('Identifiant de facture manquant.'); return; }
 
                 btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Suppression...');
 
                 $.ajax({
                     type: 'POST',
                     url: '{{ url("/delete_facture") }}',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        id: factureId
-                    },
+                    data: { _token: '{{ csrf_token() }}', id: factureId },
                     success: function(response) {
                         $.get('{{ url("/get_all_facture_suivi") }}', function(html) {
                             $('#content_utilisateur').html(html);
@@ -3827,25 +3657,18 @@ body.modal-open { overflow: hidden; }
                                 loadFiltersFromStorage();
                                 filterInvoices();
                             }, 100);
-                        }).fail(function() {
-                            alert('Erreur lors du rechargement du tableau.');
-                        });
+                        }).fail(function() { alert('Erreur lors du rechargement du tableau.'); });
 
                         $('#deleteFactureModal').modal('hide');
                         $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Facture supprimée avec succès');
                         $('#msg').css('display', 'flex');
-                        setTimeout(() => {
-                            $('#msg').html('');
-                            $('#msg').css('display', 'none');
-                        }, 3000);
+                        setTimeout(() => { $('#msg').html(''); $('#msg').css('display', 'none'); }, 3000);
                     },
                     error: function(xhr, status, error) {
                         console.error('Erreur de suppression :', error);
                         alert('Une erreur est survenue lors de la suppression. Veuillez réessayer.');
                     },
-                    complete: function() {
-                        btn.prop('disabled', false).html('Oui, supprimer');
-                    }
+                    complete: function() { btn.prop('disabled', false).html('Oui, supprimer'); }
                 });
             });
 
@@ -3866,18 +3689,14 @@ body.modal-open { overflow: hidden; }
                 var statut = $(this).attr('data-statut') || 'unpaid';
 
                 var dureeClass = 'duree-success';
-                if (joursRetard >= 7 && joursRetard <= 15) {
-                    dureeClass = 'duree-warning';
-                } else if (joursRetard > 15) {
-                    dureeClass = 'duree-danger';
-                }
+                if (joursRetard >= 7 && joursRetard <= 15) { dureeClass = 'duree-warning'; }
+                else if (joursRetard > 15) { dureeClass = 'duree-danger'; }
 
                 $('#modal_numero').text(numero);
                 $('#modal_client').text(client);
                 $('#modal_total').text(total);
                 $('#modal_paye').text(paye);
                 $('#modal_reste').text(reste);
-
                 $('#modal_nb_tranches_val').text(nbTranches);
 
                 var headerDuree = $('#modal_duree_header');
@@ -3977,27 +3796,17 @@ body.modal-open { overflow: hidden; }
                     return;
                 }
 
-                if (!currentParamFactureId) {
-                    alert('Identifiant facture manquant');
-                    return;
-                }
+                if (!currentParamFactureId) { alert('Identifiant facture manquant'); return; }
 
-                var lignes = [];
-                var erreur = null;
+                var lignes = [], erreur = null;
 
                 $('#param_articles_body tr').each(function() {
                     var $tr = $(this);
                     var achatId = $tr.data('achat-id');
                     if (!achatId) return;
-
                     var frais = parseFloat($tr.find('.frais-input').val()) || 0;
                     var reduction = parseFloat($tr.find('.reduction-input').val()) || 0;
-
-                    if (frais < 0 || reduction < 0) {
-                        erreur = 'Les valeurs doivent être positives';
-                        return false;
-                    }
-
+                    if (frais < 0 || reduction < 0) { erreur = 'Les valeurs doivent être positives'; return false; }
                     lignes.push({ id: achatId, frais_credit: frais, reduction: reduction });
                 });
 
@@ -4020,32 +3829,20 @@ body.modal-open { overflow: hidden; }
                 $.ajax({
                     url: "{{ url('/apply_param_facture') }}",
                     type: 'POST',
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        facture_id: currentParamFactureId,
-                        lignes: JSON.stringify(lignes)
-                    },
+                    data: { _token: "{{ csrf_token() }}", facture_id: currentParamFactureId, lignes: JSON.stringify(lignes) },
                     dataType: 'json',
                     success: function(res) {
                         btn.prop('disabled', false).html('<i class="zmdi zmdi-save"></i> Enregistrer les modifications');
-
                         if (res.success) {
                             $('#param_lines_msg').html('<i class="zmdi zmdi-check-circle text-success"></i> ' + res.message);
-
                             $.get("{{ url('/get_all_facture_suivi') }}", function(html) {
                                 $('#content_utilisateur').html(html);
                                 saveFiltersToStorage();
-                                setTimeout(function() {
-                                    loadFiltersFromStorage();
-                                    filterInvoices();
-                                }, 100);
+                                setTimeout(function() { loadFiltersFromStorage(); filterInvoices(); }, 100);
                             });
-
                             setTimeout(function() {
                                 var newRow = $('#content_utilisateur tr[data-facture-id="' + currentParamFactureId + '"]');
-                                if (newRow.length) {
-                                    openParamModalFromRow(newRow);
-                                }
+                                if (newRow.length) openParamModalFromRow(newRow);
                             }, 800);
                         } else {
                             $('#param_lines_msg').html('<i class="zmdi zmdi-close-circle text-danger"></i> ' + (res.message || 'Erreur'));
@@ -4064,9 +3861,7 @@ body.modal-open { overflow: hidden; }
                 $zone.removeClass('show info success error').addClass('show ' + type);
                 $zone.html('<i class="zmdi ' + icon + '"></i> <span>' + text + '</span>');
                 clearTimeout(window.__rappelMsgTimeout);
-                window.__rappelMsgTimeout = setTimeout(function() {
-                    $zone.removeClass('show');
-                }, 6000);
+                window.__rappelMsgTimeout = setTimeout(function() { $zone.removeClass('show'); }, 6000);
             }
 
             function formatMoneyRappel(v) {
@@ -4099,7 +3894,7 @@ body.modal-open { overflow: hidden; }
                 renderRappelTable();
             });
             $('#rappel_filterDateRange').on('cancel.daterangepicker', function() {
-                $(this).val('');
+                $(this).val();
                 renderRappelTable();
             });
 
@@ -4129,7 +3924,7 @@ body.modal-open { overflow: hidden; }
                 renderRappelTable();
             });
             $('#rappel_filterDatePaieRange').on('cancel.daterangepicker', function() {
-                $(this).val('');
+                $(this).val();
                 renderRappelTable();
             });
 
@@ -4139,7 +3934,6 @@ body.modal-open { overflow: hidden; }
                     var $r = $(this);
                     var creditUsd = parseFloat($r.data('credit-usd')) || 0;
                     if (creditUsd <= 0) return;
-
                     rows.push({
                         id: $r.data('facture-id'),
                         numero: String($r.data('numero') || ''),
@@ -4323,19 +4117,13 @@ body.modal-open { overflow: hidden; }
 
             $(document).on('click', '#rappel_send_btn', function() {
                 var message = $('#rappel_message').val().trim();
-                if (!message) {
-                    showRappelMsg('error', 'zmdi-close-circle', 'Veuillez saisir un message.');
-                    return;
-                }
+                if (!message) { showRappelMsg('error', 'zmdi-close-circle', 'Veuillez saisir un message.'); return; }
 
                 var filters = getRappelFilters();
                 var all = getRappelAllRows();
                 var filtered = rappelApplyFilters(all, filters);
 
-                if (filtered.length === 0) {
-                    showRappelMsg('error', 'zmdi-close-circle', 'Aucun crédit pour ces filtres.');
-                    return;
-                }
+                if (filtered.length === 0) { showRappelMsg('error', 'zmdi-close-circle', 'Aucun crédit pour ces filtres.'); return; }
 
                 var checkedIds = [];
                 $('#rappel_table_body .rappel-row-check:checked').each(function() {
@@ -4349,10 +4137,7 @@ body.modal-open { overflow: hidden; }
                     mode = 'selected';
                 }
 
-                if (targets.length === 0) {
-                    showRappelMsg('error', 'zmdi-close-circle', 'Aucun client à qui envoyer.');
-                    return;
-                }
+                if (targets.length === 0) { showRappelMsg('error', 'zmdi-close-circle', 'Aucun client à qui envoyer.'); return; }
 
                 var messages = targets.map(function(r) {
                     return { facture_id: r.id, client: r.client, message: message };
@@ -4427,6 +4212,7 @@ body.modal-open { overflow: hidden; }
                 return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
             }
 
+            // ✅ Select2 avec IDs utilisateur
             function populateRapportUsers() {
                 var $sel = $('#rapport_user_filter');
 
@@ -4439,7 +4225,7 @@ body.modal-open { overflow: hidden; }
                 if (USER_ROLE == 0) {
                     $sel.append('<option value="all">Tous les utilisateurs</option>');
                     ALL_USERS.forEach(function (u) {
-                        $sel.append('<option value="' + u + '">' + u + '</option>');
+                        $sel.append('<option value="' + u.id + '">' + u.name + '</option>');
                     });
                     $sel.prop('disabled', false);
 
@@ -4456,8 +4242,8 @@ body.modal-open { overflow: hidden; }
                     });
                 } else {
                     var nom = CURRENT_USER_NAME || 'Utilisateur';
-                    $sel.append('<option value="' + nom + '" selected>' + nom + '</option>');
-                    $sel.val(nom);
+                    $sel.append('<option value="' + CURRENT_USER_ID + '" selected>' + nom + '</option>');
+                    $sel.val(String(CURRENT_USER_ID));
                     $sel.prop('disabled', true);
 
                     $sel.select2({
@@ -4469,15 +4255,31 @@ body.modal-open { overflow: hidden; }
                 }
             }
 
+            // ✅ MODIFIÉ — filtre par ID payeur + 2 colonnes (Enregistré par / Encaissé par)
             function buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
                 var totalUSD = 0, totalCDF = 0, nbTransactions = 0;
                 var html = '';
                 var lignes = [];
 
-                var effectiveUserFilter = (USER_ROLE == 0)
-                    ? (userFilter || 'all')
-                    : CURRENT_USER_NAME;
+                var effectiveUserId;
+                if (USER_ROLE == 0) {
+                    if (!userFilter || userFilter === 'all') {
+                        effectiveUserId = 'all';
+                    } else {
+                        effectiveUserId = parseInt(userFilter);
+                        if (isNaN(effectiveUserId)) effectiveUserId = 'all';
+                    }
+                } else {
+                    effectiveUserId = CURRENT_USER_ID;
+                }
+
                 var effectiveClientFilter = (clientFilter || '').trim().toLowerCase();
+
+                var effectiveUserLabel = 'Tous';
+                if (effectiveUserId !== 'all') {
+                    var foundUser = ALL_USERS.find(function (u) { return u.id === effectiveUserId; });
+                    effectiveUserLabel = foundUser ? foundUser.name : ('ID ' + effectiveUserId);
+                }
 
                 $('#content_utilisateur tbody tr').each(function () {
                     var $row = $(this);
@@ -4486,6 +4288,8 @@ body.modal-open { overflow: hidden; }
 
                     var numero = $row.data('numero') || '-';
                     var client = $row.data('client') || '-';
+                    // ✅ Créateur de la facture (factures.user_id)
+                    var enregistrePar = $row.data('user') || 'N/A';
                     var dateFacture = $row.data('date') || '-';
                     var tauxFacture = parseFloat($row.data('taux')) || 1;
                     if (tauxFacture <= 0) tauxFacture = 1;
@@ -4502,10 +4306,11 @@ body.modal-open { overflow: hidden; }
                             if (payISO < dateDebutISO || payISO > dateFinISO) return;
                         }
 
-                        var user_nom = p.payer_nom || 'N/A';
+                        // ✅ Filtre par ID du PAYEUR (detailpaiessachats.user_id)
+                        var payeurId = parseInt(p.payer_id) || 0;
+                        if (effectiveUserId !== 'all' && payeurId !== effectiveUserId) return;
 
-                        if (effectiveUserFilter && effectiveUserFilter !== 'all' && user_nom !== effectiveUserFilter) return;
-
+                        var encaissePar = p.payer_nom || 'N/A';
                         var montant = parseFloat(p.montant_recu) || 0;
                         var devise  = p.devise_label || 'USD';
                         var tauxP   = parseFloat(p.taux) || tauxFacture;
@@ -4515,22 +4320,22 @@ body.modal-open { overflow: hidden; }
                         if (devise === 'USD') {
                             montantUSD = montant;
                             montantCDF = montant * tauxP;
-                            totalUSD += montantUSD;
-                            totalCDF += montantCDF;
                         } else {
                             montantCDF = montant;
                             montantUSD = (tauxP > 0) ? (montant / tauxP) : 0;
-                            totalUSD += montantUSD;
-                            totalCDF += montantCDF;
                         }
-
+                        totalUSD += montantUSD;
+                        totalCDF += montantCDF;
                         nbTransactions++;
+
                         lignes.push({
                             date: p.date || '-',
                             numero: numero,
                             date_facture: dateFacture,
                             client: client,
-                            user_nom: user_nom,
+                            enregistre_par: enregistrePar,
+                            encaisse_par: encaissePar,
+                            encaisse_par_id: payeurId,
                             mode: p.mode_label || 'N/A',
                             devise: devise,
                             montant: montant,
@@ -4548,7 +4353,7 @@ body.modal-open { overflow: hidden; }
                 });
 
                 if (lignes.length === 0) {
-                    html = '<tr><td colspan="9" class="text-center text-muted">Aucun paiement trouvé dans cette période</td></tr>';
+                    html = '<tr><td colspan="10" class="text-center text-muted">Aucun paiement trouvé dans cette période</td></tr>';
                 } else {
                     lignes.forEach(function (l, idx) {
                         var badgeDevise = l.devise === 'USD' ? 'primary' : 'warning';
@@ -4558,7 +4363,10 @@ body.modal-open { overflow: hidden; }
                         html += '<td><b>' + l.numero + '</b></td>';
                         html += '<td style="font-size:0.78rem;">' + l.date_facture + '</td>';
                         html += '<td>' + l.client + '</td>';
-                        html += '<td><span class="badge badge-secondary"><i class="zmdi zmdi-account"></i> ' + l.user_nom + '</span></td>';
+                        // ✅ Colonne "Enregistré par"
+                        html += '<td><span class="badge badge-secondary" title="Créateur de la facture"><i class="zmdi zmdi-edit"></i> ' + l.enregistre_par + '</span></td>';
+                        // ✅ Colonne "Encaissé par"
+                        html += '<td><span class="badge badge-success" title="ID payeur : ' + (l.encaisse_par_id || 'N/A') + '" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="zmdi zmdi-money"></i> ' + l.encaisse_par + '</span></td>';
                         html += '<td><span class="badge badge-info">' + l.mode + '</span></td>';
                         html += '<td><span class="badge badge-' + badgeDevise + '">' + l.devise + '</span></td>';
                         html += '<td style="text-align:right;">';
@@ -4574,7 +4382,7 @@ body.modal-open { overflow: hidden; }
                 $('#rapport_body').html(html);
 
                 var footHtml = '<tr>';
-                footHtml += '<td colspan="8" class="text-right">TOTAL REÇU (' + nbTransactions + ' transaction' + (nbTransactions > 1 ? 's' : '') + ') :</td>';
+                footHtml += '<td colspan="9" class="text-right">TOTAL REÇU (' + nbTransactions + ' transaction' + (nbTransactions > 1 ? 's' : '') + ') :</td>';
                 footHtml += '<td style="text-align:right;">';
                 footHtml += '<span class="text-primary">' + formatRapportMoney(totalUSD) + ' USD</span><br>';
                 footHtml += '<span class="text-warning">' + formatRapportMoney(totalCDF) + ' CDF</span>';
@@ -4587,7 +4395,7 @@ body.modal-open { overflow: hidden; }
                 $('#rapport_nb').text(nbTransactions);
 
                 if (USER_ROLE == 0) {
-                    $('#rapport_user_label').text(effectiveUserFilter === 'all' ? 'Tous' : effectiveUserFilter);
+                    $('#rapport_user_label').text(effectiveUserLabel);
                 } else {
                     $('#rapport_user_label').text(CURRENT_USER_NAME + ' (vous)');
                 }
@@ -4624,7 +4432,7 @@ body.modal-open { overflow: hidden; }
                         var dateFinISO   = parseDMY_to_ISO(end.format('DD/MM/YYYY'));
                         $('#rapport_periode_label').text(val);
 
-                        var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                        var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
                         var clientFilter = $('#rapport_client_filter').val() || '';
                         buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
                     });
@@ -4653,7 +4461,7 @@ body.modal-open { overflow: hidden; }
                 $('#rapportModal').on('shown.bs.modal.rapportUser', function () {
                     populateRapportUsers();
 
-                    var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                    var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
                     var clientFilter = $('#rapport_client_filter').val() || '';
 
                     $('#rapport_periode_label').text(filterRange || 'Toutes les dates');
@@ -4672,7 +4480,7 @@ body.modal-open { overflow: hidden; }
                         dateFinISO   = parseDMY_to_ISO(parts[1]);
                     }
                 }
-                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
                 var clientFilter = $('#rapport_client_filter').val() || '';
                 $('#rapport_periode_label').text(range || 'Toutes les dates');
                 buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
@@ -4706,7 +4514,7 @@ body.modal-open { overflow: hidden; }
                             dateFinISO   = parseDMY_to_ISO(parts[1]);
                         }
                     }
-                    var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME);
+                    var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
                     var clientFilter = $('#rapport_client_filter').val() || '';
                     buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
                 }, 300);
@@ -4726,11 +4534,11 @@ body.modal-open { overflow: hidden; }
                 if (USER_ROLE == 0) {
                     $('#rapport_user_filter').val('all').trigger('change.select2');
                 } else {
-                    $('#rapport_user_filter').val(CURRENT_USER_NAME).trigger('change.select2');
+                    $('#rapport_user_filter').val(String(CURRENT_USER_ID)).trigger('change.select2');
                 }
 
                 $('#rapport_periode_label').text('Toutes les dates');
-                buildRapport(null, null, USER_ROLE == 0 ? 'all' : CURRENT_USER_NAME, '');
+                buildRapport(null, null, USER_ROLE == 0 ? 'all' : CURRENT_USER_ID, '');
             });
         });
 
@@ -4778,10 +4586,7 @@ body.modal-open { overflow: hidden; }
                 }
 
                 const detailData = await $.get("{{ url('/get_all_detail_achat_paie') }}", { facture_id: factureId });
-                const {
-                    usd_montant_total_a_payer,
-                    cdf_montant_total_a_payer
-                } = detailData;
+                const { usd_montant_total_a_payer, cdf_montant_total_a_payer } = detailData;
 
                 $("#usd_montant_payer").val(usd_montant_total_a_payer);
                 $("#cdf_montant_payer").val(cdf_montant_total_a_payer);
@@ -4808,11 +4613,8 @@ body.modal-open { overflow: hidden; }
 
                 const deviseLabel = deviseRecu === "0" ? "USD" : "CDF";
                 let montantRestant;
-                if (deviseRecu === "0") {
-                    montantRestant = usd_montant_total_a_payer;
-                } else {
-                    montantRestant = cdf_montant_total_a_payer;
-                }
+                if (deviseRecu === "0") { montantRestant = usd_montant_total_a_payer; }
+                else { montantRestant = cdf_montant_total_a_payer; }
 
                 if (isNaN(montantRestant) || montantRestant <= 0) {
                     msgFacture.innerHTML = '❌ Facture déjà payée ou aucun montant restant à payer dans cette devise';
