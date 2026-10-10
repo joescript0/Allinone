@@ -17264,6 +17264,16 @@ class AjaxController extends Controller
                     case 'patient':
                         $nextId = (\App\Models\Patients::max('id') ?? 0) + 1;
 
+                        // ✅ Génération du code dossier : P-{id} avec vérification d'unicité
+                        $codePatient = 'P-' . $nextId;
+
+                        // Vérifier si le code existe déjà (sécurité anti-collision)
+                        $compteur = 0;
+                        while (\App\Models\Patients::where('code', $codePatient)->exists()) {
+                            $compteur++;
+                            $codePatient = 'P-' . ($nextId + $compteur);
+                        }
+
                         $nouvellePersonne = new \App\Models\Patients();
                         $nouvellePersonne->id       = $nextId;
                         $nouvellePersonne->user_id  = \Auth::id();
@@ -17273,7 +17283,8 @@ class AjaxController extends Controller
                         $nouvellePersonne->image    = $image;
                         $nouvellePersonne->adresse  = '';
                         $nouvellePersonne->password = \Hash::make("12345");
-                        $nouvellePersonne->mdp = "12345";
+                        $nouvellePersonne->mdp      = "12345";
+                        $nouvellePersonne->code     = $codePatient;   // ✅ Code dossier
 
                         if ($emailDb === null) {
                             $nouvellePersonne->email = 'patient_' . $nextId . '@gmail.com';
