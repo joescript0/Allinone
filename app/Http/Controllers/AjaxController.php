@@ -2416,21 +2416,38 @@ class AjaxController extends Controller
 
     public function check_seuil_minimum(Request $request)
     {
-        // Récupération du stock via la table
+        // Récupération du stock via la table OU via pointdeventes_id direct
         $stock_id = 0;
-        if ($request->table_id) 
+
+        // ✅ Priorité 1 : si pointdeventes_id est fourni et différent de 0
+        if ($request->pointdeventes_id && $request->pointdeventes_id != 0) 
+        {
+            $pointdeventes_id = $request->pointdeventes_id;
+            $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+            if ($pointdeventes) {
+                $stock_id = $pointdeventes->stock_id;
+            }
+        }
+        // ✅ Priorité 2 : sinon on passe par la table
+        elseif ($request->table_id) 
         {
             $table_id = $request->table_id;
             $table = Tables::where('id', $table_id)->first();
-            $pointdeventes_id = $table->pointdeventes_id;
-            $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
-            $stock_id = $pointdeventes->stock_id;
+            if ($table) 
+            {
+                $pointdeventes_id = $table->pointdeventes_id;
+                $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+                if ($pointdeventes) {
+                    $stock_id = $pointdeventes->stock_id;
+                }
+            }
         }
 
         $article_id = $request->article_id;
 
         // Récupération de l'article selon le stock
-        if ($stock_id == 0) {
+        if ($stock_id == 0) 
+        {
             $article = Articles::where(['id' => $article_id, 'supprimer' => 0])->first();
         } else {
             $article = articlestocks::where([
@@ -2460,32 +2477,23 @@ class AjaxController extends Controller
         // Stock disponible réel (stock + prêts)
         $stock_disponible = $stock + $total_pret;
 
+        // ✅ Vérification : la quantité à déduire ne doit pas rendre le stock négatif
+        if ($quantite_a_deduire > $stock_disponible) 
+        {
+            echo "-2__________0__________" . ($stock_disponible) . "__________" . $avoir_stock;
+            return;
+        }
+
         $check_seuil_minimum = $stock_disponible - $quantite_a_deduire;
 
-        if ($stock == 0) 
-        {
+        if ($stock == 0) {
             $seuil_minimum = $article->seuil_minimum;
-            // Ici aussi on empêche un affichage négatif
             $stock_restant = $stock - $seuil_minimum;
-            if ($stock_restant < 0) 
-            {
+            if ($stock_restant < 0) {
                 $stock_restant = 0;
             }
             echo -1 . '__________' . $seuil_minimum . '__________' . $stock_restant . '__________' . $avoir_stock;
-        }
-        elseif($quantite_a_deduire > $stock_disponible)
-        {
-            $seuil_minimum = $article->seuil_minimum;
-            // Ici aussi on empêche un affichage négatif
-            $stock_restant = $stock - $seuil_minimum;
-            if ($stock_restant < 0) 
-            {
-                $stock_restant = 0;
-            }
-            echo -1 . '__________' . $seuil_minimum . '__________' . $stock_restant . '__________' . $avoir_stock;
-        }
-        else 
-        {
+        } else {
             $seuil_minimum = 0;
 
             if ($check_seuil_minimum >= $seuil_minimum) {
@@ -7578,37 +7586,60 @@ class AjaxController extends Controller
     public function get_prix_article(Request $request)
     {
         $stock_id = 0;
-        if($table_id = $request->table_id)
+
+        // ✅ Priorité 1 : si pointdeventes_id est fourni et différent de 0
+        if ($request->pointdeventes_id && $request->pointdeventes_id != 0) 
+        {
+            $pointdeventes_id = $request->pointdeventes_id;
+            $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+            if ($pointdeventes) {
+                $stock_id = $pointdeventes->stock_id;
+            }
+        }
+        // ✅ Priorité 2 : sinon on passe par la table
+        elseif ($request->table_id) 
         {
             $table_id = $request->table_id;
             $table = Tables::where('id', $table_id)->first();
-            $pointdeventes_id = $table->pointdeventes_id;
-            $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
-            $stock_id = $pointdeventes->stock_id;
+            if ($table) {
+                $pointdeventes_id = $table->pointdeventes_id;
+                $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
+                if ($pointdeventes) {
+                    $stock_id = $pointdeventes->stock_id;
+                }
+            }
         }
 
         $article_id = $request->article_id;
 
-        if ($stock_id == 0)
+        if ($stock_id == 0) 
         {
             $article = Articles::where('id', $article_id)->first();
-        } else
+        } else 
         {
             // Récupérer l'article depuis la table articlestocks avec le stock_id et article_id
             $article = articlestocks::where(['stock_id' => $stock_id, 'article_id' => $article_id])->first();
-            // Si on veut les attributs de l'article, peut-être qu'il faut faire une relation, mais on suppose que articlestocks a les mêmes champs.
+        }
+
+        // ✅ Sécurité : si l'article n'existe pas
+        if (!$article) {
+            return response()->json([[0, 0]]);
         }
 
         $prix = 0;
         $taille = 0;
-        if ($request->type_vente_id == 1)
+
+        if ($request->type_vente_id == 1) 
         {
             $prix = $article->prix_detail;
             $taille = $article->taille_piece;
-        } elseif ($request->type_vente_id == 2) {
+        } 
+        elseif ($request->type_vente_id == 2) 
+        {
             $prix = $article->prix_gros;
             $taille = $article->taille_lot;
         }
+
         return response()->json([[$prix, $taille]]);
     }
 

@@ -1661,6 +1661,11 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                     $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Le stock de cet article est vide');
                     setTimeout(() => $('#msg').html(""), 9000); resetButton(); return;
                 }
+                if((data_rep[0] === '-2'))
+                {
+                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Stock insuffisant, quantité demandée trop élevée ! ' +'Il reste seulement <b>' + stockDisponible + '</b> en stock.');
+                    setTimeout(() => $('#msg').html(""), 9000); resetButton(); return;
+                }
                 if (!client && !libelle) {
                     $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Completez le client ou le libellé');
                     setTimeout(() => $('#msg').html(""), 9000); resetButton(); return;
