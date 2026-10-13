@@ -16,14 +16,13 @@ use Illuminate\Support\Facades\Auth;
                 <tr>
                     <th>N°</th>
                     <th>Nom</th>
-                    <th>Téléphone</th>
+                    <th>Contact</th>
                     <th>Type</th>
                     <th>Nature</th>
                     <th>Motif</th>
                     <th>Service</th>
                     <th>Entrée</th>
                     <th>Sortie</th>
-                    <th>Note</th>
                     <th>Control</th>
                 </tr>
             </thead>
@@ -34,11 +33,14 @@ use Illuminate\Support\Facades\Auth;
                         $personneRec = \App\Models\Personnes::find($data->personne_id);
                         $typeNumerique = $personneRec->type ?? null;
 
+                        // === TYPES : 0=Utilisateur, 1=Client, 2=Patient, 3=Visiteur, 4=Partenaire, 5=Associé ===
                         $typeLabels = [
                             0 => 'Utilisateur',
                             1 => 'Client',
                             2 => 'Patient',
                             3 => 'Visiteur',
+                            4 => 'Partenaire',
+                            5 => 'Associé'
                         ];
                         $typeLabel = $typeLabels[$typeNumerique] ?? '—';
 
@@ -51,6 +53,8 @@ use Illuminate\Support\Facades\Auth;
                                 case 1: $p = \App\Models\Clients::find($personneRec->user_id); break;
                                 case 2: $p = \App\Models\Patients::find($personneRec->user_id); break;
                                 case 3: $p = \App\Models\Visiteurs::find($personneRec->user_id); break;
+                                case 4: $p = \App\Models\Partenaires::find($personneRec->user_id); break;
+                                case 5: $p = \App\Models\Associes::find($personneRec->user_id); break;
                             }
                             if ($p) {
                                 $nom    = $p->name  ?? '';
@@ -74,19 +78,25 @@ use Illuminate\Support\Facades\Auth;
                         $natureLabels = [0 => 'Privé', 1 => 'Entreprise'];
                         $natureLabel = ($nature !== null && isset($natureLabels[$nature])) ? $natureLabels[$nature] : 'Entreprise';
 
+                        $numeroAffiche = !empty($data->numero) ? $data->numero : ('ACC-' . str_pad($data->id, 5, '0', STR_PAD_LEFT));
+
                         $heureFormatee = '';
+                        $entreeYmd = '';
                         if (!empty($data->heure_entree) && $data->heure_entree !== '0000/00/00 00:00' && $data->heure_entree !== '0000-00-00 00:00:00') {
                             $dt = \Carbon\Carbon::parse($data->heure_entree);
                             $heureFormatee = $dt->format('d/m/Y') . ' à ' . $dt->format('H:i');
+                            $entreeYmd = $dt->format('Y-m-d');
                         }
 
                         $heureSortieFormatee = '';
                         $aSorti = false;
+                        $sortieYmd = '';
                         if (!empty($data->heure_sortie)
                             && $data->heure_sortie !== '0000/00/00 00:00'
                             && $data->heure_sortie !== '0000-00-00 00:00:00') {
                             $dtS = \Carbon\Carbon::parse($data->heure_sortie);
                             $heureSortieFormatee = $dtS->format('d/m/Y') . ' à ' . $dtS->format('H:i');
+                            $sortieYmd = $dtS->format('Y-m-d');
                             $aSorti = true;
                         }
 
@@ -97,9 +107,13 @@ use Illuminate\Support\Facades\Auth;
 
                     <tr id="row_{{ $data->id }}"
                         data-user-id="{{ $data->user_id ?? '' }}"
+                        data-personne-id="{{ $data->personne_id ?? '' }}"
+                        data-numero="{{ $numeroAffiche }}"
                         data-nom="{{ $nom }}"
                         data-email="{{ $email }}"
                         data-phone="{{ $phone }}"
+                        data-entree-ymd="{{ $entreeYmd }}"
+                        data-sortie-ymd="{{ $sortieYmd }}"
                         data-sortie-ok="{{ $aSorti ? '1' : '0' }}">
 
                         <td class="row-num">{{ $i }}</td>
@@ -113,7 +127,19 @@ use Illuminate\Support\Facades\Auth;
                             {{ $nom }}
                         </td>
 
-                        <td class="phone-cell">{{ $phone }}</td>
+                        <td class="phone-cell-display">
+                            @if(!empty($phone))
+                                <a href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}"
+                                    class="phone-call-link"
+                                    title="Appeler {{ $phone }}">
+                                    <i class="zmdi zmdi-phone-in-talk"></i>
+                                    <span class="phone-num">{{ $phone }}</span>
+                                </a>
+                            @else
+                                <span style="color:#94a3b8;font-style:italic;">Non renseigné</span>
+                            @endif
+                        </td>
+
                         <td>{{ $typeLabel }}</td>
                         <td>{{ $natureLabel }}</td>
 
@@ -146,8 +172,6 @@ use Illuminate\Support\Facades\Auth;
                             @endif
                         </td>
 
-                        <td>{{ $data->note ?? '' }}</td>
-
                         <td style="text-align: center; white-space: nowrap;">
                             <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                                 <?php
@@ -158,10 +182,10 @@ use Illuminate\Support\Facades\Auth;
                                 ?>
                             <?php } ?>
 
-                            {{-- 👁️ DÉTAILS --}}
                             <a href="#"
                                 class="btn-details"
                                 data-id="{{ $data->id }}"
+                                data-numero="{{ $numeroAffiche }}"
                                 data-nom="{{ $nom }}"
                                 data-email="{{ $email }}"
                                 data-phone="{{ $phone }}"
@@ -179,7 +203,6 @@ use Illuminate\Support\Facades\Auth;
                                 <i class="zmdi zmdi-eye"></i>
                             </a>
 
-                            {{-- 🗑️ DELETE --}}
                             <?php if (($delete == 1 && $data->user_id == Auth::user()->id) || (Auth::user()->role == 0)) { ?>
                                 <a id="delete_<?= $i ?>" href="#" title="Supprimer">
                                     <i class="zmdi zmdi-delete text-danger"></i>
@@ -206,7 +229,6 @@ use Illuminate\Support\Facades\Auth;
                                 $("#voir_profil_<?= $i ?>").click(function(e) {
                                     e.preventDefault();
                                     $("#nom_profil").html("<?= $nom ?>");
-                                    $("#data_id").html("<?= $data->id ?>");
                                     var url = "<?= asset($image) ?>";
                                     $("#contenu_voir_profil").html('<img src="' + url + '" class="img-fluid" style="max-height:100%;width: 100%;" />');
                                     $("#btn_voir_profil").trigger("click");

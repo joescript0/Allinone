@@ -1,17 +1,16 @@
 @php
     use App\Models\appnames;
+    use App\Models\Writes;
+    use App\Models\Postes;
+    use App\Models\Mois;
+    use App\Models\Groupes;
+    use App\Models\Clients;
+    use App\Models\Lieux;
+    use Illuminate\Support\Facades\Auth;
+
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
 
-<?php
-use App\Models\Writes;
-use App\Models\Postes;
-use App\Models\Mois;
-use App\Models\Groupes;
-use App\Models\Clients;
-use App\Models\Lieux;
-use Illuminate\Support\Facades\Auth;
-?>
 @extends('layouts.main')
 @section('title', $nom_app)
 @section('name', 'ACCUEIL ORIENTATION')
@@ -129,12 +128,58 @@ h4 i.zmdi { background: var(--bleu-nuit-gradient); background-clip: text; -webki
 textarea.form-control { resize: vertical; height: 38px !important; min-height: 38px !important; }
 .form-control:focus, select.form-control:focus, textarea.form-control:focus { border-color: var(--bleu-nuit) !important; box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important; }
 
-#form_add .form-row-custom { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
-#form_add .form-row-custom > [class*="col-"] { flex: 1 1 calc(50% - 8px); min-width: 260px; max-width: 100%; padding: 0; margin: 0; }
+#form_add .form-row-custom { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; align-items: stretch; }
+#form_add .form-row-custom > [class*="col-"] { flex: 1 1 calc(50% - 8px); min-width: 260px; max-width: 100%; padding: 0; margin: 0; display: flex; }
+
+/* ====== ALIGNEMENT UNIFORME : Personne / Type de personne ====== */
+#form_add .form-group {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+#form_add .form-group > label {
+    min-height: 22px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+}
+#form_add .form-group > .form-control,
+#form_add .form-group > .select2-container {
+    flex: 1 1 auto;
+    min-height: 38px;
+}
+/* ============================================================== */
 
 .select2-container { width: 100% !important; }
-.select2-container--default .select2-selection--single { height: 38px !important; border: 1px solid #e2e8f0 !important; border-radius: 14px !important; background: #ffffff !important; display: flex !important; align-items: center; }
-.select2-container--default .select2-selection--single .select2-selection__rendered { line-height: normal !important; padding-left: 14px !important; padding-right: 40px !important; font-weight: 500; font-size: 0.85rem; }
+
+/* ====== SELECT2 : centrage vertical parfait du texte ====== */
+.select2-container--default .select2-selection--single {
+    height: 38px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 36px !important;
+    padding: 0 40px 0 14px !important;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: #1e293b;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px !important;
+    top: 0 !important;
+    right: 8px !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__placeholder,
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    line-height: 36px !important;
+}
+/* ========================================================= */
+
 .select2-dropdown { border: 1px solid #e2e8f0 !important; border-radius: 14px !important; }
 
 .flatpickr-input, input.flatpickr-input + input.form-control { background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 14px !important; padding: 8px 12px !important; font-weight: 600 !important; font-size: 0.85rem !important; height: 38px !important; color: #1e293b !important; }
@@ -249,6 +294,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     #modal_details .fiche-row .fiche-label span { font-size: 0.62rem; }
     #modal_details .fiche-row .fiche-value { font-size: 0.8rem; }
     #modal_details .fiche-body { padding: 16px; }
+    #form_add .form-row-custom > [class*="col-"] { flex: 1 1 100%; min-width: 100%; }
 }
 </style>
 
@@ -357,7 +403,15 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                             $personneRec = \App\Models\Personnes::find($data->personne_id);
                                             $typeNumerique = $personneRec->type ?? null;
 
-                                            $typeLabels = [0 => 'Utilisateur', 1 => 'Client', 2 => 'Patient', 3 => 'Visiteur'];
+                                            // === TYPES : 0=Utilisateur, 1=Client, 2=Patient, 3=Visiteur, 4=Partenaire, 5=Associé ===
+                                            $typeLabels = [
+                                                0 => 'Utilisateur',
+                                                1 => 'Client',
+                                                2 => 'Patient',
+                                                3 => 'Visiteur',
+                                                4 => 'Partenaire',
+                                                5 => 'Associé'
+                                            ];
                                             $typeLabel = $typeLabels[$typeNumerique] ?? '—';
 
                                             $nom = ''; $email = ''; $phone = ''; $image = ''; $nature = null;
@@ -369,6 +423,8 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                                     case 1: $p = \App\Models\Clients::find($personneRec->user_id); break;
                                                     case 2: $p = \App\Models\Patients::find($personneRec->user_id); break;
                                                     case 3: $p = \App\Models\Visiteurs::find($personneRec->user_id); break;
+                                                    case 4: $p = \App\Models\Partenaires::find($personneRec->user_id); break;
+                                                    case 5: $p = \App\Models\Associes::find($personneRec->user_id); break;
                                                 }
                                                 if ($p) {
                                                     $nom    = $p->name  ?? '';
@@ -578,11 +634,14 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                     <input type="file" name="input_user_img_profil" id="input_user_img_profil" style="display:none;">
                     <input type="text" name="image" id="image" value="{{ asset('storage/images/user/profil_defaut.png') }}" style="display:none;">
 
+                    {{-- ===== Ligne 1 : Personne / Type de personne (ALIGNÉS) ===== --}}
                     <div class="form-row-custom">
                         <div class="col-6">
                             <div class="form-group">
                                 <label class="text-info"><i class="zmdi zmdi-account-box"></i> Personne</label>
-                                <select id="personne" name="personne" class="form-control"><option value=""></option></select>
+                                <select id="personne" name="personne" class="form-control">
+                                    <option value=""></option>
+                                </select>
                             </div>
                         </div>
                         <div class="col-6" id="wrapper_type_personne">
@@ -590,10 +649,12 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                 <label class="text-info"><i class="zmdi zmdi-accounts-list"></i> Type de personne</label>
                                 <select id="type_personne" name="type_personne" class="form-control">
                                     <option value=""></option>
-                                    <option value="0">Utilisateurs</option>
+                                    <option value="0">Utilisateur</option>
                                     <option value="1">Client</option>
                                     <option value="2">Patient</option>
-                                    <option value="3">Visiteurs</option>
+                                    <option value="3">Visiteur</option>
+                                    <option value="4">Partenaire</option>
+                                    <option value="5">Associé</option>
                                 </select>
                             </div>
                         </div>
@@ -678,6 +739,19 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                 <textarea id="note" name="note" class="form-control" rows="1" placeholder="Remarque éventuelle..."></textarea>
                             </div>
                         </div>
+                    </div>
+
+                    {{-- ===== Date de naissance (Patient sans personne existante) — col-6 à gauche, col-6 vide à droite pour garder 50% ===== --}}
+                    <div class="form-row-custom" id="row_date_naissance" style="display: none;">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="text-info"><i class="zmdi zmdi-calendar-note"></i> Date de naissance</label>
+                                <input type="hidden" id="date_naissance" name="date_naissance">
+                                <input type="text" id="date_naissance_picker" class="form-control flatpickr-input"
+                                       placeholder="Sélectionner la date de naissance" readonly>
+                            </div>
+                        </div>
+                        <div class="col-6"></div>
                     </div>
 
                     <div class="signature-section">
@@ -1167,12 +1241,48 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         $('#signature_download_btn').attr('href', '');
     });
 
+    /* ============ DATE DE NAISSANCE (Patient) ============ */
+    var dateNaissancePicker = null;
+
+    function initDateNaissancePicker() {
+        if (dateNaissancePicker) return;
+        if (typeof flatpickr === 'undefined') return;
+        if (flatpickr.l10ns && flatpickr.l10ns.fr) flatpickr.localize(flatpickr.l10ns.fr);
+        dateNaissancePicker = flatpickr("#date_naissance_picker", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            maxDate: "today",
+            disableMobile: true,
+            allowInput: false,
+            onChange: function(d, s) { $("#date_naissance").val(s); }
+        });
+    }
+
+    function toggleDateNaissance() {
+        var typeVal     = String($('#type_personne').val() || '');
+        var personneVal = $('#personne').val();
+        var hasPersonne = (personneVal !== null && personneVal !== '' &&
+                           personneVal !== undefined && parseInt(personneVal, 10) > 0);
+
+        // Affichage uniquement si : Aucune personne existante ET type == Patient (2)
+        if (!hasPersonne && typeVal === '2') {
+            $('#row_date_naissance').show();
+            initDateNaissancePicker();
+        } else {
+            $('#row_date_naissance').hide();
+            if (dateNaissancePicker) dateNaissancePicker.clear();
+            $('#date_naissance').val('');
+        }
+    }
+
     /* ============ TOGGLE ============ */
     function togglePersonFields() {
         var val = $('#personne').val();
         var has = (val !== null && val !== '' && val !== undefined && parseInt(val, 10) > 0);
         if (has) { $('#wrapper_type_personne').hide(); $('#row_nature_nom').hide(); $('#row_email_phone').hide(); }
         else { $('#wrapper_type_personne').show(); $('#row_nature_nom').show(); $('#row_email_phone').show(); }
+        toggleDateNaissance();
         return has;
     }
 
@@ -1219,6 +1329,11 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         if (has) $('#type_personne').val(type).trigger('change');
     });
 
+    // Réagit au changement du type pour afficher/cacher la date de naissance
+    $(document).on('change', '#type_personne', function() {
+        toggleDateNaissance();
+    });
+
     var heurePicker = null;
     function initFlatpickr() {
         if (heurePicker) return;
@@ -1239,16 +1354,10 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
        ===================================================================== */
     var signatureInited = false, canvas, ctx, placeholder, drawing = false, hasSignature = false;
 
-    /**
-     * Efface TOUT : on vide #signature_container et on reconstruit
-     * intégralement son contenu (wrap + canvas + placeholder).
-     * Le bouton #clearSig est EN DEHORS du container et n'est jamais recréé.
-     */
     function clearSignatureCanvas() {
         var container = document.getElementById('signature_container');
         if (!container) return;
 
-        // Reset immédiat des drapeaux pour éviter tout dessin résiduel
         drawing = false;
         hasSignature = false;
         signatureInited = false;
@@ -1256,19 +1365,15 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         ctx = null;
         placeholder = null;
 
-        // Vide le conteneur (supprime l'ancien wrap + canvas + placeholder)
         container.innerHTML = '';
 
-        // Crée un nouveau wrap
         var newWrap = document.createElement('div');
         newWrap.className = 'signature-wrap';
 
-        // Crée un nouveau canvas
         var newCanvas = document.createElement('canvas');
         newCanvas.id = 'signatureCanvas';
         newWrap.appendChild(newCanvas);
 
-        // Crée un nouveau placeholder
         var newPlaceholder = document.createElement('span');
         newPlaceholder.className = 'signature-placeholder';
         newPlaceholder.id = 'sigPlaceholder';
@@ -1277,14 +1382,11 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 
         container.appendChild(newWrap);
 
-        // Mise à jour des références globales
         canvas = newCanvas;
         placeholder = newPlaceholder;
 
-        // Force reflow
         void container.offsetHeight;
 
-        // Initialise au prochain frame (mesure de la taille, styles, listeners)
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
                 initSignatureCanvas();
@@ -1301,7 +1403,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         var ratio = window.devicePixelRatio || 1;
         var rect = canvas.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) {
-            // Le canvas n'a pas encore sa taille : on réessaie au prochain frame
             requestAnimationFrame(function() { initSignatureCanvas(); });
             return;
         }
@@ -1316,14 +1417,12 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         ctx.lineJoin = 'round';
         ctx.strokeStyle = '#1e293b';
 
-        // Fond solide
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.fillStyle = '#f8fafc';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.restore();
 
-        // Branche les listeners UNE SEULE FOIS par canvas
         canvas.addEventListener('mousedown', sigStart);
         canvas.addEventListener('mousemove', sigMove);
         canvas.addEventListener('mouseup', sigStop);
@@ -1336,9 +1435,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         signatureInited = true;
     }
 
-    /* Le bouton #clearSig n'est JAMAIS recréé : on utilise la délégation d'événement.
-       De cette façon, peu importe combien de fois le canvas est reconstruit,
-       le clic sur le bouton fonctionnera TOUJOURS. */
     $(document).on('click', '#clearSig', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1377,7 +1473,13 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     $("#add").click(function(e) {
         e.preventDefault();
         $("#bloc_1").hide(); $("#bloc_2").show(); $("#bloc_3").hide(); $("#bloc_4").hide();
-        setTimeout(function() { initSignatureCanvas(); initSelect2(); initFlatpickr(); togglePersonFields(); }, 100);
+        setTimeout(function() {
+            initSignatureCanvas();
+            initSelect2();
+            initFlatpickr();
+            initDateNaissancePicker();
+            togglePersonFields();
+        }, 100);
     });
     $("#add_r").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
     $("#save_r").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
@@ -1391,17 +1493,15 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         e.preventDefault();
         var btn = $(this);
         var originalBtnHtml = 'Enregister <i class="zmdi zmdi-save"></i>';
+
+        // === Signature OPTIONNELLE : on l'envoie seulement si l'utilisateur a dessiné ===
         if (!canvas || typeof canvas.toDataURL !== 'function') initSignatureCanvas();
-        if (!canvas || typeof canvas.toDataURL !== 'function') {
-            $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Canvas signature introuvable');
-            setTimeout(function() { $('#msg').html(""); }, 6000); return;
-        }
         var signature = '';
-        try { if (hasSignature) signature = canvas.toDataURL('image/png'); } catch (err) {}
-        if (!signature || signature.length < 500) {
-            $('#msg').html('<i class="zmdi zmdi-info"></i> Veuillez signer avant d\'enregistrer');
-            setTimeout(function() { $('#msg').html(""); }, 6000); return;
+        if (canvas && typeof canvas.toDataURL === 'function' && hasSignature) {
+            try { signature = canvas.toDataURL('image/png'); } catch (err) { signature = ''; }
         }
+        // ================================================================================
+
         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Enregistrement...');
         function resetButton() { btn.prop('disabled', false).html(originalBtnHtml); }
         var page = "<?= $ressource_id_1 ?>";
@@ -1424,6 +1524,10 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                     $("#type_personne").val(null).trigger("change");
                     $("#nature").val(null).trigger("change");
                 }
+                if (dateNaissancePicker) dateNaissancePicker.clear();
+                $('#date_naissance').val('');
+                $('#row_date_naissance').hide();
+
                 togglePersonFields();
                 $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Enregistrement effectué avec succès');
                 setTimeout(function() { $('#msg').html(""); }, 9000);

@@ -77,11 +77,13 @@ use App\Models\Pointdeventes;
 use App\Models\Stocks;
 use App\Models\detailsaffectationspointventes;
 use App\Models\affectationspointventes;
+use App\Models\Associes;
 use App\Models\Communiquerclients;
 use App\Models\listesdesinvites;
 use App\Models\Patients;
 use App\Models\Personnes;
 use App\Models\Motifs;
+use App\Models\Partenaires;
 use App\Models\Services;
 use App\Models\Rappelscredits;
 use App\Models\Tables;
@@ -133,6 +135,8 @@ class AjaxController extends Controller
         $this->calculer_commission();
         $this->all_user_to_personne();
         $this->user_get_paiement();
+        $this->seedservices();
+        $this->seedmotifs();
     }
     public function envoyer_sms($telephone, $msg)
     {
@@ -2420,7 +2424,7 @@ class AjaxController extends Controller
         $stock_id = 0;
 
         // ✅ Priorité 1 : si pointdeventes_id est fourni et différent de 0
-        if ($request->pointdeventes_id && $request->pointdeventes_id != 0) 
+        if ($request->pointdeventes_id && $request->pointdeventes_id != 0)
         {
             $pointdeventes_id = $request->pointdeventes_id;
             $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
@@ -2429,11 +2433,11 @@ class AjaxController extends Controller
             }
         }
         // ✅ Priorité 2 : sinon on passe par la table
-        elseif ($request->table_id) 
+        elseif ($request->table_id)
         {
             $table_id = $request->table_id;
             $table = Tables::where('id', $table_id)->first();
-            if ($table) 
+            if ($table)
             {
                 $pointdeventes_id = $table->pointdeventes_id;
                 $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
@@ -2446,7 +2450,7 @@ class AjaxController extends Controller
         $article_id = $request->article_id;
 
         // Récupération de l'article selon le stock
-        if ($stock_id == 0) 
+        if ($stock_id == 0)
         {
             $article = Articles::where(['id' => $article_id, 'supprimer' => 0])->first();
         } else {
@@ -2478,7 +2482,7 @@ class AjaxController extends Controller
         $stock_disponible = $stock + $total_pret;
 
         // ✅ Vérification : la quantité à déduire ne doit pas rendre le stock négatif
-        if ($quantite_a_deduire > $stock_disponible) 
+        if ($quantite_a_deduire > $stock_disponible)
         {
             echo "-2__________0__________" . ($stock_disponible) . "__________" . $avoir_stock;
             return;
@@ -7588,7 +7592,7 @@ class AjaxController extends Controller
         $stock_id = 0;
 
         // ✅ Priorité 1 : si pointdeventes_id est fourni et différent de 0
-        if ($request->pointdeventes_id && $request->pointdeventes_id != 0) 
+        if ($request->pointdeventes_id && $request->pointdeventes_id != 0)
         {
             $pointdeventes_id = $request->pointdeventes_id;
             $pointdeventes = pointdeventes::where('id', $pointdeventes_id)->first();
@@ -7597,7 +7601,7 @@ class AjaxController extends Controller
             }
         }
         // ✅ Priorité 2 : sinon on passe par la table
-        elseif ($request->table_id) 
+        elseif ($request->table_id)
         {
             $table_id = $request->table_id;
             $table = Tables::where('id', $table_id)->first();
@@ -7612,10 +7616,10 @@ class AjaxController extends Controller
 
         $article_id = $request->article_id;
 
-        if ($stock_id == 0) 
+        if ($stock_id == 0)
         {
             $article = Articles::where('id', $article_id)->first();
-        } else 
+        } else
         {
             // Récupérer l'article depuis la table articlestocks avec le stock_id et article_id
             $article = articlestocks::where(['stock_id' => $stock_id, 'article_id' => $article_id])->first();
@@ -7629,12 +7633,12 @@ class AjaxController extends Controller
         $prix = 0;
         $taille = 0;
 
-        if ($request->type_vente_id == 1) 
+        if ($request->type_vente_id == 1)
         {
             $prix = $article->prix_detail;
             $taille = $article->taille_piece;
-        } 
-        elseif ($request->type_vente_id == 2) 
+        }
+        elseif ($request->type_vente_id == 2)
         {
             $prix = $article->prix_gros;
             $taille = $article->taille_lot;
@@ -17036,6 +17040,32 @@ class AjaxController extends Controller
             ];
         }
 
+        // ✅ Type 4 → Partenaires (table partenaires)
+        foreach (Partenaires::select('id', 'name', 'phone')->where('etat', 1)->get() as $pt) {
+            $label = $pt->name ?? 'N/A';
+            if ($pt->phone) $label .= ' - ' . $pt->phone;
+            $label .= ' (Partenaire)';
+
+            $personnes[] = [
+                'id'    => $pt->id,
+                'label' => '🟢 '. $label,
+                'type'  => 4,
+            ];
+        }
+
+        // ✅ Type 5 → Associés (table associes)
+        foreach (Associes::select('id', 'name', 'phone')->where('etat', 1)->get() as $a) {
+            $label = $a->name ?? 'N/A';
+            if ($a->phone) $label .= ' - ' . $a->phone;
+            $label .= ' (Associé)';
+
+            $personnes[] = [
+                'id'    => $a->id,
+                'label' => '🟢 '. $label,
+                'type'  => 5,
+            ];
+        }
+
         return response()->json($personnes);
     }
 
@@ -17044,19 +17074,20 @@ class AjaxController extends Controller
         // ============================================================
         // ÉTAPE 0 : RÉCUPÉRATION DES DONNÉES
         // ============================================================
-        $personne     = $request->input('personne');
-        $typePersonne = $request->input('type_personne');
-        $nature       = $request->input('nature');
-        $nom          = trim((string) $request->input('nom', ''));
-        $email        = trim((string) $request->input('email', ''));
-        $phone        = trim((string) $request->input('phone', ''));
-        $motif        = $request->input('motif');
-        $service      = $request->input('service');
-        $heure        = $request->input('heure');
-        $note         = (string) $request->input('note', '');
-        $image        = $request->input('image');
-        $signature    = $request->input('signature');
-        $page         = $request->input('page');
+        $personne      = $request->input('personne');
+        $typePersonne  = $request->input('type_personne');
+        $nature        = $request->input('nature');
+        $nom           = trim((string) $request->input('nom', ''));
+        $email         = trim((string) $request->input('email', ''));
+        $phone         = trim((string) $request->input('phone', ''));
+        $motif         = $request->input('motif');
+        $service       = $request->input('service');
+        $heure         = $request->input('heure');
+        $note          = (string) $request->input('note', '');
+        $image         = $request->input('image');
+        $signature     = $request->input('signature');
+        $datenaissance = $request->input('date_naissance'); // ✅ peut être null/'' maintenant
+        $page          = $request->input('page');
 
         $isExistingPerson = ($personne !== null && $personne !== '' && (int)$personne > 0);
 
@@ -17064,8 +17095,8 @@ class AjaxController extends Controller
         // MAPPING TYPE
         // ============================================================
         $typeMap = [
-            '0' => 0, '1' => 1, '2' => 2, '3' => 3,
-            0   => 0, 1   => 1, 2   => 2, 3   => 3,
+            '0' => 0, '1' => 1, '2' => 2, '3' => 3, '4' => 4, '5' => 5,
+            0   => 0, 1   => 1, 2   => 2, 3   => 3, 4   => 4, 5   => 5,
             'user'         => 0,
             'users'        => 0,
             'utilisateur'  => 0,
@@ -17076,6 +17107,12 @@ class AjaxController extends Controller
             'patients'     => 2,
             'visiteur'     => 3,
             'visiteurs'    => 3,
+            'partenaire'   => 4,
+            'partenaires'  => 4,
+            'associe'      => 5,
+            'associes'     => 5,
+            'associé'      => 5,
+            'associés'     => 5,
         ];
 
         $typeReverseMap = [
@@ -17083,6 +17120,8 @@ class AjaxController extends Controller
             1 => 'client',
             2 => 'patient',
             3 => 'visiteur',
+            4 => 'partenaire',
+            5 => 'associe',
         ];
 
         // ============================================================
@@ -17097,39 +17136,43 @@ class AjaxController extends Controller
 
         // ============================================================
         // ÉTAPE 2 : VALIDATION CONDITIONNELLE
+        // ⚠️ La signature est désormais OPTIONNELLE dans les deux cas
+        // ⚠️ La date de naissance est OPTIONNELLE et validée si fournie
         // ============================================================
         if ($isExistingPerson) {
             $rules = [
-                'motif'     => 'required',
-                'service'   => 'required',
-                'heure'     => 'required',
-                'signature' => 'required',
+                'motif'           => 'required',
+                'service'         => 'required',
+                'heure'           => 'required',
+                // 'signature'    => plus obligatoire
+                'date_naissance'  => 'nullable|date',
             ];
             $messages = [
-                'motif.required'     => 'Sélectionnez un motif',
-                'service.required'   => 'Sélectionnez un service',
-                'heure.required'     => 'Sélectionnez la date et l\'heure d\'entrée',
-                'signature.required' => 'Veuillez signer avant d\'enregistrer',
+                'motif.required'          => 'Sélectionnez un motif',
+                'service.required'        => 'Sélectionnez un service',
+                'heure.required'          => 'Sélectionnez la date et l\'heure d\'entrée',
+                'date_naissance.date'     => 'La date de naissance est invalide',
             ];
         } else {
             $rules = [
-                'type_personne' => 'required',
-                'nature'        => 'required',
-                'nom'           => 'required|string|min:2',
-                'motif'         => 'required',
-                'service'       => 'required',
-                'heure'         => 'required',
-                'signature'     => 'required',
+                'type_personne'   => 'required',
+                'nature'          => 'required',
+                'nom'             => 'required|string|min:2',
+                'motif'           => 'required',
+                'service'         => 'required',
+                'heure'           => 'required',
+                // 'signature'    => plus obligatoire
+                'date_naissance'  => 'nullable|date',
             ];
             $messages = [
-                'type_personne.required' => 'Sélectionnez un type de personne',
-                'nature.required'        => 'Sélectionnez une nature',
-                'nom.required'           => 'Completez le nom',
-                'nom.min'                => 'Le nom doit contenir au moins 2 caractères',
-                'motif.required'         => 'Sélectionnez un motif',
-                'service.required'       => 'Sélectionnez un service',
-                'heure.required'         => 'Sélectionnez la date et l\'heure d\'entrée',
-                'signature.required'     => 'Veuillez signer avant d\'enregistrer',
+                'type_personne.required'  => 'Sélectionnez un type de personne',
+                'nature.required'         => 'Sélectionnez une nature',
+                'nom.required'            => 'Completez le nom',
+                'nom.min'                 => 'Le nom doit contenir au moins 2 caractères',
+                'motif.required'          => 'Sélectionnez un motif',
+                'service.required'        => 'Sélectionnez un service',
+                'heure.required'          => 'Sélectionnez la date et l\'heure d\'entrée',
+                'date_naissance.date'     => 'La date de naissance est invalide',
             ];
         }
 
@@ -17163,6 +17206,14 @@ class AjaxController extends Controller
                 if (class_exists(\App\Models\Patients::class) && \App\Models\Patients::where('email', $email)->exists()) {
                     return response()->json(['ok' => false, 'message' => 'Cette adresse e-mail existe déjà dans la table patients'], 422);
                 }
+                // ✅ Vérification Partenaires
+                if (class_exists(\App\Models\Partenaires::class) && \App\Models\Partenaires::where('email', $email)->exists()) {
+                    return response()->json(['ok' => false, 'message' => 'Cette adresse e-mail existe déjà dans la table partenaires'], 422);
+                }
+                // ✅ Vérification Associés
+                if (class_exists(\App\Models\Associes::class) && \App\Models\Associes::where('email', $email)->exists()) {
+                    return response()->json(['ok' => false, 'message' => 'Cette adresse e-mail existe déjà dans la table associes'], 422);
+                }
             }
 
             if ($phone !== '') {
@@ -17180,6 +17231,14 @@ class AjaxController extends Controller
                 }
                 if (class_exists(\App\Models\Patients::class) && \App\Models\Patients::where('phone', $phone)->exists()) {
                     return response()->json(['ok' => false, 'message' => 'Ce numero de telephone existe déjà dans la table patients'], 422);
+                }
+                // ✅ Vérification Partenaires
+                if (class_exists(\App\Models\Partenaires::class) && \App\Models\Partenaires::where('phone', $phone)->exists()) {
+                    return response()->json(['ok' => false, 'message' => 'Ce numero de telephone existe déjà dans la table partenaires'], 422);
+                }
+                // ✅ Vérification Associés
+                if (class_exists(\App\Models\Associes::class) && \App\Models\Associes::where('phone', $phone)->exists()) {
+                    return response()->json(['ok' => false, 'message' => 'Ce numero de telephone existe déjà dans la table associes'], 422);
                 }
             }
         }
@@ -17233,8 +17292,11 @@ class AjaxController extends Controller
                 $type          = $typeReverseMap[$typeNumerique];
 
                 // ✅ phone vide = '' au lieu de null
-                $emailDb = $email !== '' ? $email : null;   // null → déclenche la génération d'email
-                $phoneDb = $phone !== '' ? $phone : '';     // '' pour éviter "cannot be null"
+                $emailDb = $email !== '' ? $email : null;
+                $phoneDb = $phone !== '' ? $phone : '';
+
+                // ✅ Date de naissance : null si vide
+                $dateNaissanceDb = !empty($datenaissance) ? $datenaissance : null;
 
                 $userLinkedId = null;
 
@@ -17245,22 +17307,20 @@ class AjaxController extends Controller
                         $nextId = (User::max('id') ?? 0) + 1;
 
                         $nouvellePersonne = new User();
-                        $nouvellePersonne->id       = $nextId;
-                        $nouvellePersonne->user_id  = \Auth::id();
-                        $nouvellePersonne->name     = $nom;
-                        $nouvellePersonne->phone    = $phoneDb;
-                        $nouvellePersonne->image    = $image;
-                        $nouvellePersonne->adresse  = '';
+                        $nouvellePersonne->id         = $nextId;
+                        $nouvellePersonne->user_id    = \Auth::id();
+                        $nouvellePersonne->name       = $nom;
+                        $nouvellePersonne->phone      = $phoneDb;
+                        $nouvellePersonne->image      = $image;
+                        $nouvellePersonne->adresse    = '';
                         $nouvellePersonne->recherche  = '';
-                        $nouvellePersonne->role  = Auth::user()->role;
-                        $nouvellePersonne->password = \Hash::make("12345");
-                        $nouvellePersonne->mdp = "12345";
+                        $nouvellePersonne->role       = Auth::user()->role;
+                        $nouvellePersonne->password   = \Hash::make("12345");
+                        $nouvellePersonne->mdp        = "12345";
 
-                        if ($emailDb === null) {
-                            $nouvellePersonne->email = 'user_' . $nextId . '@gmail.com';
-                        } else {
-                            $nouvellePersonne->email = $emailDb;
-                        }
+                        $nouvellePersonne->email = $emailDb === null
+                            ? 'user_' . $nextId . '@gmail.com'
+                            : $emailDb;
 
                         $nouvellePersonne->save();
                         $userLinkedId = $nextId;
@@ -17279,13 +17339,11 @@ class AjaxController extends Controller
                         $nouvellePersonne->image    = $image;
                         $nouvellePersonne->adresse  = '';
                         $nouvellePersonne->password = \Hash::make("12345");
-                        $nouvellePersonne->mdp = "12345";
+                        $nouvellePersonne->mdp      = "12345";
 
-                        if ($emailDb === null) {
-                            $nouvellePersonne->email = 'client_' . $nextId . '@gmail.com';
-                        } else {
-                            $nouvellePersonne->email = $emailDb;
-                        }
+                        $nouvellePersonne->email = $emailDb === null
+                            ? 'client_' . $nextId . '@gmail.com'
+                            : $emailDb;
 
                         $nouvellePersonne->save();
                         $userLinkedId = $nextId;
@@ -17313,15 +17371,17 @@ class AjaxController extends Controller
                         $nouvellePersonne->type     = $nature;
                         $nouvellePersonne->image    = $image;
                         $nouvellePersonne->adresse  = '';
+
+                        // ✅ Date de naissance : null si vide (champ nullable recommandé en base)
+                        $nouvellePersonne->date_de_naissance = $dateNaissanceDb;
+
                         $nouvellePersonne->password = \Hash::make("12345");
                         $nouvellePersonne->mdp      = "12345";
-                        $nouvellePersonne->code     = $codePatient;   // ✅ Code dossier
+                        $nouvellePersonne->code     = $codePatient;
 
-                        if ($emailDb === null) {
-                            $nouvellePersonne->email = 'patient_' . $nextId . '@gmail.com';
-                        } else {
-                            $nouvellePersonne->email = $emailDb;
-                        }
+                        $nouvellePersonne->email = $emailDb === null
+                            ? 'patient_' . $nextId . '@gmail.com'
+                            : $emailDb;
 
                         $nouvellePersonne->save();
                         $userLinkedId = $nextId;
@@ -17340,13 +17400,57 @@ class AjaxController extends Controller
                         $nouvellePersonne->image    = $image;
                         $nouvellePersonne->adresse  = '';
                         $nouvellePersonne->password = \Hash::make("12345");
-                        $nouvellePersonne->mdp = "12345";
+                        $nouvellePersonne->mdp      = "12345";
 
-                        if ($emailDb === null) {
-                            $nouvellePersonne->email = 'visiteur_' . $nextId . '@gmail.com';
-                        } else {
-                            $nouvellePersonne->email = $emailDb;
-                        }
+                        $nouvellePersonne->email = $emailDb === null
+                            ? 'visiteur_' . $nextId . '@gmail.com'
+                            : $emailDb;
+
+                        $nouvellePersonne->save();
+                        $userLinkedId = $nextId;
+                        break;
+
+                    // ---------- PARTENAIRE ----------
+                    case 'partenaire':
+                        $nextId = (\App\Models\Partenaires::max('id') ?? 0) + 1;
+
+                        $nouvellePersonne = new \App\Models\Partenaires();
+                        $nouvellePersonne->id       = $nextId;
+                        $nouvellePersonne->user_id  = \Auth::id();
+                        $nouvellePersonne->name     = $nom;
+                        $nouvellePersonne->phone    = $phoneDb;
+                        $nouvellePersonne->type     = $nature;
+                        $nouvellePersonne->image    = $image;
+                        $nouvellePersonne->adresse  = '';
+                        $nouvellePersonne->password = \Hash::make("12345");
+                        $nouvellePersonne->mdp      = "12345";
+
+                        $nouvellePersonne->email = $emailDb === null
+                            ? 'partenaire_' . $nextId . '@gmail.com'
+                            : $emailDb;
+
+                        $nouvellePersonne->save();
+                        $userLinkedId = $nextId;
+                        break;
+
+                    // ---------- ASSOCIÉ ----------
+                    case 'associe':
+                        $nextId = (\App\Models\Associes::max('id') ?? 0) + 1;
+
+                        $nouvellePersonne = new \App\Models\Associes();
+                        $nouvellePersonne->id       = $nextId;
+                        $nouvellePersonne->user_id  = \Auth::id();
+                        $nouvellePersonne->name     = $nom;
+                        $nouvellePersonne->phone    = $phoneDb;
+                        $nouvellePersonne->type     = $nature;
+                        $nouvellePersonne->image    = $image;
+                        $nouvellePersonne->adresse  = '';
+                        $nouvellePersonne->password = \Hash::make("12345");
+                        $nouvellePersonne->mdp      = "12345";
+
+                        $nouvellePersonne->email = $emailDb === null
+                            ? 'associe_' . $nextId . '@gmail.com'
+                            : $emailDb;
 
                         $nouvellePersonne->save();
                         $userLinkedId = $nextId;
@@ -17368,7 +17472,7 @@ class AjaxController extends Controller
             }
 
             // ---------------------------------------------------------
-            // 4.2 : SIGNATURE
+            // 4.2 : SIGNATURE (désormais OPTIONNELLE)
             // ---------------------------------------------------------
             $signaturePath = null;
 
@@ -17384,7 +17488,8 @@ class AjaxController extends Controller
                 'prefix' => substr((string) $signature, 0, 30),
             ]);
 
-            if (!empty($signature) && strpos($signature, 'data:image') === 0) {
+            // ✅ On ne traite la signature que si elle est présente et valide
+            if (!empty($signature) && is_string($signature) && strpos($signature, 'data:image') === 0) {
 
                 $data = explode(',', $signature);
 
@@ -17394,7 +17499,7 @@ class AjaxController extends Controller
 
                     if ($imageData !== false && strlen($imageData) > 1500) {
 
-                        $nomFinal = uniqid() . "_" . time() . ".png";
+                        $nomFinal      = uniqid() . "_" . time() . ".png";
                         $cheminComplet = $target_dir . $nomFinal;
 
                         $saved = file_put_contents($cheminComplet, $imageData);
@@ -17413,6 +17518,7 @@ class AjaxController extends Controller
                     }
                 }
             }
+            // ⚠️ Si $signature est vide → $signaturePath reste null → OK, colonne nullable
 
             // ---------------------------------------------------------
             // 4.3 : REGISTRE D'ACCUEIL
@@ -17424,7 +17530,7 @@ class AjaxController extends Controller
             $registre->heure_entree = $heure;
             $registre->heure_sortie = "0000/00/00 00:00";
             $registre->note         = $note;
-            $registre->signature    = $signaturePath;
+            $registre->signature    = $signaturePath;   // ✅ null si non signée
             $registre->user_id      = \Auth::id();
             $registre->save();
 
@@ -17441,16 +17547,15 @@ class AjaxController extends Controller
             $postes    = Postes::all();
             $motifs    = Motifs::all();
             $services  = Services::all();
-                $data["registreaccueils"] = registreaccueil::where(["etat" => 1])->get();
 
             $data = [
-                'registreaccueils'      => $registres,
-                'groupes'        => $groupes,
-                'postes'         => $postes,
-                'motifs'         => $motifs,
-                'services'       => $services,
-                'ressource_id_1' => $ressource_id_1,
-                'groupe_user_id' => $groupe_user_id,
+                'registreaccueils' => $registres,
+                'groupes'          => $groupes,
+                'postes'           => $postes,
+                'motifs'           => $motifs,
+                'services'         => $services,
+                'ressource_id_1'   => $ressource_id_1,
+                'groupe_user_id'   => $groupe_user_id,
             ];
 
             return view('include.refresh_registreaccueils', $data);
@@ -17468,6 +17573,7 @@ class AjaxController extends Controller
             ], 500);
         }
     }
+
     public function user_get_paiement()
     {
         $factures = Factureass::where('etat', 0)->get();
@@ -17546,5 +17652,100 @@ class AjaxController extends Controller
         $data["ressource_id_1"] = $request->page;
 
         return view('include.refresh_registreaccueils', $data);
+    }
+    public function seedservices()
+    {
+        $services = Services::all();
+
+        $liste_services = [
+            ["nom" => "Médecine générale",      "description" => "Consultations générales"],
+            ["nom" => "Pédiatrie",               "description" => "Enfants de 0 à 15 ans"],
+            ["nom" => "Cardiologie",             "description" => "Maladies du cœur"],
+            ["nom" => "Gynécologie-Obstétrique", "description" => "Santé de la femme"],
+            ["nom" => "Chirurgie",               "description" => "Interventions chirurgicales"],
+            ["nom" => "Urgences",                "description" => "Cas urgents 24/7"],
+            ["nom" => "Laboratoire",             "description" => "Analyses médicales"],
+            ["nom" => "Radiologie",              "description" => "Imagerie médicale"],
+            ["nom" => "Ophtalmologie",           "description" => "Yeux"],
+            ["nom" => "Dentisterie",             "description" => "Soins dentaires"],
+            ["nom" => "Dermatologie",            "description" => "Peau"],
+            ["nom" => "ORL",                     "description" => "Oreille, nez, gorge"],
+            ["nom" => "Triage",                  "description" => "Évaluation et orientation des patients"],
+        ];
+
+        foreach ($liste_services as $value) {
+            $existe = Services::where('nom', $value["nom"])->first();
+
+            if (!$existe) {
+                $service = new Services();
+                $service->nom = $value["nom"];
+                $service->description = $value["description"];
+                $service->etat = 1;
+                $service->save();
+            }
+        }
+    }
+
+    public function seedmotifs()
+    {
+        $liste_motifs = [
+            ["nom" => "Consultation générale",      "description" => "Consultation avec un médecin généraliste"],
+            ["nom" => "Contrôle / Suivi",           "description" => "Suivi d'un traitement ou d'une pathologie"],
+            ["nom" => "Certificat médical",         "description" => "Délivrance d'un certificat médical"],
+            ["nom" => "Rendez-vous",                "description" => "Prise de rendez-vous pour un patient"],
+
+            ["nom" => "Consultation pédiatrique",   "description" => "Consultation pour enfant"],
+            ["nom" => "Vaccination",                "description" => "Administration d'un vaccin"],
+            ["nom" => "Croissance / Nutrition",     "description" => "Suivi de la croissance et nutrition"],
+
+            ["nom" => "Consultation cardiologie",   "description" => "Consultation spécialisée en cardiologie"],
+            ["nom" => "Électrocardiogramme (ECG)",  "description" => "Examen du rythme cardiaque"],
+            ["nom" => "Contrôle tension",           "description" => "Mesure et suivi de la tension artérielle"],
+
+            ["nom" => "Consultation gynécologique", "description" => "Consultation spécialisée en gynécologie"],
+            ["nom" => "Consultation prénatale",     "description" => "Suivi de grossesse"],
+            ["nom" => "Échographie",                "description" => "Examen échographique"],
+
+            ["nom" => "Admission urgence",          "description" => "Prise en charge aux urgences"],
+            ["nom" => "Accident / Traumatisme",     "description" => "Prise en charge d'un accident"],
+            ["nom" => "Intoxication",               "description" => "Prise en charge d'une intoxication"],
+
+            ["nom" => "Prise de sang",              "description" => "Prélèvement sanguin"],
+            ["nom" => "Analyse d'urine",            "description" => "Analyse des urines"],
+            ["nom" => "Test paludisme",             "description" => "Dépistage du paludisme"],
+
+            ["nom" => "Radiographie",               "description" => "Examen radiographique"],
+            ["nom" => "Scanner",                    "description" => "Examen tomodensitométrique"],
+
+            ["nom" => "Consultation dentaire",      "description" => "Consultation chez le dentiste"],
+            ["nom" => "Détartrage",                 "description" => "Nettoyage des dents"],
+            ["nom" => "Extraction dentaire",        "description" => "Extraction d'une dent"],
+
+            ["nom" => "Consultation ophtalmo",      "description" => "Consultation des yeux"],
+            ["nom" => "Contrôle de la vue",         "description" => "Examen de la vue"],
+
+            ["nom" => "Consultation dermatologie",  "description" => "Consultation de la peau"],
+            ["nom" => "Consultation ORL",           "description" => "Consultation oreille, nez, gorge"],
+
+            ["nom" => "Consultation chirurgicale",  "description" => "Consultation en chirurgie"],
+            ["nom" => "Pré-opératoire",             "description" => "Préparation avant une opération"],
+            ["nom" => "Post-opératoire",            "description" => "Suivi après une opération"],
+
+            ["nom" => "Évaluation initiale",        "description" => "Évaluation du patient au triage"],
+            ["nom" => "Réévaluation",               "description" => "Nouvelle évaluation du patient"],
+            ["nom" => "Orientation patient",        "description" => "Orientation vers le service approprié"],
+        ];
+
+        foreach ($liste_motifs as $value) {
+            $existe = motifs::where('nom', $value["nom"])->first();
+
+            if (!$existe) {
+                $motif = new Motifs();
+                $motif->nom = $value["nom"];
+                $motif->description = $value["description"];
+                $motif->etat = 1;
+                $motif->save();
+            }
+        }
     }
 }
