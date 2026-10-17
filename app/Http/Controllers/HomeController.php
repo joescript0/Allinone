@@ -794,6 +794,7 @@ class HomeController extends Controller
                 })->get();
                 $data["groupes"] = Groupes::where(["etat" => 1])->get();
                 $data["personnes"] = Personnes::where(["etat" => 1])->get();
+                $data["patients"] = Patients::where(["etat" => 1])->get();
                 $data["motifs"] = Motifs::where(["etat" => 1])->get();
                 $data["services"] = Services::where(["etat" => 1])->get();
                 $data["registreaccueils"] = Registreaccueil::where(["etat" => 1])->get();

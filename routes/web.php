@@ -160,6 +160,7 @@ Route::post('/check_poste_existe_1', [AjaxController::class , 'check_poste_exist
 Route::post('/check_ecole_existe_1', [AjaxController::class , 'check_ecole_existe_1'])->name('check_ecole_existe_1');
 Route::post('/check_mdpa', [AjaxController::class , 'check_mdpa'])->name('check_mdpa');
 Route::post('/add_utilisateur', [AjaxController::class , 'add_utilisateur'])->name('add_utilisateur');
+Route::post('/add_triage', [AjaxController::class , 'add_triage'])->name('add_triage');
 Route::post('/add_prestation', [AjaxController::class , 'add_prestation'])->name('add_prestation');
 Route::post('/add_poste', [AjaxController::class , 'add_poste'])->name('add_poste');
 Route::post('/add_ecole', [AjaxController::class , 'add_ecole'])->name('add_ecole');
@@ -174,6 +175,7 @@ Route::post('/add_credit', [AjaxController::class , 'add_credit'])->name('add_cr
 Route::post('/edit_utilisateur', [AjaxController::class , 'edit_utilisateur'])->name('edit_utilisateur');
 Route::post('/edit_utilisateur_profil', [AjaxController::class , 'edit_utilisateur_profil'])->name('edit_utilisateur_profil');
 Route::post('/edit_client', [AjaxController::class , 'edit_client'])->name('edit_client');
+Route::post('/edit_triage', [AjaxController::class , 'edit_triage'])->name('edit_triage');
 Route::post('/edit_invite', [AjaxController::class , 'edit_invite'])->name('edit_invite');
 Route::post('/edit_prospect', [AjaxController::class , 'edit_prospect'])->name('edit_prospect');
 Route::post('/edit_prospectsuivi', [AjaxController::class , 'edit_prospectsuivi'])->name('edit_prospectsuivi');
@@ -208,6 +210,7 @@ Route::get('/refresh_deleteposte', [AjaxController::class , 'refresh_deleteposte
 Route::get('/refresh_deleteecole', [AjaxController::class , 'refresh_deleteecole'])->name('refresh_deleteecole');
 Route::get('/refresh_deleteeleve', [AjaxController::class , 'refresh_deleteeleve'])->name('refresh_deleteeleve');
 Route::get('/refresh_deleteclient', [AjaxController::class , 'refresh_deleteclient'])->name('refresh_deleteclient');
+Route::get('/refresh_deletetriage', [AjaxController::class , 'refresh_deletetriage'])->name('refresh_deletetriage');
 Route::get('/refresh_deletefacturesnormalisees', [AjaxController::class , 'refresh_deletefacturesnormalisees'])->name('refresh_deletefacturesnormalisees');
 Route::get('/refresh_deleteprospect', [AjaxController::class , 'refresh_deleteprospect'])->name('refresh_deleteprospect');
 Route::get('/delete_operation', [AjaxController::class , 'delete_operation'])->name('delete_operation');
@@ -364,6 +367,8 @@ Route::get('/get_facture_montants', [AjaxController::class, 'get_facture_montant
 Route::get('/get_fidelite_data', [AjaxController::class, 'get_fidelite_data'])->name('get_fidelite_data');
 Route::get('/get_personnes_by_type', [AjaxController::class, 'get_personnes_by_type'])->name('get_personnes_by_type');
 Route::post('/add_personne', [AjaxController::class, 'add_personne'])->name('add_personne');
+Route::get('/get_liste_patient', [AjaxController::class, 'get_liste_patient'])->name('get_liste_patient');
+Route::get('/refresh_edittriage', [AjaxController::class, 'refresh_edittriage'])->name('refresh_edittriage');
 
 // Route::get('/', function () {
 //     $user = new User();

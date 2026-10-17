@@ -7328,6 +7328,114 @@ class AjaxController extends Controller
         return view('include.refresh_client', $data);
     }
 
+    public function refresh_deletetriage(Request $request)
+    {
+        $client = Patients::where('id', $request->id)->first();
+        $client->etat = 0;
+        $client->save();
+        $data["utilisateurs"] = User::where(["etat" => 1])->get();
+        $data["activites"] = Activites::where(["etat" => 1])->get();
+        $data["groupes"] = Groupes::where(["etat" => 1])->get();
+        $groupe_user_id = Auth::user()->role;
+        $data["ressource_id_1"] = $request->page;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
+        $data["patients"] = Patients::where(["etat" => 1])->get();
+        return view('include.refresh_triage', $data);
+    }
+
+    public function refresh_edittriage(Request $request)
+    {
+        $user_id = $request->user_id;
+        $page    = $request->page;
+
+        $patient = \App\Models\Patients::find($user_id);
+
+        $groupe_user_id = Auth::user()->role;
+
+        $data["patient"]        = $patient;
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["ressource_id_1"] = $page;
+        $data["acces"] = Writes::where([
+            "ressource_id" => $page,
+            "groupe_id"    => $groupe_user_id
+        ])->get();
+
+        return view('include.refresh_edittriage', $data);
+    }
+
+    public function edit_triage(Request $request)
+    {
+        // ============================================================
+        // 1. RÉCUPÉRATION ET VALIDATION DU PATIENT
+        // ============================================================
+        $id = $request->id;
+
+        $patient = \App\Models\Patients::find($id);
+        if (!$patient) {
+            return response()->json(['message' => 'Patient introuvable'], 404);
+        }
+
+        // ============================================================
+        // 2. MISE À JOUR DES CHAMPS
+        // ============================================================
+
+        // Nom
+        if (!empty($request->edit_nom)) {
+            $patient->name = $request->edit_nom;
+        }
+
+        // Email (génération auto si vide)
+        $email = trim((string) $request->edit_email);
+        $patient->email = $email !== ''
+            ? $email
+            : 'patient_' . $id . '@gmail.com';
+
+        // Téléphone (chaîne vide si non renseigné)
+        $phone = trim((string) $request->edit_phone);
+        $patient->phone = $phone !== '' ? $phone : '';
+
+        // Nature (type : 0 = Privé, 1 = Entreprise)
+        $patient->type = $request->edit_type;
+
+        // Date de naissance (null si vide)
+        $patient->date_de_naissance = !empty($request->edit_date_naissance)
+            ? $request->edit_date_naissance
+            : null;
+
+        // Image (uniquement si modifiée)
+        if (!empty($request->edit_image) && $request->edit_image !== $patient->image) {
+            $patient->image = $request->edit_image;
+        }
+
+        // Mot de passe (uniquement si modifié - comparer avec l'ancien)
+        if (!empty($request->edit_mdp) && $request->edit_mdp !== $patient->mdp) {
+            $patient->mdp      = $request->edit_mdp;
+            $patient->password = \Hash::make($request->edit_mdp);
+        }
+
+        $patient->save();
+
+        // ============================================================
+        // 3. PRÉPARATION DES DONNÉES POUR LA VUE
+        // ============================================================
+        $groupe_user_id = Auth::user()->role;
+        $page = $request->page;
+
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["patients"]       = Patients::where(["etat" => 1])->get();
+        $data["ressource_id_1"] = $page;
+        $data["acces"] = Writes::where([
+            "ressource_id" => $page,
+            "groupe_id"    => $groupe_user_id
+        ])->get();
+
+        // ============================================================
+        // 4. RETOUR DE LA VUE PARTIELLE
+        // ============================================================
+        return view('include.refresh_triage', $data);
+    }
+
     public function refresh_deletefacturesnormalisees(Request $request)
     {
         $client = facturesnormalisees::where('id', $request->id)->first();
@@ -9047,6 +9155,217 @@ class AjaxController extends Controller
         echo $nom_fichier;
     }
 
+    public function get_liste_patient(Request $request)
+    {
+        // ==============================================================
+        // 1. RÉCUPÉRATION DES FILTRES
+        // ==============================================================
+        $code   = $request->code;
+        $nom    = $request->nom;
+        $phone  = $request->phone;
+        $nature = $request->nature;
+        $page   = $request->page;
+
+        // ==============================================================
+        // 2. CONSTRUCTION DE LA REQUÊTE (Builder)
+        // ==============================================================
+        $query = \App\Models\Patients::query();
+
+        // Filtres
+        if (!empty($code)) {
+            $query->where('code', 'like', '%' . $code . '%');
+        }
+        if (!empty($nom)) {
+            $query->where('name', 'like', '%' . $nom . '%');
+        }
+        if (!empty($phone)) {
+            $query->where('phone', 'like', '%' . $phone . '%');
+        }
+        if ($nature !== null && $nature !== '' && $nature !== 'all') {
+            $query->where('type', $nature);
+        }
+
+        // ==============================================================
+        // 3. EXÉCUTION DE LA REQUÊTE (une seule fois)
+        // ==============================================================
+        $patients = $query->orderBy('name')->get();
+        $total    = $patients->count();
+
+        // ==============================================================
+        // 4. GÉNÉRATION DU PDF (FPDF)
+        // ==============================================================
+        $pdf = new FPDF();
+        $pdf->AddPage();
+
+        // ----- En-tête -----
+        $pdf->SetFont('Arial', 'B', 14);
+        $pdf->SetTextColor(0, 80, 160);
+        $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'LISTE DES PATIENTS'), 0, 1, 'C');
+
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->SetTextColor(80, 80, 80);
+        $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Gestion des patients'), 0, 1, 'C');
+
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->SetTextColor(0, 80, 160);
+        $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Total : ' . $total . ' patient(s)'), 0, 1, 'C');
+
+        // ----- Filtres appliqués -----
+        $filtres = [];
+        if (!empty($code))   $filtres[] = 'Code: ' . $code;
+        if (!empty($nom))    $filtres[] = 'Nom: ' . $nom;
+        if (!empty($phone))  $filtres[] = 'Tél: ' . $phone;
+        if ($nature !== null && $nature !== '' && $nature !== 'all') {
+            $natureLabels = [0 => 'Privé', 1 => 'Entreprise'];
+            $filtres[] = 'Nature: ' . ($natureLabels[$nature] ?? $nature);
+        }
+
+        if (count($filtres) > 0) {
+            $pdf->SetFont('Arial', 'I', 8);
+            $pdf->SetTextColor(80, 80, 80);
+            $pdf->Cell(190, 5, iconv('UTF-8', 'Windows-1252', 'Filtres : ' . implode(' | ', $filtres)), 0, 1, 'C');
+        }
+
+        $pdf->Ln(4);
+
+        // Ligne décorative
+        $pdf->SetDrawColor(0, 120, 220);
+        $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
+        $pdf->Ln(6);
+
+        // ==============================================================
+        // 5. EN-TÊTE DU TABLEAU
+        // ==============================================================
+        // Largeur totale : 10 + 35 + 70 + 40 + 35 = 190
+        $headerCols = function () use ($pdf) {
+            $pdf->SetFont('Arial', 'B', 8);
+            $pdf->SetFillColor(0, 80, 160);
+            $pdf->SetTextColor(255, 255, 255);
+            $pdf->Cell(10, 7, iconv('UTF-8', 'Windows-1252', 'N°'),         1, 0, 'C', true);
+            $pdf->Cell(35, 7, iconv('UTF-8', 'Windows-1252', 'CODE'),       1, 0, 'C', true);
+            $pdf->Cell(70, 7, iconv('UTF-8', 'Windows-1252', 'NOM'),        1, 0, 'L', true);
+            $pdf->Cell(40, 7, iconv('UTF-8', 'Windows-1252', 'TÉLÉPHONE'),  1, 0, 'L', true);
+            $pdf->Cell(35, 7, iconv('UTF-8', 'Windows-1252', 'NATURE'),     1, 0, 'C', true);
+            $pdf->Ln();
+        };
+
+        $headerCols();
+
+        // ==============================================================
+        // 6. DONNÉES
+        // ==============================================================
+        $pdf->SetFont('Arial', '', 8);
+        $num = 1;
+        $rowCount = 0;
+        $lineHeight = 6;
+
+        foreach ($patients as $data) {
+
+            // Alternance de fond
+            $pdf->SetFillColor(
+                $rowCount % 2 == 0 ? 255 : 235,
+                $rowCount % 2 == 0 ? 255 : 245,
+                $rowCount % 2 == 0 ? 255 : 255
+            );
+            $pdf->SetTextColor(30, 30, 30);
+
+            // Numéro
+            $pdf->Cell(10, $lineHeight, $num, 1, 0, 'C', true);
+
+            // Code (badge bleu info)
+            $pdf->SetTextColor(30, 64, 175);
+            $pdf->SetFont('Arial', 'B', 8);
+            $pdf->Cell(35, $lineHeight, iconv('UTF-8', 'Windows-1252', $data->code ?? '—'), 1, 0, 'C', true);
+
+            // Nom
+            $pdf->SetTextColor(30, 30, 30);
+            $pdf->SetFont('Arial', '', 8);
+            $pdf->Cell(70, $lineHeight, iconv('UTF-8', 'Windows-1252//TRANSLIT', substr($data->name ?? '', 0, 40)), 1, 0, 'L', true);
+
+            // Téléphone
+            $pdf->Cell(40, $lineHeight, iconv('UTF-8', 'Windows-1252', $data->phone ?? '—'), 1, 0, 'L', true);
+
+            // Nature
+            $natureLabel = (($data->type ?? null) === 0) ? 'Privé' : 'Entreprise';
+            if ($natureLabel === 'Privé') {
+                $pdf->SetTextColor(30, 64, 175);
+                $pdf->SetFillColor(219, 234, 254);
+            } else {
+                $pdf->SetTextColor(146, 64, 14);
+                $pdf->SetFillColor(254, 243, 199);
+            }
+            $pdf->SetFont('Arial', 'B', 8);
+            $pdf->Cell(35, $lineHeight, iconv('UTF-8', 'Windows-1252', $natureLabel), 1, 0, 'C', true);
+
+            $pdf->Ln();
+            $num++;
+            $rowCount++;
+
+            // Saut de page automatique avec répétition de l'en-tête
+            if ($pdf->GetY() > 260) {
+                $pdf->AddPage();
+
+                // En-tête de continuation
+                $pdf->SetFont('Arial', 'B', 14);
+                $pdf->SetTextColor(0, 80, 160);
+                $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'LISTE DES PATIENTS (suite)'), 0, 1, 'C');
+
+                $pdf->SetFont('Arial', '', 9);
+                $pdf->SetTextColor(80, 80, 80);
+                $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Suite de la liste'), 0, 1, 'C');
+                $pdf->Ln(4);
+
+                $pdf->SetDrawColor(0, 120, 220);
+                $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
+                $pdf->Ln(6);
+
+                $headerCols();
+                $pdf->SetFont('Arial', '', 8);
+                $rowCount = 0;
+            }
+        }
+
+        // Si aucun patient
+        if ($total == 0) {
+            $pdf->SetFont('Arial', 'I', 10);
+            $pdf->SetTextColor(150, 150, 150);
+            $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'Aucun patient ne correspond aux critères.'), 0, 1, 'C');
+        }
+
+        // ==============================================================
+        // 7. PIED DE PAGE
+        // ==============================================================
+        $pdf->SetY(-18);
+        $pdf->SetDrawColor(0, 120, 220);
+        $pdf->Line(20, $pdf->GetY(), 190, $pdf->GetY());
+
+        $pdf->SetY(-15);
+        $pdf->SetFont('Arial', 'I', 7);
+        $pdf->SetTextColor(0, 80, 160);
+        $pdf->Cell(95, 5, iconv('UTF-8', 'Windows-1252', 'Total : ' . $total . ' patient(s) - Généré le ' . date('d/m/Y à H:i')), 0, 0, 'L');
+        $pdf->Cell(95, 5, iconv('UTF-8', 'Windows-1252', 'Page {PAGE} / {NB}'), 0, 0, 'R');
+
+        $pdf->AliasNbPages();
+
+        // ==============================================================
+        // 8. NOM DU FICHIER DYNAMIQUE
+        // ==============================================================
+        $nom_fichier = 'liste_patients';
+        if (!empty($code))  $nom_fichier .= '_code_'  . preg_replace('/[^a-zA-Z0-9\-]/', '_', $code);
+        if (!empty($nom))   $nom_fichier .= '_nom_'   . preg_replace('/[^a-zA-Z0-9]/', '_', $nom);
+        if (!empty($phone)) $nom_fichier .= '_tel_'   . preg_replace('/[^0-9+]/', '_', $phone);
+        if ($nature !== null && $nature !== '' && $nature !== 'all') {
+            $nom_fichier .= '_nature_' . ($nature == 0 ? 'prive' : 'entreprise');
+        }
+        $nom_fichier .= '.pdf';
+        $nom_fichier = preg_replace('/[^a-zA-Z0-9_\-.]/', '_', $nom_fichier);
+
+        // ==============================================================
+        // 9. SORTIE
+        // ==============================================================
+        $pdf->Output("F", $nom_fichier);
+        echo $nom_fichier;
+    }
     public function get_liste_qr_code(Request $request)
     {
         $postes = Postes::where(["supprimer" => 0])->get();
@@ -9346,7 +9665,7 @@ class AjaxController extends Controller
         $pdf->Cell(190, 10, iconv('UTF-8', 'Windows-1252', 'LISTE DES INVITÉS'), 0, 1, 'C');
         $pdf->SetFont('Arial', '', 9);
         $pdf->SetTextColor(80, 80, 80);
-        $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Mariage de Stone & Divayna'), 0, 1, 'C');
+        $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Mariage de Aurélien & Ruth'), 0, 1, 'C');
         $pdf->SetFont('Arial', 'B', 9);
         $pdf->SetTextColor(0, 80, 160);
         $pdf->Cell(190, 6, iconv('UTF-8', 'Windows-1252', 'Total : ' . $total . ' invités'), 0, 1, 'C');
@@ -17348,19 +17667,18 @@ class AjaxController extends Controller
                         $nouvellePersonne->save();
                         $userLinkedId = $nextId;
                         break;
-
                     // ---------- PATIENT ----------
                     case 'patient':
                         $nextId = (\App\Models\Patients::max('id') ?? 0) + 1;
 
-                        // ✅ Génération du code dossier : P-{id} avec vérification d'unicité
-                        $codePatient = 'P-' . $nextId;
+                        // ✅ Génération du code patient au format PAT-00001
+                        $lastId = $nextId;
+                        $codePatient = 'PAT-' . str_pad($lastId, 5, '0', STR_PAD_LEFT);
 
-                        // Vérifier si le code existe déjà (sécurité anti-collision)
-                        $compteur = 0;
+                        // En cas de collision (suppressions), on incrémente
                         while (\App\Models\Patients::where('code', $codePatient)->exists()) {
-                            $compteur++;
-                            $codePatient = 'P-' . ($nextId + $compteur);
+                            $lastId++;
+                            $codePatient = 'PAT-' . str_pad($lastId, 5, '0', STR_PAD_LEFT);
                         }
 
                         $nouvellePersonne = new \App\Models\Patients();
@@ -17574,6 +17892,77 @@ class AjaxController extends Controller
         }
     }
 
+    public function add_triage(Request $request)
+    {
+        // ============================================================
+        // 1. CRÉATION DU PATIENT
+        // ============================================================
+        $nextId = (\App\Models\Patients::max('id') ?? 0) + 1;
+
+        // ✅ Génération du code patient au format PAT-00001
+        $lastId = $nextId;
+        $codePatient = 'PAT-' . str_pad($lastId, 5, '0', STR_PAD_LEFT);
+
+        // En cas de collision (suppressions), on incrémente
+        while (\App\Models\Patients::where('code', $codePatient)->exists()) {
+            $lastId++;
+            $codePatient = 'PAT-' . str_pad($lastId, 5, '0', STR_PAD_LEFT);
+        }
+
+        $patient = new \App\Models\Patients();
+        $patient->id        = $nextId;
+        $patient->name      = $request->nom;
+
+        // ✅ Email : génération auto si vide
+        $email = trim((string) $request->email);
+        $patient->email = $email !== ''
+            ? $email
+            : 'patient_' . $nextId . '@gmail.com';
+
+        $patient->password  = Hash::make($request->mdp);
+        $patient->mdp       = $request->mdp;
+
+        // ✅ Téléphone : chaîne vide si non renseigné
+        $phone = trim((string) $request->phone);
+        $patient->phone = $phone !== '' ? $phone : '';
+
+        $patient->type      = $request->type;
+        $patient->etat      = 1;
+        $patient->recherche = "";
+        $patient->image     = $request->image;
+        $patient->adresse   = "";
+
+        // ✅ Date de naissance : null si vide
+        $patient->date_de_naissance = !empty($request->date_naissance)
+            ? $request->date_naissance
+            : null;
+
+        // ✅ Code patient
+        $patient->code    = $codePatient;
+        $patient->user_id = Auth::user()->id;
+
+        $patient->save();
+
+        // ============================================================
+        // 2. PRÉPARATION DES DONNÉES POUR LA VUE
+        // ============================================================
+        $groupe_user_id = Auth::user()->role;
+
+        $data["groupe_user_id"] = $groupe_user_id;
+        $data["patients"]       = Patients::where(["etat" => 1])->get();
+
+        $data["ressource_id_1"] = $request->page;
+        $data["acces"] = Writes::where([
+            "ressource_id" => $request->page,
+            "groupe_id"    => $groupe_user_id
+        ])->get();
+
+        // ============================================================
+        // 3. RETOUR DE LA VUE PARTIELLE
+        // ============================================================
+        return view('include.refresh_triage', $data);
+    }
+
     public function user_get_paiement()
     {
         $factures = Factureass::where('etat', 0)->get();
@@ -17678,6 +18067,8 @@ class AjaxController extends Controller
 
             if (!$existe) {
                 $service = new Services();
+                // Attribution manuelle de l'id : nombre existant + 1
+                $service->id = Services::count() + 1;
                 $service->nom = $value["nom"];
                 $service->description = $value["description"];
                 $service->etat = 1;
@@ -17734,13 +18125,17 @@ class AjaxController extends Controller
             ["nom" => "Évaluation initiale",        "description" => "Évaluation du patient au triage"],
             ["nom" => "Réévaluation",               "description" => "Nouvelle évaluation du patient"],
             ["nom" => "Orientation patient",        "description" => "Orientation vers le service approprié"],
+            ["nom" => "Visite du patient",          "description" => "Visite"],
+            ["nom" => "Visite simple",              "description" => "Visite"],
         ];
 
         foreach ($liste_motifs as $value) {
-            $existe = motifs::where('nom', $value["nom"])->first();
+            $existe = Motifs::where('nom', $value["nom"])->first();
 
             if (!$existe) {
                 $motif = new Motifs();
+                // Attribution manuelle de l'id : nombre existant + 1
+                $motif->id = Motifs::count() + 1;
                 $motif->nom = $value["nom"];
                 $motif->description = $value["description"];
                 $motif->etat = 1;
