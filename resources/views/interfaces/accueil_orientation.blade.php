@@ -131,6 +131,28 @@ textarea.form-control { resize: vertical; height: 38px !important; min-height: 3
 #form_add .form-row-custom { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; align-items: stretch; }
 #form_add .form-row-custom > [class*="col-"] { flex: 1 1 calc(50% - 8px); min-width: 260px; max-width: 100%; padding: 0; margin: 0; display: flex; }
 
+/* ====== NOUVEAU : col-12 dans form-row-custom = 100% (évite orphelin col-6) ====== */
+#form_add .form-row-custom > .col-12 {
+    flex: 1 1 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+}
+/* ================================================================================ */
+
+/* ====== Empêche un col-6 SEUL de prendre 100% (ex : Date entrée mode Autres types) ====== */
+#form_add .form-row-custom > .col-6.dyn-col-single {
+    flex: 0 0 calc(50% - 8px) !important;
+    max-width: calc(50% - 8px) !important;
+}
+@media (max-width: 768px) {
+    #form_add .form-row-custom > .col-6.dyn-col-single {
+        flex: 1 1 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+    }
+}
+/* ======================================================================================= */
+
 /* ====== ALIGNEMENT UNIFORME : Personne / Type de personne ====== */
 #form_add .form-group {
     display: flex;
@@ -403,7 +425,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                             $personneRec = \App\Models\Personnes::find($data->personne_id);
                                             $typeNumerique = $personneRec->type ?? null;
 
-                                            // === TYPES : 0=Utilisateur, 1=Client, 2=Patient, 3=Visiteur, 4=Partenaire, 5=Associé ===
                                             $typeLabels = [
                                                 0 => 'Utilisateur',
                                                 1 => 'Client',
@@ -634,7 +655,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                     <input type="file" name="input_user_img_profil" id="input_user_img_profil" style="display:none;">
                     <input type="text" name="image" id="image" value="{{ asset('storage/images/user/profil_defaut.png') }}" style="display:none;">
 
-                    {{-- ===== Ligne 1 : Personne / Type de personne (ALIGNÉS) ===== --}}
+                    {{-- ===== Ligne 1 : Personne / Type de personne ===== --}}
                     <div class="form-row-custom">
                         <div class="col-6">
                             <div class="form-group">
@@ -694,8 +715,33 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                         </div>
                     </div>
 
-                    <div class="form-row-custom">
-                        <div class="col-6">
+                    {{-- ===== Champs dynamiques : 1 SEUL conteneur flex, réorganisé via order CSS ===== --}}
+                    <div class="form-row-custom" id="row_dynamic_fields">
+                        {{-- 1. Genre --}}
+                        <div class="col-6 dyn-col" id="col_genre" style="order:1;">
+                            <div class="form-group">
+                                <label class="text-info"><i class="zmdi zmdi-male-female"></i> Genre</label>
+                                <select id="genre" name="genre" class="form-control">
+                                    <option value=""></option>
+                                    <option value="0">Non précisé</option>
+                                    <option value="1">Homme</option>
+                                    <option value="2">Femme</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {{-- 2. Date de naissance (visible seulement Patient sans personne existante) --}}
+                        <div class="col-6 dyn-col" id="col_date_naissance" style="order:2; display:none;">
+                            <div class="form-group">
+                                <label class="text-info"><i class="zmdi zmdi-calendar-note"></i> Date de naissance</label>
+                                <input type="hidden" id="date_naissance" name="date_naissance">
+                                <input type="text" id="date_naissance_picker" class="form-control flatpickr-input"
+                                       placeholder="Sélectionner la date de naissance" readonly>
+                            </div>
+                        </div>
+
+                        {{-- 3. Motif --}}
+                        <div class="col-6 dyn-col" id="col_motif" style="order:3;">
                             <div class="form-group">
                                 <label class="text-info"><i class="zmdi zmdi-tag"></i> Motif</label>
                                 <select id="motif" name="motif" class="form-control">
@@ -709,7 +755,9 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                 </select>
                             </div>
                         </div>
-                        <div class="col-6">
+
+                        {{-- 4. Service --}}
+                        <div class="col-6 dyn-col" id="col_service" style="order:4;">
                             <div class="form-group">
                                 <label class="text-info"><i class="zmdi zmdi-balance"></i> Service</label>
                                 <select id="service" name="service" class="form-control">
@@ -723,35 +771,23 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                 </select>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="form-row-custom">
-                        <div class="col-6">
+                        {{-- 5. Note --}}
+                        <div class="col-6 dyn-col" id="col_note" style="order:5;">
+                            <div class="form-group">
+                                <label class="text-info"><i class="zmdi zmdi-comment-text"></i> Note</label>
+                                <textarea id="note" name="note" class="form-control" rows="1" placeholder="Remarque éventuelle..."></textarea>
+                            </div>
+                        </div>
+
+                        {{-- 6. Date et heure d'entrée (toujours col-6) --}}
+                        <div class="col-6 dyn-col" id="col_date_entree" style="order:6;">
                             <div class="form-group">
                                 <label class="text-info"><i class="zmdi zmdi-calendar"></i> Date et heure d'entrée</label>
                                 <input type="hidden" id="heure" name="heure">
                                 <input type="text" id="heure_picker" class="form-control flatpickr-input" placeholder="Sélectionner la date et l'heure" readonly>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="text-info"><i class="zmdi zmdi-comment-text"></i> Note</label>
-                                <textarea id="note" name="note" class="form-control" rows="1" placeholder="Remarque éventuelle..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- ===== Date de naissance (Patient sans personne existante) — col-6 à gauche, col-6 vide à droite pour garder 50% ===== --}}
-                    <div class="form-row-custom" id="row_date_naissance" style="display: none;">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="text-info"><i class="zmdi zmdi-calendar-note"></i> Date de naissance</label>
-                                <input type="hidden" id="date_naissance" name="date_naissance">
-                                <input type="text" id="date_naissance_picker" class="form-control flatpickr-input"
-                                       placeholder="Sélectionner la date de naissance" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6"></div>
                     </div>
 
                     <div class="signature-section">
@@ -760,7 +796,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                 <div class="form-group">
                                     <label class="text-info" style="font-weight: bold;"><i class="zmdi zmdi-edit"></i> Signature</label>
 
-                                    {{-- Conteneur re-créé à chaque effacement (label + wrap + canvas + placeholder) --}}
                                     <div id="signature_container">
                                         <div class="signature-wrap">
                                             <canvas id="signatureCanvas"></canvas>
@@ -768,7 +803,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                         </div>
                                     </div>
 
-                                    {{-- Bouton EN DEHORS du conteneur (jamais recréé) --}}
                                     <div class="signature-actions">
                                         <button type="button" class="btn-clear-sig" id="clearSig">
                                             <i class="zmdi zmdi-refresh"></i> Effacer la signature
@@ -1259,18 +1293,47 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         });
     }
 
-    function toggleDateNaissance() {
+    /* ============ LAYOUT DYNAMIQUE : Patient vs Autres ============ */
+    function applyDynamicLayout() {
         var typeVal     = String($('#type_personne').val() || '');
         var personneVal = $('#personne').val();
         var hasPersonne = (personneVal !== null && personneVal !== '' &&
                            personneVal !== undefined && parseInt(personneVal, 10) > 0);
+        var isPatient = (!hasPersonne && typeVal === '2');
 
-        // Affichage uniquement si : Aucune personne existante ET type == Patient (2)
-        if (!hasPersonne && typeVal === '2') {
-            $('#row_date_naissance').show();
+        var $genre      = $('#col_genre');
+        var $dateNais   = $('#col_date_naissance');
+        var $motif      = $('#col_motif');
+        var $service    = $('#col_service');
+        var $note       = $('#col_note');
+        var $dateEntree = $('#col_date_entree');
+
+        if (isPatient) {
+            // ============ MODE PATIENT ============
+            // Ligne 1 : Genre (col-6) | Date naissance (col-6)
+            // Ligne 2 : Motif (col-6) | Service (col-6)
+            // Ligne 3 : Note (col-6)  | Date entrée (col-6)
+            $dateNais.show();
+            $genre.css('order', 1).removeClass('col-12').addClass('col-6');
+            $dateNais.css('order', 2).removeClass('col-12').addClass('col-6');
+            $motif.css('order', 3).removeClass('col-12').addClass('col-6');
+            $service.css('order', 4).removeClass('col-12').addClass('col-6');
+            $note.css('order', 5).removeClass('col-12').addClass('col-6');
+            $dateEntree.css('order', 6).removeClass('col-12').addClass('col-6')
+                        .removeClass('dyn-col-single');
             initDateNaissancePicker();
         } else {
-            $('#row_date_naissance').hide();
+            // ============ MODE AUTRES TYPES ============
+            // Ligne 1 : Genre (col-6)   | Motif (col-6)
+            // Ligne 2 : Service (col-6) | Note (col-6)
+            // Ligne 3 : Date entrée (col-6, 50%, sous Service)
+            $dateNais.hide();
+            $genre.css('order', 1).removeClass('col-12').addClass('col-6');
+            $motif.css('order', 2).removeClass('col-12').addClass('col-6');
+            $service.css('order', 3).removeClass('col-12').addClass('col-6');
+            $note.css('order', 4).removeClass('col-12').addClass('col-6');
+            $dateEntree.css('order', 5).removeClass('col-12').addClass('col-6')
+                        .addClass('dyn-col-single');
             if (dateNaissancePicker) dateNaissancePicker.clear();
             $('#date_naissance').val('');
         }
@@ -1282,7 +1345,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         var has = (val !== null && val !== '' && val !== undefined && parseInt(val, 10) > 0);
         if (has) { $('#wrapper_type_personne').hide(); $('#row_nature_nom').hide(); $('#row_email_phone').hide(); }
         else { $('#wrapper_type_personne').show(); $('#row_nature_nom').show(); $('#row_email_phone').show(); }
-        toggleDateNaissance();
+        applyDynamicLayout();
         return has;
     }
 
@@ -1297,6 +1360,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         $('#nature').select2($.extend(cfg('-- Sélectionner une nature --'), { dropdownParent: $('#nature').closest('.form-group') }));
         $('#motif').select2($.extend(cfg('-- Sélectionner un motif --'), { dropdownParent: $('#motif').closest('.form-group') }));
         $('#service').select2($.extend(cfg('-- Sélectionner un service --'), { dropdownParent: $('#service').closest('.form-group') }));
+        $('#genre').select2($.extend(cfg('-- Sélectionner un genre --'), { dropdownParent: $('#genre').closest('.form-group') }));
         select2Inited = true;
     }
 
@@ -1329,9 +1393,8 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         if (has) $('#type_personne').val(type).trigger('change');
     });
 
-    // Réagit au changement du type pour afficher/cacher la date de naissance
     $(document).on('change', '#type_personne', function() {
-        toggleDateNaissance();
+        applyDynamicLayout();
     });
 
     var heurePicker = null;
@@ -1350,7 +1413,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     }
 
     /* =====================================================================
-       SIGNATURE : reconstruction TOTALE du contenu de #signature_container
+       SIGNATURE
        ===================================================================== */
     var signatureInited = false, canvas, ctx, placeholder, drawing = false, hasSignature = false;
 
@@ -1494,13 +1557,11 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         var btn = $(this);
         var originalBtnHtml = 'Enregister <i class="zmdi zmdi-save"></i>';
 
-        // === Signature OPTIONNELLE : on l'envoie seulement si l'utilisateur a dessiné ===
         if (!canvas || typeof canvas.toDataURL !== 'function') initSignatureCanvas();
         var signature = '';
         if (canvas && typeof canvas.toDataURL === 'function' && hasSignature) {
             try { signature = canvas.toDataURL('image/png'); } catch (err) { signature = ''; }
         }
-        // ================================================================================
 
         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Enregistrement...');
         function resetButton() { btn.prop('disabled', false).html(originalBtnHtml); }
@@ -1516,7 +1577,8 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                 resetButton();
                 $("#motif").val(null).trigger("change");
                 $("#service").val(null).trigger("change");
-                $("#note").val(""); $("#nom").val(""); $("#email").val(""); $("#phone").val("");
+                $("#note").val(""); $("#genre").val(null).trigger("change");
+                $("#nom").val(""); $("#email").val(""); $("#phone").val("");
                 if (heurePicker) { var now = new Date(); heurePicker.setDate(now, true); $("#heure").val(heurePicker.formatDate(now, "Y-m-d H:i")); }
                 clearSignatureCanvas();
                 if (typeof $.fn.select2 !== 'undefined') {
@@ -1526,7 +1588,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                 }
                 if (dateNaissancePicker) dateNaissancePicker.clear();
                 $('#date_naissance').val('');
-                $('#row_date_naissance').hide();
 
                 togglePersonFields();
                 $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Enregistrement effectué avec succès');

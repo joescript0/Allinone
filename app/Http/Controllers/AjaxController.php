@@ -72,7 +72,7 @@ use App\Models\Mesures;
 use App\Models\Notifications;
 use App\Models\Paiementsfactures;
 use App\Models\Paiesfactures;
-use App\Models\registreaccueil;
+use App\Models\Registreaccueil;
 use App\Models\Pointdeventes;
 use App\Models\Stocks;
 use App\Models\detailsaffectationspointventes;
@@ -7397,6 +7397,7 @@ class AjaxController extends Controller
 
         // Nature (type : 0 = Privé, 1 = Entreprise)
         $patient->type = $request->edit_type;
+        $patient->genre = $request->edit_genre;
 
         // Date de naissance (null si vide)
         $patient->date_de_naissance = !empty($request->edit_date_naissance)
@@ -9184,11 +9185,13 @@ class AjaxController extends Controller
         if ($nature !== null && $nature !== '' && $nature !== 'all') {
             $query->where('type', $nature);
         }
+        
+
 
         // ==============================================================
         // 3. EXÉCUTION DE LA REQUÊTE (une seule fois)
         // ==============================================================
-        $patients = $query->orderBy('name')->get();
+        $patients = $query->where(["etat" => 1])->get();
         $total    = $patients->count();
 
         // ==============================================================
@@ -17406,7 +17409,9 @@ class AjaxController extends Controller
         $image         = $request->input('image');
         $signature     = $request->input('signature');
         $datenaissance = $request->input('date_naissance'); // ✅ peut être null/'' maintenant
+        $genre        = $request->input('genre');
         $page          = $request->input('page');
+        
 
         $isExistingPerson = ($personne !== null && $personne !== '' && (int)$personne > 0);
 
@@ -17633,6 +17638,7 @@ class AjaxController extends Controller
                         $nouvellePersonne->image      = $image;
                         $nouvellePersonne->adresse    = '';
                         $nouvellePersonne->recherche  = '';
+                        $nouvellePersonne->genre  = $genre;
                         $nouvellePersonne->role       = Auth::user()->role;
                         $nouvellePersonne->password   = \Hash::make("12345");
                         $nouvellePersonne->mdp        = "12345";
@@ -17657,6 +17663,7 @@ class AjaxController extends Controller
                         $nouvellePersonne->type     = $nature;
                         $nouvellePersonne->image    = $image;
                         $nouvellePersonne->adresse  = '';
+                        $nouvellePersonne->genre  = $genre;
                         $nouvellePersonne->password = \Hash::make("12345");
                         $nouvellePersonne->mdp      = "12345";
 
@@ -17719,6 +17726,7 @@ class AjaxController extends Controller
                         $nouvellePersonne->adresse  = '';
                         $nouvellePersonne->password = \Hash::make("12345");
                         $nouvellePersonne->mdp      = "12345";
+                        $nouvellePersonne->genre  = $genre;
 
                         $nouvellePersonne->email = $emailDb === null
                             ? 'visiteur_' . $nextId . '@gmail.com'
@@ -17742,6 +17750,7 @@ class AjaxController extends Controller
                         $nouvellePersonne->adresse  = '';
                         $nouvellePersonne->password = \Hash::make("12345");
                         $nouvellePersonne->mdp      = "12345";
+                        $nouvellePersonne->genre  = $genre;
 
                         $nouvellePersonne->email = $emailDb === null
                             ? 'partenaire_' . $nextId . '@gmail.com'
@@ -17765,7 +17774,7 @@ class AjaxController extends Controller
                         $nouvellePersonne->adresse  = '';
                         $nouvellePersonne->password = \Hash::make("12345");
                         $nouvellePersonne->mdp      = "12345";
-
+                        
                         $nouvellePersonne->email = $emailDb === null
                             ? 'associe_' . $nextId . '@gmail.com'
                             : $emailDb;
@@ -17841,7 +17850,7 @@ class AjaxController extends Controller
             // ---------------------------------------------------------
             // 4.3 : REGISTRE D'ACCUEIL
             // ---------------------------------------------------------
-            $registre = new registreaccueil();
+            $registre = new Registreaccueil();
             $registre->personne_id  = $personneId;
             $registre->motif_id     = $motif;
             $registre->service_id   = $service;
@@ -17860,7 +17869,7 @@ class AjaxController extends Controller
             $ressource_id_1 = $page;
             $groupe_user_id = \Auth::user()->role;
 
-            $registres = registreaccueil::where('etat', 1)->get();
+            $registres = Registreaccueil::where('etat', 1)->get();
             $groupes   = Groupes::all();
             $postes    = Postes::all();
             $motifs    = Motifs::all();
@@ -17930,6 +17939,7 @@ class AjaxController extends Controller
         $patient->etat      = 1;
         $patient->recherche = "";
         $patient->image     = $request->image;
+        $patient->genre     = $request->genre;
         $patient->adresse   = "";
 
         // ✅ Date de naissance : null si vide

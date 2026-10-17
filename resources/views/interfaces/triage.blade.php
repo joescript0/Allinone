@@ -747,7 +747,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                         </div>
                     </div>
 
-                    <!-- Ligne 3 : Date de naissance -->
+                    <!-- Ligne 3 : Date de naissance + Genre -->
                     <div class="form-row-custom">
                         <div class="form-col">
                             <div class="form-group">
@@ -757,7 +757,16 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                        placeholder="Sélectionner la date de naissance" readonly>
                             </div>
                         </div>
-                        <div class="form-col"></div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="text-info"><i class="zmdi zmdi-male-female"></i> Genre</label>
+                                <select id="genre" name="genre" class="form-control">
+                                    <option value="0" selected>Non précisé</option>
+                                    <option value="1">Homme</option>
+                                    <option value="2">Femme</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Boutons d'action -->
@@ -1075,6 +1084,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                 $("#nom").val("");
                 $("#email").val("");
                 $("#phone").val("");
+                $("#genre").val("0");
                 if (dateNaissancePicker) dateNaissancePicker.clear();
                 $("#date_naissance").val("");
 

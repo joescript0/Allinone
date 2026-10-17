@@ -224,7 +224,7 @@ use Illuminate\Support\Facades\Auth;
         </div>
     </div>
 
-    <!-- Troisième ligne : Date de naissance et Code patient -->
+    <!-- Troisième ligne : Date de naissance et Genre -->
     <div class="row form-row-spacing">
         <div class="col-12 col-md-6">
             <div class="form-group custom-form-group">
@@ -243,6 +243,20 @@ use Illuminate\Support\Facades\Auth;
                        value="<?= $dateNaissanceDisplay ?>" readonly>
             </div>
         </div>
+        <div class="col-12 col-md-6">
+            <div class="form-group custom-form-group">
+                <label class="text-info"><i class="zmdi zmdi-male-female text-danger"></i> Genre </label>
+                <select id="edit_genre" name="edit_genre" class="form-control">
+                    <option value="0" {{ ($patient->genre ?? 0) == 0 ? 'selected' : '' }}>Non précisé</option>
+                    <option value="1" {{ ($patient->genre ?? 0) == 1 ? 'selected' : '' }}>Homme</option>
+                    <option value="2" {{ ($patient->genre ?? 0) == 2 ? 'selected' : '' }}>Femme</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quatrième ligne : Code patient (masqué via display:none) -->
+    <div class="row form-row-spacing" style="display: none;">
         <div class="col-12 col-md-6">
             <div class="form-group custom-form-group">
                 <label class="text-info"><i class="zmdi zmdi-label text-danger"></i> Code patient </label>
