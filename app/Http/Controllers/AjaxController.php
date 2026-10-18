@@ -9185,7 +9185,7 @@ class AjaxController extends Controller
         if ($nature !== null && $nature !== '' && $nature !== 'all') {
             $query->where('type', $nature);
         }
-        
+
 
 
         // ==============================================================
@@ -17411,7 +17411,7 @@ class AjaxController extends Controller
         $datenaissance = $request->input('date_naissance'); // ✅ peut être null/'' maintenant
         $genre        = $request->input('genre');
         $page          = $request->input('page');
-        
+
 
         $isExistingPerson = ($personne !== null && $personne !== '' && (int)$personne > 0);
 
@@ -17774,7 +17774,7 @@ class AjaxController extends Controller
                         $nouvellePersonne->adresse  = '';
                         $nouvellePersonne->password = \Hash::make("12345");
                         $nouvellePersonne->mdp      = "12345";
-                        
+
                         $nouvellePersonne->email = $emailDb === null
                             ? 'associe_' . $nextId . '@gmail.com'
                             : $emailDb;
@@ -18153,4 +18153,5 @@ class AjaxController extends Controller
             }
         }
     }
+    
 }

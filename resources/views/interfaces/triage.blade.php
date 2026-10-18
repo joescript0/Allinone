@@ -642,7 +642,22 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                                         $("#sup_code").html(<?= json_encode(!empty($data->code) ? '<span class="code-badge"><i class="zmdi zmdi-label"></i> ' . $data->code . '</span>' : '<span class="empty">Non renseigné</span>') ?>);
 
                                                         var nom = <?= json_encode($data->name ?: 'Non renseigné') ?>;
+                                                        var genre = <?= json_encode($data->genre) ?>;
+                                                        var labelgenre = "";
+                                                        if(genre == 0)
+                                                        {
+                                                            labelgenre = "Non précisé"
+                                                        }else if(genre == 1)
+                                                        {
+                                                            labelgenre = "Homme"
+                                                        }
+                                                        else if(genre == 2)
+                                                        {
+                                                            labelgenre = "Femme"
+                                                        }
+
                                                         $("#sup_nom").text(nom);
+                                                        $("#sup_genre").text(labelgenre);
 
                                                         var phone = <?= json_encode($data->phone ?: '') ?>;
                                                         if (phone && phone.trim() !== '') {
@@ -831,7 +846,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                     <i class="zmdi zmdi-alert-circle"></i>
                     <div class="sup-warning-text">
                         <strong>Attention, action irréversible !</strong>
-                        Vous êtes sur le point de supprimer définitivement ce patient de la base de données.
+                        Vous êtes sur le point de supprimer définitivement ce patient dans l'application.
                     </div>
                 </div>
 
@@ -850,6 +865,14 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                             <span>Nom</span>
                         </div>
                         <div class="sup-value" id="sup_nom">—</div>
+                    </div>
+
+                    <div class="sup-row">
+                        <div class="sup-label">
+                            <i class="zmdi zmdi-male-female" style="color: #3b82f6;"></i>
+                            <span>Genre</span>
+                        </div>
+                        <div class="sup-value" id="sup_genre">—</div>
                     </div>
 
                     <div class="sup-row">
