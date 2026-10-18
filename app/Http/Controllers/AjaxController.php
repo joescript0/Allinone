@@ -86,6 +86,7 @@ use App\Models\Motifs;
 use App\Models\Partenaires;
 use App\Models\Services;
 use App\Models\Rappelscredits;
+use App\Models\Signesvitaux;
 use App\Models\Tables;
 use App\Models\transfertstocks;
 use App\Models\Typeventes;
@@ -137,6 +138,7 @@ class AjaxController extends Controller
         $this->user_get_paiement();
         $this->seedservices();
         $this->seedmotifs();
+        $this->signesvitaux();
     }
     public function envoyer_sms($telephone, $msg)
     {
@@ -18153,5 +18155,36 @@ class AjaxController extends Controller
             }
         }
     }
-    
+    public function signesvitaux()
+    {
+        $signesvitaux = Signesvitaux::all();
+
+        $liste_signesvitaux = [
+            ["nom" => "Tension artérielle", "mesure" => "mmHg", "type" => "number", "icone" => ""],
+            ["nom" => "Température corporelle", "mesure" => "°C", "type" => "number", "icone" => ""],
+            ["nom" => "Poids", "mesure" => "Kg", "type" => "number", "icone" => ""],
+            ["nom" => "Taille", "mesure" => "Cm", "type" => "number", "icone" => ""],
+            ["nom" => "Saturation en oxygène", "mesure" => "%", "type" => "number", "icone" => ""],
+            ["nom" => "Fréquance respiratoire", "mesure" => "Cycles/min", "type" => "number", "icone" => ""],
+            ["nom" => "Fréquance cardiaque", "mesure" => "Bpm", "type" => "number", "icone" => ""],
+            ["nom" => "Niveau de douleur", "mesure" => "/10", "type" => "number", "icone" => ""],
+            ["nom" => "Glycémie", "mesure" => "Mg/Dl", "type" => "number", "icone" => ""],
+        ];
+
+        foreach ($liste_signesvitaux as $value) {
+            $existe = signesvitaux::where('nom', $value["nom"])->first();
+
+            if (!$existe)
+            {
+                $Signesvitau = new Signesvitaux();
+                // Attribution manuelle de l'id : nombre existant + 1é"
+                $Signesvitau->id = Signesvitaux::count() + 1;
+                $Signesvitau->nom = $value["nom"];
+                $Signesvitau->type = $value["type"];
+                $Signesvitau->mesure = $value["mesure"];
+                $Signesvitau->etat = 1;
+                $Signesvitau->save();
+            }
+        }
+    }
 }
