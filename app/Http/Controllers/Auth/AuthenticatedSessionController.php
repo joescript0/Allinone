@@ -27,8 +27,7 @@ use Gopay\GopayUi\DTO\PaymentInsertAction;
 use Gopay\GopayUi\DTO\PaymentUpdateAction;
 use Gopay\GopayUi\Enums\PaymentSuccessAction;
 use Gopay\GopayUi\GopayUI;
-
-
+use Illuminate\Support\Facades\Log;
 use \Osms\Osms;
 
 class AuthenticatedSessionController extends Controller
@@ -303,14 +302,104 @@ class AuthenticatedSessionController extends Controller
         }
     }
 
-    public function envoyer_sms($telephone, $msg)
+    public function envoyer_sms($telephone, $msg): int
     {
-        $sender = 'DIGITIZE';
-        $telephone = substr($telephone, -9);
-        $telephone = '243' . $telephone;
-        $message = urlencode($msg);
-        $api_url = 'https://api2.dream-digital.info/api/SendSMS?api_id=API25912858645&api_password=qaU7x5b7sm&sms_type=T&encoding=T&sender_id=DIVACHOU&phonenumber=' . $telephone . '&textmessage=' . $message;
-        $response = file_get_contents($api_url);
+        try {
+            // ============================================================
+            // 1. NORMALISATION DU NUMÉRO
+            // ============================================================
+            $digits = preg_replace('/\D/', '', (string) $telephone);
+
+            if (strlen($digits) > 9) {
+                $digits = substr($digits, -9);
+            }
+
+            if (strlen($digits) !== 9) {
+                Log::warning('SMS : numéro invalide', [
+                    'original'  => $telephone,
+                    'normalisé' => $digits,
+                ]);
+                return -1;
+            }
+
+            $phone = '243' . $digits;   // ex: 243974743675
+
+            // ============================================================
+            // 2. CONSTRUCTION DE L'URL
+            // ============================================================
+            $api_url = 'https://api2.dream-digital.info/api/SendSMS'
+                . '?api_id='       . urlencode(env('SMS_API_ID', 'API25912858645'))
+                . '&api_password=' . urlencode(env('SMS_API_PASSWORD', 'qaU7x5b7sm'))
+                . '&sms_type=T'
+                . '&encoding=T'
+                . '&sender_id='    . urlencode(env('SMS_SENDER_ID', 'DIVACHOU'))
+                . '&phonenumber='  . urlencode($phone)
+                . '&textmessage='  . urlencode($msg);
+
+            // ============================================================
+            // 3. APPEL cURL AVEC TIMEOUT
+            // ============================================================
+            $ch = curl_init();
+
+            if ($ch === false) {
+                Log::error('SMS : curl_init a échoué (extension curl manquante ?)');
+                return -2;
+            }
+
+            curl_setopt_array($ch, [
+                CURLOPT_URL            => $api_url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 10,       // temps max total : 10s
+                CURLOPT_CONNECTTIMEOUT => 5,        // temps max connexion : 5s
+                CURLOPT_SSL_VERIFYPEER => true,     // vérification SSL
+                CURLOPT_SSL_VERIFYHOST => 2,        // vérification du nom d'hôte
+                CURLOPT_FOLLOWLOCATION => true,     // suivre les redirections
+                CURLOPT_MAXREDIRS      => 3,
+                CURLOPT_USERAGENT      => 'Laravel-SMS-Client/1.0',
+            ]);
+
+            $response   = curl_exec($ch);
+            $curl_errno = curl_errno($ch);
+            $curl_error = curl_error($ch);
+            $http_code  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            // curl_close() supprimé : inutile en PHP 8+, libération automatique
+
+            // ============================================================
+            // 4. GESTION DES ERREURS cURL
+            // ============================================================
+            if ($curl_errno !== 0) {
+                Log::warning('SMS : erreur cURL', [
+                    'phone' => $phone,
+                    'errno' => $curl_errno,
+                    'error' => $curl_error,
+                ]);
+                return -10 - $curl_errno;   // ex: -38 pour timeout (errno 28)
+            }
+
+            // ============================================================
+            // 5. RETOUR DU CODE HTTP (200 = OK, 401/500 = erreur API)
+            // ============================================================
+            Log::info('SMS : réponse HTTP', [
+                'phone'  => $phone,
+                'status' => $http_code,
+                'body'   => mb_substr((string) $response, 0, 200),
+            ]);
+
+            return $http_code;
+
+        } catch (\Throwable $e) {
+            // ============================================================
+            // 6. FILET DE SÉCURITÉ
+            // ============================================================
+            Log::error('SMS : exception inattendue', [
+                'phone' => $telephone ?? null,
+                'msg'   => mb_substr((string) ($msg ?? ''), 0, 100),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return -999;
+        }
     }
 
     public function mobile_money($montant, $devise, $telephone, $reference)
