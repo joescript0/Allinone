@@ -84,6 +84,7 @@ use App\Models\Patients;
 use App\Models\Personnes;
 use App\Models\Motifs;
 use App\Models\Partenaires;
+use App\Models\listesexamensmedicaux;
 use App\Models\Services;
 use App\Models\Rappelscredits;
 use App\Models\Signesvitaux;
@@ -139,6 +140,7 @@ class AjaxController extends Controller
         $this->seedservices();
         $this->seedmotifs();
         $this->signesvitaux();
+        $this->listesexamensmedicaux();
     }
     public function envoyer_sms($telephone, $msg)
     {
@@ -18184,6 +18186,102 @@ class AjaxController extends Controller
                 $Signesvitau->mesure = $value["mesure"];
                 $Signesvitau->etat = 1;
                 $Signesvitau->save();
+            }
+        }
+    }
+
+    public function listesexamensmedicaux()
+    {
+        $examens = listesexamensmedicaux::all();
+
+        $liste_examens = [
+            // ==========================================
+            // 🥇 NIVEAU 1 : LES PLUS POPULAIRES (Routine)
+            // ==========================================
+            ["nom" => "NFS (Numération Formule Sanguine)", "popularite" => "Très populaire", "type_methode" => "Prise de sang", "description" => "Analyse les globules rouges, blancs et plaquettes (anémie, infection).", "a_jeune" => "Non"],
+            ["nom" => "Glycémie", "popularite" => "Très populaire", "type_methode" => "Prise de sang", "description" => "Mesure le taux de sucre dans le sang.", "a_jeune" => "Oui (souvent)"],
+            ["nom" => "ECG (Électrocardiogramme)", "popularite" => "Très populaire", "type_methode" => "Électrodes sur la peau", "description" => "Enregistre l'activité électrique du cœur pour détecter des anomalies.", "a_jeune" => "Non"],
+            ["nom" => "Radiographie du thorax", "popularite" => "Très populaire", "type_methode" => "Rayons X", "description" => "Image des poumons, du cœur et des côtes (pneumonie, fractures).", "a_jeune" => "Non"],
+            ["nom" => "ECBU (Examen Cytobactériologique des Urines)", "popularite" => "Très populaire", "type_methode" => "Recueil d'urines", "description" => "Détecte une infection urinaire.", "a_jeune" => "Non"],
+            ["nom" => "CRP (Protéine C-réactive)", "popularite" => "Très populaire", "type_methode" => "Prise de sang", "description" => "Marqueur sanguin permettant de détecter une inflammation ou une infection.", "a_jeune" => "Non"],
+            ["nom" => "TROD (Covid, Angine, Grippe)", "popularite" => "Très populaire", "type_methode" => "Écouvillon / Goutte de sang", "description" => "Test rapide d'orientation diagnostique donnant un résultat en quelques minutes.", "a_jeune" => "Non"],
+            ["nom" => "TDR Paludisme", "popularite" => "Très populaire", "type_methode" => "Goutte de sang (doigt)", "description" => "Test de diagnostic rapide du paludisme (Positif/Négatif).", "a_jeune" => "Non"],
+            ["nom" => "Goutte épaisse / Frottis", "popularite" => "Très populaire", "type_methode" => "Prise de sang (Microscope)", "description" => "Observation au microscope pour compter les parasites du paludisme.", "a_jeune" => "Non"],
+            ["nom" => "Bandelette urinaire", "popularite" => "Très populaire", "type_methode" => "Urine", "description" => "Test rapide pour détecter sucre, protéines, sang ou nitrites dans les urines.", "a_jeune" => "Non"],
+            ["nom" => "Test de grossesse sanguin (Beta-HCG)", "popularite" => "Très populaire", "type_methode" => "Sang ou Urine", "description" => "Dosage hormonal pour confirmer ou infirmer une grossesse.", "a_jeune" => "Non"],
+
+            // ==========================================
+            // 🥈 NIVEAU 2 : COURANTS (Consultations spécialisées)
+            // ==========================================
+            ["nom" => "Bilan lipidique (Cholestérol)", "popularite" => "Courant", "type_methode" => "Prise de sang", "description" => "Mesure le Cholestérol total, HDL, LDL et Triglycérides (risque cardiaque).", "a_jeune" => "Oui (12h)"],
+            ["nom" => "TSH (Thyroïde)", "popularite" => "Courant", "type_methode" => "Prise de sang", "description" => "Vérifie le bon fonctionnement de la glande thyroïde.", "a_jeune" => "Non"],
+            ["nom" => "Bilan hépatique", "popularite" => "Courant", "type_methode" => "Prise de sang", "description" => "Vérifie le fonctionnement du foie (ASAT, ALAT, Bilirubine).", "a_jeune" => "Souvent"],
+            ["nom" => "Bilan rénal", "popularite" => "Courant", "type_methode" => "Prise de sang", "description" => "Vérifie le fonctionnement des reins (Créatinine, Urée).", "a_jeune" => "Non"],
+            ["nom" => "Ionogramme sanguin", "popularite" => "Courant", "type_methode" => "Prise de sang", "description" => "Mesure les électrolytes (Sodium, Potassium, Chlore) pour l'équilibre hydrique.", "a_jeune" => "Non"],
+            ["nom" => "VS (Vitesse de sédimentation)", "popularite" => "Courant", "type_methode" => "Prise de sang", "description" => "Marqueur d'inflammation dans le sang.", "a_jeune" => "Non"],
+            ["nom" => "Groupage sanguin et Rhésus", "popularite" => "Courant", "type_methode" => "Prise de sang", "description" => "Détermine le groupe sanguin (A, B, AB, O) et le facteur Rhésus.", "a_jeune" => "Non"],
+            ["nom" => "Échographie abdominale", "popularite" => "Courant", "type_methode" => "Ultrasons", "description" => "Image des organes de l'abdomen (foie, reins, vésicule).", "a_jeune" => "Oui (6h)"],
+            ["nom" => "Échographie cardiaque", "popularite" => "Courant", "type_methode" => "Ultrasons", "description" => "Étudie la structure et le fonctionnement du cœur.", "a_jeune" => "Non"],
+            ["nom" => "Échographie obstétricale", "popularite" => "Courant", "type_methode" => "Ultrasons", "description" => "Suivi du fœtus et de la grossesse.", "a_jeune" => "Non"],
+            ["nom" => "Frottis cervico-utérin", "popularite" => "Courant", "type_methode" => "Prélèvement local", "description" => "Dépistage du cancer du col de l'utérus chez la femme.", "a_jeune" => "Non"],
+            ["nom" => "Bilan de coagulation (TP/INR)", "popularite" => "Courant", "type_methode" => "Prise de sang", "description" => "Vérifie la capacité du sang à coaguler avant une opération.", "a_jeune" => "Non"],
+            ["nom" => "Sérologies (VIH, Hépatites, Toxo...)", "popularite" => "Courant", "type_methode" => "Prise de sang", "description" => "Recherche d'anticorps contre des infections spécifiques.", "a_jeune" => "Non"],
+            ["nom" => "Spirométrie (EFR)", "popularite" => "Courant", "type_methode" => "Souffler dans un tube", "description" => "Mesure la capacité pulmonaire et le débit d'air (asthme, BPCO).", "a_jeune" => "Non"],
+
+            // ==========================================
+            // 🥉 NIVEAU 3 : MOINS COURANTS (Spécialistes)
+            // ==========================================
+            ["nom" => "Scanner (TDM)", "popularite" => "Moins courant", "type_methode" => "Rayons X", "description" => "Images en 3D très détaillées des organes, os ou vaisseaux.", "a_jeune" => "Selon zone"],
+            ["nom" => "Mammographie", "popularite" => "Moins courant", "type_methode" => "Rayons X", "description" => "Radiographie des seins pour le dépistage du cancer.", "a_jeune" => "Non"],
+            ["nom" => "Holter ECG (24h)", "popularite" => "Moins courant", "type_methode" => "Boîtier portable", "description" => "Enregistrement continu de l'activité du cœur sur 24 ou 48 heures.", "a_jeune" => "Non"],
+            ["nom" => "MAPA (Tension 24h)", "popularite" => "Moins courant", "type_methode" => "Brassard portable", "description" => "Mesure la tension artérielle de façon automatique sur 24 heures.", "a_jeune" => "Non"],
+            ["nom" => "Épreuve d'effort", "popularite" => "Moins courant", "type_methode" => "Vélo/Tapis + ECG", "description" => "Étudie la réaction du cœur pendant un effort physique.", "a_jeune" => "Non"],
+            ["nom" => "Densitométrie osseuse (DEXA)", "popularite" => "Moins courant", "type_methode" => "Rayons X faibles", "description" => "Mesure la densité minérale des os pour détecter l'ostéoporose.", "a_jeune" => "Non"],
+            ["nom" => "EEG (Électroencéphalogramme)", "popularite" => "Moins courant", "type_methode" => "Capteurs sur la tête", "description" => "Enregistre l'activité électrique du cerveau (épilepsie).", "a_jeune" => "Non"],
+            ["nom" => "EMG (Électromyogramme)", "popularite" => "Moins courant", "type_methode" => "Aiguilles / Électrodes", "description" => "Étudie le fonctionnement des nerfs et des muscles.", "a_jeune" => "Non"],
+            ["nom" => "Audiogramme", "popularite" => "Moins courant", "type_methode" => "Casque audio", "description" => "Test pour évaluer la capacité auditive (surdité).", "a_jeune" => "Non"],
+            ["nom" => "Fond d'œil", "popularite" => "Moins courant", "type_methode" => "Ophtalmoscope", "description" => "Examen de la rétine et du nerf optique.", "a_jeune" => "Non"],
+            ["nom" => "Colposcopie", "popularite" => "Moins courant", "type_methode" => "Caméra (Vagin)", "description" => "Examen visuel du col de l'utérus.", "a_jeune" => "Non"],
+            ["nom" => "Prélèvement vaginal", "popularite" => "Moins courant", "type_methode" => "Écouvillon", "description" => "Recherche d'infections (mycose, vaginose) chez la femme.", "a_jeune" => "Non"],
+            ["nom" => "Coproculture", "popularite" => "Moins courant", "type_methode" => "Selles", "description" => "Recherche de bactéries pathogènes dans les selles.", "a_jeune" => "Non"],
+            ["nom" => "Parasitologie des selles", "popularite" => "Moins courant", "type_methode" => "Selles", "description" => "Recherche de parasites intestinaux.", "a_jeune" => "Non"],
+            ["nom" => "Vitamine D et B12", "popularite" => "Moins courant", "type_methode" => "Prise de sang", "description" => "Vérifie les carences vitaminiques.", "a_jeune" => "Non"],
+            ["nom" => "Panoramique dentaire", "popularite" => "Moins courant", "type_methode" => "Rayons X", "description" => "Radiographie de toute la mâchoire et des dents.", "a_jeune" => "Non"],
+
+            // ==========================================
+            // 🏥 NIVEAU 4 : RARE / HÔPITAL (Examens lourds)
+            // ==========================================
+            ["nom" => "IRM", "popularite" => "Rare / Hôpital", "type_methode" => "Aimant / Ondes radio", "description" => "Images ultra-précises des tissus mous (cerveau, ligaments) sans rayons X.", "a_jeune" => "Non"],
+            ["nom" => "Coloscopie", "popularite" => "Rare / Hôpital", "type_methode" => "Caméra (Endoscopie)", "description" => "Exploration de l'intérieur du côlon (dépistage cancer colorectal).", "a_jeune" => "Oui + Prépa"],
+            ["nom" => "Fibroscopie gastrique", "popularite" => "Rare / Hôpital", "type_methode" => "Caméra (Endoscopie)", "description" => "Exploration de l'œsophage et de l'estomac (ulcère, gastrite).", "a_jeune" => "Oui (6h)"],
+            ["nom" => "Biopsie", "popularite" => "Rare / Hôpital", "type_methode" => "Prélèvement de tissu", "description" => "Prélèvement d'un petit morceau de tissu pour l'analyser au microscope.", "a_jeune" => "Selon zone"],
+            ["nom" => "Hémoculture", "popularite" => "Rare / Hôpital", "type_methode" => "Prise de sang (flacons)", "description" => "Recherche de bactéries directement dans le sang (septicémie).", "a_jeune" => "Non"],
+            ["nom" => "Polysomnographie", "popularite" => "Rare / Hôpital", "type_methode" => "Capteurs (Nuit)", "description" => "Étude complète du sommeil en laboratoire (apnée du sommeil).", "a_jeune" => "Non"],
+            ["nom" => "Bronchoscopie", "popularite" => "Rare / Hôpital", "type_methode" => "Caméra (Endoscopie)", "description" => "Exploration de l'intérieur des bronches et des poumons.", "a_jeune" => "Oui (6h)"],
+            ["nom" => "PCR Paludisme", "popularite" => "Rare / Hôpital", "type_methode" => "Prise de sang", "description" => "Test de biologie moléculaire très sensible pour détecter l'ADN du parasite.", "a_jeune" => "Non"],
+            ["nom" => "Test d'allergie (Prick-test)", "popularite" => "Rare / Hôpital", "type_methode" => "Sur la peau", "description" => "Identifie les allergies (pollen, acariens, aliments).", "a_jeune" => "Non"],
+            ["nom" => "Protéinurie des 24h", "popularite" => "Rare / Hôpital", "type_methode" => "Recueil d'urines (24h)", "description" => "Dosage précis des protéines dans les urines sur 24 heures.", "a_jeune" => "Non"],
+        ];
+
+        foreach ($liste_examens as $value) {
+            $existe = listesexamensmedicaux::where('nom', $value["nom"])->first();
+
+            if (!$existe) {
+                $examen = new listesexamensmedicaux();
+
+                // Attribution manuelle de l'id (comme dans votre code d'origine)
+                $examen->id = listesexamensmedicaux::count() + 1;
+
+                $examen->nom = $value["nom"];
+                $examen->popularite = $value["popularite"];
+                $examen->type_methode = $value["type_methode"];
+                $examen->description = $value["description"];
+                $examen->a_jeune = $value["a_jeune"];
+
+                // Note : 'tarifs', 'tarifss' et 'devise' prendront automatiquement
+                // les valeurs par défaut de votre migration (20000, 20000, 1)
+
+                $examen->save();
             }
         }
     }
