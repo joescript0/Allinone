@@ -646,18 +646,17 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                                         var labelgenre = "";
                                                         if(genre == 0)
                                                         {
-                                                            labelgenre = "Non précisé"
+                                                            $("#sup_genre").html('<span style="color:#94a3b8;font-style:italic;">Non précisé</span>');
                                                         }else if(genre == 1)
                                                         {
-                                                            labelgenre = "Homme"
+                                                            $("#sup_genre").html('<span>Homme</span>');
                                                         }
                                                         else if(genre == 2)
                                                         {
-                                                            labelgenre = "Femme"
+                                                            $("#sup_genre").html('<span>Femme</span>');         
                                                         }
 
                                                         $("#sup_nom").text(nom);
-                                                        $("#sup_genre").text(labelgenre);
 
                                                         var phone = <?= json_encode($data->phone ?: '') ?>;
                                                         if (phone && phone.trim() !== '') {

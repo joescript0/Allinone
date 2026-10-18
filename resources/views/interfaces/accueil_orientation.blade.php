@@ -447,12 +447,29 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                                     case 4: $p = \App\Models\Partenaires::find($personneRec->user_id); break;
                                                     case 5: $p = \App\Models\Associes::find($personneRec->user_id); break;
                                                 }
-                                                if ($p) {
+                                                if ($p) 
+                                                {
                                                     $nom    = $p->name  ?? '';
                                                     $email  = $p->email ?? '';
                                                     $phone  = $p->phone ?? '';
                                                     $image  = $p->image ?? '';
                                                     $nature = $p->type  ?? null;
+                                                    $genre = $p->genre;
+
+                                                    
+                                                    $labelgenre = "";
+                                                    if($genre == 0)
+                                                    {
+                                                        $labelgenre = "Non précisé";
+                                                    }
+                                                    elseif($genre == 1)
+                                                    {
+                                                        $labelgenre = "Homme";
+                                                    }
+                                                    elseif($genre == 2)
+                                                    {
+                                                        $labelgenre = "Femme";
+                                                    }
                                                 }
                                             }
 
@@ -501,6 +518,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                             data-personne-id="{{ $data->personne_id ?? '' }}"
                                             data-numero="{{ $numeroAffiche }}"
                                             data-nom="{{ $nom }}"
+                                            data-genre="{{ $labelgenre }}"
                                             data-email="{{ $email }}"
                                             data-phone="{{ $phone }}"
                                             data-entree-ymd="{{ $entreeYmd }}"
@@ -910,6 +928,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                 <div class="fiche-card">
                     <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-label" style="color: #3B82F6;"></i><span>Numéro</span></div><div class="fiche-value" id="d_numero"></div></div>
                     <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-account" style="color: #3B82F6;"></i><span>Nom</span></div><div class="fiche-value" id="d_nom"></div></div>
+                    <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-male-female" style="color: #3B82F6;"></i><span>Genre</span></div><div class="fiche-value" id="d_genre"></div></div>
                     <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-phone" style="color: #3B82F6;"></i><span>Contact</span></div><div class="fiche-value" id="d_phone"></div></div>
                     <div class="fiche-row"><div class="fiche-label"><i class="zmdi zmdi-email" style="color: #3B82F6;"></i><span>Email</span></div><div class="fiche-value" id="d_email"></div></div>
                 </div>
@@ -1101,6 +1120,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         var service   = $b.data('service') || '';
         var entree    = $b.data('entree') || '';
         var sortie    = $b.data('sortie') || '';
+        var genre    = $b.data('genre') || '';
         var aSorti    = String($b.data('a-sorti')) === '1';
         var note      = $b.data('note') || '';
         var signature = $b.data('signature') || '';
@@ -1115,6 +1135,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 
         fillValue($('#d_numero'), numero);
         fillValue($('#d_nom'), nom);
+        fillValue($('#d_genre'), genre);
         fillValue($('#d_email'), email);
         fillValue($('#d_nature'), nature);
         fillValue($('#d_motif'), motif);

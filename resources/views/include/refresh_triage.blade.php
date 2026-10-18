@@ -33,7 +33,6 @@ use Illuminate\Support\Facades\Auth;
                     <tr id="row_{{ $data->id }}" data-user-id="{{ $data->user_id ?? '' }}">
                         <td class="row-num" style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
 
-                        {{-- ============ CODE ============ --}}
                         <td class="code-cell" data-code="{{ $data->code ?? '' }}" style="padding-top: 5px;padding-bottom: 5px;">
                             @if(!empty($data->code))
                                 <span class="code-badge">
@@ -122,7 +121,6 @@ use Illuminate\Support\Facades\Auth;
                                     $("#btn_refus").trigger("click");
                                 });
 
-                                /* ============ SUPPRESSION : remplit tous les détails ============ */
                                 $("#delete_<?= $i ?>").click(function(e) {
                                     e.preventDefault();
 
@@ -131,6 +129,20 @@ use Illuminate\Support\Facades\Auth;
                                     $("#sup_code").html(<?= json_encode(!empty($data->code) ? '<span class="code-badge"><i class="zmdi zmdi-label"></i> ' . $data->code . '</span>' : '<span class="empty">Non renseigné</span>') ?>);
 
                                     var nom = <?= json_encode($data->name ?: 'Non renseigné') ?>;
+                                    var genre = <?= json_encode($data->genre) ?>;
+                                    var labelgenre = "";
+                                    if(genre == 0)
+                                    {
+                                        $("#sup_genre").html('<span style="color:#94a3b8;font-style:italic;">Non précisé</span>');
+                                    }else if(genre == 1)
+                                    {
+                                        $("#sup_genre").html('<span>Homme</span>');
+                                    }
+                                    else if(genre == 2)
+                                    {
+                                        $("#sup_genre").html('<span>Femme</span>');         
+                                    }
+
                                     $("#sup_nom").text(nom);
 
                                     var phone = <?= json_encode($data->phone ?: '') ?>;
