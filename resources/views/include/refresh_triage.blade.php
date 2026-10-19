@@ -140,7 +140,7 @@ use Illuminate\Support\Facades\Auth;
                                     }
                                     else if(genre == 2)
                                     {
-                                        $("#sup_genre").html('<span>Femme</span>');         
+                                        $("#sup_genre").html('<span>Femme</span>');
                                     }
 
                                     $("#sup_nom").text(nom);
