@@ -242,7 +242,7 @@ class AjaxController extends Controller
             return -999;
         }
     }
-    
+
     public function check_email(Request $request)
     {
         $email = $request->email_01;
@@ -2057,34 +2057,247 @@ class AjaxController extends Controller
 
     public function get_all_facture(Request $request)
     {
-        $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 2;
-        $data["groupe_user_id"] = $groupe_user_id;
-        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
-        $data["factures"] = Factureass::get();
-        $data["factures"] = Factureass::where(["user_id" => Auth::user()->id, "etat" => 0])->get();
-        $data["articles"] = Articles::where(["supprimer" => 0])->get();
-        if(Auth::user()->role == 0)
-        {
-            $data["factures"] = Factureass::where(["etat" => 0])->get();
+        $user = Auth::user();
+        $groupe_user_id = $user->role;
+        
+        // Détermination de la ressource selon la page envoyée
+        $ressourcesParPage = [10 => 10, 27 => 27, 23 => 23, 15 => 15];
+        $ressource_id = $ressourcesParPage[(int) $request->page] ?? 2;
+
+        // Récupération des accès (Writes)
+        $accesQuery = Writes::where(['ressource_id' => $ressource_id, 'groupe_id' => $groupe_user_id])->first();
+        $can_edit = ($user->role == 0) || ($accesQuery && $accesQuery->edit == 1);
+        $can_delete = ($user->role == 0) || ($accesQuery && $accesQuery->delete == 1);
+        $can_display = ($user->role == 0) || ($accesQuery && $accesQuery->display == 1);
+
+        // Récupération de TOUTES les factures (Sans limite)
+        if ($user->role == 0) {
+            $factures = Factureass::where('etat', 0)->orderBy('id', 'desc')->get();
+        } else {
+            $factures = Factureass::where(['user_id' => $user->id, 'etat' => 0])->orderBy('id', 'desc')->get();
         }
-        if($request->page == 10)
-        {
-            $data["ressource_id_1"] = 10;
+
+        $articles = Articles::where('supprimer', 0)->get();
+        $facturesData = [];
+
+        foreach ($factures as $data) {
+            $taux = $data->taux <= 0 ? 1 : $data->taux;
+            $ent = Achats::where('facture_id', $data->id)->get();
+            $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
+            
+            // Calculs de base
+            $total_original = 0;
+            foreach ($ent as $e) {
+                $devise_achat_orig = $e->devise_achat ?? $data->devise;
+                $reduction_orig = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
+                $net_orig = max(0, $e->total - $reduction_orig);
+
+                if ($devise_achat_orig == $data->devise) {
+                    $total_original += $net_orig;
+                } elseif ($data->devise == 0) {
+                    $total_original += ($taux > 0) ? ($net_orig / $taux) : 0;
+                } else {
+                    $total_original += $net_orig * $taux;
+                }
+            }
+
+            $montant_usd_paye = 0; $montant_cdf_paye = 0;
+            foreach ($paiements as $paiement) {
+                if ($paiement->devise_recu == 0) {
+                    $montant_usd_paye += $paiement->montant_recu;
+                    $montant_cdf_paye += $paiement->montant_recu * $taux;
+                } else {
+                    $montant_cdf_paye += $paiement->montant_recu;
+                    $montant_usd_paye += ($taux > 0) ? ($paiement->montant_recu / $taux) : 0;
+                }
+            }
+
+            if ($data->devise == 0) {
+                $total_original_usd = $total_original;
+                $total_original_cdf = $total_original * $taux;
+            } else {
+                $total_original_cdf = $total_original;
+                $total_original_usd = ($taux > 0) ? ($total_original / $taux) : 0;
+            }
+
+            $est_impayee = ($montant_usd_paye < $total_original_usd) || ($montant_cdf_paye < $total_original_cdf);
+            $delai_depasse = (time() - strtotime($data->created_at)) > 3600;
+            $ratio_impaye_facture = 1;
+
+            if ($total_original_usd > 0) {
+                $reste_global_usd = max(0, $total_original_usd - $montant_usd_paye);
+                $ratio_impaye_facture = $reste_global_usd / $total_original_usd;
+            }
+
+            $total = 0; $achat_total_usd = 0; $achat_total_cdf = 0;
+            $articles_json = [];
+            $frais_credit_total = 0;
+
+            // Boucle sur les articles pour calculs avancés
+            foreach ($ent as $e) {
+                $devise_achat = $e->devise_achat ?? $data->devise;
+                $reduction_achat = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
+                $net_apres_reduction = max(0, $e->total - $reduction_achat);
+                $frais_credit_achat = 0;
+
+                if ($e->frais_credit != 0 && $e->frais_credit !== null) {
+                    $frais_credit_achat = $e->frais_credit;
+                } else if ($est_impayee && $delai_depasse && $ratio_impaye_facture > 0) {
+                    $frais_credit_achat = $net_apres_reduction * 0.05 * $ratio_impaye_facture;
+                    $e->frais_credit = $frais_credit_achat;
+                    $e->save();
+                }
+
+                $net_achat_devise = $net_apres_reduction + $frais_credit_achat;
+                $frais_credit_total += $frais_credit_achat;
+
+                if ($devise_achat == $data->devise) {
+                    $total += $net_achat_devise;
+                } elseif ($data->devise == 0) {
+                    $total += ($taux > 0) ? ($net_achat_devise / $taux) : 0;
+                } else {
+                    $total += $net_achat_devise * $taux;
+                }
+
+                $prix_achat = $e->prix_achat ?? 0;
+                $quantite = $e->quantite ?? 1;
+                $prix_achat_total = $prix_achat * $quantite;
+
+                if ($devise_achat == 0) {
+                    $achat_total_usd += $prix_achat_total;
+                    $achat_total_cdf += $prix_achat_total * $taux;
+                } else {
+                    $achat_total_cdf += $prix_achat_total;
+                    $achat_total_usd += ($taux > 0) ? ($prix_achat_total / $taux) : 0;
+                }
+
+                $art = null;
+                foreach (['article_id', 'entre_id', 'entree_id', 'produit_id', 'id_article'] as $field) {
+                    if (isset($e->$field) && $e->$field) {
+                        $art = $articles->firstWhere('id', $e->$field);
+                        if ($art) break;
+                    }
+                }
+
+                $nom_article_aff = $art->nom_article ?? $e->nom_article ?? $e->nom ?? $art->name ?? ('Article #' . $e->id);
+                $prix_unit = $e->prix_vente ?? ($art->prix_detail ?? null) ?? ($e->total / max($quantite, 1));
+
+                $articles_json[] = [
+                    'id'               => $e->id,
+                    'nom'              => $nom_article_aff,
+                    'quantite'         => $quantite,
+                    'prix_unitaire'    => $prix_unit,
+                    'prix_achat'       => $prix_achat,
+                    'prix_achat_total' => $prix_achat_total,
+                    'total'            => $e->total,
+                    'total_net'        => $e->total - $reduction_achat,
+                    'frais_credit'     => $e->frais_credit ?? 0,
+                    'reduction'        => $reduction_achat,
+                    'devise_achat'     => $devise_achat,
+                ];
+            }
+
+            // Formatage de l'affichage
+            if ($data->devise == 0) {
+                $montant_usd = $total;
+                $montant_cdf = $total * $taux;
+                $montant_affichage = number_format($total, 2, ',', ' ') . ' USD (' . number_format($montant_cdf, 2, ',', ' ') . ' CDF)';
+            } else {
+                $montant_cdf = $total;
+                $montant_usd = ($taux > 0) ? ($total / $taux) : 0;
+                $montant_affichage = number_format($total, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
+            }
+
+            $benefice_usd = $montant_usd - $achat_total_usd;
+            $benefice_cdf = $montant_cdf - $achat_total_cdf;
+            $reste_usd = $montant_usd - $montant_usd_paye;
+            $reste_cdf = $montant_cdf - $montant_cdf_paye;
+
+            $paye_affichage = number_format($montant_usd_paye, 2, ',', ' ') . ' USD (' . number_format($montant_cdf_paye, 2, ',', ' ') . ' CDF)';
+            $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
+            
+            $statut_code = 'unpaid';
+            if ($reste_usd <= 0) {
+                $statut_code = 'paid';
+            } elseif ($montant_usd_paye > 0) {
+                $statut_code = 'partiel';
+            }
+
+            $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
+            $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
+            $facture_user_nom = User::where('id', $data->user_id)->first()['name'] ?? 'N/A';
+
+            $paiements_json = [];
+            foreach ($paiements as $p) {
+                $isUSD = ($p->devise_recu == 0);
+                $payeur_id = $p->user_id ?? $data->user_id;
+                $payeur_source = empty($p->user_id) ? 'facture' : 'paiement';
+                $payeur_nom = User::where('id', $payeur_id)->first()->name ?? 'N/A';
+
+                $paiements_json[] = [
+                    'id'               => $p->id,
+                    'date'             => date('d/m/Y à H:i', strtotime($p->created_at)),
+                    'payer'            => $p->payer,
+                    'payer_nom'        => $payeur_nom,
+                    'payer_id'         => $payeur_id,
+                    'payer_source'     => $payeur_source,
+                    'montant_recu'     => $p->montant_recu,
+                    'devise_label'     => $isUSD ? 'USD' : 'CDF',
+                    'mode_de_paiement' => $p->mode_de_paiement,
+                    'mode_label'       => $modeLabels[$p->mode_de_paiement] ?? 'N/A',
+                    'taux'             => $p->taux,
+                    'reste'            => $p->reste,
+                    'montant_effectif' => $p->montant_effectif,
+                ];
+            }
+
+            // On prépare l'objet pour le JSON
+            $facturesData[] = [
+                'id' => $data->id,
+                'numero' => $data->numero,
+                'client_name' => $client_name,
+                'client_id' => $data->client_id,
+                'facture_user_nom' => $facture_user_nom,
+                'user_id' => $data->user_id,
+                'table_name' => $data->table_id == 0 ? 'Aucune' : (Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A'),
+                'table_id' => $data->table_id,
+                'table_occupee' => $data->table_id == 0 ? 0 : (Tables::where('id', $data->table_id)->first()->occupee ?? 0),
+                'date' => date('d/m/Y à H:i', strtotime($data->created_at)),
+                'devise' => $data->devise,
+                'taux' => $taux,
+                'mode_paiement' => $modeLabels[$data->mode_de_paiement] ?? 'N/A',
+                'montant_affichage' => $montant_affichage,
+                'montant_usd' => $montant_usd,
+                'montant_cdf' => $montant_cdf,
+                'paye_affichage' => $paye_affichage,
+                'montant_usd_paye' => $montant_usd_paye,
+                'montant_cdf_paye' => $montant_cdf_paye,
+                'reste_affichage' => $reste_affichage,
+                'reste_usd' => $reste_usd,
+                'reste_cdf' => $reste_cdf,
+                'statut_code' => $statut_code,
+                'benefice_usd' => $benefice_usd,
+                'benefice_cdf' => $benefice_cdf,
+                'frais_credit_total' => $frais_credit_total,
+                'payer' => $data->payer,
+                'lien' => $data->lien,
+                'articles' => $articles_json,
+                'paiements' => $paiements_json,
+                'can_edit' => $can_edit,
+                'can_delete' => $can_delete,
+                'can_display' => $can_display
+            ];
         }
-        else if($request->page == 27)
-        {
-            $data["ressource_id_1"] = 27;
-        }
-        else if($request->page == 23)
-        {
-            $data["ressource_id_1"] = 23;
-        }
-        else if($request->page == 15)
-        {
-            $data["ressource_id_1"] = 15;
-        }
-        return view('include.refresh_factureass', $data);
+
+        return response()->json([
+            'status' => 'success',
+            'factures' => $facturesData,
+            'articles' => $articles,
+            'ressource_id_1' => $ressource_id,
+            'groupe_user_id' => $groupe_user_id,
+            'typeventes' => \App\Models\Typeventes::all(),
+            'clients' => \App\Models\Clients::all()
+        ]);
     }
 
     public function get_all_app(Request $request)
@@ -2105,18 +2318,286 @@ class AjaxController extends Controller
 
     public function get_all_facture_suivi(Request $request)
     {
-        $groupe_user_id = Auth::user()->role;
-        $data["ressource_id_1"] = 26;
-        $data["groupe_user_id"] = $groupe_user_id;
-        $data["acces"] = Writes::where(["ressource_id" => $data["ressource_id_1"], "groupe_id" => $groupe_user_id])->get();
-        $data["factures"] = Factureass::get();
-        $data["factures"] = Factureass::where(["etat" => 0])->get();
-        $data["articles"] = Articles::where(["supprimer" => 0])->get();
-        if(Auth::user()->role == 0)
-        {
-            $data["factures"] = Factureass::where(["etat" => 0])->get();
+        $user = Auth::user();
+        $groupe_user_id = $user->role;
+        $ressource_id = $request->page ?? 47; 
+
+        $accesQuery = Writes::where(['ressource_id' => $ressource_id, 'groupe_id' => $groupe_user_id])->first();
+        $can_edit = ($user->role == 0) || ($accesQuery && $accesQuery->edit == 1);
+        $can_delete = ($user->role == 0) || ($accesQuery && $accesQuery->delete == 1);
+        $can_display = ($user->role == 0) || ($accesQuery && $accesQuery->display == 1);
+
+        if ($user->role == 0) {
+            $factures = Factureass::where('etat', 0)->orderBy('id', 'desc')->get();
+        } else {
+            $factures = Factureass::where(['user_id' => $user->id, 'etat' => 0])->orderBy('id', 'desc')->get();
         }
-        return view('include.refresh_factureass_suivi', $data);
+
+        $articles = Articles::where('supprimer', 0)->get();
+        $facturesData = [];
+
+        foreach ($factures as $data) {
+            $taux = $data->taux <= 0 ? 1 : $data->taux;
+            $ent = Achats::where('facture_id', $data->id)->get();
+            $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
+            $dernier_paiement = $paiements->sortByDesc('created_at')->first();
+            
+            $total_frais_credit_final = 0;
+            foreach ($ent as $e) {
+                if ($e->frais_credit != 0 && $e->frais_credit !== null) {
+                    $total_frais_credit_final += $e->frais_credit;
+                }
+            }
+            $a_frais_credit = ($total_frais_credit_final > 0);
+
+            $total_original = 0;
+            foreach ($ent as $e) {
+                $devise_achat_orig = $e->devise_achat ?? $data->devise;
+                $reduction_orig = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
+                $net_orig = max(0, $e->total - $reduction_orig);
+
+                if ($devise_achat_orig == $data->devise) {
+                    $total_original += $net_orig;
+                } elseif ($data->devise == 0) {
+                    $total_original += ($taux > 0) ? ($net_orig / $taux) : 0;
+                } else {
+                    $total_original += $net_orig * $taux;
+                }
+            }
+
+            $montant_usd_paye = 0; $montant_cdf_paye = 0;
+            foreach ($paiements as $paiement) {
+                if ($paiement->devise_recu == 0) {
+                    $montant_usd_paye += $paiement->montant_recu;
+                    $montant_cdf_paye += $paiement->montant_recu * $taux;
+                } else {
+                    $montant_cdf_paye += $paiement->montant_recu;
+                    $montant_usd_paye += ($taux > 0) ? ($paiement->montant_recu / $taux) : 0;
+                }
+            }
+
+            if ($data->devise == 0) {
+                $total_original_usd = $total_original;
+                $total_original_cdf = $total_original * $taux;
+            } else {
+                $total_original_cdf = $total_original;
+                $total_original_usd = ($taux > 0) ? ($total_original / $taux) : 0;
+            }
+
+            $est_impayee = ($montant_usd_paye < $total_original_usd) || ($montant_cdf_paye < $total_original_cdf);
+            $delai_depasse = (time() - strtotime($data->created_at)) > 3600;
+            $ratio_impaye_facture = 1;
+
+            if ($total_original_usd > 0) {
+                $reste_global_usd = max(0, $total_original_usd - $montant_usd_paye);
+                $ratio_impaye_facture = $reste_global_usd / $total_original_usd;
+            }
+
+            $total = 0; $achat_total_usd = 0; $achat_total_cdf = 0;
+            $articles_json = [];
+
+            foreach ($ent as $e) {
+                $devise_achat = $e->devise_achat ?? $data->devise;
+                $reduction_achat = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
+                $net_apres_reduction = max(0, $e->total - $reduction_achat);
+
+                $frais_credit_achat = 0;
+                if ($e->frais_credit != 0 && $e->frais_credit !== null) {
+                    $frais_credit_achat = $e->frais_credit;
+                } else if ($est_impayee && $delai_depasse && $ratio_impaye_facture > 0) {
+                    $frais_credit_achat = $net_apres_reduction * 0.05 * $ratio_impaye_facture;
+                    $e->frais_credit = $frais_credit_achat;
+                    $e->save();
+                }
+
+                $net_achat_devise = $net_apres_reduction + $frais_credit_achat;
+
+                if ($devise_achat == $data->devise) {
+                    $total += $net_achat_devise;
+                } elseif ($data->devise == 0) {
+                    $total += ($taux > 0) ? ($net_achat_devise / $taux) : 0;
+                } else {
+                    $total += $net_achat_devise * $taux;
+                }
+
+                $prix_achat = $e->prix_achat ?? 0;
+                $quantite = $e->quantite ?? 1;
+                $prix_achat_total = $prix_achat * $quantite;
+
+                if ($devise_achat == 0) {
+                    $achat_total_usd += $prix_achat_total;
+                    $achat_total_cdf += $prix_achat_total * $taux;
+                } else {
+                    $achat_total_cdf += $prix_achat_total;
+                    $achat_total_usd += ($taux > 0) ? ($prix_achat_total / $taux) : 0;
+                }
+
+                $art = null;
+                foreach (['article_id', 'entre_id', 'entree_id', 'produit_id', 'id_article'] as $field) {
+                    if (isset($e->$field) && $e->$field) {
+                        $art = $articles->firstWhere('id', $e->$field);
+                        if ($art) break;
+                    }
+                }
+                $nom_article_aff = $art->nom_article ?? $e->nom_article ?? $e->nom ?? $art->name ?? ('Article #' . $e->id);
+                $prix_unit = $e->prix_vente ?? ($art->prix_detail ?? null) ?? ($quantite > 0 ? ($e->total / $quantite) : $e->total);
+                $reduction_ligne = $e->reduction ?? 0;
+
+                $articles_json[] = [
+                    'id'               => $e->id,
+                    'nom'              => $nom_article_aff,
+                    'quantite'         => $quantite,
+                    'prix_unitaire'    => $prix_unit,
+                    'prix_achat'       => $prix_achat,
+                    'prix_achat_total' => $prix_achat_total,
+                    'total'            => $e->total,
+                    'total_net'        => $e->total - $reduction_ligne,
+                    'frais_credit'     => $e->frais_credit ?? 0,
+                    'reduction'        => $reduction_ligne,
+                    'devise_achat'     => $devise_achat,
+                ];
+            }
+
+            $has_reduction = $ent->contains(function($e) { return isset($e->reduction) && $e->reduction > 0; });
+
+            if ($data->devise == 0) {
+                $montant_usd = $total;
+                $montant_cdf = $total * $taux;
+                $montant_affichage = number_format($total, 2, ',', ' ') . ' USD (' . number_format($montant_cdf, 2, ',', ' ') . ' CDF)';
+            } else {
+                $montant_cdf = $total;
+                $montant_usd = ($taux > 0) ? ($total / $taux) : 0;
+                $montant_affichage = number_format($total, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
+            }
+
+            $benefice_usd = $montant_usd - $achat_total_usd;
+            $benefice_cdf = $montant_cdf - $achat_total_cdf;
+            $reste_usd = $montant_usd - $montant_usd_paye;
+            $reste_cdf = $montant_cdf - $montant_cdf_paye;
+
+            $paye_affichage = number_format($montant_usd_paye, 2, ',', ' ') . ' USD (' . number_format($montant_cdf_paye, 2, ',', ' ') . ' CDF)';
+            $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
+            
+            $est_partiel = ($reste_usd > 0 && $montant_usd_paye > 0);
+            $est_solde = ($reste_usd <= 0);
+            $statut_data = $est_partiel ? 'partial' : ($est_solde ? 'paid' : 'unpaid');
+
+            $date_creation_date = date('Y-m-d', strtotime($data->created_at));
+            $date_aujourdhui = date('Y-m-d');
+            if ($est_solde && $a_frais_credit && $dernier_paiement) {
+                $date_comparaison = date('Y-m-d', strtotime($dernier_paiement->created_at));
+            } else {
+                $date_comparaison = $date_aujourdhui;
+            }
+            $nb_jours_retard = (int) ((strtotime($date_comparaison) - strtotime($date_creation_date)) / 86400);
+            if ($nb_jours_retard < 0) $nb_jours_retard = 0;
+
+            $show_delay_badge = !$dernier_paiement || $est_partiel || ($est_solde && $a_frais_credit && $dernier_paiement);
+            $delay_badge_type = ($nb_jours_retard >= 7 && $nb_jours_retard <= 15) ? 'warning' : ($nb_jours_retard > 15 ? 'danger' : 'success');
+
+            $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
+            $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
+            $facture_user_nom = User::where('id', $data->user_id)->first()['name'] ?? 'N/A';
+            $mode_paiement_label = $modeLabels[$data->mode_de_paiement] ?? 'N/A';
+            
+            $table_name_param = 'Aucune';
+            if (isset($data->table_id) && $data->table_id != 0) {
+                $tbl = Tables::where('id', $data->table_id)->first();
+                if ($tbl) $table_name_param = $tbl->nom;
+            }
+
+            $paiements_json = [];
+            $tranches_details = [];
+            foreach ($paiements as $p) {
+                $isUSD = ($p->devise_recu == 0);
+                $payeur_id = $p->user_id ?? $data->user_id;
+                $payeur_source = empty($p->user_id) ? 'facture' : 'paiement';
+                $payeur_nom = User::where('id', $payeur_id)->first()->name ?? 'N/A';
+
+                $paiements_json[] = [
+                    'id'               => $p->id,
+                    'date'             => date('d/m/Y à H:i', strtotime($p->created_at)),
+                    'payer'            => $p->payer,
+                    'payer_nom'        => $payeur_nom,
+                    'payer_id'         => $payeur_id,
+                    'payer_source'     => $payeur_source,
+                    'montant_recu'     => $p->montant_recu,
+                    'devise_label'     => $isUSD ? 'USD' : 'CDF',
+                    'mode_de_paiement' => $p->mode_de_paiement,
+                    'mode_label'       => $modeLabels[$p->mode_de_paiement] ?? 'N/A',
+                    'taux'             => $p->taux,
+                    'reste'            => $p->reste,
+                    'montant_effectif' => $p->montant_effectif,
+                ];
+
+                $tranches_details[] = [
+                    'date' => date('d/m/Y à H:i', strtotime($p->created_at)),
+                    'montant_recu' => number_format($p->montant_recu, 2, ',', ' '),
+                    'devise' => $isUSD ? 'USD' : 'CDF',
+                    'mode' => $modeLabels[$p->mode_de_paiement] ?? 'N/A',
+                    'taux' => number_format($p->taux, 2, ',', ' '),
+                    'montant_effectif' => number_format($p->montant_effectif, 2, ',', ' '),
+                    'reste' => number_format($p->reste, 2, ',', ' ')
+                ];
+            }
+
+            $date_paie_ymd = ($dernier_paiement && $dernier_paiement->created_at) ? date('Y-m-d', strtotime($dernier_paiement->created_at)) : '';
+            $date_paie_str = ($dernier_paiement && $dernier_paiement->created_at) ? date('d/m/Y à H:i', strtotime($dernier_paiement->created_at)) : 'Aucune';
+
+            if ($reste_usd > 0 || $total_frais_credit_final > 0) {
+                $facturesData[] = [
+                    'id' => $data->id,
+                    'numero' => $data->numero,
+                    'client_name' => $client_name,
+                    'client_id' => $data->client_id,
+                    'facture_user_nom' => $facture_user_nom,
+                    'user_id' => $data->user_id,
+                    'table_name' => $table_name_param,
+                    'table_id' => $data->table_id,
+                    'date' => date('d/m/Y à H:i', strtotime($data->created_at)),
+                    'devise' => $data->devise,
+                    'taux' => $taux,
+                    'mode_paiement' => $mode_paiement_label,
+                    'montant_affichage' => $montant_affichage,
+                    'montant_usd' => $montant_usd,
+                    'montant_cdf' => $montant_cdf,
+                    'paye_affichage' => $paye_affichage,
+                    'montant_usd_paye' => $montant_usd_paye,
+                    'montant_cdf_paye' => $montant_cdf_paye,
+                    'reste_affichage' => $reste_affichage,
+                    'reste_usd' => $reste_usd,
+                    'reste_cdf' => $reste_cdf,
+                    'statut_data' => $statut_data,
+                    'benefice_usd' => $benefice_usd,
+                    'benefice_cdf' => $benefice_cdf,
+                    'frais_credit_total' => $total_frais_credit_final,
+                    'has_reduction' => $has_reduction,
+                    'jours_retard' => $nb_jours_retard,
+                    'show_delay_badge' => $show_delay_badge,
+                    'delay_badge_type' => $delay_badge_type,
+                    'date_paie_ymd' => $date_paie_ymd,
+                    'date_paie_str' => $date_paie_str,
+                    'payer' => $data->payer,
+                    'lien' => $data->lien,
+                    'articles' => $articles_json,
+                    'paiements' => $paiements_json,
+                    'tranches_details' => $tranches_details,
+                    'nb_tranches' => $paiements->count(),
+                    'date_debut' => $data->created_at,
+                    'date_fin' => $dernier_paiement ? $dernier_paiement->created_at : date('Y-m-d H:i:s'),
+                    'can_edit' => $can_edit,
+                    'can_delete' => $can_delete,
+                    'can_display' => $can_display
+                ];
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'factures' => $facturesData,
+            'ressource_id_1' => $ressource_id,
+            'groupe_user_id' => $groupe_user_id
+        ]);
     }
 
     public function get_all_detail_achat_paie(Request $request)
@@ -5503,7 +5984,7 @@ class AjaxController extends Controller
                                 $smsCode = $this->envoyer_sms($client->phone, "Bonjour cher client, les 300 hommes vous disent merci pour votre confiance et votre fidélité.");
 
                                 // On n'incrémente que si le SMS est vraiment parti (HTTP 200)
-                                if ($smsCode === 200) 
+                                if ($smsCode === 200)
                                 {
                                     $client->sms_initial = $client->sms_initial + 1;
                                 }
@@ -5516,7 +5997,7 @@ class AjaxController extends Controller
                 // Marquage de la table (inchangé)
                 if (!empty($table_id)) {
                     $table = Tables::find($table_id);
-                    if ($table) 
+                    if ($table)
                     {
                         $table->occupee = 1;
                         $table->propre = 1;
@@ -18382,5 +18863,119 @@ class AjaxController extends Controller
                 $examen->save();
             }
         }
+    }
+
+    public function get_detail_patient(Request $request)
+    {
+        $patient = Patients::find($request->id);
+
+        if (!$patient) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Patient introuvable',
+            ], 404);
+        }
+
+        // 👇 Ajoute ici tout ce que tu veux récupérer d'autre
+        //    (décommente au fur et à mesure que tes modèles existent)
+        $data = [
+            'patient'       => $patient,
+            // 'constantes'    => ConstanteVitale::where('patient_id', $request->id)->get(),
+            // 'consultations' => Consultation::where('patient_id', $request->id)->get(),
+            // 'traitements'   => Traitement::where('patient_id', $request->id)->get(),
+            // 'documents'     => DocumentPatient::where('patient_id', $request->id)->get(),
+            // 'rendez_vous'   => RendezVous::where('patient_id', $request->id)->get(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data'    => $data,
+        ]);
+    }
+
+    public function get_rapport_paiements(Request $request)
+    {
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return response()->json(['success' => false, 'message' => 'Non authentifié'], 401);
+        }
+
+        $query = detailpaiessachats::query();
+
+        // ✅ SÉCURITÉ : un non-admin ne voit QUE ses propres paiements
+        if ((int) $authUser->role !== 0) {
+            $query->where('user_id', $authUser->id);
+        } else {
+            if ($request->filled('user_id') && $request->user_id !== 'all') {
+                $query->where('user_id', (int) $request->user_id);
+            }
+        }
+
+        if ($request->filled('date_debut') && $request->filled('date_fin')) {
+            $query->whereDate('created_at', '>=', $request->date_debut)
+                ->whereDate('created_at', '<=', $request->date_fin);
+        }
+
+        $paiements = $query->orderBy('created_at', 'desc')->get();
+
+        $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
+
+        $userCache = User::all()->keyBy('id');
+
+        // ✅ Utilisation du modèle Factureass + filtre etat = 0 (non supprimée)
+        $factureCache = Factureass::whereIn('id', $paiements->pluck('facture_id')->unique())
+            ->where('etat', 0)
+            ->get()->keyBy('id');
+
+        $clientIds   = $factureCache->pluck('client_id')->filter()->unique();
+        $clientCache = Clients::whereIn('id', $clientIds)->get()->keyBy('id');
+
+        $result = [];
+        foreach ($paiements as $p) {
+            // Facture supprimée (etat != 0) → pas dans le cache → on saute
+            $facture = $factureCache->get($p->facture_id);
+            if (!$facture) continue;
+
+            if ($facture->client_id == 0) {
+                $clientName = $facture->libelle ?? 'N/A';
+            } else {
+                $cli = $clientCache->get($facture->client_id);
+                $clientName = $cli ? $cli->name : 'N/A';
+            }
+
+            if ($request->filled('client') && stripos($clientName, $request->client) === false) {
+                continue;
+            }
+
+            $payeur   = $userCache->get($p->user_id);
+            $createur = $userCache->get($facture->user_id);
+
+            $result[] = [
+                'id'                 => $p->id,
+                'facture_id'         => $p->facture_id,
+                'date_paiement'      => date('d/m/Y à H:i', strtotime($p->created_at)),
+                'date_paiement_iso'  => date('Y-m-d', strtotime($p->created_at)),
+                'numero'             => $facture->numero ?? '-',
+                'date_facture'       => date('d/m/Y à H:i', strtotime($facture->created_at)),
+                'client'             => $clientName,
+                'enregistre_par'     => $createur->name ?? 'N/A',
+                'enregistre_par_id'  => $facture->user_id ?? 0,
+                'encaisse_par'       => $payeur->name ?? 'N/A',
+                'encaisse_par_id'    => $p->user_id ?? 0,
+                'mode_label'         => $modeLabels[$p->mode_de_paiement] ?? 'N/A',
+                'devise'             => ($p->devise_recu == 0) ? 'USD' : 'CDF',
+                'montant_recu'       => (float) $p->montant_recu,
+                'taux'               => (float) ($p->taux ?? $facture->taux ?? 1),
+                'reste'              => (float) ($p->reste ?? 0),
+            ];
+        }
+
+        return response()->json([
+            'success'   => true,
+            'role'      => (int) $authUser->role,
+            'user_id'   => $authUser->id,
+            'user_name' => $authUser->name,
+            'data'      => $result,
+        ]);
     }
 }

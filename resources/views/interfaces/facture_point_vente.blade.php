@@ -1,418 +1,290 @@
 @php
     use App\Models\Appnames;
-    $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
+    use App\Models\affectationstables;
+    use App\Models\affectationspointventes;
+    use App\Models\Contrevenants;
+    use App\Models\Groupes;
+    use App\Models\Tables;
+    use App\Models\Verbalisateurs;
+    use App\Models\Writes;
+    use App\Models\User;
+    use App\Models\Factures;
+    use App\Models\Approvisionnements;
+    use App\Models\Achats;
+    use App\Models\Societes;
+    use App\Models\Clients;
+    use App\Models\Mesures;
+    use App\Models\Pointdeventes;
+    use App\Models\Entres;
+    use App\Models\detailpaiessachats;
+    use Illuminate\Support\Facades\Auth;
+
+    $nom_app = Appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 @endphp
-<?php
-use App\Models\affectationstables;
-use App\Models\affectationspointventes;
-use App\Models\Contrevenants;
-use App\Models\Groupes;
-use App\Models\Tables;
-use App\Models\Verbalisateurs;
-use App\Models\Writes;
-use App\Models\User;
-use App\Models\Factures;
-use App\Models\Approvisionnements;
-use App\Models\Achats;
-use App\Models\Societes;
-use App\Models\Clients;
-use App\Models\Mesures;
-use App\Models\Pointdeventes;
-use App\Models\Entres;
-use App\Models\detailpaiessachats;
-use Illuminate\Support\Facades\Auth;
-?>
+
 @extends('layouts.main')
+
 @section('title', $nom_app)
 @section('name', 'FACTURE POINT VENTE')
+
 @section('body')
     @include('composants.preload')
     @include('composants.header')
     @include('composants.sidebar')
     @include('composants.chat')
+    
     <style>
-/* ============================================================
-   DESIGN PREMIUM – ADAPTÉ AUX FACTURES POINT DE VENTE
-   ============================================================ */
+        /* ============================================================
+           DESIGN PREMIUM – ADAPTÉ AUX FACTURES POINT DE VENTE
+           ============================================================ */
+        body { margin: 0; padding: 0; background: #f0f4f8; }
+        .content .container { max-width: 100% !important; width: 100%; padding: 0.5rem 1.5rem !important; margin: 0 auto; background: #f8fafc; }
+        .content .container .row { margin-left: 0; margin-right: 0; }
+        .content .container [class*="col-"] { padding-left: 0.75rem; padding-right: 0.75rem; }
+        :root {
+            --bleu-nuit: #0a192f; --bleu-nuit-clair: #112240; --bleu-nuit-gradient: linear-gradient(135deg, #0a192f, #1e3a5f);
+            --bleu-secondaire: #2c5282; --bleu-secondaire-gradient: linear-gradient(135deg, #2c5282, #1a365d);
+            --rouge-gradient: linear-gradient(135deg, #ef4444, #dc2626); --vert-gradient: linear-gradient(135deg, #10b981, #059669);
+            --shadow-premium: 0 20px 35px -12px rgba(0, 0, 0, 0.2); --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-radius-xl: 20px; --border-radius-lg: 16px;
+        }
+        #bloc_1, #bloc_2, #bloc_3 { background: rgba(255, 255, 255, 0.96); border-radius: var(--border-radius-xl); box-shadow: var(--shadow-premium); padding: 1rem 1.5rem !important; margin-bottom: 1rem; transition: transform 0.2s, box-shadow 0.2s; }
+        h4 { font-weight: 700; border-left: 6px solid #e31b23; padding-left: 18px; margin-bottom: 16px; margin-top: 0; color: var(--bleu-nuit); display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+        h4 i.zmdi { background: var(--bleu-nuit-gradient); background-clip: text; -webkit-background-clip: text; color: transparent !important; }
+        h4 .badge-invoice { background: linear-gradient(135deg, #e31b23, #b91c1c); color: white; border-radius: 50px; padding: 4px 12px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; margin-left: 6px; vertical-align: middle; }
+        @media (max-width: 480px) { h4 .badge-invoice { font-size: 0.65rem; padding: 2px 10px; margin-left: 0; white-space: normal; word-break: break-word; } h4 { flex-direction: column; align-items: flex-start; gap: 4px; } }
+        .table-responsive { overflow-x: auto; overflow-y: visible; border-radius: var(--border-radius-lg); }
+        .table { width: 100%; min-width: 800px; background: white; border-collapse: collapse; border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--shadow-light); table-layout: auto; }
+        .table thead th { background: #E7F5FE !important; color: #0a192f; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 12px !important; border-bottom: 2px solid #cbd5e1 !important; border-right: 1px solid #d0e2f2; white-space: normal; word-break: break-word; }
+        .table tbody tr { transition: all 0.15s ease; border-bottom: 1px solid #e2e8f0; }
+        .table tbody tr:nth-child(even) { background-color: #f8fafc; }
+        .table tbody tr:nth-child(odd)  { background-color: #ffffff; }
+        .table tbody tr:hover { background: #e6f0ff !important; cursor: default; }
+        .table tbody td { padding: 10px 12px !important; vertical-align: middle !important; font-weight: 500; font-size: 0.85rem; color: #1e2a3e; word-break: break-word; border-bottom: 1px solid #eef2f6; line-height: 1.4; }
+        .table tbody td:last-child { text-align: center; vertical-align: middle; }
+        #bloc_1 button, #bloc_2 button, #bloc_3 button, .filters-container button, #liste, #add, #add_r, #save, #save_r, #annuler, #edit_save, #edit_annuler, #resetFilters, .btn-primary, .btn-info, .btn-danger, .btn-secondary { display: inline-flex !important; align-items: center; justify-content: center; gap: 8px; padding: 6px 16px !important; font-weight: 600; font-size: 0.85rem; border-radius: 40px !important; transition: all 0.25s ease; border: none; cursor: pointer; text-decoration: none; box-shadow: var(--shadow-light); white-space: nowrap; line-height: 1.5; }
+        #liste, #add, #add_r, #rapport { min-width: 130px; justify-content: center; }
+        #liste, .btn-primary { background: #3B82F6 !important; color: white !important; }
+        #liste:hover, .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3); background: #2563eb !important; }
+        #add, .btn-info { background: var(--bleu-nuit-gradient) !important; color: white !important; }
+        #add:hover, .btn-info:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3); }
+        #save, #edit_save { background: var(--bleu-secondaire-gradient) !important; color: white; }
+        #save:hover, #edit_save:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3); }
+        #annuler, #edit_annuler, .btn-danger { background: var(--rouge-gradient) !important; color: white; }
+        #annuler:hover, #edit_annuler:hover, .btn-danger:hover { transform: translateY(-2px); background: linear-gradient(135deg, #dc2626, #b91c1c) !important; box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3); }
+        #resetFilters { background: #64748b !important; color: white !important; }
+        #resetFilters:hover { transform: translateY(-2px); background: #475569 !important; box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3); }
+        #add_r, #save_r, #print_r { background: #cbd5e1 !important; color: #475569 !important; cursor: not-allowed !important; opacity: 0.7; transform: none !important; box-shadow: none !important; }
+        #print { background: #3B82F6 !important; color: white !important; }
+        #print:hover { background: #2563eb !important; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3); }
+        #rapport { background: var(--rouge-gradient) !important; color: white !important; }
+        #rapport:hover { transform: translateY(-2px); background: linear-gradient(135deg, #dc2626, #b91c1c) !important; box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3); }
+        .filters-container { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; background: white; padding: 0.8rem 1.2rem; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-light); align-items: flex-end; }
+        .filter-group { flex: 1; min-width: 150px; }
+        .filter-group label { font-weight: 600; margin-bottom: 4px; color: var(--bleu-nuit); font-size: 0.7rem; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
+        .filter-group .form-control { height: 36px; }
+        .invoice-badges-container { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 12px; margin-bottom: 15px; }
+        .invoice-count-badge { border-radius: 50px; padding: 4px 12px; font-size: 0.75rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: white; }
+        .invoice-count-badge.usd-badge { background: linear-gradient(135deg, #3B82F6, #2563eb); }
+        .invoice-count-badge.cdf-badge { background: linear-gradient(135deg, #3B82F6, #2563eb); }
+        .invoice-count-badge.paye-usd { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
+        .invoice-count-badge.paye-cdf { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
+        .invoice-count-badge.credit-usd { background: linear-gradient(135deg, #dc3545, #b02a37); }
+        .invoice-count-badge.credit-cdf { background: linear-gradient(135deg, #dc3545, #b02a37); }
+        .invoice-count-badge.benefice-usd { background: linear-gradient(135deg, #198754, #146c43); }
+        .invoice-count-badge.benefice-cdf { background: linear-gradient(135deg, #198754, #146c43); }
+        #form_add .row, #form_edit .row { display: flex; flex-wrap: wrap; }
+        #form_add .col-6, #form_edit .col-6 { margin-bottom: 0.8rem; }
+        .form-group { width: 100%; margin-bottom: 0; }
+        .form-group label { display: block; font-weight: 700; color: var(--bleu-nuit); margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px; }
+        .form-group label i { color: #e31b23; margin-right: 6px; }
+        .form-control, input.form-control, select.form-control, textarea.form-control, .input-mask { width: 100% !important; background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 14px !important; padding: 8px 12px !important; font-weight: 500; font-size: 0.85rem; transition: all 0.2s; box-sizing: border-box; height: 38px !important; line-height: 1.4; }
+        textarea.form-control { resize: vertical; height: 38px !important; }
+        .form-control:focus, select.form-control:focus, textarea.form-control:focus { border-color: var(--bleu-nuit) !important; box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important; transform: translateY(-1px); }
+        select.form-control { appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>'); background-repeat: no-repeat; background-position: right 14px center; }
+        .input-mask { font-family: monospace; background: #fff9ef !important; }
+        #msg, #edit_msg { display: none !important; visibility: hidden !important; opacity: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; min-height: 0 !important; height: 0 !important; overflow: hidden !important; }
+        #msg:not(:empty), #edit_msg:not(:empty) { display: inline-flex !important; visibility: visible !important; opacity: 1 !important; height: auto !important; margin-top: 16px !important; padding: 10px 18px !important; background: white !important; border-radius: 50px !important; box-shadow: var(--shadow-light) !important; gap: 10px; font-weight: 600; font-size: 0.8rem; animation: slideInMsg 0.3s ease-out; }
+        #msg:not(:empty):has(i.zmdi-check-circle)  { background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important; color: #065f46; border-left: 4px solid #10b981; }
+        #msg:not(:empty):has(i.zmdi-close-circle)  { background: linear-gradient(95deg, #fee2e2, #fecaca) !important; color: #991b1b; border-left: 4px solid #ef4444; }
+        #msg:not(:empty):has(i.zmdi-info)          { background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important; color: #1e3a8a; border-left: 4px solid #3b82f6; }
+        @keyframes slideInMsg { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .table tbody td a { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50% !important; background: #f1f5f9; transition: all 0.2s ease; text-decoration: none; margin: 0 2px; }
+        .table tbody td a i.zmdi { font-size: 1.1rem; margin: 0; }
+        .table tbody td a i.zmdi-eye, .table tbody td a i.zmdi-money { color: #2c7da0; }
+        .table tbody td a i.zmdi-delete { color: #ef4444; }
+        .table tbody td a:hover { background: #e0f2fe; transform: translateY(-2px); }
+        .table tbody td a:hover i.zmdi-delete { color: #b91c1c; }
+        .table tbody td a:hover i.zmdi-eye, .table tbody td a:hover i.zmdi-money { color: #1e5a7a; }
+        .table tbody td a i.zmdi-settings { color: #17a2b8 !important; transition: all 0.2s ease; }
+        .table tbody td a:hover i.zmdi-settings { color: #0f6674 !important; }
+        [style*="background-color: rgba(0, 0, 0, 0.1)"] { background: #eef3fc !important; border-radius: 60px; padding: 10px 24px !important; margin-bottom: 20px; display: flex !important; flex-wrap: wrap; gap: 12px; justify-content: flex-start; }
+        
+        /* MODALES */
+        .modal.fade#pdfModal .modal-dialog { max-width: 100%; width: 60%; margin: 1.75rem auto; }
+        .modal.fade#pdfModal .modal-content { border-radius: 20px; border: none; box-shadow: var(--shadow-premium); overflow: hidden; }
+        .modal.fade#pdfModal .modal-header { background: var(--bleu-nuit-gradient) !important; border-bottom: none; padding: 1.2rem 1.5rem; }
+        .modal.fade#pdfModal .modal-header .modal-title { font-weight: 700; font-size: 1.2rem; color: white; }
+        .modal.fade#pdfModal .modal-header .close { color: white; opacity: 0.8; text-shadow: none; }
+        .modal.fade#pdfModal .modal-header .close:hover { opacity: 1; }
+        .modal.fade#pdfModal .modal-body { padding: 0; background: #f8fafc; }
+        .modal.fade#pdfModal .modal-footer { background: white; border-top: 1px solid #eef2f6; padding: 1.2rem 1.5rem; }
+        .modal.fade#pdfModal #pdfIframe { width: 100%; height: 50vh; border: none; background: white; }
+        .modal.fade#pdfModal #montant_recu, .modal.fade#pdfModal #devise_recu { width: 100%; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 40px !important; padding: 10px 14px; font-weight: 500; font-size: 0.85rem; transition: all 0.2s; height: 44px; box-sizing: border-box; }
+        .modal.fade#pdfModal #montant_recu:focus, .modal.fade#pdfModal #devise_recu:focus { border-color: var(--bleu-nuit); box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15); outline: none; }
+        .modal.fade#pdfModal #devise_recu { appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>'); background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; }
+        .modal.fade#pdfModal #btn_payer { background: linear-gradient(135deg, #10b981, #059669) !important; border: none; border-radius: 40px !important; padding: 10px 24px; font-weight: 700; font-size: 0.85rem; transition: all 0.2s ease; width: 100%; color: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .modal.fade#pdfModal #btn_payer:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3); }
+        .modal.fade#pdfModal #msg_facture { display: inline-block !important; font-weight: 600; font-size: 0.85rem; padding: 10px 18px; border-radius: 50px; background: #f1f5f9; color: #1e2a3e; margin-top: 12px; margin-bottom: 0; text-align: center; animation: fadeInMsg 0.3s ease-out; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); max-width: 100%; word-wrap: break-word; line-height: 1.5; }
+        .modal.fade#pdfModal #msg_facture:has(i.zmdi-close-circle), .modal.fade#pdfModal #msg_facture[style*="color: #dc3545"] { background: linear-gradient(95deg, #fee2e2, #fecaca) !important; color: #991b1b !important; border-left: 4px solid #dc2626 !important; }
+        .modal.fade#pdfModal #msg_facture:has(i.zmdi-check-circle), .modal.fade#pdfModal #msg_facture[style*="color: #28a745"] { background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important; color: #065f46 !important; border-left: 4px solid #10b981 !important; }
+        .modal.fade#pdfModal #msg_facture:has(i.zmdi-alert), .modal.fade#pdfModal #msg_facture[style*="color: #ffc107"] { background: linear-gradient(95deg, #fed7aa, #ffedcc) !important; color: #9b4d00 !important; border-left: 4px solid #f59e0b !important; }
+        @keyframes fadeInMsg { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .modal.fade#pdfModal .btn-secondary { background: #64748b; border: none; border-radius: 40px; padding: 8px 20px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s ease; color: white; }
+        .modal.fade#pdfModal .btn-secondary:hover { background: #475569; transform: translateY(-2px); }
+        .modal.fade#pdfModal hr { margin: 15px 0; border: 0; border-top: 1px solid #eef2f6; }
+        
+        #bloc_t { display: flex; flex-wrap: wrap; align-items: stretch; gap: 20px; width: 100%; margin: 0; }
+        #bloc_2, #bloc_3 { flex: 1 1 calc(50% - 20px); min-width: 280px; margin: 0 !important; }
+        @media (max-width: 768px) { #bloc_t { flex-direction: column; gap: 20px; align-items: center; } #bloc_2, #bloc_3 { flex: 1 1 100%; width: 100%; min-width: auto; } }
+        
+        .select2-container--bootstrap .select2-selection { height: 38px !important; border-radius: 14px !important; border: 1px solid #e2e8f0 !important; background: #ffffff !important; box-shadow: none !important; font-weight: 500; font-size: 0.85rem; padding: 0 12px; }
+        .select2-container--bootstrap .select2-selection__arrow { height: 38px !important; }
+        .select2-container--bootstrap .select2-selection__rendered { line-height: 38px !important; padding-left: 0; color: #1e2a3e; }
+        .select2-container--bootstrap .select2-selection__placeholder { color: #6c757d; }
+        .select2-dropdown { border-radius: 14px !important; border: 1px solid #e2e8f0 !important; box-shadow: var(--shadow-light); }
+        .select2-results__option { padding: 8px 12px; font-size: 0.85rem; }
+        .select2-results__option--highlighted { background: #e6f0ff !important; color: #0a192f !important; }
+        .select2-container--bootstrap .select2-results__options { max-height: 200px !important; overflow-y: auto !important; }
 
-body { margin: 0; padding: 0; background: #f0f4f8; }
-.content .container { max-width: 100% !important; width: 100%; padding: 0.5rem 1.5rem !important; margin: 0 auto; background: #f8fafc; }
-.content .container .row { margin-left: 0; margin-right: 0; }
-.content .container [class*="col-"] { padding-left: 0.75rem; padding-right: 0.75rem; }
+        .param-nav-tabs .nav-link { border: none; color: #64748b; font-weight: 600; font-size: 0.9rem; padding: 16px 20px; border-bottom: 3px solid transparent; transition: all 0.2s; background: transparent; }
+        .param-nav-tabs .nav-link i { margin-right: 6px; }
+        .param-nav-tabs .nav-link:hover { color: #0a192f; border-bottom-color: #cbd5e1; }
+        .param-nav-tabs .nav-link.active { color: #17a2b8; border-bottom-color: #17a2b8; background: transparent; }
+        .param-section-title { font-weight: 700; color: #0a192f; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; padding-left: 12px; border-left: 4px solid #17a2b8; margin-bottom: 16px; }
+        .param-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .param-info-item { background: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 3px; }
+        .param-info-label { font-size: 0.72rem; color: #64748b; text-transform: uppercase; font-weight: 600; letter-spacing: 0.3px; }
+        .param-info-label i { color: #17a2b8; margin-right: 4px; }
+        .param-info-value { font-size: 0.92rem; color: #0a192f; font-weight: 700; }
+        .param-finance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+        .param-finance-card { padding: 14px 16px; border-radius: 14px; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.12); transition: transform 0.2s; }
+        .param-finance-card:hover { transform: translateY(-2px); }
+        .param-finance-card.usd-card      { background: linear-gradient(135deg, #3B82F6, #2563eb); }
+        .param-finance-card.paye-card     { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
+        .param-finance-card.credit-card   { background: linear-gradient(135deg, #dc3545, #b02a37); }
+        .param-finance-card.benefice-card { background: linear-gradient(135deg, #198754, #146c43); }
+        .param-statut-card { padding: 16px 20px; border-radius: 14px; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 12px; font-weight: 700; transition: transform 0.2s; }
+        .param-statut-card:hover { transform: translateY(-2px); }
+        .param-statut-card.paid    { background: linear-gradient(135deg, #198754, #146c43); }
+        .param-statut-card.unpaid  { background: linear-gradient(135deg, #dc3545, #b02a37); }
+        .param-statut-card.partiel { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .param-statut-card i { font-size: 2rem; opacity: 0.95; }
+        .param-statut-card .param-statut-txt { display: flex; flex-direction: column; gap: 2px; }
+        .param-statut-card .param-statut-title { font-size: 0.72rem; text-transform: uppercase; opacity: 0.9; letter-spacing: 0.4px; }
+        .param-statut-card .param-statut-value { font-size: 1.3rem; font-weight: 800; }
+        .param-statut-card .param-statut-sub { font-size: 0.78rem; opacity: 0.9; font-weight: 500; }
 
-:root {
-    --bleu-nuit: #0a192f;
-    --bleu-nuit-clair: #112240;
-    --bleu-nuit-gradient: linear-gradient(135deg, #0a192f, #1e3a5f);
-    --bleu-secondaire: #2c5282;
-    --bleu-secondaire-gradient: linear-gradient(135deg, #2c5282, #1a365d);
-    --rouge-gradient: linear-gradient(135deg, #ef4444, #dc2626);
-    --vert-gradient: linear-gradient(135deg, #10b981, #059669);
-    --shadow-premium: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
-    --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --border-radius-xl: 20px;
-    --border-radius-lg: 16px;
-}
+        #paramFactureModal .modal-dialog { max-width: 98vw !important; width: 98vw !important; margin: 1vh auto !important; height: 96vh; }
+        #paramFactureModal .modal-content { height: 96vh; max-height: 96vh; display: flex; flex-direction: column; }
+        #paramFactureModal .modal-body { flex: 1 1 auto; max-height: none !important; overflow: hidden !important; display: flex; flex-direction: column; padding: 0; }
+        #paramFactureModal .tab-content { flex: 1 1 auto; max-height: none !important; overflow-y: auto !important; padding: 1.75rem 2rem !important; }
+        #paramFactureModal .modal-footer { flex-shrink: 0; }
+        #paramFactureModal .modal-body::-webkit-scrollbar, #paramFactureModal .tab-content::-webkit-scrollbar { width: 10px; }
+        #paramFactureModal .modal-body::-webkit-scrollbar-thumb, #paramFactureModal .tab-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        #paramFactureModal .param-info-grid    { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important; }
+        #paramFactureModal .param-finance-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important; }
+        #paramFactureModal .param-totals-grid  { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; }
+        #paramFactureModal #param_articles_table thead th, #paramFactureModal #param_paiements_table thead th { font-size: 0.78rem !important; padding: 12px 10px !important; }
+        #paramFactureModal #param_articles_table tbody td, #paramFactureModal #param_paiements_table tbody td { font-size: 0.82rem !important; padding: 10px 10px !important; }
+        #paramFactureModal .param-inline-input { min-width: 110px !important; height: 38px !important; font-size: 0.85rem !important; }
 
-#bloc_1, #bloc_2, #bloc_3 {
-    background: rgba(255, 255, 255, 0.96);
-    border-radius: var(--border-radius-xl);
-    box-shadow: var(--shadow-premium);
-    padding: 1rem 1.5rem !important;
-    margin-bottom: 1rem;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
+        @media (max-width: 992px) {
+            #paramFactureModal .modal-dialog { max-width: 100vw !important; width: 100vw !important; margin: 0 !important; height: 100vh; }
+            #paramFactureModal .modal-content { height: 100vh; max-height: 100vh; border-radius: 0 !important; }
+            #paramFactureModal .tab-content { padding: 1rem !important; }
+        }
 
-h4 {
-    font-weight: 700; border-left: 6px solid #e31b23;
-    padding-left: 18px; margin-bottom: 16px; margin-top: 0;
-    color: var(--bleu-nuit); display: flex;
-    align-items: center; flex-wrap: wrap; gap: 8px;
-}
-h4 i.zmdi {
-    background: var(--bleu-nuit-gradient);
-    background-clip: text; -webkit-background-clip: text;
-    color: transparent !important;
-}
-h4 .badge-invoice {
-    background: linear-gradient(135deg, #e31b23, #b91c1c);
-    color: white; border-radius: 50px; padding: 4px 12px;
-    font-size: 0.75rem; display: inline-flex;
-    align-items: center; gap: 6px;
-    white-space: nowrap; margin-left: 6px; vertical-align: middle;
-}
+        .param-total-item.total-pa      .param-total-value { color: #6366f1; }
+        .param-total-item.total-pa      .param-total-dot   { background: #6366f1; }
+        .param-total-item.total-brut-pa .param-total-value { color: #6366f1; }
+        .param-total-item.total-brut-pa .param-total-dot   { background: #6366f1; }
+        .param-total-item.total-brut-pv .param-total-value { color: #3B82F6; }
+        .param-total-item.total-brut-pv .param-total-dot   { background: #3B82F6; }
+        #param_articles_table tbody tr:hover, #param_paiements_table tbody tr:hover { background: #e6f0ff !important; }
+        .param-inline-input { width: 100% !important; min-width: 90px; height: 34px !important; font-size: 0.8rem !important; padding: 4px 8px !important; border-radius: 8px !important; text-align: right; font-weight: 600; }
+        .param-inline-input.frais-input { border-color: #f59e0b !important; background: #fffbeb !important; color: #92400e; }
+        .param-inline-input.reduction-input { border-color: #dc2626 !important; background: #fef2f2 !important; color: #991b1b; }
+        .dual-currency b { display: block; font-size: 0.82rem; }
+        .dual-currency small { display: block; font-size: 0.7rem; color: #64748b; font-weight: 500; }
+        .param-totals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 10px; }
+        .param-total-item { background: white; padding: 12px 14px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06); border: 1px solid #eef2f6; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .param-total-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+        .param-total-label { font-size: 0.65rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.4px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .param-total-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+        .param-total-value { font-size: 0.92rem; font-weight: 800; line-height: 1.2; }
+        .param-total-sub { font-size: 0.72rem; font-weight: 600; margin-top: 3px; color: #64748b; line-height: 1.2; }
+        .param-total-item.total-qte   .param-total-value { color: #17a2b8; } .param-total-item.total-qte   .param-total-dot { background: #17a2b8; }
+        .param-total-item.total-pv    .param-total-value { color: #3B82F6; } .param-total-item.total-pv    .param-total-dot { background: #3B82F6; }
+        .param-total-item.total-gen   .param-total-value { color: #0a192f; } .param-total-item.total-gen   .param-total-dot { background: #0a192f; }
+        .param-total-item.total-gen   .param-total-sub   { color: #3B82F6; }
+        .param-total-item.total-frais .param-total-value { color: #f59e0b; } .param-total-item.total-frais .param-total-dot { background: #f59e0b; }
+        .param-total-item.total-frais .param-total-sub   { color: #d97706; }
+        .param-total-item.total-red   .param-total-value { color: #dc2626; } .param-total-item.total-red   .param-total-dot { background: #dc2626; }
+        .param-total-item.total-red   .param-total-sub   { color: #b91c1c; }
+        .param-total-item.total-benef .param-total-value { color: #198754; } .param-total-item.total-benef .param-total-dot { background: #198754; }
+        .param-total-item.total-benef .param-total-sub   { color: #146c43; }
 
-@media (max-width: 480px) {
-    h4 .badge-invoice { font-size: 0.65rem; padding: 2px 10px; margin-left: 0; white-space: normal; word-break: break-word; }
-    h4 { flex-direction: column; align-items: flex-start; gap: 4px; }
-}
+        @media (max-width: 768px) {
+            #paramFactureModal .param-finance-grid { grid-template-columns: repeat(2, 1fr); }
+            #paramFactureModal .param-info-grid    { grid-template-columns: 1fr; }
+            #paramFactureModal .param-nav-tabs .nav-link { padding: 10px 8px; font-size: 0.72rem; }
+            #paramFactureModal .param-statut-card { padding: 12px 14px; }
+            #paramFactureModal .param-statut-card i { font-size: 1.6rem; }
+            #paramFactureModal .param-statut-card .param-statut-value { font-size: 1.1rem; }
+            #paramFactureModal .param-totals-grid { grid-template-columns: repeat(2, 1fr); }
+        }
 
-.table-responsive { overflow-x: auto; overflow-y: visible; border-radius: var(--border-radius-lg); }
-.table {
-    width: 100%; min-width: 800px; background: white;
-    border-collapse: collapse; border-radius: var(--border-radius-lg);
-    overflow: hidden; box-shadow: var(--shadow-light); table-layout: auto;
-}
-.table thead th {
-    background: #E7F5FE !important; color: #0a192f;
-    font-weight: 700; font-size: 0.85rem; text-transform: uppercase;
-    letter-spacing: 0.06em; padding: 14px 12px !important;
-    border-bottom: 2px solid #cbd5e1 !important; border-right: 1px solid #d0e2f2;
-    white-space: normal; word-break: break-word;
-}
-.table tbody tr { transition: all 0.15s ease; border-bottom: 1px solid #e2e8f0; }
-.table tbody tr:nth-child(even) { background-color: #f8fafc; }
-.table tbody tr:nth-child(odd)  { background-color: #ffffff; }
-.table tbody tr:hover { background: #e6f0ff !important; cursor: default; }
-.table tbody td {
-    padding: 10px 12px !important; vertical-align: middle !important;
-    font-weight: 500; font-size: 0.85rem; color: #1e2a3e;
-    word-break: break-word; border-bottom: 1px solid #eef2f6; line-height: 1.4;
-}
-.table tbody td:last-child { text-align: center; vertical-align: middle; }
+        #rapportModal .modal-header { background: linear-gradient(135deg, #ef4444, #dc2626) !important; }
+        #rapportModal #rapport_date_range { width: 100%; height: 38px; border-radius: 14px !important; border: 1px solid #e2e8f0 !important; padding: 8px 12px; font-weight: 500; font-size: 0.85rem; background: #fff; }
+        #rapportModal #rapport_date_range:focus { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important; outline: none; }
+        #rapportModal #rapport_user_filter, #rapportModal #rapport_client_filter { width: 100%; height: 38px; border-radius: 14px !important; border: 1px solid #e2e8f0 !important; padding: 8px 12px; font-weight: 500; font-size: 0.85rem; background: #fff; }
+        #rapportModal #rapport_user_filter:focus, #rapportModal #rapport_client_filter:focus { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important; outline: none; }
+        #rapportModal #rapport_user_filter:disabled { background: #f1f5f9 !important; cursor: not-allowed; opacity: 0.85; }
+        #rapport_table thead th { background: #FEE2E2 !important; color: #7f1d1d; border-bottom: 2px solid #fca5a5 !important; }
+        #rapport_table tbody tr:hover { background: #fef2f2 !important; }
+        #rapport_table tfoot td { background: #f1f5f9; border-top: 2px solid #cbd5e1 !important; font-size: 0.82rem; }
 
-#bloc_1 button, #bloc_2 button, #bloc_3 button,
-.filters-container button, #liste, #add, #add_r, #save, #save_r,
-#annuler, #edit_save, #edit_annuler, #resetFilters,
-.btn-primary, .btn-info, .btn-danger, .btn-secondary {
-    display: inline-flex !important; align-items: center; justify-content: center;
-    gap: 8px; padding: 6px 16px !important; font-weight: 600; font-size: 0.85rem;
-    border-radius: 40px !important; transition: all 0.25s ease;
-    border: none; cursor: pointer; text-decoration: none;
-    box-shadow: var(--shadow-light); white-space: nowrap; line-height: 1.5;
-}
-#liste, #add, #add_r, #rapport { min-width: 130px; justify-content: center; }
+        .modal-dialog { display: flex !important; align-items: center !important; min-height: calc(100vh - 3.5rem) !important; margin: 1.75rem auto !important; }
+        .modal-content { max-height: calc(100vh - 3.5rem) !important; display: flex !important; flex-direction: column !important; overflow: hidden !important; }
+        .modal-header { flex-shrink: 0 !important; }
+        .modal-body { overflow-y: auto; flex: 1 1 auto; -webkit-overflow-scrolling: touch; }
+        .modal-footer { flex-shrink: 0 !important; }
 
-#liste, .btn-primary { background: #3B82F6 !important; color: white !important; }
-#liste:hover, .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3); background: #2563eb !important; }
+        @media (max-width: 768px) {
+            .modal-dialog { min-height: calc(100vh - 1rem) !important; margin: 0.5rem auto !important; }
+            .modal-content { max-height: calc(100vh - 1rem) !important; }
+            #deleteFactureModal .modal-content > div:last-child, #suppression .modal-content > div:last-child, #pret .modal-content > div:last-child, #c_frais .modal-content > div:last-child { flex-shrink: 0 !important; padding: 12px !important; background: white; border-top: 1px solid #eef2f6; }
+        }
+        .daterangepicker { z-index: 10050 !important; }
 
-#add, .btn-info { background: var(--bleu-nuit-gradient) !important; color: white !important; }
-#add:hover, .btn-info:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3); }
+        #qr_btn { display: inline-flex !important; align-items: center; justify-content: center; gap: 8px; padding: 6px 16px !important; font-weight: 600; font-size: 0.85rem; border-radius: 40px !important; transition: all 0.25s ease; border: none; cursor: pointer; text-decoration: none; box-shadow: var(--shadow-light); white-space: nowrap; line-height: 1.5; min-width: 130px; background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; }
+        #qr_btn:hover { transform: translateY(-2px); background: linear-gradient(135deg, #059669, #047857) !important; box-shadow: 0 8px 18px rgba(16, 185, 129, 0.3); }
+        #qr_btn i.zmdi { color: white !important; }
 
-#save, #edit_save { background: var(--bleu-secondaire-gradient) !important; color: white; }
-#save:hover, #edit_save:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3); }
-
-#annuler, #edit_annuler, .btn-danger { background: var(--rouge-gradient) !important; color: white; }
-#annuler:hover, #edit_annuler:hover, .btn-danger:hover { transform: translateY(-2px); background: linear-gradient(135deg, #dc2626, #b91c1c) !important; box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3); }
-
-#resetFilters { background: #64748b !important; color: white !important; }
-#resetFilters:hover { transform: translateY(-2px); background: #475569 !important; box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3); }
-
-#add_r, #save_r, #print_r { background: #cbd5e1 !important; color: #475569 !important; cursor: not-allowed !important; opacity: 0.7; transform: none !important; box-shadow: none !important; }
-
-#print { background: #3B82F6 !important; color: white !important; }
-#print:hover { background: #2563eb !important; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3); }
-
-#rapport { background: var(--rouge-gradient) !important; color: white !important; }
-#rapport:hover { transform: translateY(-2px); background: linear-gradient(135deg, #dc2626, #b91c1c) !important; box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3); }
-
-.filters-container { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; background: white; padding: 0.8rem 1.2rem; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-light); align-items: flex-end; }
-.filter-group { flex: 1; min-width: 150px; }
-.filter-group label { font-weight: 600; margin-bottom: 4px; color: var(--bleu-nuit); font-size: 0.7rem; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
-.filter-group .form-control { height: 36px; }
-
-.invoice-badges-container { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 12px; margin-bottom: 15px; }
-.invoice-count-badge { border-radius: 50px; padding: 4px 12px; font-size: 0.75rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: white; }
-.invoice-count-badge.usd-badge      { background: linear-gradient(135deg, #3B82F6, #2563eb); }
-.invoice-count-badge.cdf-badge      { background: linear-gradient(135deg, #3B82F6, #2563eb); }
-.invoice-count-badge.paye-usd       { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
-.invoice-count-badge.paye-cdf       { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
-.invoice-count-badge.credit-usd     { background: linear-gradient(135deg, #dc3545, #b02a37); }
-.invoice-count-badge.credit-cdf     { background: linear-gradient(135deg, #dc3545, #b02a37); }
-.invoice-count-badge.benefice-usd   { background: linear-gradient(135deg, #198754, #146c43); }
-.invoice-count-badge.benefice-cdf   { background: linear-gradient(135deg, #198754, #146c43); }
-
-#form_add .row, #form_edit .row { display: flex; flex-wrap: wrap; }
-#form_add .col-6, #form_edit .col-6 { margin-bottom: 0.8rem; }
-.form-group { width: 100%; margin-bottom: 0; }
-.form-group label { display: block; font-weight: 700; color: var(--bleu-nuit); margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px; }
-.form-group label i { color: #e31b23; margin-right: 6px; }
-
-.form-control, input.form-control, select.form-control, textarea.form-control, .input-mask {
-    width: 100% !important; background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important; border-radius: 14px !important;
-    padding: 8px 12px !important; font-weight: 500; font-size: 0.85rem;
-    transition: all 0.2s; box-sizing: border-box; height: 38px !important; line-height: 1.4;
-}
-textarea.form-control { resize: vertical; height: 38px !important; }
-.form-control:focus, select.form-control:focus, textarea.form-control:focus { border-color: var(--bleu-nuit) !important; box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important; transform: translateY(-1px); }
-select.form-control { appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>'); background-repeat: no-repeat; background-position: right 14px center; }
-.input-mask { font-family: monospace; background: #fff9ef !important; }
-
-#msg, #edit_msg { display: none !important; visibility: hidden !important; opacity: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; min-height: 0 !important; height: 0 !important; overflow: hidden !important; }
-#msg:not(:empty), #edit_msg:not(:empty) { display: inline-flex !important; visibility: visible !important; opacity: 1 !important; height: auto !important; margin-top: 16px !important; padding: 10px 18px !important; background: white !important; border-radius: 50px !important; box-shadow: var(--shadow-light) !important; gap: 10px; font-weight: 600; font-size: 0.8rem; animation: slideInMsg 0.3s ease-out; }
-#msg:not(:empty):has(i.zmdi-check-circle)  { background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important; color: #065f46; border-left: 4px solid #10b981; }
-#msg:not(:empty):has(i.zmdi-close-circle)  { background: linear-gradient(95deg, #fee2e2, #fecaca) !important; color: #991b1b; border-left: 4px solid #ef4444; }
-#msg:not(:empty):has(i.zmdi-info)          { background: linear-gradient(95deg, #dbeafe, #bfdbfe) !important; color: #1e3a8a; border-left: 4px solid #3b82f6; }
-@keyframes slideInMsg { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-
-.table tbody td a { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50% !important; background: #f1f5f9; transition: all 0.2s ease; text-decoration: none; margin: 0 2px; }
-.table tbody td a i.zmdi { font-size: 1.1rem; margin: 0; }
-.table tbody td a i.zmdi-eye, .table tbody td a i.zmdi-money { color: #2c7da0; }
-.table tbody td a i.zmdi-delete { color: #ef4444; }
-.table tbody td a:hover { background: #e0f2fe; transform: translateY(-2px); }
-.table tbody td a:hover i.zmdi-delete { color: #b91c1c; }
-.table tbody td a:hover i.zmdi-eye, .table tbody td a:hover i.zmdi-money { color: #1e5a7a; }
-.table tbody td a i.zmdi-settings { color: #17a2b8 !important; transition: all 0.2s ease; }
-.table tbody td a:hover i.zmdi-settings { color: #0f6674 !important; }
-
-[style*="background-color: rgba(0, 0, 0, 0.1)"] { background: #eef3fc !important; border-radius: 60px; padding: 10px 24px !important; margin-bottom: 20px; display: flex !important; flex-wrap: wrap; gap: 12px; justify-content: flex-start; }
-
-/* MODALE PDF */
-.modal.fade#pdfModal .modal-dialog { max-width: 100%; width: 60%; margin: 1.75rem auto; }
-.modal.fade#pdfModal .modal-content { border-radius: 20px; border: none; box-shadow: var(--shadow-premium); overflow: hidden; }
-.modal.fade#pdfModal .modal-header { background: var(--bleu-nuit-gradient) !important; border-bottom: none; padding: 1.2rem 1.5rem; }
-.modal.fade#pdfModal .modal-header .modal-title { font-weight: 700; font-size: 1.2rem; color: white; }
-.modal.fade#pdfModal .modal-header .close { color: white; opacity: 0.8; text-shadow: none; }
-.modal.fade#pdfModal .modal-header .close:hover { opacity: 1; }
-.modal.fade#pdfModal .modal-body { padding: 0; background: #f8fafc; }
-.modal.fade#pdfModal .modal-footer { background: white; border-top: 1px solid #eef2f6; padding: 1.2rem 1.5rem; }
-.modal.fade#pdfModal #pdfIframe { width: 100%; height: 50vh; border: none; background: white; }
-.modal.fade#pdfModal #montant_recu, .modal.fade#pdfModal #devise_recu { width: 100%; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 40px !important; padding: 10px 14px; font-weight: 500; font-size: 0.85rem; transition: all 0.2s; height: 44px; box-sizing: border-box; }
-.modal.fade#pdfModal #montant_recu:focus, .modal.fade#pdfModal #devise_recu:focus { border-color: var(--bleu-nuit); box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15); outline: none; }
-.modal.fade#pdfModal #devise_recu { appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>'); background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; }
-.modal.fade#pdfModal #btn_payer { background: linear-gradient(135deg, #10b981, #059669) !important; border: none; border-radius: 40px !important; padding: 10px 24px; font-weight: 700; font-size: 0.85rem; transition: all 0.2s ease; width: 100%; color: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-.modal.fade#pdfModal #btn_payer:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3); }
-.modal.fade#pdfModal #msg_facture { display: inline-block !important; font-weight: 600; font-size: 0.85rem; padding: 10px 18px; border-radius: 50px; background: #f1f5f9; color: #1e2a3e; margin-top: 12px; margin-bottom: 0; text-align: center; animation: fadeInMsg 0.3s ease-out; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); max-width: 100%; word-wrap: break-word; line-height: 1.5; }
-.modal.fade#pdfModal #msg_facture:has(i.zmdi-close-circle), .modal.fade#pdfModal #msg_facture[style*="color: #dc3545"] { background: linear-gradient(95deg, #fee2e2, #fecaca) !important; color: #991b1b !important; border-left: 4px solid #dc2626 !important; }
-.modal.fade#pdfModal #msg_facture:has(i.zmdi-check-circle), .modal.fade#pdfModal #msg_facture[style*="color: #28a745"] { background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important; color: #065f46 !important; border-left: 4px solid #10b981 !important; }
-.modal.fade#pdfModal #msg_facture:has(i.zmdi-alert), .modal.fade#pdfModal #msg_facture[style*="color: #ffc107"] { background: linear-gradient(95deg, #fed7aa, #ffedcc) !important; color: #9b4d00 !important; border-left: 4px solid #f59e0b !important; }
-@keyframes fadeInMsg { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-.modal.fade#pdfModal .btn-secondary { background: #64748b; border: none; border-radius: 40px; padding: 8px 20px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s ease; color: white; }
-.modal.fade#pdfModal .btn-secondary:hover { background: #475569; transform: translateY(-2px); }
-.modal.fade#pdfModal hr { margin: 15px 0; border: 0; border-top: 1px solid #eef2f6; }
-
-/* BLOCS FORM */
-#bloc_t { display: flex; flex-wrap: wrap; align-items: stretch; gap: 20px; width: 100%; margin: 0; }
-#bloc_2, #bloc_3 { flex: 1 1 calc(50% - 20px); min-width: 280px; margin: 0 !important; }
-@media (max-width: 768px) { #bloc_t { flex-direction: column; gap: 20px; align-items: center; } #bloc_2, #bloc_3 { flex: 1 1 100%; width: 100%; min-width: auto; } }
-@media (max-width: 992px) { .content .container { padding: 0.5rem 1rem !important; } #bloc_1, #bloc_2, #bloc_3 { padding: 1rem !important; } }
-@media (max-width: 768px) {
-    .content .container { padding: 0.4rem 0.6rem !important; }
-    #bloc_1, #bloc_2, #bloc_3 { padding: 0.8rem !important; }
-    #liste, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters, .btn-primary, .btn-info, .btn-danger { padding: 4px 12px !important; font-size: 0.7rem; }
-    #liste, #add, #add_r, #rapport { min-width: 90px; flex: 1 1 auto; justify-content: center; }
-    .filters-container { flex-direction: column; gap: 8px; padding: 0.6rem 0.8rem; margin-bottom: 12px; }
-    .filter-group { width: 100%; min-width: 100%; }
-    .filter-group .form-control { height: 34px !important; }
-    .invoice-badges-container { justify-content: flex-start; gap: 6px 8px; }
-    .invoice-count-badge { font-size: 0.65rem; padding: 3px 10px; }
-    .table thead th { font-size: 0.72rem; padding: 10px 6px !important; letter-spacing: 0.05em; }
-    .table tbody td { padding: 8px 10px !important; font-size: 0.75rem; line-height: 1.3; }
-    #form_add .col-6, #form_edit .col-6 { flex: 0 0 100%; max-width: 100%; }
-    .form-group label { font-size: 0.65rem; }
-    .form-control, input.form-control, select.form-control, textarea.form-control { height: 34px !important; font-size: 0.75rem; }
-    .modal.fade#pdfModal .modal-dialog { width: 95%; margin: 1rem auto; }
-    .modal.fade#pdfModal #pdfIframe { height: 40vh; }
-    .modal.fade#pdfModal #boite_de_control .col-lg-4 { margin-bottom: 10px; }
-    .modal.fade#pdfModal #btn_payer { width: 100%; }
-    .modal.fade#pdfModal .modal-footer { padding: 1rem; }
-    .modal.fade#pdfModal #montant_recu, .modal.fade#pdfModal #devise_recu { height: 40px; font-size: 0.8rem; }
-    .modal.fade#pdfModal #msg_facture { font-size: 0.75rem; padding: 8px 14px; }
-    [style*="background-color: rgba(0, 0, 0, 0.1)"] { justify-content: center; gap: 8px; }
-}
-.badge-invoice i.zmdi { color: white !important; }
-@media (max-width: 480px) {
-    .content .container { padding: 0.3rem !important; }
-    #bloc_1, #bloc_2, #bloc_3 { padding: 0.6rem !important; }
-    h4 { font-size: 1.1rem; margin-bottom: 12px; }
-    h4 i { font-size: 24px !important; }
-    #liste, #add, #save, #edit_save, #annuler, #edit_annuler, #resetFilters { padding: 3px 8px !important; font-size: 0.65rem; }
-    .table thead th { font-size: 0.62rem; padding: 8px 4px !important; }
-    .table tbody td { padding: 6px 8px !important; font-size: 0.7rem; line-height: 1.2; }
-    .modal.fade#pdfModal .modal-header { padding: 0.8rem 1rem; }
-    .modal.fade#pdfModal .modal-header .modal-title { font-size: 1rem; }
-    .modal.fade#pdfModal #pdfIframe { height: 35vh; }
-    .modal.fade#pdfModal #btn_payer { padding: 8px 16px; font-size: 0.75rem; }
-    .modal.fade#pdfModal .btn-secondary { padding: 6px 16px; font-size: 0.7rem; }
-    .modal.fade#pdfModal #msg_facture { font-size: 0.7rem; padding: 6px 12px; }
-    #liste, #add, #add_r, #rapport { min-width: 70px; flex: 1 1 auto; justify-content: center; padding: 4px 6px !important; font-size: 0.65rem !important; }
-}
-
-.select2-container--bootstrap .select2-selection { height: 38px !important; border-radius: 14px !important; border: 1px solid #e2e8f0 !important; background: #ffffff !important; box-shadow: none !important; font-weight: 500; font-size: 0.85rem; padding: 0 12px; }
-.select2-container--bootstrap .select2-selection__arrow { height: 38px !important; }
-.select2-container--bootstrap .select2-selection__rendered { line-height: 38px !important; padding-left: 0; color: #1e2a3e; }
-.select2-container--bootstrap .select2-selection__placeholder { color: #6c757d; }
-.select2-dropdown { border-radius: 14px !important; border: 1px solid #e2e8f0 !important; box-shadow: var(--shadow-light); }
-.select2-results__option { padding: 8px 12px; font-size: 0.85rem; }
-.select2-results__option--highlighted { background: #e6f0ff !important; color: #0a192f !important; }
-.select2-container--bootstrap .select2-results__options { max-height: 200px !important; overflow-y: auto !important; }
-
-/* MODALE PARAMÈTRES FACTURE */
-.param-nav-tabs .nav-link { border: none; color: #64748b; font-weight: 600; font-size: 0.9rem; padding: 16px 20px; border-bottom: 3px solid transparent; transition: all 0.2s; background: transparent; }
-.param-nav-tabs .nav-link i { margin-right: 6px; }
-.param-nav-tabs .nav-link:hover { color: #0a192f; border-bottom-color: #cbd5e1; }
-.param-nav-tabs .nav-link.active { color: #17a2b8; border-bottom-color: #17a2b8; background: transparent; }
-.param-section-title { font-weight: 700; color: #0a192f; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; padding-left: 12px; border-left: 4px solid #17a2b8; margin-bottom: 16px; }
-.param-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
-.param-info-item { background: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 3px; }
-.param-info-label { font-size: 0.72rem; color: #64748b; text-transform: uppercase; font-weight: 600; letter-spacing: 0.3px; }
-.param-info-label i { color: #17a2b8; margin-right: 4px; }
-.param-info-value { font-size: 0.92rem; color: #0a192f; font-weight: 700; }
-.param-finance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
-.param-finance-card { padding: 14px 16px; border-radius: 14px; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.12); transition: transform 0.2s; }
-.param-finance-card:hover { transform: translateY(-2px); }
-.param-finance-card.usd-card      { background: linear-gradient(135deg, #3B82F6, #2563eb); }
-.param-finance-card.paye-card     { background: linear-gradient(135deg, #0a192f, #1e3a5f); }
-.param-finance-card.credit-card   { background: linear-gradient(135deg, #dc3545, #b02a37); }
-.param-finance-card.benefice-card { background: linear-gradient(135deg, #198754, #146c43); }
-.param-statut-card { padding: 16px 20px; border-radius: 14px; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 12px; font-weight: 700; transition: transform 0.2s; }
-.param-statut-card:hover { transform: translateY(-2px); }
-.param-statut-card.paid    { background: linear-gradient(135deg, #198754, #146c43); }
-.param-statut-card.unpaid  { background: linear-gradient(135deg, #dc3545, #b02a37); }
-.param-statut-card.partiel { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.param-statut-card i { font-size: 2rem; opacity: 0.95; }
-.param-statut-card .param-statut-txt { display: flex; flex-direction: column; gap: 2px; }
-.param-statut-card .param-statut-title { font-size: 0.72rem; text-transform: uppercase; opacity: 0.9; letter-spacing: 0.4px; }
-.param-statut-card .param-statut-value { font-size: 1.3rem; font-weight: 800; }
-.param-statut-card .param-statut-sub { font-size: 0.78rem; opacity: 0.9; font-weight: 500; }
-
-#paramFactureModal .modal-dialog { max-width: 98vw !important; width: 98vw !important; margin: 1vh auto !important; height: 96vh; }
-#paramFactureModal .modal-content { height: 96vh; max-height: 96vh; display: flex; flex-direction: column; }
-#paramFactureModal .modal-body { flex: 1 1 auto; max-height: none !important; overflow: hidden !important; display: flex; flex-direction: column; padding: 0; }
-#paramFactureModal .tab-content { flex: 1 1 auto; max-height: none !important; overflow-y: auto !important; padding: 1.75rem 2rem !important; }
-#paramFactureModal .modal-footer { flex-shrink: 0; }
-#paramFactureModal .modal-body::-webkit-scrollbar, #paramFactureModal .tab-content::-webkit-scrollbar { width: 10px; }
-#paramFactureModal .modal-body::-webkit-scrollbar-thumb, #paramFactureModal .tab-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-#paramFactureModal .param-info-grid    { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important; }
-#paramFactureModal .param-finance-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important; }
-#paramFactureModal .param-totals-grid  { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; }
-#paramFactureModal #param_articles_table thead th, #paramFactureModal #param_paiements_table thead th { font-size: 0.78rem !important; padding: 12px 10px !important; }
-#paramFactureModal #param_articles_table tbody td, #paramFactureModal #param_paiements_table tbody td { font-size: 0.82rem !important; padding: 10px 10px !important; }
-#paramFactureModal .param-inline-input { min-width: 110px !important; height: 38px !important; font-size: 0.85rem !important; }
-
-@media (max-width: 992px) {
-    #paramFactureModal .modal-dialog { max-width: 100vw !important; width: 100vw !important; margin: 0 !important; height: 100vh; }
-    #paramFactureModal .modal-content { height: 100vh; max-height: 100vh; border-radius: 0 !important; }
-    #paramFactureModal .tab-content { padding: 1rem !important; }
-}
-
-.param-total-item.total-pa      .param-total-value { color: #6366f1; }
-.param-total-item.total-pa      .param-total-dot   { background: #6366f1; }
-.param-total-item.total-brut-pa .param-total-value { color: #6366f1; }
-.param-total-item.total-brut-pa .param-total-dot   { background: #6366f1; }
-.param-total-item.total-brut-pv .param-total-value { color: #3B82F6; }
-.param-total-item.total-brut-pv .param-total-dot   { background: #3B82F6; }
-#param_articles_table tbody tr:hover, #param_paiements_table tbody tr:hover { background: #e6f0ff !important; }
-.param-inline-input { width: 100% !important; min-width: 90px; height: 34px !important; font-size: 0.8rem !important; padding: 4px 8px !important; border-radius: 8px !important; text-align: right; font-weight: 600; }
-.param-inline-input.frais-input { border-color: #f59e0b !important; background: #fffbeb !important; color: #92400e; }
-.param-inline-input.reduction-input { border-color: #dc2626 !important; background: #fef2f2 !important; color: #991b1b; }
-.dual-currency b { display: block; font-size: 0.82rem; }
-.dual-currency small { display: block; font-size: 0.7rem; color: #64748b; font-weight: 500; }
-.param-totals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 10px; }
-.param-total-item { background: white; padding: 12px 14px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06); border: 1px solid #eef2f6; transition: transform 0.15s ease, box-shadow 0.15s ease; }
-.param-total-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
-.param-total-label { font-size: 0.65rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.4px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-.param-total-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-.param-total-value { font-size: 0.92rem; font-weight: 800; line-height: 1.2; }
-.param-total-sub { font-size: 0.72rem; font-weight: 600; margin-top: 3px; color: #64748b; line-height: 1.2; }
-.param-total-item.total-qte   .param-total-value { color: #17a2b8; } .param-total-item.total-qte   .param-total-dot { background: #17a2b8; }
-.param-total-item.total-pv    .param-total-value { color: #3B82F6; } .param-total-item.total-pv    .param-total-dot { background: #3B82F6; }
-.param-total-item.total-gen   .param-total-value { color: #0a192f; } .param-total-item.total-gen   .param-total-dot { background: #0a192f; }
-.param-total-item.total-gen   .param-total-sub   { color: #3B82F6; }
-.param-total-item.total-frais .param-total-value { color: #f59e0b; } .param-total-item.total-frais .param-total-dot { background: #f59e0b; }
-.param-total-item.total-frais .param-total-sub   { color: #d97706; }
-.param-total-item.total-red   .param-total-value { color: #dc2626; } .param-total-item.total-red   .param-total-dot { background: #dc2626; }
-.param-total-item.total-red   .param-total-sub   { color: #b91c1c; }
-.param-total-item.total-benef .param-total-value { color: #198754; } .param-total-item.total-benef .param-total-dot { background: #198754; }
-.param-total-item.total-benef .param-total-sub   { color: #146c43; }
-
-@media (max-width: 768px) {
-    #paramFactureModal .param-finance-grid { grid-template-columns: repeat(2, 1fr); }
-    #paramFactureModal .param-info-grid    { grid-template-columns: 1fr; }
-    #paramFactureModal .param-nav-tabs .nav-link { padding: 10px 8px; font-size: 0.72rem; }
-    #paramFactureModal .param-statut-card { padding: 12px 14px; }
-    #paramFactureModal .param-statut-card i { font-size: 1.6rem; }
-    #paramFactureModal .param-statut-card .param-statut-value { font-size: 1.1rem; }
-    #paramFactureModal .param-totals-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-/* MODALE RAPPORT */
-#rapportModal .modal-header { background: linear-gradient(135deg, #ef4444, #dc2626) !important; }
-#rapportModal #rapport_date_range { width: 100%; height: 38px; border-radius: 14px !important; border: 1px solid #e2e8f0 !important; padding: 8px 12px; font-weight: 500; font-size: 0.85rem; background: #fff; }
-#rapportModal #rapport_date_range:focus { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important; outline: none; }
-#rapportModal #rapport_user_filter, #rapportModal #rapport_client_filter { width: 100%; height: 38px; border-radius: 14px !important; border: 1px solid #e2e8f0 !important; padding: 8px 12px; font-weight: 500; font-size: 0.85rem; background: #fff; }
-#rapportModal #rapport_user_filter:focus, #rapportModal #rapport_client_filter:focus { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important; outline: none; }
-#rapportModal #rapport_user_filter:disabled { background: #f1f5f9 !important; cursor: not-allowed; opacity: 0.85; }
-#rapport_table thead th { background: #FEE2E2 !important; color: #7f1d1d; border-bottom: 2px solid #fca5a5 !important; }
-#rapport_table tbody tr:hover { background: #fef2f2 !important; }
-#rapport_table tfoot td { background: #f1f5f9; border-top: 2px solid #cbd5e1 !important; font-size: 0.82rem; }
-
-/* TOUTES LES MODALES */
-.modal-dialog { display: flex !important; align-items: center !important; min-height: calc(100vh - 3.5rem) !important; margin: 1.75rem auto !important; }
-.modal-content { max-height: calc(100vh - 3.5rem) !important; display: flex !important; flex-direction: column !important; overflow: hidden !important; }
-.modal-header { flex-shrink: 0 !important; }
-.modal-body { overflow-y: auto; flex: 1 1 auto; -webkit-overflow-scrolling: touch; }
-.modal-footer { flex-shrink: 0 !important; }
-
-@media (max-width: 768px) {
-    .modal-dialog { min-height: calc(100vh - 1rem) !important; margin: 0.5rem auto !important; }
-    .modal-content { max-height: calc(100vh - 1rem) !important; }
-    #deleteFactureModal .modal-content > div:last-child, #suppression .modal-content > div:last-child, #pret .modal-content > div:last-child, #c_frais .modal-content > div:last-child { flex-shrink: 0 !important; padding: 12px !important; background: white; border-top: 1px solid #eef2f6; }
-}
-.daterangepicker { z-index: 10050 !important; }
-
-/* BOUTON QR CODE */
-#qr_btn { display: inline-flex !important; align-items: center; justify-content: center; gap: 8px; padding: 6px 16px !important; font-weight: 600; font-size: 0.85rem; border-radius: 40px !important; transition: all 0.25s ease; border: none; cursor: pointer; text-decoration: none; box-shadow: var(--shadow-light); white-space: nowrap; line-height: 1.5; min-width: 130px; background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; }
-#qr_btn:hover { transform: translateY(-2px); background: linear-gradient(135deg, #059669, #047857) !important; box-shadow: 0 8px 18px rgba(16, 185, 129, 0.3); }
-#qr_btn i.zmdi { color: white !important; }
-@media (max-width: 768px) { #qr_btn { padding: 4px 12px !important; font-size: 0.7rem; min-width: 90px; flex: 1 1 auto; } }
-@media (max-width: 480px) { #qr_btn { padding: 4px 6px !important; font-size: 0.65rem !important; min-width: 70px; flex: 1 1 auto; } }
-
-/* MODALE QR CODE */
-.modal.fade#qrModal .modal-dialog { max-width: 100%; width: 60%; margin: 1.75rem auto; }
-.modal.fade#qrModal .modal-content { border-radius: 20px; border: none; box-shadow: var(--shadow-premium); overflow: hidden; }
-.modal.fade#qrModal .modal-header { background: linear-gradient(135deg, #10b981, #059669) !important; border-bottom: none; padding: 1.2rem 1.5rem; }
-.modal.fade#qrModal .modal-header .modal-title { font-weight: 700; font-size: 1.2rem; color: white; }
-.modal.fade#qrModal .modal-header .close { color: white; opacity: 0.8; text-shadow: none; }
-.modal.fade#qrModal .modal-header .close:hover { opacity: 1; }
-.modal.fade#qrModal .modal-body { padding: 0; background: #f8fafc; }
-.modal.fade#qrModal .modal-footer { background: white; border-top: 1px solid #eef2f6; padding: 1.2rem 1.5rem; }
-.modal.fade#qrModal #qrIframe { width: 100%; height: 60vh; border: none; background: white; }
-.modal.fade#qrModal .btn-secondary { background: #64748b; border: none; border-radius: 40px; padding: 8px 20px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s ease; color: white; }
-.modal.fade#qrModal .btn-secondary:hover { background: #475569; transform: translateY(-2px); }
-@media (max-width: 768px) { .modal.fade#qrModal .modal-dialog { width: 95%; margin: 1rem auto; } .modal.fade#qrModal #qrIframe { height: 45vh; } .modal.fade#qrModal .modal-footer { padding: 1rem; } }
-@media (max-width: 480px) { .modal.fade#qrModal .modal-header { padding: 0.8rem 1rem; } .modal.fade#qrModal .modal-header .modal-title { font-size: 1rem; } .modal.fade#qrModal #qrIframe { height: 40vh; } }
+        .modal.fade#qrModal .modal-dialog { max-width: 100%; width: 60%; margin: 1.75rem auto; }
+        .modal.fade#qrModal .modal-content { border-radius: 20px; border: none; box-shadow: var(--shadow-premium); overflow: hidden; }
+        .modal.fade#qrModal .modal-header { background: linear-gradient(135deg, #10b981, #059669) !important; border-bottom: none; padding: 1.2rem 1.5rem; }
+        .modal.fade#qrModal .modal-header .modal-title { font-weight: 700; font-size: 1.2rem; color: white; }
+        .modal.fade#qrModal .modal-header .close { color: white; opacity: 0.8; text-shadow: none; }
+        .modal.fade#qrModal .modal-header .close:hover { opacity: 1; }
+        .modal.fade#qrModal .modal-body { padding: 0; background: #f8fafc; }
+        .modal.fade#qrModal .modal-footer { background: white; border-top: 1px solid #eef2f6; padding: 1.2rem 1.5rem; }
+        .modal.fade#qrModal #qrIframe { width: 100%; height: 60vh; border: none; background: white; }
+        .modal.fade#qrModal .btn-secondary { background: #64748b; border: none; border-radius: 40px; padding: 8px 20px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s ease; color: white; }
+        .modal.fade#qrModal .btn-secondary:hover { background: #475569; transform: translateY(-2px); }
+        @media (max-width: 768px) { .modal.fade#qrModal .modal-dialog { width: 95%; margin: 1rem auto; } .modal.fade#qrModal #qrIframe { height: 45vh; } .modal.fade#qrModal .modal-footer { padding: 1rem; } }
+        @media (max-width: 480px) { .modal.fade#qrModal .modal-header { padding: 0.8rem 1rem; } .modal.fade#qrModal .modal-header .modal-title { font-size: 1rem; } .modal.fade#qrModal #qrIframe { height: 40vh; } }
     </style>
 
     <section class="content">
@@ -423,20 +295,15 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                         <div class="container">
                             <div class="row">
                                 <div class="col-12" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                                    <a class="btn-primary btn-sm" id="liste" href=""><i class="zmdi zmdi-email-open"></i> Liste</a>
-                                    <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
-                                    <?php
-                                    $add = 0;
-                                    if (Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()->count() != 0) {
-                                        $add = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->add;
-                                    }
-                                    ?>
-                                    <?php if ((($add == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($add == 0) && (Auth::user()->role == 0))) { ?>
-                                    <a class="btn-primary btn-sm" id="add" href=""><i class="zmdi zmdi-email"></i> Ajouter</a>
-                                    <?php } else { ?>
-                                    <a class="btn-primary btn-sm" id="add_r" href=""><i class="zmdi zmdi-accounts-add"></i> Ajouter</a>
-                                    <?php } ?>
-                                    <?php } ?>
+                                    <a class="btn-primary btn-sm" id="liste" href="#"><i class="zmdi zmdi-email-open"></i> Liste</a>
+                                    @if (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0 || Auth::user()->role == 0)
+                                        @php $add = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->add ?? 0; @endphp
+                                        @if ((($add == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($add == 0) && (Auth::user()->role == 0)))
+                                            <a class="btn-primary btn-sm" id="add" href="#"><i class="zmdi zmdi-email"></i> Ajouter</a>
+                                        @else
+                                            <a class="btn-primary btn-sm" id="add_r" href="#"><i class="zmdi zmdi-accounts-add"></i> Ajouter</a>
+                                        @endif
+                                    @endif
                                     <a class="btn-danger btn-sm" id="rapport" href="#"><i class="zmdi zmdi-chart"></i> Rapport</a>
                                     <a class="btn-sm" id="qr_btn" href="#"><i class="fas fa-hand-holding-usd"></i> Payer</a>
                                 </div>
@@ -515,7 +382,7 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                     <div id="content_utilisateur" class="row">
                         <div class="col-12">
                             <div class="table-responsive">
-                                <table class="table table-bordered mb-0">
+                                <table class="table table-bordered mb-0" id="factures-table">
                                     <thead>
                                         <tr>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">N° Facture</th>
@@ -530,361 +397,12 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        {{ !($i = 1) }}
-                                        @foreach ($factures as $data)
-                                            @php
-                                                $taux = $data->taux;
-                                                if ($taux <= 0) $taux = 1;
-
-                                                $ent = Achats::where('facture_id', $data->id)->get();
-
-                                                $total_original = 0;
-                                                foreach ($ent as $e) {
-                                                    $devise_achat_orig = $e->devise_achat ?? $data->devise;
-                                                    $reduction_orig = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
-                                                    $net_orig = $e->total - $reduction_orig;
-                                                    if ($net_orig < 0) $net_orig = 0;
-                                                    if ($devise_achat_orig == $data->devise) { $total_original += $net_orig; }
-                                                    elseif ($data->devise == 0) { $total_original += ($taux > 0) ? ($net_orig / $taux) : 0; }
-                                                    else { $total_original += $net_orig * $taux; }
-                                                }
-
-                                                $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
-                                                $montant_usd_paye = 0;
-                                                $montant_cdf_paye = 0;
-                                                foreach ($paiements as $paiement) {
-                                                    if ($paiement->devise_recu == 0) {
-                                                        $montant_usd_paye += $paiement->montant_recu;
-                                                        $montant_cdf_paye += $paiement->montant_recu * $taux;
-                                                    } else {
-                                                        $montant_cdf_paye += $paiement->montant_recu;
-                                                        $montant_usd_paye += $paiement->montant_recu / $taux;
-                                                    }
-                                                }
-
-                                                if ($data->devise == 0) {
-                                                    $total_original_usd = $total_original;
-                                                    $total_original_cdf = $total_original * $taux;
-                                                } else {
-                                                    $total_original_cdf = $total_original;
-                                                    $total_original_usd = $total_original / $taux;
-                                                }
-
-                                                $est_impayee = ($montant_usd_paye < $total_original_usd) || ($montant_cdf_paye < $total_original_cdf);
-                                                $date_creation_facture = strtotime($data->created_at);
-                                                $delai_1h = 3600;
-                                                $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
-
-                                                $ratio_impaye_facture = 1;
-                                                if ($total_original_usd > 0) {
-                                                    $reste_global_usd = $total_original_usd - $montant_usd_paye;
-                                                    if ($reste_global_usd < 0) $reste_global_usd = 0;
-                                                    $ratio_impaye_facture = $reste_global_usd / $total_original_usd;
-                                                }
-
-                                                foreach ($ent as $e) {
-                                                    if (($e->frais_credit == 0 || $e->frais_credit === null) && $est_impayee && $delai_depasse && $ratio_impaye_facture > 0) {
-                                                        $reduction_ligne = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
-                                                        $net_apres_reduction = $e->total - $reduction_ligne;
-                                                        if ($net_apres_reduction < 0) $net_apres_reduction = 0;
-                                                        $frais = $net_apres_reduction * 0.05 * $ratio_impaye_facture;
-                                                        $e->frais_credit = $frais;
-                                                        $e->save();
-                                                    }
-                                                }
-
-                                                $total = 0;
-                                                $achat_total_usd = 0;
-                                                $achat_total_cdf = 0;
-                                                foreach ($ent as $e) {
-                                                    $total += $e->total + ($e->frais_credit ?? 0) - ($e->reduction ?? 0);
-                                                    $prix_achat = $e->prix_achat ?? 0;
-                                                    $quantite = $e->quantite ?? 1;
-                                                    $prix_achat_total = $prix_achat * $quantite;
-                                                    $devise_achat = $e->devise_achat ?? $data->devise;
-                                                    if ($devise_achat == 0) { $achat_total_usd += $prix_achat_total; $achat_total_cdf += $prix_achat_total * $taux; }
-                                                    else { $achat_total_cdf += $prix_achat_total; $achat_total_usd += $prix_achat_total / $taux; }
-                                                }
-
-                                                if ($data->devise == 0) {
-                                                    $montant_usd = $total;
-                                                    $montant_cdf = $total * $taux;
-                                                    $montant_affichage = number_format($total, 2, ',', ' ') . ' USD (' . number_format($montant_cdf, 2, ',', ' ') . ' CDF)';
-                                                } else {
-                                                    $montant_cdf = $total;
-                                                    $montant_usd = $total / $taux;
-                                                    $montant_affichage = number_format($total, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
-                                                }
-
-                                                $benefice_usd = $montant_usd - $achat_total_usd;
-                                                $benefice_cdf = $montant_cdf - $achat_total_cdf;
-                                                $reste_usd = $montant_usd - $montant_usd_paye;
-                                                $reste_cdf = $montant_cdf - $montant_cdf_paye;
-                                                $paye_affichage = number_format($montant_usd_paye, 2, ',', ' ') . ' USD (' . number_format($montant_cdf_paye, 2, ',', ' ') . ' CDF)';
-                                                $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
-                                                $statut_text = $reste_usd > 0 ? 'Impayé' : 'Payé';
-                                                $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
-
-                                                if ($reste_usd <= 0) { $statut_code = 'paid'; }
-                                                elseif ($montant_usd_paye > 0) { $statut_code = 'partiel'; }
-                                                else { $statut_code = 'unpaid'; }
-
-                                                $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
-
-                                                // ✅ NOUVEAU — Nom du créateur de la facture (factures.user_id)
-                                                $facture_user_nom = User::where('id', $data->user_id)->first()['name'] ?? 'N/A';
-
-                                                $articles_json = [];
-                                                foreach ($ent as $e) {
-                                                    $art = null;
-                                                    foreach (['article_id', 'entre_id', 'entree_id', 'produit_id', 'id_article'] as $field) {
-                                                        if (isset($e->$field) && $e->$field) {
-                                                            $art = $articles->firstWhere('id', $e->$field);
-                                                            if ($art) break;
-                                                        }
-                                                    }
-                                                    $nom_article_aff = $art->nom_article ?? $e->nom_article ?? $e->nom ?? $art->name ?? ('Article #' . $e->id);
-                                                    $pa = $e->prix_achat ?? 0;
-                                                    $qt = $e->quantite ?? 1;
-                                                    $prix_unit = $e->prix_vente ?? ($art->prix_detail ?? null) ?? ($qt > 0 ? ($e->total / $qt) : $e->total);
-                                                    $devise_achat_json = $e->devise_achat ?? $data->devise;
-                                                    $reduction_ligne   = $e->reduction ?? 0;
-                                                    $articles_json[] = [
-                                                        'id' => $e->id,
-                                                        'nom' => $nom_article_aff,
-                                                        'quantite' => $qt,
-                                                        'prix_unitaire' => $prix_unit,
-                                                        'prix_achat' => $pa,
-                                                        'prix_achat_total' => $pa * $qt,
-                                                        'total' => $e->total,
-                                                        'total_net' => $e->total - $reduction_ligne,
-                                                        'frais_credit' => $e->frais_credit ?? 0,
-                                                        'reduction' => $reduction_ligne,
-                                                        'devise_achat' => $devise_achat_json,
-                                                    ];
-                                                }
-
-                                                // ✅ MODIFIÉ — Utilisateur du PAIEMENT (detailpaiessachats.user_id)
-                                                // C'est la personne qui a ENREGISTRÉ le paiement, pas celle qui a créé la facture.
-                                                // Si user_id est null (anciens paiements), fallback sur le créateur de la facture.
-                                                $paiements_json = [];
-                                                foreach ($paiements as $p) {
-                                                    $isUSD = ($p->devise_recu == 0);
-
-                                                    $payeur_id = $p->user_id ?? null;
-                                                    $payeur_source = 'paiement';
-
-                                                    if (empty($payeur_id)) {
-                                                        $payeur_id = $data->user_id ?? null;
-                                                        $payeur_source = 'facture';
-                                                    }
-
-                                                    $payeur_nom = 'N/A';
-                                                    if (!empty($payeur_id)) {
-                                                        $u = User::where('id', $payeur_id)->first();
-                                                        if ($u) $payeur_nom = $u->name;
-                                                    }
-
-                                                    $paiements_json[] = [
-                                                        'id' => $p->id,
-                                                        'date' => date('d/m/Y à H:i', strtotime($p->created_at)),
-                                                        'payer' => $p->payer,
-                                                        'payer_nom' => $payeur_nom,
-                                                        'payer_id' => $payeur_id,
-                                                        'payer_source' => $payeur_source,
-                                                        'montant_recu' => $p->montant_recu,
-                                                        'devise_label' => $isUSD ? 'USD' : 'CDF',
-                                                        'mode_de_paiement' => $p->mode_de_paiement,
-                                                        'mode_label' => $modeLabels[$p->mode_de_paiement] ?? 'N/A',
-                                                        'taux' => $p->taux,
-                                                        'reste' => $p->reste,
-                                                        'montant_effectif' => $p->montant_effectif,
-                                                    ];
-                                                }
-
-                                                $frais_credit_total = 0;
-                                                foreach ($ent as $e) { $frais_credit_total += ($e->frais_credit ?? 0); }
-
-                                                $statut_html = $reste_usd > 0
-                                                    ? '<span class="text-danger"><i class="zmdi zmdi-close-circle"></i> Impayé</span>'
-                                                    : '<span class="text-success"><i class="zmdi zmdi-check-circle"></i> Payé</span>';
-
-                                                $mode_paiement_label = $modeLabels[$data->mode_de_paiement] ?? 'N/A';
-                                            @endphp
-                                            <tr id="row_{{ $data->id }}"
-                                                data-facture-id="{{ $data->id }}"
-                                                data-numero="{{ $data->numero }}"
-                                                data-client="{{ $client_name }}"
-                                                data-client-id="{{ $data->client_id }}"
-                                                data-user="{{ $facture_user_nom }}"
-                                                data-user-id="{{ $data->user_id }}"
-                                                data-table="{{ $data->table_id == 0 ? 'Aucune' : (Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A') }}"
-                                                data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
-                                                data-devise="{{ $data->devise }}"
-                                                data-devise-label="{{ $data->devise == 0 ? 'USD' : 'CDF' }}"
-                                                data-taux="{{ $taux }}"
-                                                data-mode-paiement="{{ $mode_paiement_label }}"
-                                                data-statut-html="{{ $statut_html }}"
-                                                data-montant-usd="{{ $montant_usd }}"
-                                                data-montant-cdf="{{ $montant_cdf }}"
-                                                data-paye-usd="{{ $montant_usd_paye }}"
-                                                data-paye-cdf="{{ $montant_cdf_paye }}"
-                                                data-credit-usd="{{ $reste_usd }}"
-                                                data-credit-cdf="{{ $reste_cdf }}"
-                                                data-benefice-usd="{{ $benefice_usd }}"
-                                                data-benefice-cdf="{{ $benefice_cdf }}"
-                                                data-frais-credit-total="{{ $frais_credit_total }}"
-                                                data-pdf-url="{{ $data->lien ?? '' }}"
-                                                data-articles='@json($articles_json)'
-                                                data-paiements='@json($paiements_json)'>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell" data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ $facture_user_nom }}">
-                                                    {{ $facture_user_nom }}
-                                                </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="client-cell" data-client="{{ $client_name }}">
-                                                    @if ($data->client_id == 0)
-                                                        {{ $data->libelle }}
-                                                    @else
-                                                        {{ Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' }}
-                                                    @endif
-                                                </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="table-cell" data-table="{{ $data->table_id == 0 ? 'Aucune' : (Tables::where('id', $data->table_id)->first()['nom'] ?? 'N/A') }}">
-                                                    @if ($data->table_id == 0)
-                                                        Aucune
-                                                    @else
-                                                        <?php $table = Tables::where('id', $data->table_id)->first() ?? 'N/A' ?>
-                                                        @if ($table->occupee == 1)
-                                                            <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger"> {{ $table->nom }}</span>
-                                                        @endif
-                                                        @if ($table->occupee == 0)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success"> {{ $table->nom }}</span>
-                                                        @endif
-                                                    @endif
-                                                </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="{{ $total }}">{{ $montant_affichage }}</td>
-                                                <td class="paye-cell {{ $reste_usd > 0 ? 'text-danger' : 'text-success' }}">{{ $paye_affichage }}</td>
-                                                <td class="reste-cell {{ $reste_usd > 0 ? 'text-danger' : 'text-success' }}">{{ $reste_affichage }}</td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell" data-date="{{ $data->created_at }}">
-                                                    @php
-                                                        $date = $data->created_at;
-                                                        $date_1 = explode(' ', $date);
-                                                        echo explode('-', $date_1[0])[2] . '/' . explode('-', $date_1[0])[1] . '/' . explode('-', $date_1[0])[0] . ' à ' . $date_1[1];
-                                                    @endphp
-                                                </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="statut-cell" data-statut="{{ $reste_usd > 0 ? ($montant_usd_paye > 0 ? 'partiel' : 'unpaid') : 'paid' }}">
-                                                    @if ($reste_usd > 0)
-                                                        @if ($montant_usd_paye > 0)
-                                                            <i class="zmdi zmdi-time text-warning"></i> <span class="text-warning">Partiel</span>
-                                                        @else
-                                                            <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">Impayé</span>
-                                                        @endif
-                                                    @else
-                                                        @if ($data->mode_de_paiement == 1)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">CASH</span>
-                                                        @elseif ($data->mode_de_paiement == 2)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Mobile money</span>
-                                                        @elseif ($data->mode_de_paiement == 3)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Bank</span>
-                                                        @else
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Payé</span>
-                                                        @endif
-                                                    @endif
-                                                </td>
-                                                <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
-                                                    <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
-                                                    <?php
-                                                    $edit = 0; $delete = 0; $display = 0;
-                                                    if (Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()->count() != 0) {
-                                                        $edit    = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->edit;
-                                                        $delete  = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->delete;
-                                                        $display = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->display;
-                                                    }
-                                                    ?>
-                                                    <?php } ?>
-                                                    <?php if ((($display == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display == 0) && (Auth::user()->role == 0))) { ?>
-                                                        @if ($reste_usd > 0)
-                                                            <a id="detail_{{ $i }}" href="#"><i class="zmdi zmdi-money text-danger"></i></a> &nbsp;
-                                                        @else
-                                                            <a id="detail_{{ $i }}" href="#"><i class="zmdi zmdi-eye text-success"></i></a> &nbsp;
-                                                        @endif
-                                                    <?php } else { ?>
-                                                        @if ($reste_usd > 0)
-                                                            <a id="detail_r{{ $i }}" href="#"><i class="zmdi zmdi-money text-danger"></i></a> &nbsp;
-                                                        @else
-                                                            <a id="detail_r{{ $i }}" href="#"><i class="zmdi zmdi-eye text-success"></i></a> &nbsp;
-                                                        @endif
-                                                    <?php } ?>
-
-                                                    <?php if ((($edit == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($delete == 0) && (Auth::user()->role == 0))) { ?>
-                                                        <a href="#" class="param-facture-btn" data-id="{{ $data->id }}" title="Paramètres de la facture">
-                                                            <i class="zmdi zmdi-settings text-info"></i>
-                                                        </a>
-                                                    <?php } ?>
-
-                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($delete == 0) && (Auth::user()->role == 0))) { ?>
-                                                        <a href="#" class="delete-facture-btn"
-                                                           data-id="{{ $data->id }}"
-                                                           data-numero="{{ $data->numero }}"
-                                                           data-client="{{ $client_name }}"
-                                                           data-montant="{{ $montant_affichage }}"
-                                                           data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
-                                                           data-statut="{{ $statut_text }}"
-                                                           title="Supprimer cette facture">
-                                                            <i class="zmdi zmdi-delete text-danger"></i>
-                                                        </a>
-                                                    <?php } ?>
-                                                    <script>
-                                                        $("#detail_{{ $i }}").click(function(e) {
-                                                            e.preventDefault();
-                                                            var payer = "<?= $data->payer ?>";
-                                                            if(payer == 0) {
-                                                                $.get("{{ url('/refresh_detailfactureass') }}", { invitation_id: <?= $data->id ?> }, function(refresh_editinvitations) {
-                                                                    $("#bloc_1").hide();
-                                                                    $("#bloc_2").show();
-                                                                    $("#bloc_3").show();
-                                                                    $("#bloc_t").show();
-                                                                    $("#bloc_3").html(refresh_editinvitations);
-                                                                });
-                                                            }
-                                                            if(payer == 1) {
-                                                                $("#n_fac").html("<?= $data->numero ?>");
-                                                                $("#id_fac").val("<?= $data->id ?>");
-                                                                var pdfUrl = "{{ isset($data->lien) ? $data->lien : '' }}";
-                                                                if (pdfUrl && pdfUrl !== '') {
-                                                                    currentPdfUrl = pdfUrl;
-                                                                    $("#pdfIframe").attr("src", pdfUrl);
-                                                                    $("#pdfModal").modal("show");
-                                                                } else {
-                                                                    $.get("{{ url('/print_facture') }}", { "facture_id": "<?= $data->id ?>" }, function(response) {
-                                                                        if (response && response[0][0]) {
-                                                                            currentPdfUrl = response[0][0];
-                                                                            $("#pdfIframe").attr("src", response[0][0]);
-                                                                            $("#cdf_montant_payer").val(response[0][1]);
-                                                                            $("#usd_montant_payer").val(response[0][2]);
-                                                                            $("#payer").val(response[0][5]);
-                                                                            $("#pdfModal").modal("show");
-                                                                        } else if (response && typeof response[0][0] === 'string') {
-                                                                            currentPdfUrl = response[0][0];
-                                                                            $("#pdfIframe").attr("src", response[0][0]);
-                                                                            $("#cdf_montant_payer").val(response[0][1]);
-                                                                            $("#usd_montant_payer").val(response[0][2]);
-                                                                            $("#payer").val(response[0][5]);
-                                                                            $("#pdfModal").modal("show");
-                                                                        } else { alert("Aucun PDF disponible pour cette facture."); }
-                                                                    }).fail(function() { alert("Erreur lors de la récupération du PDF."); });
-                                                                }
-                                                            }
-                                                        });
-                                                        $("#detail_r{{ $i }}").click(function(e) {
-                                                            e.preventDefault();
-                                                            $("#btn_refus").trigger("click");
-                                                        });
-                                                    </script>
-                                                </td>
-                                            </tr>
-                                            {{ !$i++ }}
-                                        @endforeach
+                                    <tbody id="factures-tbody">
+                                        <tr>
+                                            <td colspan="10" class="text-center text-muted py-4">
+                                                <i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des factures...
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -892,8 +410,8 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                     </div>
                 </div>
 
-                <div id="bloc_t" class="row" style="width: 100%; margin: 0;">
-                    <div id="bloc_2" style="margin-top: 12px;display: none;" class="col-lg-5">
+                <div id="bloc_t" class="row" style="width: 100%; margin: 0; display: none;">
+                    <div id="bloc_2" style="margin-top: 12px;" class="col-lg-5">
                         <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-plus-circle text-info"></i> Ajouter un article</h4>
                         <form id="form_add" action="#" method="post">
                             @csrf
@@ -1043,21 +561,14 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                         <form action="">
                             <div style="margin-top: 20px;" class="row">
                                 <div class="col-12">
-                                    <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
-                                    <?php
-                                    $edit = 0; $delete = 0; $add = 0;
-                                    if (Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()->count() != 0) {
-                                        $edit   = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->edit;
-                                        $delete = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->delete;
-                                        $add    = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->add;
-                                    }
-                                    ?>
-                                    <?php } ?>
-                                    <?php if ((($add == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($add == 0) && (Auth::user()->role == 0))) { ?>
-                                    <button id="save" class="btn btn-info btn-sm">Enregister <i class="zmdi zmdi-save"></i></button>
-                                    <?php } else { ?>
-                                    <button id="save_r" class="btn btn-info btn-sm">Enregister <i class="zmdi zmdi-save"></i></button>
-                                    <?php } ?>
+                                    @if (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0 || Auth::user()->role == 0)
+                                        @php $add = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->add ?? 0; @endphp
+                                        @if ((($add == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($add == 0) && (Auth::user()->role == 0)))
+                                            <button id="save" class="btn btn-info btn-sm">Enregister <i class="zmdi zmdi-save"></i></button>
+                                        @else
+                                            <button id="save_r" class="btn btn-info btn-sm">Enregister <i class="zmdi zmdi-save"></i></button>
+                                        @endif
+                                    @endif
                                     <button id="annuler" class="btn btn-danger btn-sm">Annuler <i class="zmdi zmdi-close-circle"></i></button>
                                 </div>
                             </div>
@@ -1391,7 +902,7 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
         </div>
     </div>
 
-    {{-- MODALE RAPPORT DES MONTANTS REÇUS --}}
+    {{-- MODALE RAPPORT --}}
     <div class="modal fade" id="rapportModal" tabindex="-1" role="dialog" aria-labelledby="rapportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1200px;">
             <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);">
@@ -1451,19 +962,14 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                     <div class="table-responsive" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background:white;">
                         <table class="table table-sm mb-0" id="rapport_table">
                             <thead style="background: #FEE2E2;">
-                                <!-- ✅ NOUVEAU — 2 colonnes distinctes : Enregistré par / Encaissé par -->
                                 <tr>
                                     <th style="font-size:0.72rem;">#</th>
                                     <th style="font-size:0.72rem;">Date paiement</th>
                                     <th style="font-size:0.72rem;">N° Facture</th>
                                     <th style="font-size:0.72rem;">Date facture</th>
                                     <th style="font-size:0.72rem;">Client / Libellé</th>
-                                    <th style="font-size:0.72rem;" title="Utilisateur qui a créé la facture (factures.user_id)">
-                                        <i class="zmdi zmdi-edit"></i> Enregistré par
-                                    </th>
-                                    <th style="font-size:0.72rem;" title="Utilisateur qui a encaissé le paiement (detailpaiessachats.user_id)">
-                                        <i class="zmdi zmdi-money"></i> Encaissé par
-                                    </th>
+                                    <th style="font-size:0.72rem;" title="Créateur de la facture"><i class="zmdi zmdi-edit"></i> Enregistré par</th>
+                                    <th style="font-size:0.72rem;" title="Payeur"><i class="zmdi zmdi-money"></i> Encaissé par</th>
                                     <th style="font-size:0.72rem;">Mode</th>
                                     <th style="font-size:0.72rem;">Devise</th>
                                     <th style="font-size:0.72rem; text-align:right;">Montant reçu</th>
@@ -1484,6 +990,7 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
             </div>
         </div>
     </div>
+@endsection
 
 @section('js-code')
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" />
@@ -1513,28 +1020,189 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
     var CURRENT_USER_NAME = "{{ addslashes(Auth::user()->name ?? '') }}";
     var currentPdfUrl = "";
 
-    // ✅ Tous les utilisateurs (actifs ET désactivés) avec leur ID
     var ALL_USERS = [
         @foreach(\App\Models\User::orderBy('name')->get() as $u)
             { id: {{ $u->id }}, name: "{{ addslashes($u->name) }}" },
         @endforeach
     ];
 
-    /* ============================================================
-       NAVIGATION ENTRE BLOCS
-       ============================================================ */
+    // ============================================================
+    // ✅ FONCTION : CHARGER LES FACTURES EN JSON
+    // ============================================================
+    function chargerFactures() {
+        let pageParam = "{{ $ressource_id_1 ?? 48 }}";
+
+        $.ajax({
+            url: "{{ url('/get_all_facture') }}",
+            type: 'GET',
+            data: { page: pageParam },
+            dataType: 'json',
+            success: function(response) {
+                let factures = response.factures;
+                let html = '';
+
+                if (factures.length === 0) {
+                    html = '<tr><td colspan="10" class="text-center text-muted">Aucune facture trouvée</td></tr>';
+                } else {
+                    factures.forEach(function(f) {
+                        let statutHtml = '';
+                        if (f.statut_code === 'partiel') {
+                            statutHtml = '<i class="zmdi zmdi-time text-warning"></i> <span class="text-warning">Partiel</span>';
+                        } else if (f.statut_code === 'unpaid') {
+                            statutHtml = '<i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">Impayé</span>';
+                        } else {
+                            statutHtml = '<i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">' + f.mode_paiement + '</span>';
+                        }
+
+                        let tableHtml = f.table_name;
+                        if (f.table_id != 0) {
+                            tableHtml = f.table_occupee == 1 
+                                ? '<i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">' + f.table_name + '</span>' 
+                                : '<i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">' + f.table_name + '</span>';
+                        }
+
+                        let boutonsHtml = '';
+                        if (f.can_display) {
+                            let iconeDetail = f.reste_usd > 0 ? 'zmdi-money text-danger' : 'zmdi-eye text-success';
+                            boutonsHtml += `<a href="#" class="btn-detail-facture" data-id="${f.id}" data-payer="${f.payer}" data-numero="${f.numero}" data-pdf-url="${f.lien || ''}"><i class="zmdi ${iconeDetail}"></i></a> &nbsp;`;
+                        } else {
+                            boutonsHtml += `<a href="#" class="btn-detail-refuse"><i class="zmdi ${f.reste_usd > 0 ? 'zmdi-money text-danger' : 'zmdi-eye text-success'}"></i></a> &nbsp;`;
+                        }
+
+                        if (f.can_edit) {
+                            boutonsHtml += `<a href="#" class="param-facture-btn" data-id="${f.id}"><i class="zmdi zmdi-settings text-info"></i></a> &nbsp;`;
+                        }
+
+                        if (f.can_delete) {
+                            boutonsHtml += `<a href="#" class="delete-facture-btn" data-id="${f.id}" data-numero="${f.numero}" data-client="${f.client_name}" data-montant="${f.montant_affichage}" data-date="${f.date}" data-statut="${f.reste_usd > 0 ? 'Impayé' : 'Payé'}"><i class="zmdi zmdi-delete text-danger"></i></a>`;
+                        }
+
+                        let articlesSafe = JSON.stringify(f.articles).replace(/'/g, "&#39;");
+                        let paiementsSafe = JSON.stringify(f.paiements).replace(/'/g, "&#39;");
+
+                        html += `
+                            <tr id="row_${f.id}"
+                                data-facture-id="${f.id}"
+                                data-numero="${f.numero}"
+                                data-client="${f.client_name}"
+                                data-client-id="${f.client_id}"
+                                data-user="${f.facture_user_nom}"
+                                data-user-id="${f.user_id}"
+                                data-table="${f.table_name}"
+                                data-date="${f.date}"
+                                data-devise="${f.devise}"
+                                data-devise-label="${f.devise == 0 ? 'USD' : 'CDF'}"
+                                data-taux="${f.taux}"
+                                data-mode-paiement="${f.mode_paiement}"
+                                data-montant-usd="${f.montant_usd}"
+                                data-montant-cdf="${f.montant_cdf}"
+                                data-paye-usd="${f.montant_usd_paye}"
+                                data-paye-cdf="${f.montant_cdf_paye}"
+                                data-credit-usd="${f.reste_usd}"
+                                data-credit-cdf="${f.reste_cdf}"
+                                data-benefice-usd="${f.benefice_usd}"
+                                data-benefice-cdf="${f.benefice_cdf}"
+                                data-frais-credit-total="${f.frais_credit_total}"
+                                data-pdf-url="${f.lien || ''}"
+                                data-articles='${articlesSafe}'
+                                data-paiements='${paiementsSafe}'>
+                                
+                                <td class="numero-cell" data-numero="${f.numero}">${f.numero}</td>
+                                <td class="user-cell" data-user="${f.facture_user_nom}">${f.facture_user_nom}</td>
+                                <td class="client-cell" data-client="${f.client_name}">${f.client_name}</td>
+                                <td class="table-cell" data-table="${f.table_name}">${tableHtml}</td>
+                                <td class="montant-cell" data-montant="${f.montant_usd}">${f.montant_affichage}</td>
+                                <td class="paye-cell ${f.reste_usd > 0 ? 'text-danger' : 'text-success'}">${f.paye_affichage}</td>
+                                <td class="reste-cell ${f.reste_usd > 0 ? 'text-danger' : 'text-success'}">${f.reste_affichage}</td>
+                                <td class="date-cell" data-date="${f.date}">${f.date}</td>
+                                <td class="statut-cell" data-statut="${f.statut_code}">${statutHtml}</td>
+                                <td style="text-align: center;">${boutonsHtml}</td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                $('#factures-tbody').html(html);
+                filterInvoices();
+                saveFiltersToStorage();
+            },
+            error: function(xhr) {
+                console.error("Erreur JSON:", xhr);
+                $('#factures-tbody').html('<tr><td colspan="10" class="text-center text-danger">Erreur lors du chargement des factures.</td></tr>');
+            }
+        });
+    }
+
+    // ============================================================
+    // ✅ GESTION GLOBALE DES CLICS (Délégation)
+    // ============================================================
+    $(document).on('click', '.btn-detail-facture', function(e) {
+        e.preventDefault();
+        var factureId = $(this).data('id');
+        var payer = $(this).data('payer');
+        var numero = $(this).data('numero');
+
+        if(payer == 0) {
+            $.get("{{ url('/refresh_detailfactureass') }}", {
+                invitation_id: factureId,
+            }, function(refresh_editinvitations) {
+                $("#bloc_1").hide();
+                $("#bloc_2").show();
+                $("#bloc_3").show();
+                $("#bloc_t").show();
+                $("#bloc_3").html(refresh_editinvitations);
+            });
+        }
+        else if(payer == 1) {
+            $("#n_fac").html(numero);
+            $("#id_fac").val(factureId);
+            
+            var pdfUrl = $(this).closest('tr').data('pdf-url');
+            if (pdfUrl && pdfUrl !== '') {
+                currentPdfUrl = pdfUrl;
+                $("#pdfIframe").attr("src", pdfUrl);
+                $("#pdfModal").modal("show");
+            } else {
+                $.get("{{ url('/print_facture') }}", {
+                    "facture_id": factureId
+                }, function(response) {
+                    if (response && response[0][0]) {
+                        currentPdfUrl = response[0][0];
+                        $("#pdfIframe").attr("src", response[0][0]);
+                        $("#cdf_montant_payer").val(response[0][1]);
+                        $("#usd_montant_payer").val(response[0][2]);
+                        $("#payer").val(response[0][5]);
+                        $("#pdfModal").modal("show");
+                    } else {
+                        alert("Aucun PDF disponible pour cette facture.");
+                    }
+                }).fail(function() {
+                    alert("Erreur lors de la récupération du PDF.");
+                });
+            }
+        }
+    });
+
+    $(document).on('click', '.btn-detail-refuse', function(e) {
+        e.preventDefault();
+        $("#btn_refus").trigger("click");
+    });
+
     $("#liste").click(function(e) {
         e.preventDefault();
-        $("#bloc_1").show(); $("#bloc_2").hide(); $("#bloc_3").hide(); $("#bloc_t").hide();
-        $.get("{{ url('/delete_facture_user_id') }}", {}, function() {});
+        $("#bloc_1").show();
+        $("#bloc_t").hide();
+        $("#bloc_2").hide();
+        $("#bloc_3").hide();
+        $.get("{{ url('/delete_facture_user_id') }}", {}, function(response) {});
     });
 
     $("#add").click(function(e) {
+        $.get("{{ url('/get_numero_facture_b') }}", {}, function(response) {
+            $("#numero_facture").html(response);
+        });
+        $.get("{{ url('/delete_facture_user_id') }}", {}, function(response) {});
         e.preventDefault();
-        $.get("{{ url('/get_numero_facture_b') }}", {}, function(r) { $("#numero_facture").html(r); });
-        $.get("{{ url('/delete_facture_user_id') }}", {}, function() {});
-        var initialPdv = $("#pointdeventes_id").val();
-        if (initialPdv && initialPdv.trim() !== '') loadArticlesForPointVente(initialPdv);
         $("#bloc_1").hide();
         $("#bloc_2").show();
         $("#bloc_3").show();
@@ -1542,12 +1210,15 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
         $("#bloc_t").show();
     });
 
+    $("#add_r").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
+    $("#save_r").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
+
     $("#annuler").click(function(e) {
         e.preventDefault();
-        $("#bloc_1").show(); $("#bloc_2").hide(); $("#bloc_3").hide();
+        $("#bloc_1").show();
+        $("#bloc_2").hide();
+        $("#bloc_3").hide();
     });
-
-    $("#add_r, #save_r").click(function(e) { e.preventDefault(); $("#btn_refus").trigger("click"); });
 
     /* ============================================================
        CHARGEMENT ARTICLES PAR POINT DE VENTE
@@ -1663,7 +1334,7 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                 }
                 if((data_rep[0] === '-2'))
                 {
-                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Stock insuffisant, quantité demandée trop élevée ! ' +'Il reste seulement <b>' + stockDisponible + '</b> en stock.');
+                    $('#msg').html('<i class="zmdi zmdi-close-circle"></i> Stock insuffisant, quantité demandée trop élevée ! ' +'Il reste seulement <b>' + data_rep[1] + '</b> en stock.');
                     setTimeout(() => $('#msg').html(""), 9000); resetButton(); return;
                 }
                 if (!client && !libelle) {
@@ -1681,11 +1352,11 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                         $("#montant_total_devise,#reduction_devise,#montant_reduit_devise").text("(USD)");
                         try { Dropzone.forElement('#dropzonewidget').removeAllFiles(true); } catch(e) {}
                         $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
-                        $("#content_utilisateur").html(response);
+                        
+                        // ✅ Recharger le tableau JSON et la vue des détails
+                        chargerFactures();
                         $.get("{{ url('/get_achat') }}", {}, function(r) { $("#bloc_3").html(r); });
                         setTimeout(() => $('#msg').html(""), 9000);
-                        saveFiltersToStorage();
-                        setTimeout(function() { loadFiltersFromStorage(); filterInvoices(); }, 100);
                     },
                     error: function() {
                         resetButton();
@@ -1702,8 +1373,7 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
         $.get("{{ url('/refresh_deletedecision') }}", { id: $("#data_id").html() }, function(r) {
             $("#content_utilisateur").html(r);
             $("#non").trigger("click");
-            saveFiltersToStorage();
-            setTimeout(function() { loadFiltersFromStorage(); filterInvoices(); }, 100);
+            chargerFactures(); // Recharge JSON
         });
     });
 
@@ -1783,7 +1453,7 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
         let visibleCount = 0, totalUSD = 0, totalCDF = 0, totalPaidUSD = 0, totalPaidCDF = 0;
         let totalCreditUSD = 0, totalCreditCDF = 0, totalBenefUSD = 0, totalBenefCDF = 0;
 
-        $('#content_utilisateur tbody tr').each(function() {
+        $('#factures-tbody tr').each(function() {
             const $r = $(this);
             let showRow = true;
 
@@ -2085,9 +1755,8 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
             $(this).val(''); filterInvoices(); saveFiltersToStorage();
         });
 
-        $('#invoiceCount').text($('#content_utilisateur tbody tr').length);
         loadFiltersFromStorage();
-        filterInvoices();
+        chargerFactures(); // ✅ Chargement JSON initial
 
         $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant, #filterTable').on('input change', debouncedFilter);
         $('#resetFilters').click(function(e) { e.preventDefault(); resetAllFilters(); });
@@ -2113,12 +1782,8 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                 type: 'POST', url: '{{ url("/delete_facture") }}',
                 data: { _token: '{{ csrf_token() }}', id: id },
                 success: function() {
-                    $.get('{{ url("/get_all_facture") }}', { page: "<?= $ressource_id_1 ?>" }, function(html) {
-                        $('#content_utilisateur').html(html);
-                        saveFiltersToStorage();
-                        setTimeout(function() { loadFiltersFromStorage(); filterInvoices(); }, 100);
-                    });
                     $('#deleteFactureModal').modal('hide');
+                    chargerFactures(); // ✅ Rechargement JSON
                     $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Facture supprimée').css('display', 'flex');
                     setTimeout(function() { $('#msg').html('').css('display', 'none'); }, 3000);
                 },
@@ -2177,13 +1842,9 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                     btn.prop('disabled', false).html('<i class="zmdi zmdi-save"></i> Enregistrer les modifications');
                     if (res.success) {
                         $('#param_lines_msg').html('<i class="zmdi zmdi-check-circle text-success"></i> ' + res.message);
-                        $.get("{{ url('/get_all_facture') }}", { page: "<?= $ressource_id_1 ?>" }, function(html) {
-                            $('#content_utilisateur').html(html);
-                            saveFiltersToStorage();
-                            setTimeout(function() { loadFiltersFromStorage(); filterInvoices(); }, 100);
-                        });
+                        chargerFactures(); // ✅ Rechargement JSON
                         setTimeout(function() {
-                            var nr = $('#content_utilisateur tr[data-facture-id="' + currentParamFactureId + '"]');
+                            var nr = $('#factures-tbody tr[data-facture-id="' + currentParamFactureId + '"]');
                             if (nr.length) openParamModalFromRow(nr);
                         }, 800);
                     } else {
@@ -2197,9 +1858,7 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
             });
         });
 
-        /* ============================================================
-           RAPPORT DES MONTANTS REÇUS
-           ============================================================ */
+        /* RAPPORT */
         function parseDMY_to_ISO(str) {
             if (!str) return null;
             var p = String(str).trim().split('/');
@@ -2212,262 +1871,207 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
         }
         function formatRMoney(v) { return (parseFloat(v) || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
 
-        // ✅ Select2 — utilise maintenant les IDs utilisateur
         function populateRapportUsers() {
             var $sel = $('#rapport_user_filter');
-
-            if ($sel.hasClass('select2-hidden-accessible')) {
-                $sel.select2('destroy');
-            }
-
+            if ($sel.hasClass('select2-hidden-accessible')) { $sel.select2('destroy'); }
             $sel.empty();
 
             if (USER_ROLE == 0) {
                 $sel.append('<option value="all">Tous les utilisateurs</option>');
-                ALL_USERS.forEach(function (u) {
-                    $sel.append('<option value="' + u.id + '">' + u.name + '</option>');
-                });
-                $sel.prop('disabled', false);
-
-                $sel.select2({
-                    placeholder: "Rechercher un utilisateur...",
-                    allowClear: false,
-                    theme: 'bootstrap',
-                    width: '100%',
-                    dropdownParent: $('#rapportModal'),
-                    language: {
-                        noResults: function () { return "Aucun utilisateur trouvé"; },
-                        searching: function () { return "Recherche..."; }
-                    }
-                });
+                ALL_USERS.forEach(function (u) { $sel.append('<option value="' + u.id + '">' + u.name + '</option>'); });
+                $sel.prop('disabled', false).select2({ placeholder: "Rechercher...", allowClear: false, theme: 'bootstrap', width: '100%', dropdownParent: $('#rapportModal') });
             } else {
-                var nom = CURRENT_USER_NAME || 'Utilisateur';
-                $sel.append('<option value="' + CURRENT_USER_ID + '" selected>' + nom + '</option>');
-                $sel.val(String(CURRENT_USER_ID));
-                $sel.prop('disabled', true);
-
-                $sel.select2({
-                    theme: 'bootstrap',
-                    width: '100%',
-                    dropdownParent: $('#rapportModal'),
-                    disabled: true
-                });
+                $sel.append('<option value="' + CURRENT_USER_ID + '" selected>' + (CURRENT_USER_NAME || 'Utilisateur') + '</option>');
+                $sel.val(String(CURRENT_USER_ID)).prop('disabled', true).select2({ theme: 'bootstrap', width: '100%', dropdownParent: $('#rapportModal'), disabled: true });
             }
         }
 
-        // ✅ MODIFIÉ — Filtre par ID du payeur (detailpaiessachats.user_id) + 2 colonnes
-        function buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
-            var totalUSD = 0, totalCDF = 0, nb = 0;
-            var html = '', lignes = [];
+        function fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
+            var $body = $('#rapport_body');
+            var $foot = $('#rapport_foot');
+            
+            $body.html('<tr><td colspan="10" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+            $foot.html('');
 
-            var effectiveUserId;
-            if (USER_ROLE == 0) {
-                if (!userFilter || userFilter === 'all') {
-                    effectiveUserId = 'all';
-                } else {
-                    effectiveUserId = parseInt(userFilter);
-                    if (isNaN(effectiveUserId)) effectiveUserId = 'all';
+            var params = {
+                date_debut: dateDebutISO,
+                date_fin: dateFinISO,
+                user_id: userFilter,
+                client: clientFilter
+            };
+
+            $.ajax({
+                url: "{{ url('/get_rapport_paiements') }}", 
+                type: 'GET',
+                data: params,
+                dataType: 'json',
+                success: function(response) {
+                    var data = response.data;
+                    var totalUSD = 0, totalCDF = 0, nbTransactions = data.length;
+                    var html = '';
+
+                    if (data.length === 0) {
+                        html = '<tr><td colspan="10" class="text-center text-muted">Aucun paiement trouvé pour ces critères</td></tr>';
+                    } else {
+                        data.forEach(function (p, idx) {
+                            var isUSD = (p.devise === 'USD');
+                            var montantUSD = isUSD ? p.montant_recu : (p.taux > 0 ? (p.montant_recu / p.taux) : 0);
+                            var montantCDF = isUSD ? (p.montant_recu * p.taux) : p.montant_recu;
+                            
+                            totalUSD += montantUSD;
+                            totalCDF += montantCDF;
+
+                            var badgeDevise = isUSD ? 'primary' : 'warning';
+                            
+                            html += '<tr>';
+                            html += '<td>' + (idx + 1) + '</td>';
+                            html += '<td style="font-size:0.78rem;">' + (p.date_paiement || '-') + '</td>';
+                            html += '<td><b>' + (p.numero || '-') + '</b></td>';
+                            html += '<td style="font-size:0.78rem;">' + (p.date_facture || '-') + '</td>';
+                            html += '<td>' + (p.client || '-') + '</td>';
+                            html += '<td><span class="badge badge-secondary"><i class="zmdi zmdi-edit"></i> ' + (p.enregistre_par || 'N/A') + '</span></td>';
+                            html += '<td><span class="badge badge-success" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="zmdi zmdi-money"></i> ' + (p.encaisse_par || 'N/A') + '</span></td>';
+                            html += '<td><span class="badge badge-info">' + (p.mode_label || 'N/A') + '</span></td>';
+                            html += '<td><span class="badge badge-' + badgeDevise + '">' + (p.devise || '-') + '</span></td>';
+                            html += '<td style="text-align:right;">';
+                            html += '<div class="dual-currency">';
+                            html += '<b class="text-primary">' + formatRapportMoney(montantUSD) + ' USD</b>';
+                            html += '<small class="text-warning">' + formatRapportMoney(montantCDF) + ' CDF</small>';
+                            html += '</div>';
+                            html += '</td>';
+                            html += '</tr>';
+                        });
+                    }
+
+                    $body.html(html);
+
+                    var footHtml = '<tr>';
+                    footHtml += '<td colspan="9" class="text-right">TOTAL REÇU (' + nbTransactions + ' transaction' + (nbTransactions > 1 ? 's' : '') + ') :</td>';
+                    footHtml += '<td style="text-align:right;">';
+                    footHtml += '<span class="text-primary">' + formatRapportMoney(totalUSD) + ' USD</span><br>';
+                    footHtml += '<span class="text-warning">' + formatRapportMoney(totalCDF) + ' CDF</span>';
+                    footHtml += '</td>';
+                    footHtml += '</tr>';
+                    $foot.html(footHtml);
+
+                    $('#rapport_total_usd').text(formatRapportMoney(totalUSD));
+                    $('#rapport_total_cdf').text(formatRapportMoney(totalCDF));
+                    $('#rapport_nb').text(nbTransactions);
+
+                    var labelUser = 'Tous';
+                    if (userFilter && userFilter !== 'all') {
+                        var foundUser = ALL_USERS.find(function (u) { return u.id == userFilter; });
+                        labelUser = foundUser ? foundUser.name : ('ID ' + userFilter);
+                    }
+                    $('#rapport_user_label').text(USER_ROLE == 0 ? labelUser : CURRENT_USER_NAME + ' (vous)');
+                    $('#rapport_client_label').text(clientFilter || 'Tous');
+                },
+                error: function(xhr) {
+                    console.error("Erreur API Rapport:", xhr);
+                    $body.html('<tr><td colspan="10" class="text-center text-danger">Erreur lors de la récupération des données.</td></tr>');
                 }
-            } else {
-                effectiveUserId = CURRENT_USER_ID;
-            }
-
-            var effectiveClientFilter = (clientFilter || '').trim().toLowerCase();
-
-            var effectiveUserLabel = 'Tous';
-            if (effectiveUserId !== 'all') {
-                var foundUser = ALL_USERS.find(function (u) { return u.id === effectiveUserId; });
-                effectiveUserLabel = foundUser ? foundUser.name : ('ID ' + effectiveUserId);
-            }
-
-            $('#content_utilisateur tbody tr').each(function() {
-                var $r = $(this);
-                var fid = $r.data('facture-id'); if (!fid) return;
-                var num = $r.data('numero') || '-';
-                var cli = $r.data('client') || '-';
-                // ✅ Créateur de la facture (factures.user_id)
-                var enregistrePar = $r.data('user') || 'N/A';
-                var dateFacture = $r.data('date') || '-';
-                var tx = parseFloat($r.data('taux')) || 1; if (tx <= 0) tx = 1;
-
-                if (effectiveClientFilter && !String(cli).toLowerCase().includes(effectiveClientFilter)) return;
-
-                var pai = safeParseJSON($r.attr('data-paiements'));
-
-                pai.forEach(function(p) {
-                    var iso = parsePayDateToISO(p.date);
-                    if (dateDebutISO && dateFinISO) {
-                        if (!iso) return;
-                        if (iso < dateDebutISO || iso > dateFinISO) return;
-                    }
-
-                    // ✅ Filtre par ID du PAYEUR (detailpaiessachats.user_id)
-                    var payeurId = parseInt(p.payer_id) || 0;
-                    if (effectiveUserId !== 'all' && payeurId !== effectiveUserId) return;
-
-                    var encaissePar = p.payer_nom || 'N/A';
-                    var m = parseFloat(p.montant_recu) || 0;
-                    var dev = p.devise_label || 'USD';
-                    var tp = parseFloat(p.taux) || tx; if (tp <= 0) tp = 1;
-                    var mUSD, mCDF;
-                    if (dev === 'USD') { mUSD = m; mCDF = m * tp; } else { mCDF = m; mUSD = m / tp; }
-                    totalUSD += mUSD; totalCDF += mCDF; nb++;
-                    lignes.push({
-                        date: p.date||'-',
-                        numero: num,
-                        date_facture: dateFacture,
-                        client: cli,
-                        enregistre_par: enregistrePar,   // ✅ factures.user_id
-                        encaisse_par: encaissePar,       // ✅ detailpaiessachats.user_id
-                        encaisse_par_id: payeurId,
-                        mode: p.mode_label||'N/A',
-                        devise: dev,
-                        montant_usd: mUSD,
-                        montant_cdf: mCDF,
-                        iso: iso || ''
-                    });
-                });
             });
-
-            lignes.sort(function(a,b) { return a.iso < b.iso ? -1 : a.iso > b.iso ? 1 : 0; });
-
-            if (lignes.length === 0) {
-                html = '<tr><td colspan="10" class="text-center text-muted">Aucun paiement trouvé dans cette période</td></tr>';
-            } else {
-                lignes.forEach(function(l, idx) {
-                    var bd = l.devise === 'USD' ? 'primary' : 'warning';
-                    html += '<tr><td>' + (idx+1) + '</td>';
-                    html += '<td style="font-size:0.78rem;">' + l.date + '</td>';
-                    html += '<td><b>' + l.numero + '</b></td>';
-                    html += '<td style="font-size:0.78rem;">' + l.date_facture + '</td>';
-                    html += '<td>' + l.client + '</td>';
-                    // ✅ Colonne "Enregistré par" (créateur facture)
-                    html += '<td><span class="badge badge-secondary" title="Créateur de la facture"><i class="zmdi zmdi-edit"></i> ' + l.enregistre_par + '</span></td>';
-                    // ✅ Colonne "Encaissé par" (payeur)
-                    html += '<td><span class="badge badge-success" title="ID payeur : ' + (l.encaisse_par_id || 'N/A') + '" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="zmdi zmdi-money"></i> ' + l.encaisse_par + '</span></td>';
-                    html += '<td><span class="badge badge-info">' + l.mode + '</span></td>';
-                    html += '<td><span class="badge badge-' + bd + '">' + l.devise + '</span></td>';
-                    html += '<td style="text-align:right;"><div class="dual-currency"><b class="text-primary">' + formatRMoney(l.montant_usd) + ' USD</b><small class="text-warning">' + formatRMoney(l.montant_cdf) + ' CDF</small></div></td>';
-                    html += '</tr>';
-                });
-            }
-            $('#rapport_body').html(html);
-            $('#rapport_foot').html('<tr><td colspan="9" class="text-right">TOTAL REÇU (' + nb + ' transaction' + (nb>1?'s':'') + ') :</td><td style="text-align:right;"><span class="text-primary">' + formatRMoney(totalUSD) + ' USD</span><br><span class="text-warning">' + formatRMoney(totalCDF) + ' CDF</span></td></tr>');
-            $('#rapport_total_usd').text(formatRMoney(totalUSD));
-            $('#rapport_total_cdf').text(formatRMoney(totalCDF));
-            $('#rapport_nb').text(nb);
-
-            if (USER_ROLE == 0) {
-                $('#rapport_user_label').text(effectiveUserLabel);
-            } else {
-                $('#rapport_user_label').text(CURRENT_USER_NAME + ' (vous)');
-            }
-            $('#rapport_client_label').text(effectiveClientFilter ? clientFilter : 'Tous');
         }
 
-        $(document).on('focus', '#rapport_date_range', function() {
+        function formatRapportMoney(v) {
+            var n = parseFloat(v) || 0;
+            return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+
+        $(document).on('focus', '#rapport_date_range', function () {
             if (!$(this).data('daterangepicker')) {
                 $(this).daterangepicker({
                     autoUpdateInput: false,
-                    locale: {
-                        format: 'DD/MM/YYYY', separator: ' - ',
-                        applyLabel: 'Appliquer', cancelLabel: 'Annuler',
-                        fromLabel: 'Du', toLabel: 'Au', customRangeLabel: 'Personnalisé',
-                        weekLabel: 'S',
-                        daysOfWeek: ['Di','Lu','Ma','Me','Je','Ve','Sa'],
-                        monthNames: ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
-                    },
-                    opens: 'left',
-                    ranges: {
-                        'Aujourd\'hui': [moment(), moment()],
-                        'Hier': [moment().subtract(1,'days'), moment().subtract(1,'days')],
-                        '7 derniers jours': [moment().subtract(6,'days'), moment()],
-                        '30 derniers jours': [moment().subtract(29,'days'), moment()],
-                        'Ce mois-ci': [moment().startOf('month'), moment().endOf('month')],
-                        'Mois dernier': [moment().subtract(1,'month').startOf('month'), moment().subtract(1,'month').endOf('month')],
-                        'Cette année': [moment().startOf('year'), moment().endOf('year')]
-                    }
-                }, function(start, end) {
-                    var v = start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY');
-                    $('#rapport_date_range').val(v);
-                    $('#rapport_periode_label').text(v);
+                    locale: { format: 'DD/MM/YYYY', separator: ' - ', applyLabel: 'Appliquer', cancelLabel: 'Annuler' },
+                    opens: 'left'
+                }, function (start, end) {
+                    $('#rapport_date_range').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
                 });
             }
         });
 
-        $("#rapport").click(function(e) {
+        $("#rapport").click(function (e) {
             e.preventDefault();
+            var filterRange = $('#filterDateRange').val() || '';
+            $('#rapport_date_range').val(filterRange);
 
-            var fr = $('#filterDateRange').val() || '';
-            $('#rapport_date_range').val(fr);
-            var d1 = null, d2 = null;
-            if (fr) {
-                var p = fr.split(' - ');
-                if (p.length === 2) { d1 = parseDMY_to_ISO(p[0]); d2 = parseDMY_to_ISO(p[1]); }
+            var dateDebutISO = null, dateFinISO = null;
+            if (filterRange) {
+                var parts = filterRange.split(' - ');
+                if (parts.length === 2) {
+                    dateDebutISO = parseDMY_to_ISO(parts[0]);
+                    dateFinISO = parseDMY_to_ISO(parts[1]);
+                }
             }
 
-            $('#rapportModal').modal('show');
-
-            $('#rapportModal').off('shown.bs.modal.rapportUser');
-            $('#rapportModal').on('shown.bs.modal.rapportUser', function() {
+            $('#rapportModal').modal('show').off('shown.bs.modal.rapportUser').on('shown.bs.modal.rapportUser', function () {
                 populateRapportUsers();
-
                 var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
                 var clientFilter = $('#rapport_client_filter').val() || '';
-
-                $('#rapport_periode_label').text(fr || 'Toutes les dates');
-                buildRapport(d1, d2, userFilter, clientFilter);
+                $('#rapport_periode_label').text(filterRange || 'Toutes les dates');
+                
+                fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
             });
         });
 
-        $(document).on('click', '#rapport_apply_btn', function(e) {
+        $(document).on('click', '#rapport_apply_btn', function (e) {
             e.preventDefault();
-            var r = $('#rapport_date_range').val() || '';
-            var d1 = null, d2 = null;
-            if (r) {
-                var p = r.split(' - ');
-                if (p.length === 2) { d1 = parseDMY_to_ISO(p[0]); d2 = parseDMY_to_ISO(p[1]); }
+            var range = $('#rapport_date_range').val() || '';
+            var dateDebutISO = null, dateFinISO = null;
+            if (range) {
+                var parts = range.split(' - ');
+                if (parts.length === 2) {
+                    dateDebutISO = parseDMY_to_ISO(parts[0]);
+                    dateFinISO = parseDMY_to_ISO(parts[1]);
+                }
             }
             var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
             var clientFilter = $('#rapport_client_filter').val() || '';
-            $('#rapport_periode_label').text(r || 'Toutes les dates');
-            buildRapport(d1, d2, userFilter, clientFilter);
+            $('#rapport_periode_label').text(range || 'Toutes les dates');
+            
+            fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
         });
 
-        $(document).on('change', '#rapport_user_filter', function() {
-            var r = $('#rapport_date_range').val() || '';
-            var d1 = null, d2 = null;
-            if (r) {
-                var p = r.split(' - ');
-                if (p.length === 2) { d1 = parseDMY_to_ISO(p[0]); d2 = parseDMY_to_ISO(p[1]); }
+        $(document).on('change', '#rapport_user_filter', function () {
+            var range = $('#rapport_date_range').val() || '';
+            var dateDebutISO = null, dateFinISO = null;
+            if (range) {
+                var parts = range.split(' - ');
+                if (parts.length === 2) {
+                    dateDebutISO = parseDMY_to_ISO(parts[0]);
+                    dateFinISO = parseDMY_to_ISO(parts[1]);
+                }
             }
             var userFilter = $(this).val() || 'all';
             var clientFilter = $('#rapport_client_filter').val() || '';
-            buildRapport(d1, d2, userFilter, clientFilter);
+            fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
         });
 
         var rapportClientTimeout;
-        $(document).on('input', '#rapport_client_filter', function() {
+        $(document).on('input', '#rapport_client_filter', function () {
             clearTimeout(rapportClientTimeout);
-            rapportClientTimeout = setTimeout(function() {
-                var r = $('#rapport_date_range').val() || '';
-                var d1 = null, d2 = null;
-                if (r) {
-                    var p = r.split(' - ');
-                    if (p.length === 2) { d1 = parseDMY_to_ISO(p[0]); d2 = parseDMY_to_ISO(p[1]); }
+            rapportClientTimeout = setTimeout(function () {
+                var range = $('#rapport_date_range').val() || '';
+                var dateDebutISO = null, dateFinISO = null;
+                if (range) {
+                    var parts = range.split(' - ');
+                    if (parts.length === 2) {
+                        dateDebutISO = parseDMY_to_ISO(parts[0]);
+                        dateFinISO = parseDMY_to_ISO(parts[1]);
+                    }
                 }
                 var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
-                var clientFilter = $('#rapport_client_filter').val() || '';
-                buildRapport(d1, d2, userFilter, clientFilter);
-            }, 300);
+                var clientFilter = $(this).val() || '';
+                fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+            }, 500);
         });
 
-        $(document).on('click', '#rapport_reset_btn', function(e) {
+        $(document).on('click', '#rapport_reset_btn', function (e) {
             e.preventDefault();
             $('#rapport_date_range').val('');
             $('#rapport_client_filter').val('');
             if ($('#rapport_date_range').data('daterangepicker')) {
-                $('#rapport_date_range').data('daterangepicker').setStartDate(moment().subtract(1,'year'));
+                $('#rapport_date_range').data('daterangepicker').setStartDate(moment().subtract(1, 'year'));
                 $('#rapport_date_range').data('daterangepicker').setEndDate(moment());
             }
             if (USER_ROLE == 0) {
@@ -2476,7 +2080,8 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                 $('#rapport_user_filter').val(String(CURRENT_USER_ID)).trigger('change.select2');
             }
             $('#rapport_periode_label').text('Toutes les dates');
-            buildRapport(null, null, USER_ROLE == 0 ? 'all' : CURRENT_USER_ID, '');
+            
+            fetchRapport(null, null, USER_ROLE == 0 ? 'all' : CURRENT_USER_ID, '');
         });
 
         var initialPdv = $("#pointdeventes_id").val();
@@ -2539,11 +2144,25 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
                 msg.style.color = '#28a745';
                 document.getElementById('montant_recu').value = '';
 
-                await $.get("{{ url('/get_all_facture') }}", { page: "<?= $ressource_id_1 ?>" }, function(r) {
-                    $("#content_utilisateur").html(r);
-                });
-                saveFiltersToStorage();
-                setTimeout(function() { loadFiltersFromStorage(); filterInvoices(); }, 200);
+                // ✅ Rafraîchir l'aperçu du PDF
+                var tr = $('#factures-tbody tr[data-facture-id="' + fid + '"]');
+                var existingPdfUrl = tr.data('pdf-url');
+                
+                if (existingPdfUrl && existingPdfUrl !== '') {
+                    currentPdfUrl = existingPdfUrl;
+                    $("#pdfIframe").attr("src", currentPdfUrl + '?t=' + new Date().getTime());
+                } else {
+                    const pdfResponse = await $.get("{{ url('/print_facture') }}", { facture_id: fid });
+                    if (pdfResponse && pdfResponse[0] && pdfResponse[0][0]) { 
+                        currentPdfUrl = pdfResponse[0][0]; 
+                        $("#pdfIframe").attr("src", currentPdfUrl + '?t=' + new Date().getTime()); 
+                        $("#cdf_montant_payer").val(pdfResponse[0][1] || 0); 
+                        $("#usd_montant_payer").val(pdfResponse[0][2] || 0); 
+                        $("#payer").val(pdfResponse[0][5] || ''); 
+                    }
+                }
+
+                chargerFactures(); // ✅ Rechargement JSON
             } else {
                 msg.innerHTML = '❌ Erreur lors de l\'enregistrement';
                 msg.style.color = '#dc3545';
@@ -2599,5 +2218,4 @@ select.form-control { appearance: none; background-image: url('data:image/svg+xm
         $("#qrIframe").attr("src", "");
     });
     </script>
-@endsection
 @endsection

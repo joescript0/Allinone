@@ -4190,7 +4190,7 @@ body.modal-open { overflow: hidden; }
             });
 
             /* ============================================================
-               RAPPORT DES MONTANTS REÇUS
+               RAPPORT DES MONTANTS REÇUS (CÔTÉ SERVEUR)
                ============================================================ */
             function parseDMY_to_ISO(str) {
                 if (!str) return null;
@@ -4201,18 +4201,11 @@ body.modal-open { overflow: hidden; }
                 return null;
             }
 
-            function parsePaymentDateToISO(dateStr) {
-                if (!dateStr) return null;
-                var datePart = String(dateStr).split(' à ')[0].trim();
-                return parseDMY_to_ISO(datePart);
-            }
-
             function formatRapportMoney(v) {
                 var n = parseFloat(v) || 0;
                 return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
             }
 
-            // ✅ Select2 avec IDs utilisateur
             function populateRapportUsers() {
                 var $sel = $('#rapport_user_filter');
 
@@ -4255,151 +4248,91 @@ body.modal-open { overflow: hidden; }
                 }
             }
 
-            // ✅ MODIFIÉ — filtre par ID payeur + 2 colonnes (Enregistré par / Encaissé par)
-            function buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
-                var totalUSD = 0, totalCDF = 0, nbTransactions = 0;
-                var html = '';
-                var lignes = [];
+            function fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
+                var $body = $('#rapport_body');
+                var $foot = $('#rapport_foot');
+                
+                $body.html('<tr><td colspan="10" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+                $foot.html('');
 
-                var effectiveUserId;
-                if (USER_ROLE == 0) {
-                    if (!userFilter || userFilter === 'all') {
-                        effectiveUserId = 'all';
-                    } else {
-                        effectiveUserId = parseInt(userFilter);
-                        if (isNaN(effectiveUserId)) effectiveUserId = 'all';
-                    }
-                } else {
-                    effectiveUserId = CURRENT_USER_ID;
-                }
+                var params = {
+                    date_debut: dateDebutISO,
+                    date_fin: dateFinISO,
+                    user_id: userFilter,
+                    client: clientFilter
+                };
 
-                var effectiveClientFilter = (clientFilter || '').trim().toLowerCase();
+                $.ajax({
+                    url: "{{ url('/get_rapport_paiements') }}", 
+                    type: 'GET',
+                    data: params,
+                    dataType: 'json',
+                    success: function(response) {
+                        var data = response.data;
+                        var totalUSD = 0, totalCDF = 0, nbTransactions = data.length;
+                        var html = '';
 
-                var effectiveUserLabel = 'Tous';
-                if (effectiveUserId !== 'all') {
-                    var foundUser = ALL_USERS.find(function (u) { return u.id === effectiveUserId; });
-                    effectiveUserLabel = foundUser ? foundUser.name : ('ID ' + effectiveUserId);
-                }
-
-                $('#content_utilisateur tbody tr').each(function () {
-                    var $row = $(this);
-                    var factureId = $row.data('facture-id');
-                    if (!factureId) return;
-
-                    var numero = $row.data('numero') || '-';
-                    var client = $row.data('client') || '-';
-                    // ✅ Créateur de la facture (factures.user_id)
-                    var enregistrePar = $row.data('user') || 'N/A';
-                    var dateFacture = $row.data('date') || '-';
-                    var tauxFacture = parseFloat($row.data('taux')) || 1;
-                    if (tauxFacture <= 0) tauxFacture = 1;
-
-                    if (effectiveClientFilter && !String(client).toLowerCase().includes(effectiveClientFilter)) return;
-
-                    var paiements = safeParseJSON($row.attr('data-paiements'));
-
-                    paiements.forEach(function (p) {
-                        var payISO = parsePaymentDateToISO(p.date);
-
-                        if (dateDebutISO && dateFinISO) {
-                            if (!payISO) return;
-                            if (payISO < dateDebutISO || payISO > dateFinISO) return;
-                        }
-
-                        // ✅ Filtre par ID du PAYEUR (detailpaiessachats.user_id)
-                        var payeurId = parseInt(p.payer_id) || 0;
-                        if (effectiveUserId !== 'all' && payeurId !== effectiveUserId) return;
-
-                        var encaissePar = p.payer_nom || 'N/A';
-                        var montant = parseFloat(p.montant_recu) || 0;
-                        var devise  = p.devise_label || 'USD';
-                        var tauxP   = parseFloat(p.taux) || tauxFacture;
-                        if (tauxP <= 0) tauxP = 1;
-
-                        var montantUSD, montantCDF;
-                        if (devise === 'USD') {
-                            montantUSD = montant;
-                            montantCDF = montant * tauxP;
+                        if (data.length === 0) {
+                            html = '<tr><td colspan="10" class="text-center text-muted">Aucun paiement trouvé pour ces critères</td></tr>';
                         } else {
-                            montantCDF = montant;
-                            montantUSD = (tauxP > 0) ? (montant / tauxP) : 0;
+                            data.forEach(function (p, idx) {
+                                var isUSD = (p.devise === 'USD');
+                                var montantUSD = isUSD ? p.montant_recu : (p.taux > 0 ? (p.montant_recu / p.taux) : 0);
+                                var montantCDF = isUSD ? (p.montant_recu * p.taux) : p.montant_recu;
+                                
+                                totalUSD += montantUSD;
+                                totalCDF += montantCDF;
+
+                                var badgeDevise = isUSD ? 'primary' : 'warning';
+                                
+                                html += '<tr>';
+                                html += '<td>' + (idx + 1) + '</td>';
+                                html += '<td style="font-size:0.78rem;">' + (p.date_paiement || '-') + '</td>';
+                                html += '<td><b>' + (p.numero || '-') + '</b></td>';
+                                html += '<td style="font-size:0.78rem;">' + (p.date_facture || '-') + '</td>';
+                                html += '<td>' + (p.client || '-') + '</td>';
+                                html += '<td><span class="badge badge-secondary"><i class="zmdi zmdi-edit"></i> ' + (p.enregistre_par || 'N/A') + '</span></td>';
+                                html += '<td><span class="badge badge-success" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="zmdi zmdi-money"></i> ' + (p.encaisse_par || 'N/A') + '</span></td>';
+                                html += '<td><span class="badge badge-info">' + (p.mode_label || 'N/A') + '</span></td>';
+                                html += '<td><span class="badge badge-' + badgeDevise + '">' + (p.devise || '-') + '</span></td>';
+                                html += '<td style="text-align:right;">';
+                                html += '<div class="dual-currency">';
+                                html += '<b class="text-primary">' + formatRapportMoney(montantUSD) + ' USD</b>';
+                                html += '<small class="text-warning">' + formatRapportMoney(montantCDF) + ' CDF</small>';
+                                html += '</div>';
+                                html += '</td>';
+                                html += '</tr>';
+                            });
                         }
-                        totalUSD += montantUSD;
-                        totalCDF += montantCDF;
-                        nbTransactions++;
 
-                        lignes.push({
-                            date: p.date || '-',
-                            numero: numero,
-                            date_facture: dateFacture,
-                            client: client,
-                            enregistre_par: enregistrePar,
-                            encaisse_par: encaissePar,
-                            encaisse_par_id: payeurId,
-                            mode: p.mode_label || 'N/A',
-                            devise: devise,
-                            montant: montant,
-                            montant_usd: montantUSD,
-                            montant_cdf: montantCDF,
-                            iso: payISO || ''
-                        });
-                    });
+                        $body.html(html);
+
+                        var footHtml = '<tr>';
+                        footHtml += '<td colspan="9" class="text-right">TOTAL REÇU (' + nbTransactions + ' transaction' + (nbTransactions > 1 ? 's' : '') + ') :</td>';
+                        footHtml += '<td style="text-align:right;">';
+                        footHtml += '<span class="text-primary">' + formatRapportMoney(totalUSD) + ' USD</span><br>';
+                        footHtml += '<span class="text-warning">' + formatRapportMoney(totalCDF) + ' CDF</span>';
+                        footHtml += '</td>';
+                        footHtml += '</tr>';
+                        $foot.html(footHtml);
+
+                        $('#rapport_total_usd').text(formatRapportMoney(totalUSD));
+                        $('#rapport_total_cdf').text(formatRapportMoney(totalCDF));
+                        $('#rapport_nb').text(nbTransactions);
+
+                        var labelUser = 'Tous';
+                        if (userFilter && userFilter !== 'all') {
+                            var foundUser = ALL_USERS.find(function (u) { return u.id == userFilter; });
+                            labelUser = foundUser ? foundUser.name : ('ID ' + userFilter);
+                        }
+                        $('#rapport_user_label').text(USER_ROLE == 0 ? labelUser : CURRENT_USER_NAME + ' (vous)');
+                        $('#rapport_client_label').text(clientFilter || 'Tous');
+                    },
+                    error: function(xhr) {
+                        console.error("Erreur API Rapport:", xhr);
+                        $body.html('<tr><td colspan="10" class="text-center text-danger">Erreur lors de la récupération des données.</td></tr>');
+                    }
                 });
-
-                lignes.sort(function (a, b) {
-                    if (a.iso < b.iso) return -1;
-                    if (a.iso > b.iso) return 1;
-                    return 0;
-                });
-
-                if (lignes.length === 0) {
-                    html = '<tr><td colspan="10" class="text-center text-muted">Aucun paiement trouvé dans cette période</td></tr>';
-                } else {
-                    lignes.forEach(function (l, idx) {
-                        var badgeDevise = l.devise === 'USD' ? 'primary' : 'warning';
-                        html += '<tr>';
-                        html += '<td>' + (idx + 1) + '</td>';
-                        html += '<td style="font-size:0.78rem;">' + l.date + '</td>';
-                        html += '<td><b>' + l.numero + '</b></td>';
-                        html += '<td style="font-size:0.78rem;">' + l.date_facture + '</td>';
-                        html += '<td>' + l.client + '</td>';
-                        // ✅ Colonne "Enregistré par"
-                        html += '<td><span class="badge badge-secondary" title="Créateur de la facture"><i class="zmdi zmdi-edit"></i> ' + l.enregistre_par + '</span></td>';
-                        // ✅ Colonne "Encaissé par"
-                        html += '<td><span class="badge badge-success" title="ID payeur : ' + (l.encaisse_par_id || 'N/A') + '" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="zmdi zmdi-money"></i> ' + l.encaisse_par + '</span></td>';
-                        html += '<td><span class="badge badge-info">' + l.mode + '</span></td>';
-                        html += '<td><span class="badge badge-' + badgeDevise + '">' + l.devise + '</span></td>';
-                        html += '<td style="text-align:right;">';
-                        html += '<div class="dual-currency">';
-                        html += '<b class="text-primary">' + formatRapportMoney(l.montant_usd) + ' USD</b>';
-                        html += '<small class="text-warning">' + formatRapportMoney(l.montant_cdf) + ' CDF</small>';
-                        html += '</div>';
-                        html += '</td>';
-                        html += '</tr>';
-                    });
-                }
-
-                $('#rapport_body').html(html);
-
-                var footHtml = '<tr>';
-                footHtml += '<td colspan="9" class="text-right">TOTAL REÇU (' + nbTransactions + ' transaction' + (nbTransactions > 1 ? 's' : '') + ') :</td>';
-                footHtml += '<td style="text-align:right;">';
-                footHtml += '<span class="text-primary">' + formatRapportMoney(totalUSD) + ' USD</span><br>';
-                footHtml += '<span class="text-warning">' + formatRapportMoney(totalCDF) + ' CDF</span>';
-                footHtml += '</td>';
-                footHtml += '</tr>';
-                $('#rapport_foot').html(footHtml);
-
-                $('#rapport_total_usd').text(formatRapportMoney(totalUSD));
-                $('#rapport_total_cdf').text(formatRapportMoney(totalCDF));
-                $('#rapport_nb').text(nbTransactions);
-
-                if (USER_ROLE == 0) {
-                    $('#rapport_user_label').text(effectiveUserLabel);
-                } else {
-                    $('#rapport_user_label').text(CURRENT_USER_NAME + ' (vous)');
-                }
-                $('#rapport_client_label').text(effectiveClientFilter ? clientFilter : 'Tous');
             }
 
             $(document).on('focus', '#rapport_date_range', function () {
@@ -4434,7 +4367,7 @@ body.modal-open { overflow: hidden; }
 
                         var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
                         var clientFilter = $('#rapport_client_filter').val() || '';
-                        buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+                        fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
                     });
                 }
             });
@@ -4465,7 +4398,7 @@ body.modal-open { overflow: hidden; }
                     var clientFilter = $('#rapport_client_filter').val() || '';
 
                     $('#rapport_periode_label').text(filterRange || 'Toutes les dates');
-                    buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+                    fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
                 });
             });
 
@@ -4483,7 +4416,7 @@ body.modal-open { overflow: hidden; }
                 var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
                 var clientFilter = $('#rapport_client_filter').val() || '';
                 $('#rapport_periode_label').text(range || 'Toutes les dates');
-                buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+                fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
             });
 
             $(document).on('change', '#rapport_user_filter', function () {
@@ -4498,7 +4431,7 @@ body.modal-open { overflow: hidden; }
                 }
                 var userFilter = $(this).val() || 'all';
                 var clientFilter = $('#rapport_client_filter').val() || '';
-                buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+                fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
             });
 
             var rapportClientTimeout;
@@ -4516,7 +4449,7 @@ body.modal-open { overflow: hidden; }
                     }
                     var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
                     var clientFilter = $('#rapport_client_filter').val() || '';
-                    buildRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
+                    fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
                 }, 300);
             });
 
@@ -4538,7 +4471,7 @@ body.modal-open { overflow: hidden; }
                 }
 
                 $('#rapport_periode_label').text('Toutes les dates');
-                buildRapport(null, null, USER_ROLE == 0 ? 'all' : CURRENT_USER_ID, '');
+                fetchRapport(null, null, USER_ROLE == 0 ? 'all' : CURRENT_USER_ID, '');
             });
         });
 
@@ -4655,12 +4588,12 @@ body.modal-open { overflow: hidden; }
                     const pdfUrl = "{{ isset($data->lien) ? $data->lien : '' }}";
                     if (pdfUrl && pdfUrl !== '') {
                         currentPdfUrl = pdfUrl;
-                        $("#pdfIframe").attr("src", pdfUrl);
+                        $("#pdfIframe").attr("src", pdfUrl + '?t=' + new Date().getTime());
                     } else {
                         const pdfResponse = await $.get("{{ url('/print_facture') }}", { facture_id: factureId });
                         if (pdfResponse && pdfResponse[0] && pdfResponse[0][0]) {
                             currentPdfUrl = pdfResponse[0][0];
-                            $("#pdfIframe").attr("src", pdfResponse[0][0]);
+                            $("#pdfIframe").attr("src", pdfResponse[0][0] + '?t=' + new Date().getTime());
                             $("#cdf_montant_payer").val(pdfResponse[0][1] || 0);
                             $("#usd_montant_payer").val(pdfResponse[0][2] || 0);
                             $("#payer").val(pdfResponse[0][5] || '');

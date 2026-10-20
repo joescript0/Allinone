@@ -369,6 +369,8 @@ Route::get('/get_personnes_by_type', [AjaxController::class, 'get_personnes_by_t
 Route::post('/add_personne', [AjaxController::class, 'add_personne'])->name('add_personne');
 Route::get('/get_liste_patient', [AjaxController::class, 'get_liste_patient'])->name('get_liste_patient');
 Route::get('/refresh_edittriage', [AjaxController::class, 'refresh_edittriage'])->name('refresh_edittriage');
+Route::get('/get_detail_patient', [AjaxController::class, 'get_detail_patient'])->name('get_detail_patient');
+Route::get('/get_rapport_paiements', [AjaxController::class, 'get_rapport_paiements'])->name('get_rapport_paiements');
 
 // Route::get('/', function () {
 //     $user = new User();
