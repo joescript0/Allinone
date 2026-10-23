@@ -98,7 +98,7 @@ h4 i.zmdi { background: var(--bleu-nuit-gradient); background-clip: text; -webki
 .phone-cell-display { font-weight: 600; color: #0a192f; font-size: 0.82rem; white-space: nowrap; }
 .phone-cell-display i { color: #10b981; margin-right: 4px; font-size: 0.9rem; }
 
-.phone-call-link { display: inline-flex !important; align-items: center; gap: 8px; padding: 6px 14px; background: linear-gradient(135deg, #10b981, #059669); color: white !important; border-radius: 40px; font-weight: 700; font-size: 0.85rem; text-decoration: none !important; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); white-space: nowrap; }
+.phone-call-link { display: inline-flex !important; align-items: center; gap: 8px; padding: 6px 14px; background: linear-gradient(135deg, #10b981, #059669); color: white !important; border-radius: 40px; font-weight: 700; font-size: 0.85rem; text-decoration: none !important; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); white-space: nowrap; cursor: pointer; }
 .phone-call-link:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(16, 185, 129, 0.4); background: linear-gradient(135deg, #059669, #047857); color: white !important; }
 .phone-call-link i { font-size: 1.05rem; }
 .phone-call-link .phone-num { font-family: 'Courier New', monospace; letter-spacing: 0.4px; }
@@ -179,7 +179,7 @@ textarea.form-control { resize: vertical; height: 38px !important; min-height: 3
 #msg:not(:empty):has(i.zmdi-check-circle) { background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important; color: #065f46; border-left: 4px solid #10b981; }
 #msg:not(:empty):has(i.zmdi-close-circle) { background: linear-gradient(95deg, #fee2e2, #fecaca) !important; color: #991b1b; border-left: 4px solid #ef4444; }
 
-.table tbody td a { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50% !important; background: #f1f5f9; transition: all 0.2s ease; text-decoration: none; margin: 0 2px; }
+.table tbody td a { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50% !important; background: #f1f5f9; transition: all 0.2s ease; text-decoration: none; margin: 0 2px; cursor: pointer; }
 .table tbody td a i.zmdi { font-size: 1.1rem; margin: 0; }
 .table tbody td a i.zmdi-delete { color: #ef4444; }
 .table tbody td a i.zmdi-edit { color: #10b981; }
@@ -306,7 +306,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 #suppression .modal-content { border-radius: 20px !important; border: none !important; overflow: hidden; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.35) !important; }
 #suppression .modal-header { background: linear-gradient(135deg, #ef4444, #b91c1c) !important; color: white !important; border-bottom: none !important; padding: 18px 24px !important; position: relative; }
 #suppression .modal-header h5 { font-weight: 700; font-size: 1.05rem; color: white !important; margin: 0; display: flex; align-items: center; gap: 10px; }
-#suppression .modal-header .close { color: white !important; opacity: 0.9; font-size: 1.7rem; outline: none !important; text-shadow: none; position: absolute; right: 14px; top: 12px; }
+#suppression .modal-header .close { color: white !important; opacity: 0.9; font-size: 1.7rem; outline: none !important; text-shadow: none; position: absolute; right: 14px; top: 12px; cursor: pointer; }
 #suppression .modal-body { background: #f8fafc; padding: 22px 24px !important; }
 #suppression .modal-footer { background: #ffffff; border-top: 1px solid #e2e8f0; padding: 14px 20px !important; justify-content: center; gap: 12px; }
 
@@ -324,9 +324,9 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 .sup-row .sup-value { flex: 1; color: #0a192f; font-weight: 600; font-size: 0.9rem; text-align: right; word-break: break-word; line-height: 1.4; }
 .sup-row .sup-value.empty { color: #94a3b8; font-style: italic; font-weight: 500; }
 
-#suppression #non { border-radius: 40px !important; padding: 9px 24px !important; font-weight: 600; background: #64748b !important; color: white !important; border: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease; }
+#suppression #non { border-radius: 40px !important; padding: 9px 24px !important; font-weight: 600; background: #64748b !important; color: white !important; border: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease; cursor: pointer; }
 #suppression #non:hover { background: #475569 !important; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(100, 116, 139, 0.3); }
-#suppression #oui { border-radius: 40px !important; padding: 9px 24px !important; font-weight: 700; background: linear-gradient(135deg, #ef4444, #dc2626) !important; color: white !important; text-decoration: none !important; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3); transition: all 0.2s ease; border: none; }
+#suppression #oui { border-radius: 40px !important; padding: 9px 24px !important; font-weight: 700; background: linear-gradient(135deg, #ef4444, #dc2626) !important; color: white !important; text-decoration: none !important; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3); transition: all 0.2s ease; border: none; cursor: pointer; }
 #suppression #oui:hover { background: linear-gradient(135deg, #dc2626, #b91c1c) !important; transform: translateY(-2px); box-shadow: 0 10px 22px rgba(239, 68, 68, 0.45); color: white !important; }
 #suppression #oui i, #suppression #non i { color: #ffffff !important; }
 
@@ -385,7 +385,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 #profil_utilisateur .profil-subtitle i { font-size: 0.9rem; color: #3B82F6 !important; }
 
 #profil_utilisateur .profil-footer { position: relative; z-index: 2; padding: 0 32px 28px; text-align: center; }
-#profil_utilisateur .profil-footer .btn { background: linear-gradient(135deg, #0a192f, #1e3a5f) !important; color: white !important; border-radius: 40px !important; padding: 10px 32px !important; font-weight: 700 !important; font-size: 0.85rem; border: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 22px rgba(10, 25, 47, 0.25); transition: all 0.2s ease; }
+#profil_utilisateur .profil-footer .btn { background: linear-gradient(135deg, #0a192f, #1e3a5f) !important; color: white !important; border-radius: 40px !important; padding: 10px 32px !important; font-weight: 700 !important; font-size: 0.85rem; border: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 22px rgba(10, 25, 47, 0.25); transition: all 0.2s ease; cursor: pointer; }
 #profil_utilisateur .profil-footer .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(10, 25, 47, 0.4); background: linear-gradient(135deg, #1e3a5f, #2c5282) !important; }
 #profil_utilisateur .profil-footer .btn i { color: white !important; font-size: 1.1rem; }
 
@@ -421,7 +421,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 .fiche-menu-dropdown.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
 .fiche-menu-dropdown::before { content: ''; position: absolute; top: -6px; right: 32px; width: 12px; height: 12px; background: #ffffff; transform: rotate(45deg); border-radius: 2px; }
 
-.fiche-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 11px; color: #1e2a3e !important; text-decoration: none !important; font-weight: 600; font-size: 0.86rem; transition: all 0.2s ease; }
+.fiche-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 11px; color: #1e2a3e !important; text-decoration: none !important; font-weight: 600; font-size: 0.86rem; transition: all 0.2s ease; cursor: pointer; }
 .fiche-menu-item:not(:last-child) { margin-bottom: 2px; }
 .fiche-menu-item i { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0; transition: all 0.2s ease; }
 .fiche-menu-item span { flex: 1; line-height: 1.3; }
@@ -434,21 +434,21 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 .fiche-menu-item:active { transform: scale(0.97); }
 
 /* ============================================================
-   ✨ MODAL : SIGNES VITAUX
+   ✨ MODAL : SIGNES VITAUX (AGRANDI)
    ============================================================ */
-#modal_signes_vitaux .modal-dialog { max-width: 850px; width: 92%; margin: 1.8rem auto; }
+#modal_signes_vitaux .modal-dialog { max-width: 1050px; width: 92%; margin: 1.8rem auto; }
 #modal_signes_vitaux .modal-content { border-radius: 24px !important; border: none !important; overflow: hidden; box-shadow: 0 30px 80px -10px rgba(10, 25, 47, 0.45) !important; background: #ffffff; }
 #modal_signes_vitaux .modal-header { background: linear-gradient(135deg, #0a192f, #1e3a5f) !important; color: white !important; border-bottom: none !important; padding: 20px 28px !important; position: relative; }
 #modal_signes_vitaux .modal-header h5 { font-weight: 800; font-size: 1.1rem; color: white !important; margin: 0; display: flex; align-items: center; gap: 10px; letter-spacing: 0.5px; }
-#modal_signes_vitaux .modal-header .close { color: white !important; opacity: 0.8; font-size: 1.8rem; outline: none !important; text-shadow: none; position: absolute; right: 16px; top: 14px; transition: all 0.2s; }
+#modal_signes_vitaux .modal-header .close { color: white !important; opacity: 0.8; font-size: 1.8rem; outline: none !important; text-shadow: none; position: absolute; right: 16px; top: 14px; transition: all 0.2s; cursor: pointer; }
 #modal_signes_vitaux .modal-header .close:hover { opacity: 1; transform: rotate(90deg); }
 
 #modal_signes_vitaux .modal-body { background: #f8fafc; padding: 28px !important; max-height: 65vh; overflow-y: auto; }
 #modal_signes_vitaux .modal-footer { background: #ffffff; border-top: 1px solid #e2e8f0; padding: 16px 24px !important; justify-content: flex-end; gap: 12px; }
 
-.signes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+.signes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
 .signes-item { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-.signes-item:focus-within { border-color: #3B82F6; box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15); transform: translateY(-2px); }
+.signes-item:focus-within { border-color: #3B82F6; box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15); }
 .signes-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
 .signes-label i { color: #3B82F6; font-size: 1.2rem; }
 .signes-label .mesure { color: #64748b; font-size: 0.75rem; font-weight: 600; }
@@ -487,6 +487,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     top: 0 !important;
     right: 8px !important;
 }
+/* ✅ CORRECTION CENTRAGE DU X (SIGNES VITAUX) */
 #modal_signes_vitaux .select2-container--default .select2-selection--single .select2-selection__clear {
     color: #ef4444;
     font-weight: 900;
@@ -495,6 +496,16 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
 }
 #modal_signes_vitaux .select2-dropdown {
     border: 1px solid #cbd5e1 !important;
@@ -528,9 +539,11 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 }
 #modal_signes_vitaux .select2-results__option { padding: 8px 12px; font-size: 0.88rem; }
 
-#modal_signes_vitaux .btn-save-vitals { background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; border-radius: 40px !important; padding: 10px 28px !important; font-weight: 800 !important; font-size: 0.85rem; border: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 22px rgba(16, 185, 129, 0.3); transition: all 0.2s; }
-#modal_signes_vitaux .btn-save-vitals:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(16, 185, 129, 0.45); background: linear-gradient(135deg, #059669, #047857) !important; }
-#modal_signes_vitaux .btn-cancel-vitals { background: #e2e8f0 !important; color: #475569 !important; border-radius: 40px !important; padding: 10px 24px !important; font-weight: 700 !important; font-size: 0.85rem; border: none; transition: all 0.2s; }
+/* ✅ AJOUT DU CURSEUR POINTEUR SUR LES BOUTONS DU MODAL SIGNES VITAUX */
+#modal_signes_vitaux .btn-save-vitals { background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; border-radius: 40px !important; padding: 10px 28px !important; font-weight: 800 !important; font-size: 0.85rem; border: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 22px rgba(16, 185, 129, 0.3); transition: background 0.2s; cursor: pointer; }
+#modal_signes_vitaux .btn-save-vitals:hover { background: linear-gradient(135deg, #059669, #047857) !important; }
+#modal_signes_vitaux .btn-save-vitals:disabled { cursor: wait !important; opacity: 0.85; }
+#modal_signes_vitaux .btn-cancel-vitals { background: #e2e8f0 !important; color: #475569 !important; border-radius: 40px !important; padding: 10px 24px !important; font-weight: 700 !important; font-size: 0.85rem; border: none; transition: background 0.2s; cursor: pointer; }
 #modal_signes_vitaux .btn-cancel-vitals:hover { background: #cbd5e1 !important; color: #1e293b !important; }
 
 #vitals_alert {
@@ -598,14 +611,16 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 #modal_transferer_fiche .modal-content { border-radius: 24px !important; border: none !important; overflow: hidden; box-shadow: 0 30px 80px -10px rgba(10, 25, 47, 0.45) !important; background: #ffffff; }
 #modal_transferer_fiche .modal-header { background: linear-gradient(135deg, #0a192f, #1e3a5f) !important; color: white !important; border-bottom: none !important; padding: 20px 28px !important; position: relative; }
 #modal_transferer_fiche .modal-header h5 { font-weight: 800; font-size: 1.1rem; color: white !important; margin: 0; display: flex; align-items: center; gap: 10px; letter-spacing: 0.5px; }
-#modal_transferer_fiche .modal-header .close { color: white !important; opacity: 0.8; font-size: 1.8rem; outline: none !important; text-shadow: none; position: absolute; right: 16px; top: 14px; transition: all 0.2s; }
+#modal_transferer_fiche .modal-header .close { color: white !important; opacity: 0.8; font-size: 1.8rem; outline: none !important; text-shadow: none; position: absolute; right: 16px; top: 14px; transition: all 0.2s; cursor: pointer; }
 #modal_transferer_fiche .modal-header .close:hover { opacity: 1; transform: rotate(90deg); }
 #modal_transferer_fiche .modal-body { background: #f8fafc; padding: 28px !important; max-height: 65vh; overflow-y: auto; }
 #modal_transferer_fiche .modal-footer { background: #ffffff; border-top: 1px solid #e2e8f0; padding: 16px 24px !important; justify-content: flex-end; gap: 12px; }
-#modal_transferer_fiche .btn-save-vitals { background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; border-radius: 40px !important; padding: 10px 28px !important; font-weight: 800 !important; font-size: 0.85rem; border: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 22px rgba(16, 185, 129, 0.3); transition: all 0.2s; }
-#modal_transferer_fiche .btn-save-vitals:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(16, 185, 129, 0.45); background: linear-gradient(135deg, #059669, #047857) !important; }
-#modal_transferer_fiche .btn-save-vitals:disabled { opacity: 0.85; cursor: wait !important; transform: none !important; }
-#modal_transferer_fiche .btn-cancel-vitals { background: #e2e8f0 !important; color: #475569 !important; border-radius: 40px !important; padding: 10px 24px !important; font-weight: 700 !important; font-size: 0.85rem; border: none; transition: all 0.2s; }
+
+/* ✅ AJOUT DU CURSEUR POINTEUR SUR LES BOUTONS DU MODAL TRANSFÉRER */
+#modal_transferer_fiche .btn-save-vitals { background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; border-radius: 40px !important; padding: 10px 28px !important; font-weight: 800 !important; font-size: 0.85rem; border: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 22px rgba(16, 185, 129, 0.3); transition: background 0.2s; cursor: pointer; }
+#modal_transferer_fiche .btn-save-vitals:hover { background: linear-gradient(135deg, #059669, #047857) !important; }
+#modal_transferer_fiche .btn-save-vitals:disabled { opacity: 0.85; cursor: wait !important; }
+#modal_transferer_fiche .btn-cancel-vitals { background: #e2e8f0 !important; color: #475569 !important; border-radius: 40px !important; padding: 10px 24px !important; font-weight: 700 !important; font-size: 0.85rem; border: none; transition: background 0.2s; cursor: pointer; }
 #modal_transferer_fiche .btn-cancel-vitals:hover { background: #cbd5e1 !important; color: #1e293b !important; }
 
 /* Select2 partagé dans le modal transfert */
@@ -626,9 +641,25 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 }
 #modal_transferer_fiche .select2-container--default .select2-selection--single .select2-selection__placeholder { color: #64748b; font-weight: 600; }
 #modal_transferer_fiche .select2-container--default .select2-selection--single .select2-selection__arrow { height: 40px !important; top: 0 !important; right: 8px !important; }
+/* ✅ CORRECTION CENTRAGE DU X (TRANSFÉRER FICHE) */
 #modal_transferer_fiche .select2-container--default .select2-selection--single .select2-selection__clear {
-    color: #ef4444; font-weight: 900; font-size: 1.2rem; right: 30px;
-    position: absolute; top: 50%; transform: translateY(-50%);
+    color: #ef4444;
+    font-weight: 900;
+    font-size: 1.2rem;
+    right: 30px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
 }
 #modal_transferer_fiche .select2-dropdown {
     border: 1px solid #cbd5e1 !important;
@@ -650,7 +681,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 #modal_transferer_fiche .select2-search__field:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important; }
 #modal_transferer_fiche .select2-container--default .select2-results__option--highlighted[aria-selected] { background: #3B82F6 !important; color: white !important; }
 #modal_transferer_fiche .select2-container--default .select2-results__option--selected { background: #dbeafe !important; color: #1e40af !important; font-weight: 700; }
-#modal_transferer_fiche .select2-results__option { padding: 8px 12px; font-size: 0.88rem; }
+#modal_transferer_fiche .select2-results__option { padding: 8px 12px; font-size: 0.88rem; cursor: pointer; }
 
 @media (max-width: 768px) {
     #fiche_toast { top: auto; bottom: 20px; right: 12px; left: 12px; max-width: none; }
