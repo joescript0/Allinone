@@ -255,7 +255,19 @@ use Illuminate\Support\Facades\Auth;
         </div>
     </div>
 
-    <!-- Quatrième ligne : Code patient (masqué via display:none) -->
+    <!-- ✅ NOUVELLE LIGNE : Adresse (50% / colonne de gauche, juste sous "Date de naissance") -->
+    <div class="row form-row-spacing">
+        <div class="col-12 col-md-6">
+            <div class="form-group custom-form-group">
+                <label class="text-info"><i class="zmdi zmdi-pin text-danger"></i> Adresse </label>
+                <input type="text" id="edit_adresse" name="edit_adresse" class="form-control"
+                       placeholder="Adresse (Ex : Avenue Kasa-Vubu, Kinshasa)"
+                       value="<?= $patient->adresse ?? '' ?>">
+            </div>
+        </div>
+    </div>
+
+    <!-- Cinquième ligne : Code patient (masqué via display:none) -->
     <div class="row form-row-spacing" style="display: none;">
         <div class="col-12 col-md-6">
             <div class="form-group custom-form-group">

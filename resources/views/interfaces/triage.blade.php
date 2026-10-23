@@ -11,10 +11,9 @@
     use Illuminate\Support\Facades\DB;
 
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
-    
-    // ✅ ON NE PREND QUE LES SIGNES VITAUX ACTIFS (etat = 1)
+
     $liste_signes_vitaux = DB::table('signesvitauxes')
-        ->where('etat', 1) 
+        ->where('etat', 1)
         ->orderBy('id', 'asc')
         ->get();
 ?>
@@ -60,7 +59,6 @@ body { margin: 0; padding: 0; background: #f0f4f8; }
 h4 { font-weight: 700; border-left: 6px solid #e31b23; padding-left: 18px; margin-bottom: 16px; margin-top: 0; color: var(--bleu-nuit); }
 h4 i.zmdi { background: var(--bleu-nuit-gradient); background-clip: text; -webkit-background-clip: text; color: transparent !important; }
 
-/* ✅ BARRE DU HAUT RESPONSIVE */
 .top-actions-bar {
     background: #eef3fc;
     border-radius: 60px;
@@ -72,15 +70,8 @@ h4 i.zmdi { background: var(--bleu-nuit-gradient); background-clip: text; -webki
     margin-bottom: 20px;
 }
 @media (max-width: 768px) {
-    .top-actions-bar {
-        border-radius: 20px;
-        padding: 10px;
-        justify-content: center;
-    }
-    .top-actions-bar a {
-        flex: 1 1 auto;
-        justify-content: center;
-    }
+    .top-actions-bar { border-radius: 20px; padding: 10px; justify-content: center; }
+    .top-actions-bar a { flex: 1 1 auto; justify-content: center; }
 }
 
 .table-responsive { overflow-x: auto; overflow-y: visible; border-radius: var(--border-radius-lg); }
@@ -169,6 +160,7 @@ textarea.form-control { resize: vertical; height: 38px !important; min-height: 3
 #form_add .form-group > input[type="text"] { flex: 1 1 auto; min-height: 38px; width: 100%; }
 #form_add .form-col { flex: 1 1 calc(50% - 8px); min-width: 260px; max-width: 100%; display: flex; }
 #form_add .form-col-full { flex: 1 1 100%; min-width: 100%; display: flex; }
+#form_add .form-col-half { flex: 0 0 calc(50% - 8px); max-width: calc(50% - 8px); display: flex; }
 #form_add .form-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; justify-content: flex-start; }
 
 .select2-container { width: 100% !important; }
@@ -217,68 +209,62 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 .fiche-patient-hero::before { content: ''; position: absolute; top: -100px; right: -80px; width: 320px; height: 320px; background: radial-gradient(circle, rgba(59,130,246,0.45), transparent 70%); border-radius: 50%; pointer-events: none; }
 .fiche-patient-hero::after { content: ''; position: absolute; bottom: -80px; left: 30%; width: 220px; height: 220px; background: radial-gradient(circle, rgba(16,185,129,0.22), transparent 70%); border-radius: 50%; pointer-events: none; }
 
-/* ✅ BARRE DU HAUT : Uniquement Retour et Actions */
-.fiche-hero-topbar { 
-    position: relative; 
-    z-index: 3; 
-    display: flex; 
+.fiche-hero-topbar {
+    position: relative;
+    z-index: 3;
+    display: flex;
     justify-content: space-between;
-    align-items: center; 
+    align-items: center;
     width: 100%;
 }
 
-.fiche-back-btn { 
-    display: inline-flex; 
-    align-items: center; 
+.fiche-back-btn {
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    gap: 8px; 
-    height: 44px; 
-    padding: 0 20px; 
-    background: linear-gradient(135deg, #ef4444, #dc2626) !important; 
-    color: white !important; 
-    border: none; 
-    border-radius: 40px; 
-    font-weight: 700; 
-    font-size: 0.8rem; 
-    cursor: pointer; 
-    text-decoration: none !important; 
-    transition: all 0.2s ease; 
-    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); 
-    letter-spacing: 0.2px; 
+    gap: 8px;
+    height: 44px;
+    padding: 0 20px;
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: white !important;
+    border: none;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+    letter-spacing: 0.2px;
 }
 .fiche-back-btn:hover { background: linear-gradient(135deg, #dc2626, #b91c1c) !important; transform: translateX(-3px) translateY(-1px); box-shadow: 0 8px 22px rgba(239, 68, 68, 0.55); color: white !important; }
 .fiche-back-btn i { font-size: 1.1rem; color: white !important; }
 
-/* ✅ LE TITRE AGRANDI ET CENTRÉ AU MILIEU ABSOLU */
-.fiche-title-badge { 
+.fiche-title-badge {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 5;
-    
-    display: inline-flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 10px; 
-    height: 56px; 
-    padding: 0 36px; 
-    background: rgba(255,255,255,0.15); 
-    border: 2px solid rgba(255,255,255,0.45); 
-    border-radius: 40px; 
-    color: white; 
-    font-weight: 800; 
-    font-size: 0.95rem; 
-    letter-spacing: 3px; 
-    text-transform: uppercase; 
-    backdrop-filter: blur(8px); 
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 56px;
+    padding: 0 36px;
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.45);
+    border-radius: 40px;
+    color: white;
+    font-weight: 800;
+    font-size: 0.95rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     white-space: nowrap;
 }
-.fiche-title-badge i { 
-    font-size: 1.5rem; 
-    color: #ffffff !important; 
-}
+.fiche-title-badge i { font-size: 1.5rem; color: #ffffff !important; }
 
 .fiche-hero-body { position: relative; z-index: 1; display: flex; align-items: center; gap: 28px; }
 .fiche-avatar-large { position: relative; z-index: 1; width: 110px; height: 110px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 2.2rem; color: white; overflow: hidden; flex-shrink: 0; box-shadow: 0 12px 32px rgba(0,0,0,0.35), inset 0 0 0 2px rgba(255,255,255,0.1); letter-spacing: -1px; }
@@ -344,7 +330,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 #suppression #oui:hover { background: linear-gradient(135deg, #dc2626, #b91c1c) !important; transform: translateY(-2px); box-shadow: 0 10px 22px rgba(239, 68, 68, 0.45); color: white !important; }
 #suppression #oui i, #suppression #non i { color: #ffffff !important; }
 
-/* ============ MODAL PROFIL PREMIUM (sans menu 3 points) ============ */
+/* ============ MODAL PROFIL PREMIUM ============ */
 #profil_utilisateur .modal-dialog { max-width: 420px; width: 92%; margin: 1.8rem auto; }
 #profil_utilisateur .modal-content {
     border-radius: 28px !important; border: none !important; overflow: hidden;
@@ -405,47 +391,22 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 
 #profil_utilisateur.modal.show { backdrop-filter: blur(4px); }
 
-/* ============ ✨ BOUTON "ACTIONS" (fiche patient) - BLEU INFO ============ */
+/* ============ BOUTON "ACTIONS" (fiche patient) ============ */
 .fiche-hero-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-
 .fiche-menu-container { position: relative; z-index: 20; height: 44px; display: flex; align-items: center; }
-
 .fiche-actions-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    height: 44px; 
-    padding: 0 20px 0 16px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 44px; padding: 0 20px 0 16px;
     background: linear-gradient(135deg, #3B82F6, #1d4ed8);
-    color: white !important;
-    border: 2px solid rgba(255, 255, 255, 0.45);
-    border-radius: 40px;
-    font-weight: 800;
-    font-size: 0.78rem;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 8px 22px rgba(59, 130, 246, 0.6);
+    color: white !important; border: 2px solid rgba(255, 255, 255, 0.45);
+    border-radius: 40px; font-weight: 800; font-size: 0.78rem;
+    letter-spacing: 0.8px; text-transform: uppercase; cursor: pointer;
+    transition: all 0.25s ease; box-shadow: 0 8px 22px rgba(59, 130, 246, 0.6);
 }
-.fiche-actions-btn i {
-    font-size: 1.2rem;
-    color: white !important;
-    transition: transform 0.25s ease;
-}
-.fiche-actions-btn:hover {
-    background: linear-gradient(135deg, #2563eb, #1e40af);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(59, 130, 246, 0.85);
-}
-.fiche-actions-btn.active {
-    background: linear-gradient(135deg, #2563eb, #1e40af);
-    box-shadow: 0 12px 28px rgba(59, 130, 246, 0.85);
-}
-.fiche-actions-btn.active i {
-    transform: rotate(180deg);
-}
+.fiche-actions-btn i { font-size: 1.2rem; color: white !important; transition: transform 0.25s ease; }
+.fiche-actions-btn:hover { background: linear-gradient(135deg, #2563eb, #1e40af); transform: translateY(-2px); box-shadow: 0 12px 28px rgba(59, 130, 246, 0.85); }
+.fiche-actions-btn.active { background: linear-gradient(135deg, #2563eb, #1e40af); box-shadow: 0 12px 28px rgba(59, 130, 246, 0.85); }
+.fiche-actions-btn.active i { transform: rotate(180deg); }
 
 .fiche-menu-dropdown {
     position: absolute; top: calc(100% + 12px); right: 0;
@@ -473,213 +434,248 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 .fiche-menu-item:active { transform: scale(0.97); }
 
 /* ============================================================
-   ✨ NOUVEAU MODAL : SIGNES VITAUX
+   ✨ MODAL : SIGNES VITAUX
    ============================================================ */
-#modal_signes_vitaux .modal-dialog {
-    max-width: 850px; 
-    width: 92%;
-    margin: 1.8rem auto;
-}
-#modal_signes_vitaux .modal-content {
-    border-radius: 24px !important;
-    border: none !important;
-    overflow: hidden;
-    box-shadow: 0 30px 80px -10px rgba(10, 25, 47, 0.45) !important;
-    background: #ffffff;
-}
-#modal_signes_vitaux .modal-header {
-    background: linear-gradient(135deg, #0a192f, #1e3a5f) !important;
-    color: white !important;
-    border-bottom: none !important;
-    padding: 20px 28px !important;
-    position: relative;
-}
-#modal_signes_vitaux .modal-header h5 {
-    font-weight: 800;
-    font-size: 1.1rem;
-    color: white !important;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    letter-spacing: 0.5px;
-}
-#modal_signes_vitaux .modal-header .close {
-    color: white !important;
-    opacity: 0.8;
-    font-size: 1.8rem;
-    outline: none !important;
-    text-shadow: none;
-    position: absolute;
-    right: 16px;
-    top: 14px;
-    transition: all 0.2s;
-}
+#modal_signes_vitaux .modal-dialog { max-width: 850px; width: 92%; margin: 1.8rem auto; }
+#modal_signes_vitaux .modal-content { border-radius: 24px !important; border: none !important; overflow: hidden; box-shadow: 0 30px 80px -10px rgba(10, 25, 47, 0.45) !important; background: #ffffff; }
+#modal_signes_vitaux .modal-header { background: linear-gradient(135deg, #0a192f, #1e3a5f) !important; color: white !important; border-bottom: none !important; padding: 20px 28px !important; position: relative; }
+#modal_signes_vitaux .modal-header h5 { font-weight: 800; font-size: 1.1rem; color: white !important; margin: 0; display: flex; align-items: center; gap: 10px; letter-spacing: 0.5px; }
+#modal_signes_vitaux .modal-header .close { color: white !important; opacity: 0.8; font-size: 1.8rem; outline: none !important; text-shadow: none; position: absolute; right: 16px; top: 14px; transition: all 0.2s; }
 #modal_signes_vitaux .modal-header .close:hover { opacity: 1; transform: rotate(90deg); }
 
-#modal_signes_vitaux .modal-body {
-    background: #f8fafc;
-    padding: 28px !important;
-    max-height: 65vh;
-    overflow-y: auto;
-}
-#modal_signes_vitaux .modal-footer {
-    background: #ffffff;
-    border-top: 1px solid #e2e8f0;
-    padding: 16px 24px !important;
-    justify-content: flex-end;
-    gap: 12px;
-}
+#modal_signes_vitaux .modal-body { background: #f8fafc; padding: 28px !important; max-height: 65vh; overflow-y: auto; }
+#modal_signes_vitaux .modal-footer { background: #ffffff; border-top: 1px solid #e2e8f0; padding: 16px 24px !important; justify-content: flex-end; gap: 12px; }
 
-/* Grille pour les champs de signes vitaux */
-.signes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 20px;
-}
-.signes-item {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 16px;
-    transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-}
-.signes-item:focus-within {
-    border-color: #3B82F6;
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
-    transform: translateY(-2px);
-}
-.signes-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 10px;
-}
-.signes-label i {
-    color: #3B82F6;
-    font-size: 1.2rem;
-}
-.signes-label .mesure {
-    color: #64748b;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
+.signes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+.signes-item { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+.signes-item:focus-within { border-color: #3B82F6; box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15); transform: translateY(-2px); }
+.signes-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
+.signes-label i { color: #3B82F6; font-size: 1.2rem; }
+.signes-label .mesure { color: #64748b; font-size: 0.75rem; font-weight: 600; }
 
-.signes-item input {
+.signes-item input { height: 42px !important; background: #f8fafc !important; border: 1px solid #cbd5e1 !important; font-size: 0.95rem !important; font-weight: 700 !important; color: #0a192f !important; text-align: left !important; padding-left: 15px !important; }
+.signes-item input:focus { background: #ffffff !important; }
+
+.signes-item select.form-control { height: 42px !important; background: #f8fafc !important; border: 1px solid #cbd5e1 !important; font-size: 0.9rem !important; font-weight: 700 !important; color: #0a192f !important; padding-left: 12px !important; }
+.signes-item select.form-control:focus { background: #ffffff !important; }
+
+/* ✅ Motif & Service : exactement 50/50 */
+.signes-grid.signes-grid-2 { grid-template-columns: 1fr 1fr; }
+
+/* ✅ Select2 dans le modal signes vitaux (look aligné sur les autres champs) */
+#modal_signes_vitaux .select2-container { width: 100% !important; }
+#modal_signes_vitaux .select2-container--default .select2-selection--single {
     height: 42px !important;
     background: #f8fafc !important;
     border: 1px solid #cbd5e1 !important;
-    font-size: 0.95rem !important;
-    font-weight: 700 !important;
-    color: #0a192f !important;
-    text-align: left !important; 
-    padding-left: 15px !important; 
+    border-radius: 8px !important;
+    padding: 0 !important;
 }
-.signes-item input:focus {
-    background: #ffffff !important;
+#modal_signes_vitaux .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 40px !important;
+    padding: 0 40px 0 14px !important;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #0a192f;
 }
-
-#modal_signes_vitaux .btn-save-vitals {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
+#modal_signes_vitaux .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #64748b;
+    font-weight: 600;
+}
+#modal_signes_vitaux .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 40px !important;
+    top: 0 !important;
+    right: 8px !important;
+}
+#modal_signes_vitaux .select2-container--default .select2-selection--single .select2-selection__clear {
+    color: #ef4444;
+    font-weight: 900;
+    font-size: 1.2rem;
+    right: 30px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+#modal_signes_vitaux .select2-dropdown {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 12px 30px rgba(10, 25, 47, 0.2) !important;
+    z-index: 10000;
+    overflow: hidden;
+}
+#modal_signes_vitaux .select2-search__field {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    font-size: 0.85rem !important;
+    outline: none !important;
+    margin: 6px !important;
+    width: calc(100% - 12px) !important;
+    box-sizing: border-box !important;
+}
+#modal_signes_vitaux .select2-search__field:focus {
+    border-color: #3B82F6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+#modal_signes_vitaux .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background: #3B82F6 !important;
     color: white !important;
-    border-radius: 40px !important;
-    padding: 10px 28px !important;
-    font-weight: 800 !important;
-    font-size: 0.85rem;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 8px 22px rgba(16, 185, 129, 0.3);
-    transition: all 0.2s;
 }
-#modal_signes_vitaux .btn-save-vitals:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(16, 185, 129, 0.45);
-    background: linear-gradient(135deg, #059669, #047857) !important;
+#modal_signes_vitaux .select2-container--default .select2-results__option--selected {
+    background: #dbeafe !important;
+    color: #1e40af !important;
+    font-weight: 700;
 }
-#modal_signes_vitaux .btn-cancel-vitals {
-    background: #e2e8f0 !important;
-    color: #475569 !important;
-    border-radius: 40px !important;
-    padding: 10px 24px !important;
-    font-weight: 700 !important;
-    font-size: 0.85rem;
-    border: none;
-    transition: all 0.2s;
-}
-#modal_signes_vitaux .btn-cancel-vitals:hover {
-    background: #cbd5e1 !important;
-    color: #1e293b !important;
-}
+#modal_signes_vitaux .select2-results__option { padding: 8px 12px; font-size: 0.88rem; }
 
-/* ✅ ALERTE DANS LE MODAL (Positionnée tout en bas, sous les boutons) */
+#modal_signes_vitaux .btn-save-vitals { background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; border-radius: 40px !important; padding: 10px 28px !important; font-weight: 800 !important; font-size: 0.85rem; border: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 22px rgba(16, 185, 129, 0.3); transition: all 0.2s; }
+#modal_signes_vitaux .btn-save-vitals:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(16, 185, 129, 0.45); background: linear-gradient(135deg, #059669, #047857) !important; }
+#modal_signes_vitaux .btn-cancel-vitals { background: #e2e8f0 !important; color: #475569 !important; border-radius: 40px !important; padding: 10px 24px !important; font-weight: 700 !important; font-size: 0.85rem; border: none; transition: all 0.2s; }
+#modal_signes_vitaux .btn-cancel-vitals:hover { background: #cbd5e1 !important; color: #1e293b !important; }
+
 #vitals_alert {
     display: none;
-    margin: 0;
-    padding: 15px 24px;
-    border-radius: 0 0 24px 24px; /* Épouse la forme du bas du modal */
+    margin: 16px auto 20px auto !important;
+    padding: 10px 18px !important;
+    background: #ffffff !important;
+    border-radius: 50px !important;
+    box-shadow: var(--shadow-light) !important;
+    gap: 10px;
     font-weight: 600;
-    font-size: 0.85rem;
-    text-align: center;
-    border-top: 2px solid transparent;
+    font-size: 0.8rem;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    width: -moz-fit-content;
+    max-width: calc(100% - 48px);
+    text-align: left;
+    border: none;
 }
-#vitals_alert.success {
-    background: linear-gradient(95deg, #d1fae5, #a7f3d0);
-    color: #065f46;
-    border-top-color: #10b981;
-}
-#vitals_alert.error {
-    background: linear-gradient(95deg, #fee2e2, #fecaca);
-    color: #991b1b;
-    border-top-color: #ef4444;
+#vitals_alert.success { background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important; color: #065f46 !important; border-left: 4px solid #10b981 !important; }
+#vitals_alert.error { background: linear-gradient(95deg, #fee2e2, #fecaca) !important; color: #991b1b !important; border-left: 4px solid #ef4444 !important; }
+#vitals_alert i { font-size: 1.15rem; line-height: 1; flex-shrink: 0; }
+
+.required-mark { color: #ef4444; font-weight: 900; font-size: 1.2rem; margin-left: 4px; line-height: 1; }
+
+.signes-item.has-error { border-color: #ef4444 !important; background: #fef2f2 !important; animation: shakeError 0.3s ease; }
+.signes-item.has-error .signes-label { color: #991b1b; }
+.signes-item.has-error input,
+.signes-item.has-error select { border-color: #ef4444 !important; background: #fff5f5 !important; }
+@keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
 }
 
-/* Responsive du Modal Signes Vitaux */
+#fiche_toast {
+    display: none;
+    position: fixed;
+    top: 85px;
+    right: 24px;
+    z-index: 99999;
+    max-width: 440px;
+}
+#fiche_toast_inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 14px 40px rgba(10, 25, 47, 0.22), 0 0 0 1px rgba(148, 163, 184, 0.15);
+    border-left: 5px solid #3B82F6;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #0a192f;
+    line-height: 1.4;
+}
+#fiche_toast_inner i { font-size: 1.4rem; flex-shrink: 0; }
+
+/* ============================================================
+   ✨ NOUVEAU MODAL : TRANSFÉRER LA FICHE
+   ============================================================ */
+#modal_transferer_fiche .modal-dialog { max-width: 750px; width: 92%; margin: 1.8rem auto; }
+#modal_transferer_fiche .modal-content { border-radius: 24px !important; border: none !important; overflow: hidden; box-shadow: 0 30px 80px -10px rgba(10, 25, 47, 0.45) !important; background: #ffffff; }
+#modal_transferer_fiche .modal-header { background: linear-gradient(135deg, #0a192f, #1e3a5f) !important; color: white !important; border-bottom: none !important; padding: 20px 28px !important; position: relative; }
+#modal_transferer_fiche .modal-header h5 { font-weight: 800; font-size: 1.1rem; color: white !important; margin: 0; display: flex; align-items: center; gap: 10px; letter-spacing: 0.5px; }
+#modal_transferer_fiche .modal-header .close { color: white !important; opacity: 0.8; font-size: 1.8rem; outline: none !important; text-shadow: none; position: absolute; right: 16px; top: 14px; transition: all 0.2s; }
+#modal_transferer_fiche .modal-header .close:hover { opacity: 1; transform: rotate(90deg); }
+#modal_transferer_fiche .modal-body { background: #f8fafc; padding: 28px !important; max-height: 65vh; overflow-y: auto; }
+#modal_transferer_fiche .modal-footer { background: #ffffff; border-top: 1px solid #e2e8f0; padding: 16px 24px !important; justify-content: flex-end; gap: 12px; }
+#modal_transferer_fiche .btn-save-vitals { background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; border-radius: 40px !important; padding: 10px 28px !important; font-weight: 800 !important; font-size: 0.85rem; border: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 22px rgba(16, 185, 129, 0.3); transition: all 0.2s; }
+#modal_transferer_fiche .btn-save-vitals:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(16, 185, 129, 0.45); background: linear-gradient(135deg, #059669, #047857) !important; }
+#modal_transferer_fiche .btn-save-vitals:disabled { opacity: 0.85; cursor: wait !important; transform: none !important; }
+#modal_transferer_fiche .btn-cancel-vitals { background: #e2e8f0 !important; color: #475569 !important; border-radius: 40px !important; padding: 10px 24px !important; font-weight: 700 !important; font-size: 0.85rem; border: none; transition: all 0.2s; }
+#modal_transferer_fiche .btn-cancel-vitals:hover { background: #cbd5e1 !important; color: #1e293b !important; }
+
+/* Select2 partagé dans le modal transfert */
+#modal_transferer_fiche .select2-container { width: 100% !important; }
+#modal_transferer_fiche .select2-container--default .select2-selection--single {
+    height: 42px !important;
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    padding: 0 !important;
+}
+#modal_transferer_fiche .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 40px !important;
+    padding: 0 40px 0 14px !important;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #0a192f;
+}
+#modal_transferer_fiche .select2-container--default .select2-selection--single .select2-selection__placeholder { color: #64748b; font-weight: 600; }
+#modal_transferer_fiche .select2-container--default .select2-selection--single .select2-selection__arrow { height: 40px !important; top: 0 !important; right: 8px !important; }
+#modal_transferer_fiche .select2-container--default .select2-selection--single .select2-selection__clear {
+    color: #ef4444; font-weight: 900; font-size: 1.2rem; right: 30px;
+    position: absolute; top: 50%; transform: translateY(-50%);
+}
+#modal_transferer_fiche .select2-dropdown {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 12px 30px rgba(10, 25, 47, 0.2) !important;
+    z-index: 10000;
+    overflow: hidden;
+}
+#modal_transferer_fiche .select2-search__field {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    font-size: 0.85rem !important;
+    outline: none !important;
+    margin: 6px !important;
+    width: calc(100% - 12px) !important;
+    box-sizing: border-box !important;
+}
+#modal_transferer_fiche .select2-search__field:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important; }
+#modal_transferer_fiche .select2-container--default .select2-results__option--highlighted[aria-selected] { background: #3B82F6 !important; color: white !important; }
+#modal_transferer_fiche .select2-container--default .select2-results__option--selected { background: #dbeafe !important; color: #1e40af !important; font-weight: 700; }
+#modal_transferer_fiche .select2-results__option { padding: 8px 12px; font-size: 0.88rem; }
+
+@media (max-width: 768px) {
+    #fiche_toast { top: auto; bottom: 20px; right: 12px; left: 12px; max-width: none; }
+}
+
 @media (max-width: 768px) {
     #modal_signes_vitaux .modal-dialog { width: 95%; }
     #modal_signes_vitaux .modal-body { padding: 18px !important; }
+    #modal_transferer_fiche .modal-dialog { width: 95%; }
+    #modal_transferer_fiche .modal-body { padding: 18px !important; }
     .signes-grid { grid-template-columns: repeat(auto-fill, minmax(100%, 1fr)); gap: 14px; }
+    .signes-grid.signes-grid-2 { grid-template-columns: 1fr; }
     #modal_signes_vitaux .modal-footer { flex-direction: column; }
     #modal_signes_vitaux .modal-footer button { width: 100%; justify-content: center; }
-    #vitals_alert { padding: 12px 18px; font-size: 0.8rem; }
+    #modal_transferer_fiche .modal-footer { flex-direction: column; }
+    #modal_transferer_fiche .modal-footer button { width: 100%; justify-content: center; }
+    #vitals_alert { padding: 10px 14px !important; font-size: 0.78rem; max-width: calc(100% - 28px); }
 }
 
-/* ✅ RESPONSIVE : Ajustement du badge pour Tablette et Mobile */
 @media (max-width: 768px) {
     .fiche-patient-hero { gap: 20px; padding: 20px 20px 28px; }
-    
-    .fiche-hero-topbar { 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        gap: 12px; 
-    }
-    
+    .fiche-hero-topbar { display: flex; flex-direction: column; align-items: center; gap: 12px; }
     .fiche-back-btn { width: 100%; max-width: 320px; margin: 0 auto; }
-    
-    /* Sur mobile, le badge reprend sa place et s'adapte à son contenu sans s'étirer */
-    .fiche-title-badge { 
-        position: relative; 
-        top: auto; 
-        left: auto; 
-        transform: none; 
-        width: auto; /* Prend la largeur de son contenu */
-        max-width: 100%; 
-        margin: 0 auto 15px auto; 
-        order: -1; 
-        height: 46px;
-        font-size: 0.78rem;
-        letter-spacing: 1.5px;
-        padding: 0 20px;
-        white-space: nowrap;
-    }
+    .fiche-title-badge { position: relative; top: auto; left: auto; transform: none; width: auto; max-width: 100%; margin: 0 auto 15px auto; order: -1; height: 46px; font-size: 0.78rem; letter-spacing: 1.5px; padding: 0 20px; white-space: nowrap; }
     .fiche-title-badge i { font-size: 1.15rem; }
-    
     .fiche-hero-right { width: 100%; justify-content: center; }
     .fiche-menu-container { width: 100%; max-width: 320px; justify-content: center; margin: 0 auto; }
     .fiche-actions-btn { width: 100%; }
@@ -695,18 +691,10 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     .fiche-menu-dropdown { min-width: 230px; right: -10px; }
     .fiche-actions-btn { padding: 0 16px; font-size: 0.72rem; }
     .fiche-actions-btn i { font-size: 1.1rem; }
-    
-    /* Sur très petit mobile, on ajuste encore un peu */
-    .fiche-title-badge {
-        height: 40px;
-        font-size: 0.7rem;
-        letter-spacing: 1px;
-        padding: 0 15px;
-    }
+    .fiche-title-badge { height: 40px; font-size: 0.7rem; letter-spacing: 1px; padding: 0 15px; }
     .fiche-title-badge i { font-size: 1rem; }
 }
 
-/* ============ RESPONSIVE GLOBAL ============ */
 @media (max-width: 768px) {
     .content .container { padding: 0.4rem 0.6rem !important; }
     #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 0.8rem !important; }
@@ -717,7 +705,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     .table tbody td { padding: 8px 10px !important; font-size: 0.75rem; }
     .code-badge { font-size: 0.72rem; padding: 5px 10px; }
     .badge-nature { font-size: 0.72rem; padding: 5px 12px; }
-    #form_add .form-col, #form_add .form-col-full { flex: 1 1 100%; min-width: 100%; max-width: 100%; }
+    #form_add .form-col, #form_add .form-col-full, #form_add .form-col-half { flex: 1 1 100%; min-width: 100%; max-width: 100%; }
     #form_add .form-row-custom { gap: 12px; margin-bottom: 12px; }
     #form_add .form-actions { flex-direction: column; gap: 10px; }
     #form_add .form-actions button, #form_add .form-actions a { width: 100%; justify-content: center; }
@@ -740,16 +728,16 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     .fiche-hero-topbar { justify-content: center; }
 }
 </style>
+
 <section class="content">
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
-                <!-- ✅ CLASSE AJOUTÉE POUR GÉRER LES BOUTONS DU HAUT -->
                 <div class="top-actions-bar">
                     <a class="btn-primary btn-sm" id="liste" href="">
                         <i class="zmdi zmdi-accounts"></i> Liste
                     </a>
-                    
+
                     <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
                         <?php
                         $add = 0;
@@ -986,7 +974,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                 </div>
             </div>
 
-            <!-- ============ BLOC AJOUT PATIENT ============ -->
             <div id="bloc_2" style="margin-top: 12px;display: none;margin-bottom: 100px;" class="col-lg-12">
                 <h4 style="color:rgba(0, 0, 0, 0.6);">
                     <i style="font-size: 40px;" class="zmdi zmdi-accounts-add text-info"></i> Ajouter un patient
@@ -1068,7 +1055,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                     </div>
 
                     <div class="form-row-custom">
-                        <div class="form-col-full">
+                        <div class="form-col form-col-half">
                             <div class="form-group">
                                 <label class="text-info"><i class="zmdi zmdi-pin"></i> Adresse</label>
                                 <input type="text" id="adresse" name="adresse" class="form-control"
@@ -1111,23 +1098,18 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                 <iframe style="width: 100%;height: 1500px;" id="data_liste" src="" frameborder="0"></iframe>
             </div>
 
-            <!-- ==================== FICHE PATIENT VIRTUELLE ==================== -->
             <div id="bloc_fiche" style="margin-top: 12px; display: none;" class="col-lg-12">
                 <div class="fiche-patient-card">
                     <div class="fiche-patient-hero">
-
-                        <!-- ✅ LE TITRE AGRANDI EST MAINTENANT ICI -->
                         <div class="fiche-title-badge">
                             <i class="zmdi zmdi-file-text"></i> Fiche patient
                         </div>
 
                         <div class="fiche-hero-topbar">
-                            <!-- Gauche : Retour -->
                             <button type="button" class="fiche-back-btn" id="fiche_back">
                                 <i class="zmdi zmdi-arrow-left"></i> Retour à la liste
                             </button>
 
-                            <!-- Droite : Actions -->
                             <div class="fiche-hero-right">
                                 <div class="fiche-menu-container">
                                     <button type="button" class="fiche-actions-btn" id="fiche_menu_btn" aria-label="Plus d'options">
@@ -1167,7 +1149,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                 </div>
                             </div>
                         </div>
-
                     </div>
                     <div class="fiche-body">
                         <div class="fiche-section">
@@ -1223,7 +1204,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 <span id="data_id" style="display: none;"></span>
 <button style="display: none;" data-toggle="modal" data-target="#suppression" id="btn_sup">Sup</button>
 
-<!-- MODAL SUPPRESSION -->
 <div class="modal fade" id="suppression" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -1283,21 +1263,17 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     </div>
 </div>
 
-<!-- ==================== MODAL PROFIL PREMIUM ==================== -->
 <button style="display: none;" data-toggle="modal" data-target="#profil_utilisateur" id="btn_voir_profil">Sup</button>
 <div class="modal fade" id="profil_utilisateur" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <!-- Décorations floues -->
             <div class="profil-decor profil-decor-1"></div>
             <div class="profil-decor profil-decor-2"></div>
 
-            <!-- Bouton fermer flottant -->
             <button type="button" class="profil-close-btn" data-dismiss="modal" aria-label="Fermer">
                 <i class="zmdi zmdi-close"></i>
             </button>
 
-            <!-- Corps principal -->
             <div class="profil-modal-body">
                 <div class="profil-avatar-wrapper">
                     <div class="profil-avatar-inner" id="profil_avatar_container">
@@ -1310,7 +1286,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                 </span>
             </div>
 
-            <!-- Pied -->
             <div class="profil-footer">
                 <button type="button" class="btn" data-dismiss="modal">
                     <i class="zmdi zmdi-check"></i> D'accord
@@ -1320,7 +1295,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     </div>
 </div>
 
-<!-- ==================== ✨ NOUVEAU MODAL : AJOUTER SIGNES VITAUX ✨ ==================== -->
+<!-- ==================== ✨ MODAL : AJOUTER SIGNES VITAUX ✨ ==================== -->
 <div class="modal fade" id="modal_signes_vitaux" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -1333,43 +1308,75 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            
+
             <form id="form_signes_vitaux">
                 @csrf
-                <input type="hidden" id="vitals_patient_id" name="patient_id" value="">
-                
+                <input type="hidden" id="vitals_patient_id"  name="patient_id"  value="">
+                <input type="hidden" id="vitals_registre_id" name="registre_id" value="">
+
                 <div class="modal-body">
+
+                    <!-- ✅ Motif & Service : 50/50 + recherche Select2 -->
+                    <div class="signes-grid signes-grid-2" style="margin-bottom: 20px;">
+                        <div class="signes-item">
+                            <label class="signes-label" for="vitals_motif">
+                                <i class="zmdi zmdi-comment-text"></i>
+                                Motif
+                                <span class="required-mark">*</span>
+                            </label>
+                            <select id="vitals_motif" name="motif_id" class="form-control">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="signes-item">
+                            <label class="signes-label" for="vitals_service">
+                                <i class="zmdi zmdi-hospital"></i>
+                                Service
+                                <span class="required-mark">*</span>
+                            </label>
+                            <select id="vitals_service" name="service_id" class="form-control">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="signes-grid">
                         @foreach($liste_signes_vitaux as $signe)
-                            <div class="signes-item">
+                            @php
+                                $isRequired = (isset($signe->obligatoire) && $signe->obligatoire == 0);
+                            @endphp
+                            <div class="signes-item {{ $isRequired ? 'is-required' : '' }}" data-obligatoire="{{ $isRequired ? '1' : '0' }}">
                                 <label class="signes-label" for="signe_{{ $signe->id }}">
                                     <i class="zmdi {{ !empty($signe->icone) ? $signe->icone : 'zmdi-chart' }}"></i>
-                                    {{ $signe->nom }} 
+                                    {{ $signe->nom }}
                                     <span class="mesure">({{ $signe->mesure }})</span>
+                                    @if($isRequired)
+                                        <span class="required-mark" title="Champ obligatoire">*</span>
+                                    @endif
                                 </label>
-                                
-                                {{-- ✅ GESTION DYNAMIQUE DU TYPE AVEC INPUTMODE --}}
-                                @if($signe->type === 'number')
-                                    <input type="number" 
-                                           step="any" 
-                                           inputmode="decimal"
-                                           class="form-control vitals-number-input" 
-                                           id="signe_{{ $signe->id }}" 
-                                           name="signes[{{ $signe->id }}]" 
-                                           placeholder="Saisir une valeur...">
-                                @else
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="signe_{{ $signe->id }}" 
-                                           name="signes[{{ $signe->id }}]" 
-                                           placeholder="Saisir...">
-                                @endif
 
+                                @if($signe->type === 'number')
+                                    <input type="number"
+                                           step="any"
+                                           inputmode="decimal"
+                                           class="form-control vitals-number-input"
+                                           id="signe_{{ $signe->id }}"
+                                           name="signes[{{ $signe->id }}]"
+                                           data-required="{{ $isRequired ? '1' : '0' }}"
+                                           placeholder="Saisir une valeur...{{ $isRequired ? ' (obligatoire)' : '' }}">
+                                @else
+                                    <input type="text"
+                                           class="form-control"
+                                           id="signe_{{ $signe->id }}"
+                                           name="signes[{{ $signe->id }}]"
+                                           data-required="{{ $isRequired ? '1' : '0' }}"
+                                           placeholder="Saisir...{{ $isRequired ? ' (obligatoire)' : '' }}">
+                                @endif
                             </div>
                         @endforeach
                     </div>
                 </div>
-                
+
                 <div class="modal-footer">
                     <button type="button" class="btn-cancel-vitals" data-dismiss="modal">
                         Annuler
@@ -1379,22 +1386,214 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                     </button>
                 </div>
 
-                <!-- ✅ ALERTE DÉPLACÉE ICI : Tout en bas, en dessous des boutons -->
-                <div id="vitals_alert"></div>
+                <div style="height:70px; margin-bottom: 20px;" id="vitals_alert"></div>
             </form>
         </div>
+    </div>
+</div>
+
+<!-- ==================== ✨ NOUVEAU MODAL : TRANSFÉRER LA FICHE ✨ ==================== -->
+<div class="modal fade" id="modal_transferer_fiche" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="zmdi zmdi-swap"></i>
+                    Transférer la fiche : <span id="transfert_patient_name" style="color: #3B82F6; margin-left: 5px;"></span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form id="form_transferer_fiche">
+                @csrf
+                <input type="hidden" id="transfert_patient_id" name="patient_id" value="">
+
+                <div class="modal-body">
+                    <!-- Motif & Service (50/50) -->
+                    <div class="signes-grid signes-grid-2" style="margin-bottom: 20px;">
+                        <div class="signes-item">
+                            <label class="signes-label" for="transfert_motif">
+                                <i class="zmdi zmdi-comment-text"></i>
+                                Motif
+                                <span class="required-mark">*</span>
+                            </label>
+                            <select id="transfert_motif" name="motif_id" class="form-control">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="signes-item">
+                            <label class="signes-label" for="transfert_service">
+                                <i class="zmdi zmdi-hospital"></i>
+                                Service
+                                <span class="required-mark">*</span>
+                            </label>
+                            <select id="transfert_service" name="service_id" class="form-control">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Utilisateur destinataire -->
+                    <div class="signes-item">
+                        <label class="signes-label" for="transfert_user">
+                            <i class="zmdi zmdi-account-circle"></i>
+                            Transférer à (destinataire)
+                            <span class="required-mark">*</span>
+                        </label>
+                        <select id="transfert_user" name="user_id" class="form-control">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel-vitals" data-dismiss="modal">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn-save-vitals" id="btn_transferer">
+                        Transférer <i class="zmdi zmdi-swap"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Toast global pour feedback (vérification registre) -->
+<div id="fiche_toast">
+    <div id="fiche_toast_inner">
+        <i class="zmdi zmdi-info" style="color:#3B82F6;"></i>
+        <span id="fiche_toast_msg"></span>
     </div>
 </div>
 
 @section('js-code')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     console.log('✅ SCRIPT TRIAGE CHARGÉ');
 
     $("#link_61").addClass("active");
 
     let currentPatientFullData = null;
+    let vitalsAlertTimeout;
+
+    /* ============================================================
+       🔔 Toast flottant
+       ============================================================ */
+    function showPatientToast(message, type) {
+        type = type || 'info';
+        var $toast = $('#fiche_toast');
+        var $inner = $('#fiche_toast_inner');
+        var $icon  = $inner.find('i.zmdi');
+
+        $('#fiche_toast_msg').text(message);
+
+        var colors = { info: '#3B82F6', success: '#10b981', error: '#ef4444' };
+        var icons  = { info: 'zmdi-info', success: 'zmdi-check-circle', error: 'zmdi-alert-circle' };
+
+        $inner.css('border-left-color', colors[type]);
+        $icon.attr('class', 'zmdi ' + icons[type]).css('color', colors[type]);
+
+        $toast.stop(true, true).fadeIn(200);
+        clearTimeout(window._ficheToastT);
+        window._ficheToastT = setTimeout(function() { $toast.fadeOut(300); }, 5500);
+    }
+
+    /* ============================================================
+       🔍 INIT SELECT2 sur Motif & Service (avec recherche intégrée)
+       ============================================================ */
+    function initVitalsSelect2() {
+        if (typeof $().select2 === 'undefined') return;
+
+        if ($('#vitals_motif').hasClass('select2-hidden-accessible')) {
+            $('#vitals_motif').select2('destroy');
+        }
+        if ($('#vitals_service').hasClass('select2-hidden-accessible')) {
+            $('#vitals_service').select2('destroy');
+        }
+
+        $('#vitals_motif').select2({
+            dropdownParent: $('#modal_signes_vitaux'),
+            placeholder: 'Rechercher un motif...',
+            allowClear: true,
+            width: '100%',
+            language: {
+                noResults: function() { return 'Aucun motif trouvé'; },
+                searching: function() { return 'Recherche...'; },
+                inputTooShort: function() { return 'Tapez pour rechercher...'; }
+            }
+        });
+
+        $('#vitals_service').select2({
+            dropdownParent: $('#modal_signes_vitaux'),
+            placeholder: 'Rechercher un service...',
+            allowClear: true,
+            width: '100%',
+            language: {
+                noResults: function() { return 'Aucun service trouvé'; },
+                searching: function() { return 'Recherche...'; },
+                inputTooShort: function() { return 'Tapez pour rechercher...'; }
+            }
+        });
+    }
+
+    $('#modal_signes_vitaux').on('shown.bs.modal', function() {
+        initVitalsSelect2();
+    });
+
+    /* ============================================================
+       ✨ INIT SELECT2 sur le modal de TRANSFERT
+       ============================================================ */
+    function initTransfertSelect2() {
+        if (typeof $().select2 === 'undefined') return;
+
+        ['#transfert_motif', '#transfert_service', '#transfert_user'].forEach(function(sel) {
+            if ($(sel).hasClass('select2-hidden-accessible')) {
+                $(sel).select2('destroy');
+            }
+        });
+
+        $('#transfert_motif').select2({
+            dropdownParent: $('#modal_transferer_fiche'),
+            placeholder: 'Rechercher un motif...',
+            allowClear: true,
+            width: '100%',
+            language: {
+                noResults: function() { return 'Aucun motif trouvé'; },
+                searching: function() { return 'Recherche...'; }
+            }
+        });
+
+        $('#transfert_service').select2({
+            dropdownParent: $('#modal_transferer_fiche'),
+            placeholder: 'Rechercher un service...',
+            allowClear: true,
+            width: '100%',
+            language: {
+                noResults: function() { return 'Aucun service trouvé'; },
+                searching: function() { return 'Recherche...'; }
+            }
+        });
+
+        $('#transfert_user').select2({
+            dropdownParent: $('#modal_transferer_fiche'),
+            placeholder: 'Rechercher un utilisateur...',
+            allowClear: true,
+            width: '100%',
+            language: {
+                noResults: function() { return 'Aucun utilisateur trouvé'; },
+                searching: function() { return 'Recherche...'; }
+            }
+        });
+    }
+
+    $('#modal_transferer_fiche').on('shown.bs.modal', function() {
+        initTransfertSelect2();
+    });
 
     /* ========== FLATPICKR ========== */
     var dateNaissancePicker = null;
@@ -1741,13 +1940,11 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
             $('#fiche_adresse').addClass('empty').text('Non renseigné');
         }
 
-        // ✅ Stocke les infos patient sur la fiche (pour le bouton Actions)
         $('#bloc_fiche')
             .data('patient-id',    $row.attr('data-patient-id')   || '')
             .data('patient-name',  patient.name)
             .data('patient-code',  patient.code);
 
-        // Ferme le menu Actions s'il était ouvert
         $('#fiche_menu_dropdown').removeClass('show');
         $('#fiche_menu_btn').removeClass('active');
 
@@ -1821,7 +2018,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         }
     });
 
-    // Fermer au clic extérieur
     $(document).on('click', function(e) {
         if (!$(e.target).closest('.fiche-menu-container').length) {
             $('#fiche_menu_dropdown').removeClass('show');
@@ -1829,7 +2025,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         }
     });
 
-    // Fermer avec Échap
     $(document).on('keydown', function(e) {
         if (e.key === 'Escape') {
             $('#fiche_menu_dropdown').removeClass('show');
@@ -1838,72 +2033,136 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     });
 
     /* ============================================================
-       🩺 ACTION : Ouvrir le modal des signes vitaux
+       🩺 Ouvre le modal signes vitaux + pré-remplit Motif & Service
        ============================================================ */
-    function ouvrirModalSignesVitaux(patientId, patientName) {
+    function ouvrirModalSignesVitaux(patientId, patientName, context) {
         if (!patientId) return;
-        
-        // Remplit les infos
+        context = context || {};
+
+        if ($('#vitals_motif').hasClass('select2-hidden-accessible')) {
+            $('#vitals_motif').select2('destroy');
+        }
+        if ($('#vitals_service').hasClass('select2-hidden-accessible')) {
+            $('#vitals_service').select2('destroy');
+        }
+
+        $('#form_signes_vitaux')[0].reset();
         $('#vitals_patient_id').val(patientId);
         $('#vitals_patient_name').text(patientName);
-        
-        // Réinitialise le formulaire
-        $('#form_signes_vitaux')[0].reset();
-        $('#vitals_patient_id').val(patientId); // Reset enlève la valeur, on la remet
-        
-        // Ouvre le modal
+        $('#vitals_registre_id').val(context.registre_id || '');
+
+        function getLabel(item) {
+            return item.nom || item.libelle || item.label || item.name || ('#' + item.id);
+        }
+
+        var $motif = $('#vitals_motif');
+        $motif.empty().append('<option value=""></option>');
+        if (Array.isArray(context.motifs) && context.motifs.length > 0) {
+            context.motifs.forEach(function(m) {
+                $motif.append('<option value="' + m.id + '">' + getLabel(m) + '</option>');
+            });
+        }
+        if (context.motif_selected_id !== null && context.motif_selected_id !== undefined) {
+            $motif.val(String(context.motif_selected_id));
+        }
+
+        var $service = $('#vitals_service');
+        $service.empty().append('<option value=""></option>');
+        if (Array.isArray(context.services) && context.services.length > 0) {
+            context.services.forEach(function(s) {
+                $service.append('<option value="' + s.id + '">' + getLabel(s) + '</option>');
+            });
+        }
+        if (context.service_selected_id !== null && context.service_selected_id !== undefined) {
+            $service.val(String(context.service_selected_id));
+        }
+
+        $('.signes-item').removeClass('has-error');
+        $('#vitals_alert').stop(true, true).hide().text('').removeClass('success error').css({ display: 'none', opacity: '' });
+        clearTimeout(vitalsAlertTimeout);
         $('#modal_signes_vitaux').modal('show');
     }
 
-    // Clic depuis le menu de la FICHE
+    /* ============================================================
+       🩺 Clic "Ajouter les signes vitaux" → le modal s'ouvre TOUJOURS
+       ============================================================ */
     $(document).on('click', '#fiche_menu_signes', function(e) {
         e.preventDefault();
         e.stopPropagation();
 
-        var $fiche = $('#bloc_fiche');
-        var patientId = $fiche.data('patient-id');
+        var $fiche      = $('#bloc_fiche');
+        var patientId   = $fiche.data('patient-id');
         var patientName = $fiche.data('patient-name') || '';
 
         $('#fiche_menu_dropdown').removeClass('show');
         $('#fiche_menu_btn').removeClass('active');
 
-        ouvrirModalSignesVitaux(patientId, patientName);
+        if (!patientId) return;
+
+        var $menuItem    = $(this);
+        var originalText = $menuItem.find('span').text();
+
+        $menuItem.css({ 'pointer-events': 'none', 'opacity': '0.6' });
+        $menuItem.find('span').text('Vérification...');
+
+        $.ajax({
+            type: "GET",
+            url: "{{ route('check_patient_registre') }}",
+            data: { patient_id: patientId },
+            success: function(response) {
+                $menuItem.css({ 'pointer-events': 'auto', 'opacity': '1' });
+                $menuItem.find('span').text(originalText);
+
+                if (response.ok) {
+                    ouvrirModalSignesVitaux(patientId, patientName, response);
+
+                    if (!response.found_today) {
+                        showPatientToast(
+                            "Patient non enregistré aujourd'hui. Complétez le motif et le service.",
+                            'info'
+                        );
+                    }
+                } else {
+                    showPatientToast(response.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                $menuItem.css({ 'pointer-events': 'auto', 'opacity': '1' });
+                $menuItem.find('span').text(originalText);
+
+                var msg = "Impossible de vérifier l'enregistrement du patient.";
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                showPatientToast(msg, 'error');
+            }
+        });
     });
 
     /* ============================================================
        🔒 SÉCURITÉ DE SAISIE : CHIFFRES ET DÉCIMALES UNIQUEMENT
        ============================================================ */
     $(document).on('keydown', '.vitals-number-input', function(e) {
-        // Autoriser les raccourcis clavier (Ctrl+A, Ctrl+C, Ctrl+V, Cmd, etc.)
-        if (e.ctrlKey || e.metaKey || e.altKey) {
-            return;
-        }
-
-        // Liste blanche : Chiffres, Point, Virgule, Touches de contrôle (Backspace, Tab, Flèches...)
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
         const allowedKeys = ['0','1','2','3','4','5','6','7','8','9', '.', ',', 'Backspace', 'Tab', 'Escape', 'Enter', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
-        
-        if (allowedKeys.indexOf(e.key) !== -1) {
-            return; // On laisse passer
-        }
-
-        // Bloquer tout le reste (lettres, e, E, +, -, etc.)
+        if (allowedKeys.indexOf(e.key) !== -1) return;
         e.preventDefault();
     });
 
-    // ✅ Auto-formatage : Remplace la virgule (,) par un point (.) pour que `type="number"` l'accepte
     $(document).on('input', '.vitals-number-input', function() {
         let val = $(this).val();
-        
-        // Si l'utilisateur tape une virgule, on la transforme en point
         if (val.includes(',')) {
             val = val.replace(',', '.');
             $(this).val(val);
         }
-
-        // Empêcher plusieurs points (ex: 36.6.5)
         if ((val.match(/\./g) || []).length > 1) {
-            val = val.slice(0, -1); // On supprime le dernier caractère tapé
+            val = val.slice(0, -1);
             $(this).val(val);
+        }
+    });
+
+    $(document).on('input change', '.signes-item input[data-required="1"]', function() {
+        var val = ($(this).val() || '').trim();
+        if (val !== '') {
+            $(this).closest('.signes-item').removeClass('has-error');
         }
     });
 
@@ -1915,58 +2174,112 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         var $btn = $('#btn_save_vitals');
         var originalHtml = $btn.html();
         var $alert = $('#vitals_alert');
-        
-        // Affiche le spinner
+
+        clearTimeout(vitalsAlertTimeout);
+
+        if (!$('#vitals_motif').val()) {
+            showPatientToast('Veuillez sélectionner un motif.', 'error');
+            $('#vitals_motif').select2('open');
+            return;
+        }
+        if (!$('#vitals_service').val()) {
+            showPatientToast('Veuillez sélectionner un service.', 'error');
+            $('#vitals_service').select2('open');
+            return;
+        }
+
+        var $firstInvalid = null;
+        var hasError = false;
+
+        $('.signes-item input[data-required="1"]').each(function() {
+            var $input = $(this);
+            var val = ($input.val() || '').trim();
+            if (val === '') {
+                $input.closest('.signes-item').addClass('has-error');
+                if (!$firstInvalid) $firstInvalid = $input;
+                hasError = true;
+            } else {
+                $input.closest('.signes-item').removeClass('has-error');
+            }
+        });
+
+        if (hasError) {
+            if ($firstInvalid) {
+                var $item = $firstInvalid.closest('.signes-item');
+                $item[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(function() { $firstInvalid.focus(); }, 300);
+            }
+
+            $alert.stop(true, true)
+                  .removeClass('success')
+                  .addClass('error')
+                  .html('<i class="zmdi zmdi-alert-circle"></i> Veuillez remplir tous les champs obligatoires marqués d\'un <strong style="margin-left:4px;">*</strong>')
+                  .css({ display: 'flex', opacity: 0 })
+                  .animate({ opacity: 1 }, 150);
+
+            vitalsAlertTimeout = setTimeout(function() {
+                $alert.animate({ opacity: 0 }, 400, function() {
+                    $(this).css({ display: 'none' });
+                });
+            }, 4000);
+
+            return;
+        }
+
         $btn.prop('disabled', true).html('<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Enregistrement...');
-        $alert.hide().removeClass('success error');
+        $alert.stop(true, true).hide().removeClass('success error').css({ display: 'none', opacity: '' });
 
         var formData = $(this).serialize();
 
-        // ⚠️ REMPLACEZ CETTE URL PAR VOTRE ROUTE DE SAUVEGARDE ⚠️
         $.ajax({
             type: "POST",
-            url: "/add_signes_vitaux", // <--- À ADAPTER
+            url: "/add_signes_vitaux",
             data: formData,
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             success: function(response) {
                 $btn.prop('disabled', false).html(originalHtml);
-                
-                // ✅ ALERTE INTÉGRÉE (Succès)
-                $alert.addClass('success')
-                      .html('<i class="zmdi zmdi-check-circle" style="font-size:1.2rem; vertical-align:middle; margin-right:5px;"></i> Signes vitaux enregistrés avec succès !')
-                      .fadeIn();
-
-                // Ferme le modal après 1,5 seconde
+                $alert.stop(true, true)
+                      .removeClass('error')
+                      .addClass('success')
+                      .html('<i class="zmdi zmdi-check-circle"></i> Signes vitaux enregistrés avec succès !')
+                      .css({ display: 'flex', opacity: 0 })
+                      .animate({ opacity: 1 }, 150);
                 setTimeout(function() {
                     $('#modal_signes_vitaux').modal('hide');
                 }, 1500);
             },
             error: function(xhr) {
                 $btn.prop('disabled', false).html(originalHtml);
-                
-                // ✅ ALERTE INTÉGRÉE (Erreur)
                 var msg = 'Erreur lors de l\'enregistrement.';
                 if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
-                
-                $alert.addClass('error')
-                      .html('<i class="zmdi zmdi-alert-circle" style="font-size:1.2rem; vertical-align:middle; margin-right:5px;"></i> ' + msg)
-                      .fadeIn();
-                      
+
+                $alert.stop(true, true)
+                      .removeClass('success')
+                      .addClass('error')
+                      .html('<i class="zmdi zmdi-close-circle"></i> ' + msg)
+                      .css({ display: 'flex', opacity: 0 })
+                      .animate({ opacity: 1 }, 150);
+
+                vitalsAlertTimeout = setTimeout(function() {
+                    $alert.animate({ opacity: 0 }, 400, function() {
+                        $(this).css({ display: 'none' });
+                    });
+                }, 4000);
+
                 console.error(xhr.responseText);
             }
         });
     });
 
-    /* ============================================================
-       🧹 NETTOYAGE À LA FERMETURE DU MODAL
-       ============================================================ */
     $('#modal_signes_vitaux').on('hidden.bs.modal', function() {
-        $('#vitals_alert').hide().text('').removeClass('success error');
+        clearTimeout(vitalsAlertTimeout);
+        $('.signes-item').removeClass('has-error');
+        $('#vitals_alert').stop(true, true).hide().text('').removeClass('success error').css({ display: 'none', opacity: '' });
         $('#btn_save_vitals').prop('disabled', false).html('Enregistrer <i class="zmdi zmdi-check-circle"></i>');
     });
 
     /* ============================================================
-       🔄 ACTION : Transférer la fiche
+       🔄 ACTION : OUVRIR LE MODAL DE TRANSFERT (remplace l'ancien alert)
        ============================================================ */
     $(document).on('click', '#fiche_menu_transferer', function(e) {
         e.preventDefault();
@@ -1975,17 +2288,129 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         var $fiche = $('#bloc_fiche');
         var patientId = $fiche.data('patient-id');
         var patientName = $fiche.data('patient-name') || '';
-        var patientCode = $fiche.data('patient-code') || '';
 
         $('#fiche_menu_dropdown').removeClass('show');
         $('#fiche_menu_btn').removeClass('active');
 
-        console.log('🔄 Transférer la fiche → ID:', patientId, '| code:', patientCode);
         if (!patientId) return;
 
-        setTimeout(function() {
-            alert('🔄 Transférer la fiche\n\nPatient : ' + patientName + '\nCode : ' + patientCode + '\nID : ' + patientId);
-        }, 300);
+        // Reset select2
+        ['#transfert_motif', '#transfert_service', '#transfert_user'].forEach(function(sel) {
+            if ($(sel).hasClass('select2-hidden-accessible')) {
+                $(sel).select2('destroy');
+            }
+        });
+
+        $('#form_transferer_fiche')[0].reset();
+        $('#transfert_patient_id').val(patientId);
+        $('#transfert_patient_name').text(patientName);
+
+        // Ouvrir le modal tout de suite (même si les données tardent)
+        $('#modal_transferer_fiche').modal('show');
+
+        // Charger les données
+        $.ajax({
+            type: "GET",
+            url: "{{ route('get_transfert_data') }}",
+            data: { patient_id: patientId },
+            success: function(response) {
+                if (response.ok) {
+                    var getLabel = function(i) { return i.nom || i.libelle || i.label || i.name || ('#' + i.id); };
+
+                    // Motifs
+                    var $m = $('#transfert_motif');
+                    $m.empty().append('<option value=""></option>');
+                    response.motifs.forEach(function(x) {
+                        $m.append('<option value="' + x.id + '">' + getLabel(x) + '</option>');
+                    });
+                    if (response.motif_selected_id) $m.val(String(response.motif_selected_id));
+
+                    // Services
+                    var $s = $('#transfert_service');
+                    $s.empty().append('<option value=""></option>');
+                    response.services.forEach(function(x) {
+                        $s.append('<option value="' + x.id + '">' + getLabel(x) + '</option>');
+                    });
+                    if (response.service_selected_id) $s.val(String(response.service_selected_id));
+
+                    // Users
+                    var $u = $('#transfert_user');
+                    $u.empty().append('<option value=""></option>');
+                    response.users.forEach(function(x) {
+                        var label = (x.name || '') + (x.email ? ' — ' + x.email : '');
+                        $u.append('<option value="' + x.id + '">' + label + '</option>');
+                    });
+
+                    // Re-init select2
+                    initTransfertSelect2();
+                } else {
+                    showPatientToast(response.message || 'Erreur de chargement.', 'error');
+                    $('#modal_transferer_fiche').modal('hide');
+                }
+            },
+            error: function(xhr) {
+                var m = 'Impossible de charger les données de transfert.';
+                if (xhr.responseJSON && xhr.responseJSON.message) m = xhr.responseJSON.message;
+                showPatientToast(m, 'error');
+                $('#modal_transferer_fiche').modal('hide');
+            }
+        });
+    });
+
+    /* ============================================================
+       💾 SOUMISSION DU FORMULAIRE DE TRANSFERT
+       ============================================================ */
+    $('#form_transferer_fiche').submit(function(e) {
+        e.preventDefault();
+        var $btn = $('#btn_transferer');
+        var originalHtml = $btn.html();
+
+        if (!$('#transfert_motif').val()) {
+            showPatientToast('Veuillez sélectionner un motif.', 'error');
+            $('#transfert_motif').select2('open');
+            return;
+        }
+        if (!$('#transfert_service').val()) {
+            showPatientToast('Veuillez sélectionner un service.', 'error');
+            $('#transfert_service').select2('open');
+            return;
+        }
+        if (!$('#transfert_user').val()) {
+            showPatientToast('Veuillez sélectionner un utilisateur destinataire.', 'error');
+            $('#transfert_user').select2('open');
+            return;
+        }
+
+        $btn.prop('disabled', true).html('<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Transfert...');
+
+        $.ajax({
+            type: "POST",
+            url: "{{ route('transferer_fiche') }}",
+            data: $(this).serialize(),
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function(response) {
+                $btn.prop('disabled', false).html(originalHtml);
+                if (response.ok) {
+                    showPatientToast(response.message || 'Fiche transférée avec succès !', 'success');
+                    $('#modal_transferer_fiche').modal('hide');
+                } else {
+                    showPatientToast(response.message || 'Erreur lors du transfert.', 'error');
+                }
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).html(originalHtml);
+                var m = 'Erreur lors du transfert.';
+                if (xhr.responseJSON && xhr.responseJSON.message) m = xhr.responseJSON.message;
+                showPatientToast(m, 'error');
+            }
+        });
+    });
+
+    $('#modal_transferer_fiche').on('hidden.bs.modal', function() {
+        $('#form_transferer_fiche')[0].reset();
+        $('#transfert_patient_id').val('');
+        $('#transfert_patient_name').text('');
+        $('#btn_transferer').prop('disabled', false).html('Transférer <i class="zmdi zmdi-swap"></i>');
     });
 
     /* ============================================================

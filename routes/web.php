@@ -371,7 +371,10 @@ Route::get('/get_liste_patient', [AjaxController::class, 'get_liste_patient'])->
 Route::get('/refresh_edittriage', [AjaxController::class, 'refresh_edittriage'])->name('refresh_edittriage');
 Route::get('/get_detail_patient', [AjaxController::class, 'get_detail_patient'])->name('get_detail_patient');
 Route::get('/get_rapport_paiements', [AjaxController::class, 'get_rapport_paiements'])->name('get_rapport_paiements');
-
+Route::post('/add_signes_vitaux', [AjaxController::class, 'add_signes_vitaux'])->name('add_signes_vitaux');
+Route::get('/check_patient_registre',[AjaxController::class, 'check_patient_registre'])->name('check_patient_registre');
+Route::get('/get_transfert_data',[AjaxController::class, 'get_transfert_data'])->name('get_transfert_data');
+Route::post('/transferer_fiche',[AjaxController::class, 'transferer_fiche'])->name('transferer_fiche');
 // Route::get('/', function () {
 //     $user = new User();
 //     $user->name = "MGM GONGO";

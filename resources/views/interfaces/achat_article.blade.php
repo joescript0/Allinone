@@ -417,10 +417,9 @@
                                         </tr>
                                     </thead>
                                     <tbody id="factures-tbody">
-                                        <!-- Le contenu sera chargé ici via AJAX -->
                                         <tr>
                                             <td colspan="10" class="text-center text-muted py-4">
-                                                <i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des factures...
+                                                <i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...
                                             </td>
                                         </tr>
                                     </tbody>
@@ -1058,7 +1057,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="param_articles_body">
-                                        <tr><td colspan="11" class="text-center text-muted">Chargement...</td></tr>
+                                        <tr><td colspan="11" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -1096,7 +1095,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="param_paiements_body">
-                                        <tr><td colspan="6" class="text-center text-muted">Chargement...</td></tr>
+                                        <tr><td colspan="6" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>
                                     </tbody>
                                     <tfoot id="param_paiements_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
                                 </table>
@@ -1202,7 +1201,7 @@
                                 </tr>
                             </thead>
                             <tbody id="rapport_body">
-                                <tr><td colspan="10" class="text-center text-muted">Chargement...</td></tr>
+                                <tr><td colspan="10" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>
                             </tbody>
                             <tfoot id="rapport_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
                         </table>
@@ -1516,7 +1515,7 @@
                                 $("#reduction").val("0");
                                 Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
                                 $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
-                                chargerFactures(); // ✅ Recharge le tableau
+                                chargerFactures();
                                 $.get("{{ url('/get_achat') }}", {}, function(res) { $("#bloc_3").html(res); });
                                 setTimeout(() => { $('#msg').html(""); }, 9000);
                             },
@@ -1857,7 +1856,7 @@
             $('#filterDateRange').on('cancel.daterangepicker', function() { $(this).val(''); filterInvoices(); saveFiltersToStorage(); });
 
             loadFiltersFromStorage();
-            chargerFactures(); // ✅ Chargement initial via JSON
+            chargerFactures();
 
             $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant, #filterTable').on('input change', debouncedFilter);
             $('#resetFilters').click(function(e) { e.preventDefault(); resetAllFilters(); });
@@ -1881,7 +1880,7 @@
                     type: 'POST', url: '{{ url("/delete_facture") }}', data: { _token: '{{ csrf_token() }}', id: factureId },
                     success: function(response) {
                         $('#deleteFactureModal').modal('hide');
-                        chargerFactures(); // ✅ Rechargement JSON
+                        chargerFactures();
                         $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Facture supprimée').css('display', 'flex');
                         setTimeout(() => { $('#msg').html('').css('display', 'none'); }, 3000);
                     },
@@ -1890,21 +1889,52 @@
                 });
             });
 
+            // ============================================================
+            // ✅ NOUVEAU : MODAL PARAMÈTRES – LOADER AVANT CHARGEMENT
+            // ============================================================
             $(document).on('click', '.param-facture-btn', function(e) {
                 e.preventDefault();
                 var $row = $(this).closest('tr');
                 $('#paramTabs a[href="#tab-info"]').tab('show');
+
+                // ✅ Loader visible AVANT le chargement des données
+                $('#param_articles_body').html('<tr><td colspan="11" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+                $('#param_paiements_body').html('<tr><td colspan="6" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+                $('#param_paiements_foot').html('');
+                $('#param_totals_grid').html('');
+
                 $('#paramFactureModal').modal('show');
-                openParamModalFromRow($row);
+
+                // ✅ Laisse le navigateur peindre le loader avant de remplir
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        openParamModalFromRow($row);
+                    });
+                });
             });
 
+            // ============================================================
+            // ✅ NOUVEAU : BOUTON REFRESH PARAMÈTRES – LOADER AVANT CHARGEMENT
+            // ============================================================
             $(document).on('click', '#param_refresh_btn', function(e) {
                 e.preventDefault();
-                if (currentParamRow) {
-                    openParamModalFromRow(currentParamRow);
-                    var btn = $(this); btn.find('i').addClass('zmdi-hc-spin');
-                    setTimeout(function() { btn.find('i').removeClass('zmdi-hc-spin'); }, 1000);
-                }
+                if (!currentParamRow) return;
+
+                var btn = $(this);
+                btn.find('i').addClass('zmdi-hc-spin');
+
+                // ✅ Loader avant rafraîchissement
+                $('#param_articles_body').html('<tr><td colspan="11" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+                $('#param_paiements_body').html('<tr><td colspan="6" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+                $('#param_paiements_foot').html('');
+                $('#param_totals_grid').html('');
+
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        openParamModalFromRow(currentParamRow);
+                        btn.find('i').removeClass('zmdi-hc-spin');
+                    });
+                });
             });
 
             $(document).on('click', '#param_btn_save_lines', function(e) {
@@ -1936,7 +1966,7 @@
                         btn.prop('disabled', false).html('<i class="zmdi zmdi-save"></i> Enregistrer les modifications');
                         if (res.success) {
                             $('#param_lines_msg').html('<i class="zmdi zmdi-check-circle text-success"></i> ' + res.message);
-                            chargerFactures(); // ✅ Rechargement JSON
+                            chargerFactures();
                             setTimeout(function() {
                                 var newRow = $('#factures-tbody tr[data-facture-id="' + currentParamFactureId + '"]');
                                 if (newRow.length) { openParamModalFromRow(newRow); }
@@ -2243,7 +2273,7 @@
                         if (pdfResponse && pdfResponse[0] && pdfResponse[0][0]) { currentPdfUrl = pdfResponse[0][0]; $("#pdfIframe").attr("src", pdfResponse[0][0]); $("#cdf_montant_payer").val(pdfResponse[0][1] || 0); $("#usd_montant_payer").val(pdfResponse[0][2] || 0); $("#payer").val(pdfResponse[0][5] || ''); }
                     }
                     
-                    chargerFactures(); // ✅ Rechargement JSON
+                    chargerFactures();
                 } else { msgFacture.innerHTML = '❌ Erreur d\'enregistrement'; msgFacture.style.color = '#dc3545'; }
                 setTimeout(() => { msgFacture.innerHTML = ''; }, 9000);
             } catch (error) {

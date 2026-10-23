@@ -141,6 +141,7 @@ class AjaxController extends Controller
         $this->seedmotifs();
         $this->signesvitaux();
         $this->listesexamensmedicaux();
+        $this->initialiser_tarifs_fiche();
     }
 
     public function envoyer_sms($telephone, $msg): int
@@ -2059,7 +2060,7 @@ class AjaxController extends Controller
     {
         $user = Auth::user();
         $groupe_user_id = $user->role;
-        
+
         // Détermination de la ressource selon la page envoyée
         $ressourcesParPage = [10 => 10, 27 => 27, 23 => 23, 15 => 15];
         $ressource_id = $ressourcesParPage[(int) $request->page] ?? 2;
@@ -2084,7 +2085,7 @@ class AjaxController extends Controller
             $taux = $data->taux <= 0 ? 1 : $data->taux;
             $ent = Achats::where('facture_id', $data->id)->get();
             $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
-            
+
             // Calculs de base
             $total_original = 0;
             foreach ($ent as $e) {
@@ -2215,7 +2216,7 @@ class AjaxController extends Controller
 
             $paye_affichage = number_format($montant_usd_paye, 2, ',', ' ') . ' USD (' . number_format($montant_cdf_paye, 2, ',', ' ') . ' CDF)';
             $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
-            
+
             $statut_code = 'unpaid';
             if ($reste_usd <= 0) {
                 $statut_code = 'paid';
@@ -2320,11 +2321,11 @@ class AjaxController extends Controller
     {
         $user = Auth::user();
         $groupe_user_id = $user->role;
-        $ressource_id = $request->page ?? 47; 
+        $ressource_id = $request->page ?? 47;
 
-        $accesQuery = Writes::where(['ressource_id' => $ressource_id, 'groupe_id' => $groupe_user_id])->first();
-        $can_edit = ($user->role == 0) || ($accesQuery && $accesQuery->edit == 1);
-        $can_delete = ($user->role == 0) || ($accesQuery && $accesQuery->delete == 1);
+        $accesQuery  = Writes::where(['ressource_id' => $ressource_id, 'groupe_id' => $groupe_user_id])->first();
+        $can_edit    = ($user->role == 0) || ($accesQuery && $accesQuery->edit == 1);
+        $can_delete  = ($user->role == 0) || ($accesQuery && $accesQuery->delete == 1);
         $can_display = ($user->role == 0) || ($accesQuery && $accesQuery->display == 1);
 
         if ($user->role == 0) {
@@ -2341,7 +2342,8 @@ class AjaxController extends Controller
             $ent = Achats::where('facture_id', $data->id)->get();
             $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
             $dernier_paiement = $paiements->sortByDesc('created_at')->first();
-            
+
+            // ---- frais crédit total (existant) ----
             $total_frais_credit_final = 0;
             foreach ($ent as $e) {
                 if ($e->frais_credit != 0 && $e->frais_credit !== null) {
@@ -2350,6 +2352,7 @@ class AjaxController extends Controller
             }
             $a_frais_credit = ($total_frais_credit_final > 0);
 
+            // ---- Total original ----
             $total_original = 0;
             foreach ($ent as $e) {
                 $devise_achat_orig = $e->devise_achat ?? $data->devise;
@@ -2365,6 +2368,7 @@ class AjaxController extends Controller
                 }
             }
 
+            // ---- Montants payés ----
             $montant_usd_paye = 0; $montant_cdf_paye = 0;
             foreach ($paiements as $paiement) {
                 if ($paiement->devise_recu == 0) {
@@ -2393,6 +2397,7 @@ class AjaxController extends Controller
                 $ratio_impaye_facture = $reste_global_usd / $total_original_usd;
             }
 
+            // ---- Boucle articles ----
             $total = 0; $achat_total_usd = 0; $achat_total_cdf = 0;
             $articles_json = [];
 
@@ -2458,8 +2463,11 @@ class AjaxController extends Controller
                 ];
             }
 
-            $has_reduction = $ent->contains(function($e) { return isset($e->reduction) && $e->reduction > 0; });
+            $has_reduction = $ent->contains(function ($e) {
+                return isset($e->reduction) && $e->reduction > 0;
+            });
 
+            // ---- Formatage ----
             if ($data->devise == 0) {
                 $montant_usd = $total;
                 $montant_cdf = $total * $taux;
@@ -2475,15 +2483,16 @@ class AjaxController extends Controller
             $reste_usd = $montant_usd - $montant_usd_paye;
             $reste_cdf = $montant_cdf - $montant_cdf_paye;
 
-            $paye_affichage = number_format($montant_usd_paye, 2, ',', ' ') . ' USD (' . number_format($montant_cdf_paye, 2, ',', ' ') . ' CDF)';
+            $paye_affichage  = number_format($montant_usd_paye, 2, ',', ' ') . ' USD (' . number_format($montant_cdf_paye, 2, ',', ' ') . ' CDF)';
             $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
-            
+
             $est_partiel = ($reste_usd > 0 && $montant_usd_paye > 0);
-            $est_solde = ($reste_usd <= 0);
+            $est_solde   = ($reste_usd <= 0);
             $statut_data = $est_partiel ? 'partial' : ($est_solde ? 'paid' : 'unpaid');
 
+            // ---- Jours de retard ----
             $date_creation_date = date('Y-m-d', strtotime($data->created_at));
-            $date_aujourdhui = date('Y-m-d');
+            $date_aujourdhui    = date('Y-m-d');
             if ($est_solde && $a_frais_credit && $dernier_paiement) {
                 $date_comparaison = date('Y-m-d', strtotime($dernier_paiement->created_at));
             } else {
@@ -2495,17 +2504,19 @@ class AjaxController extends Controller
             $show_delay_badge = !$dernier_paiement || $est_partiel || ($est_solde && $a_frais_credit && $dernier_paiement);
             $delay_badge_type = ($nb_jours_retard >= 7 && $nb_jours_retard <= 15) ? 'warning' : ($nb_jours_retard > 15 ? 'danger' : 'success');
 
+            // ---- Labels ----
             $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
             $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
             $facture_user_nom = User::where('id', $data->user_id)->first()['name'] ?? 'N/A';
             $mode_paiement_label = $modeLabels[$data->mode_de_paiement] ?? 'N/A';
-            
+
             $table_name_param = 'Aucune';
             if (isset($data->table_id) && $data->table_id != 0) {
                 $tbl = Tables::where('id', $data->table_id)->first();
                 if ($tbl) $table_name_param = $tbl->nom;
             }
 
+            // ---- Paiements JSON ----
             $paiements_json = [];
             $tranches_details = [];
             foreach ($paiements as $p) {
@@ -2531,63 +2542,70 @@ class AjaxController extends Controller
                 ];
 
                 $tranches_details[] = [
-                    'date' => date('d/m/Y à H:i', strtotime($p->created_at)),
-                    'montant_recu' => number_format($p->montant_recu, 2, ',', ' '),
-                    'devise' => $isUSD ? 'USD' : 'CDF',
-                    'mode' => $modeLabels[$p->mode_de_paiement] ?? 'N/A',
-                    'taux' => number_format($p->taux, 2, ',', ' '),
+                    'date'             => date('d/m/Y à H:i', strtotime($p->created_at)),
+                    'montant_recu'     => number_format($p->montant_recu, 2, ',', ' '),
+                    'devise'           => $isUSD ? 'USD' : 'CDF',
+                    'mode'             => $modeLabels[$p->mode_de_paiement] ?? 'N/A',
+                    'taux'             => number_format($p->taux, 2, ',', ' '),
                     'montant_effectif' => number_format($p->montant_effectif, 2, ',', ' '),
-                    'reste' => number_format($p->reste, 2, ',', ' ')
+                    'reste'            => number_format($p->reste, 2, ',', ' ')
                 ];
             }
 
             $date_paie_ymd = ($dernier_paiement && $dernier_paiement->created_at) ? date('Y-m-d', strtotime($dernier_paiement->created_at)) : '';
             $date_paie_str = ($dernier_paiement && $dernier_paiement->created_at) ? date('d/m/Y à H:i', strtotime($dernier_paiement->created_at)) : 'Aucune';
 
+            // ---- On ne garde que les factures avec crédit ou frais ----
             if ($reste_usd > 0 || $total_frais_credit_final > 0) {
                 $facturesData[] = [
-                    'id' => $data->id,
-                    'numero' => $data->numero,
-                    'client_name' => $client_name,
-                    'client_id' => $data->client_id,
-                    'facture_user_nom' => $facture_user_nom,
-                    'user_id' => $data->user_id,
-                    'table_name' => $table_name_param,
-                    'table_id' => $data->table_id,
-                    'date' => date('d/m/Y à H:i', strtotime($data->created_at)),
-                    'devise' => $data->devise,
-                    'taux' => $taux,
-                    'mode_paiement' => $mode_paiement_label,
-                    'montant_affichage' => $montant_affichage,
-                    'montant_usd' => $montant_usd,
-                    'montant_cdf' => $montant_cdf,
-                    'paye_affichage' => $paye_affichage,
-                    'montant_usd_paye' => $montant_usd_paye,
-                    'montant_cdf_paye' => $montant_cdf_paye,
-                    'reste_affichage' => $reste_affichage,
-                    'reste_usd' => $reste_usd,
-                    'reste_cdf' => $reste_cdf,
-                    'statut_data' => $statut_data,
-                    'benefice_usd' => $benefice_usd,
-                    'benefice_cdf' => $benefice_cdf,
-                    'frais_credit_total' => $total_frais_credit_final,
-                    'has_reduction' => $has_reduction,
-                    'jours_retard' => $nb_jours_retard,
-                    'show_delay_badge' => $show_delay_badge,
-                    'delay_badge_type' => $delay_badge_type,
-                    'date_paie_ymd' => $date_paie_ymd,
-                    'date_paie_str' => $date_paie_str,
-                    'payer' => $data->payer,
-                    'lien' => $data->lien,
-                    'articles' => $articles_json,
-                    'paiements' => $paiements_json,
-                    'tranches_details' => $tranches_details,
-                    'nb_tranches' => $paiements->count(),
-                    'date_debut' => $data->created_at,
-                    'date_fin' => $dernier_paiement ? $dernier_paiement->created_at : date('Y-m-d H:i:s'),
-                    'can_edit' => $can_edit,
-                    'can_delete' => $can_delete,
-                    'can_display' => $can_display
+                    'id'                  => $data->id,
+                    'numero'              => $data->numero,
+                    'client_name'         => $client_name,
+                    'client_id'           => $data->client_id,
+                    'libelle'             => $data->libelle,
+                    'facture_user_nom'    => $facture_user_nom,
+                    'user_id'             => $data->user_id,
+                    'table_name'          => $table_name_param,
+                    'table_id'            => $data->table_id,
+                    'date'                => date('d/m/Y à H:i', strtotime($data->created_at)),
+                    'date_raw'            => $data->created_at,
+                    'devise'              => $data->devise,
+                    'taux'                => $taux,
+                    'mode_paiement'       => $mode_paiement_label,
+                    'mode_de_paiement'    => $data->mode_de_paiement,
+                    'montant_affichage'   => $montant_affichage,
+                    'montant_usd'         => $montant_usd,
+                    'montant_cdf'         => $montant_cdf,
+                    'paye_affichage'      => $paye_affichage,
+                    'montant_usd_paye'    => $montant_usd_paye,
+                    'montant_cdf_paye'    => $montant_cdf_paye,
+                    'reste_affichage'     => $reste_affichage,
+                    'reste_usd'           => $reste_usd,
+                    'reste_cdf'           => $reste_cdf,
+                    'statut_data'         => $statut_data,
+                    'est_partiel'         => $est_partiel,
+                    'est_solde'           => $est_solde,
+                    'benefice_usd'        => $benefice_usd,
+                    'benefice_cdf'        => $benefice_cdf,
+                    'frais_credit_total'  => $total_frais_credit_final,
+                    'has_reduction'       => $has_reduction,
+                    'jours_retard'        => $nb_jours_retard,
+                    'show_delay_badge'    => $show_delay_badge,
+                    'delay_badge_type'    => $delay_badge_type,
+                    'date_paie_ymd'       => $date_paie_ymd,
+                    'date_paie_str'       => $date_paie_str,
+                    'dernier_paiement_at' => $dernier_paiement ? $dernier_paiement->created_at : null,
+                    'payer'               => $data->payer,
+                    'lien'                => $data->lien,
+                    'articles'            => $articles_json,
+                    'paiements'           => $paiements_json,
+                    'tranches_details'    => $tranches_details,
+                    'nb_tranches'         => $paiements->count(),
+                    'date_debut'          => $data->created_at,
+                    'date_fin'            => $dernier_paiement ? $dernier_paiement->created_at : date('Y-m-d H:i:s'),
+                    'can_edit'            => $can_edit,
+                    'can_delete'          => $can_delete,
+                    'can_display'         => $can_display,
                 ];
             }
         }
@@ -2596,7 +2614,7 @@ class AjaxController extends Controller
             'status' => 'success',
             'factures' => $facturesData,
             'ressource_id_1' => $ressource_id,
-            'groupe_user_id' => $groupe_user_id
+            'groupe_user_id' => $groupe_user_id,
         ]);
     }
 
@@ -7981,6 +7999,7 @@ class AjaxController extends Controller
         // Nature (type : 0 = Privé, 1 = Entreprise)
         $patient->type = $request->edit_type;
         $patient->genre = $request->edit_genre;
+        $patient->adresse = $request->edit_adresse;
 
         // Date de naissance (null si vide)
         $patient->date_de_naissance = !empty($request->edit_date_naissance)
@@ -17991,8 +18010,8 @@ class AjaxController extends Controller
         $note          = (string) $request->input('note', '');
         $image         = $request->input('image');
         $signature     = $request->input('signature');
-        $datenaissance = $request->input('date_naissance'); // ✅ peut être null/'' maintenant
-        $genre        = $request->input('genre');
+        $datenaissance = $request->input('date_naissance');
+        $genre         = $request->input('genre');
         $page          = $request->input('page');
 
 
@@ -18043,15 +18062,12 @@ class AjaxController extends Controller
 
         // ============================================================
         // ÉTAPE 2 : VALIDATION CONDITIONNELLE
-        // ⚠️ La signature est désormais OPTIONNELLE dans les deux cas
-        // ⚠️ La date de naissance est OPTIONNELLE et validée si fournie
         // ============================================================
         if ($isExistingPerson) {
             $rules = [
                 'motif'           => 'required',
                 'service'         => 'required',
                 'heure'           => 'required',
-                // 'signature'    => plus obligatoire
                 'date_naissance'  => 'nullable|date',
             ];
             $messages = [
@@ -18068,7 +18084,6 @@ class AjaxController extends Controller
                 'motif'           => 'required',
                 'service'         => 'required',
                 'heure'           => 'required',
-                // 'signature'    => plus obligatoire
                 'date_naissance'  => 'nullable|date',
             ];
             $messages = [
@@ -18113,11 +18128,9 @@ class AjaxController extends Controller
                 if (class_exists(\App\Models\Patients::class) && \App\Models\Patients::where('email', $email)->exists()) {
                     return response()->json(['ok' => false, 'message' => 'Cette adresse e-mail existe déjà dans la table patients'], 422);
                 }
-                // ✅ Vérification Partenaires
                 if (class_exists(\App\Models\Partenaires::class) && \App\Models\Partenaires::where('email', $email)->exists()) {
                     return response()->json(['ok' => false, 'message' => 'Cette adresse e-mail existe déjà dans la table partenaires'], 422);
                 }
-                // ✅ Vérification Associés
                 if (class_exists(\App\Models\Associes::class) && \App\Models\Associes::where('email', $email)->exists()) {
                     return response()->json(['ok' => false, 'message' => 'Cette adresse e-mail existe déjà dans la table associes'], 422);
                 }
@@ -18139,11 +18152,9 @@ class AjaxController extends Controller
                 if (class_exists(\App\Models\Patients::class) && \App\Models\Patients::where('phone', $phone)->exists()) {
                     return response()->json(['ok' => false, 'message' => 'Ce numero de telephone existe déjà dans la table patients'], 422);
                 }
-                // ✅ Vérification Partenaires
                 if (class_exists(\App\Models\Partenaires::class) && \App\Models\Partenaires::where('phone', $phone)->exists()) {
                     return response()->json(['ok' => false, 'message' => 'Ce numero de telephone existe déjà dans la table partenaires'], 422);
                 }
-                // ✅ Vérification Associés
                 if (class_exists(\App\Models\Associes::class) && \App\Models\Associes::where('phone', $phone)->exists()) {
                     return response()->json(['ok' => false, 'message' => 'Ce numero de telephone existe déjà dans la table associes'], 422);
                 }
@@ -18198,11 +18209,8 @@ class AjaxController extends Controller
                 $typeNumerique = $typeMap[$typeKey];
                 $type          = $typeReverseMap[$typeNumerique];
 
-                // ✅ phone vide = '' au lieu de null
                 $emailDb = $email !== '' ? $email : null;
                 $phoneDb = $phone !== '' ? $phone : '';
-
-                // ✅ Date de naissance : null si vide
                 $dateNaissanceDb = !empty($datenaissance) ? $datenaissance : null;
 
                 $userLinkedId = null;
@@ -18221,7 +18229,7 @@ class AjaxController extends Controller
                         $nouvellePersonne->image      = $image;
                         $nouvellePersonne->adresse    = '';
                         $nouvellePersonne->recherche  = '';
-                        $nouvellePersonne->genre  = $genre;
+                        $nouvellePersonne->genre      = $genre;
                         $nouvellePersonne->role       = Auth::user()->role;
                         $nouvellePersonne->password   = \Hash::make("12345");
                         $nouvellePersonne->mdp        = "12345";
@@ -18246,7 +18254,7 @@ class AjaxController extends Controller
                         $nouvellePersonne->type     = $nature;
                         $nouvellePersonne->image    = $image;
                         $nouvellePersonne->adresse  = '';
-                        $nouvellePersonne->genre  = $genre;
+                        $nouvellePersonne->genre    = $genre;
                         $nouvellePersonne->password = \Hash::make("12345");
                         $nouvellePersonne->mdp      = "12345";
 
@@ -18257,15 +18265,14 @@ class AjaxController extends Controller
                         $nouvellePersonne->save();
                         $userLinkedId = $nextId;
                         break;
+
                     // ---------- PATIENT ----------
                     case 'patient':
                         $nextId = (\App\Models\Patients::max('id') ?? 0) + 1;
 
-                        // ✅ Génération du code patient au format PAT-00001
                         $lastId = $nextId;
                         $codePatient = 'PAT-' . str_pad($lastId, 5, '0', STR_PAD_LEFT);
 
-                        // En cas de collision (suppressions), on incrémente
                         while (\App\Models\Patients::where('code', $codePatient)->exists()) {
                             $lastId++;
                             $codePatient = 'PAT-' . str_pad($lastId, 5, '0', STR_PAD_LEFT);
@@ -18279,13 +18286,27 @@ class AjaxController extends Controller
                         $nouvellePersonne->type     = $nature;
                         $nouvellePersonne->image    = $image;
                         $nouvellePersonne->adresse  = '';
-
-                        // ✅ Date de naissance : null si vide (champ nullable recommandé en base)
                         $nouvellePersonne->date_de_naissance = $dateNaissanceDb;
-
                         $nouvellePersonne->password = \Hash::make("12345");
                         $nouvellePersonne->mdp      = "12345";
                         $nouvellePersonne->code     = $codePatient;
+
+                        // ✅ NOUVEAU : Récupération du dernier tarif selon le type (nature : 0 ou 1)
+                        $dernierTarifFiche = \DB::table('tarifsfiches')
+                                                ->where('type', $nature)
+                                                ->orderBy('id', 'desc')
+                                                ->first();
+
+                        if ($dernierTarifFiche) {
+                            $nouvellePersonne->tarifsfiches   = $dernierTarifFiche->tarifs;
+                            $nouvellePersonne->paiement = $dernierTarifFiche->tarifs; // On initialise le paiement au tarif de base
+                            $nouvellePersonne->devise   = $dernierTarifFiche->devise;
+                        } else {
+                            // Sécurité si aucun tarif n'est trouvé pour ce type
+                            $nouvellePersonne->tarifsfiches   = 0;
+                            $nouvellePersonne->paiement = 0;
+                            $nouvellePersonne->devise   = 1; 
+                        }
 
                         $nouvellePersonne->email = $emailDb === null
                             ? 'patient_' . $nextId . '@gmail.com'
@@ -18309,7 +18330,7 @@ class AjaxController extends Controller
                         $nouvellePersonne->adresse  = '';
                         $nouvellePersonne->password = \Hash::make("12345");
                         $nouvellePersonne->mdp      = "12345";
-                        $nouvellePersonne->genre  = $genre;
+                        $nouvellePersonne->genre    = $genre;
 
                         $nouvellePersonne->email = $emailDb === null
                             ? 'visiteur_' . $nextId . '@gmail.com'
@@ -18333,7 +18354,7 @@ class AjaxController extends Controller
                         $nouvellePersonne->adresse  = '';
                         $nouvellePersonne->password = \Hash::make("12345");
                         $nouvellePersonne->mdp      = "12345";
-                        $nouvellePersonne->genre  = $genre;
+                        $nouvellePersonne->genre    = $genre;
 
                         $nouvellePersonne->email = $emailDb === null
                             ? 'partenaire_' . $nextId . '@gmail.com'
@@ -18382,10 +18403,9 @@ class AjaxController extends Controller
             }
 
             // ---------------------------------------------------------
-            // 4.2 : SIGNATURE (désormais OPTIONNELLE)
+            // 4.2 : SIGNATURE (OPTIONNELLE)
             // ---------------------------------------------------------
             $signaturePath = null;
-
             $target_dir = "./storage/images/fichiers/";
 
             if (!file_exists($target_dir)) {
@@ -18398,20 +18418,13 @@ class AjaxController extends Controller
                 'prefix' => substr((string) $signature, 0, 30),
             ]);
 
-            // ✅ On ne traite la signature que si elle est présente et valide
             if (!empty($signature) && is_string($signature) && strpos($signature, 'data:image') === 0) {
-
                 $data = explode(',', $signature);
-
                 if (count($data) >= 2) {
-
                     $imageData = base64_decode($data[1]);
-
                     if ($imageData !== false && strlen($imageData) > 1500) {
-
                         $nomFinal      = uniqid() . "_" . time() . ".png";
                         $cheminComplet = $target_dir . $nomFinal;
-
                         $saved = file_put_contents($cheminComplet, $imageData);
 
                         \Log::info('SAUVEGARDE SIGNATURE', [
@@ -18428,7 +18441,6 @@ class AjaxController extends Controller
                     }
                 }
             }
-            // ⚠️ Si $signature est vide → $signaturePath reste null → OK, colonne nullable
 
             // ---------------------------------------------------------
             // 4.3 : REGISTRE D'ACCUEIL
@@ -18440,7 +18452,7 @@ class AjaxController extends Controller
             $registre->heure_entree = $heure;
             $registre->heure_sortie = "0000/00/00 00:00";
             $registre->note         = $note;
-            $registre->signature    = $signaturePath;   // ✅ null si non signée
+            $registre->signature    = $signaturePath;
             $registre->user_id      = \Auth::id();
             $registre->save();
 
@@ -18534,6 +18546,26 @@ class AjaxController extends Controller
         $patient->code    = $codePatient;
         $patient->user_id = Auth::user()->id;
 
+        // ============================================================
+        // ✅ NOUVEAU : Récupération du dernier tarif selon le type (0 ou 1)
+        // ============================================================
+        $dernierTarifFiche = \DB::table('tarifsfiches')
+                                ->where('type', $request->type)
+                                ->orderBy('id', 'desc')
+                                ->first();
+
+        if ($dernierTarifFiche) {
+            $patient->tarifsfiches   = $dernierTarifFiche->tarifs;
+            $patient->paiement = $dernierTarifFiche->tarifs; // Initialisé au tarif de base
+            $patient->devise   = $dernierTarifFiche->devise;
+        } else {
+            // Sécurité si aucun tarif n'est trouvé pour ce type
+            $patient->tarifsfiches   = 0;
+            $patient->paiement = 0;
+            $patient->devise   = 1;
+        }
+
+        // Enregistrement du patient avec les nouveaux champs
         $patient->save();
 
         // ============================================================
@@ -18736,6 +18768,7 @@ class AjaxController extends Controller
             }
         }
     }
+
     public function signesvitaux()
     {
         $signesvitaux = Signesvitaux::all();
@@ -18977,5 +19010,427 @@ class AjaxController extends Controller
             'user_name' => $authUser->name,
             'data'      => $result,
         ]);
+    }
+
+    public function add_signes_vitaux(Request $request)
+    {
+        $request->validate([
+            'patient_id' => 'required|integer',
+        ]);
+
+        $userId = Auth::id() ?? $request->input('user_id');
+
+        // 1. Patient pour connaître son type (0 ou 1)
+        $patient = DB::table('patients')->where('id', $request->input('patient_id'))->first();
+        if (!$patient) {
+            return response()->json(['message' => 'Patient introuvable.'], 404);
+        }
+        $patientType = $patient->type ?? 0;
+
+        // 2. Service → devise + tarif (source unique de vérité)
+        $serviceId = $request->input('service_id') ?: 0;
+        $devise = null;
+        $tarif  = 0;
+
+        if ($serviceId) {
+            $service = DB::table('services')->where('id', $serviceId)->first();
+            if ($service) {
+                $devise = $service->devise; // ⬅️ devise lue depuis services
+                $tarif  = ($patientType == 1)
+                    ? ($service->tarifss ?? 0)
+                    : ($service->tarifs  ?? 0);
+            }
+        }
+
+        // Si pas de service renseigné, on ne peut pas deviner la devise :
+        // soit on bloque, soit on prend une devise par défaut.
+        if ($devise === null) {
+            return response()->json([
+                'message' => 'Service invalide ou introuvable : impossible de déterminer la devise.'
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $newId = (DB::table('signesvitauxpatients')->max('id') ?? 0) + 1;
+
+            // 3. Table principale : devise + tarif viennent de services
+            DB::table('signesvitauxpatients')->insert([
+                'id'         => $newId,
+                'patient_id' => $request->input('patient_id'),
+                'etat'       => 1,
+                'user_id'    => $userId,
+                'service_id' => $serviceId,
+                'motif_id'   => $request->input('motif_id') ?: 0,
+                'devise'     => $devise,   // ✅ depuis services
+                'tarifs'     => $tarif,    // ✅ tarifs/tarifss selon type patient
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // 4. Table de détails : devise également depuis services
+            foreach ($request->input('signes', []) as $signesvitaux_id => $valeur) {
+                if ($valeur === null || $valeur === '') {
+                    continue;
+                }
+
+                $newDetailId = (DB::table('dsignesvitauxpatients')->max('id') ?? 0) + 1;
+
+                DB::table('dsignesvitauxpatients')->insert([
+                    'id'                     => $newDetailId,
+                    'signesvitauxpatient_id' => $newId,
+                    'signesvitaux_id'        => $signesvitaux_id,
+                    'valeur_signesvitaux'    => $valeur,
+                    'etat'                   => 1,
+                    'tarifs'                 => 0,
+                    'reduction'              => 0,
+                    'devise'                 => $devise, // ✅ depuis services (plus de 1 en dur)
+                    'created_at'             => now(),
+                    'updated_at'             => now(),
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Signes vitaux enregistrés avec succès.',
+                'id'      => $newId,
+                'devise'  => $devise,
+                'tarif'   => $tarif,
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Erreur lors de l\'enregistrement.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function check_patient_registre(Request $request)
+    {
+        try {
+            $patientId = (int) $request->input('patient_id');
+
+            if ($patientId <= 0) {
+                return response()->json([
+                    'ok'      => false,
+                    'message' => 'Identifiant patient invalide.'
+                ], 422);
+            }
+
+            // 1. Patient existe ?
+            $patient = \App\Models\Patients::find($patientId);
+            if (!$patient) {
+                return response()->json([
+                    'ok'      => false,
+                    'message' => 'Patient introuvable.'
+                ], 404);
+            }
+
+            // 2. Listes complètes — renvoyées DANS TOUS LES CAS
+            $motifsList   = \App\Models\Motifs::orderBy('nom', 'asc')->get(['id', 'nom']);
+            $servicesList = \App\Models\Services::orderBy('nom', 'asc')->get(['id', 'nom']);
+
+            // 3. Valeurs par défaut
+            $foundToday        = false;
+            $motifSelectedId   = null;
+            $serviceSelectedId = null;
+            $registreId        = null;
+
+            // 4. Chercher la personne liée (type 2 = patient)
+            $personne = \App\Models\Personnes::where('user_id', $patientId)
+                                            ->where('type', 2)
+                                            ->first();
+
+            if ($personne) {
+                // Dernier enregistrement dans registreaccueils
+                $registre = \App\Models\Registreaccueil::where('personne_id', $personne->id)
+                                                        ->orderBy('id', 'desc')
+                                                        ->first();
+
+                if ($registre) {
+                    $registreId = $registre->id;
+
+                    // Vérifier si la date est bien AUJOURD'HUI
+                    $today = date('Y-m-d');
+                    $dateEntree = null;
+                    if (!empty($registre->heure_entree)) {
+                        $ts = strtotime($registre->heure_entree);
+                        if ($ts !== false) {
+                            $dateEntree = date('Y-m-d', $ts);
+                        }
+                    }
+
+                    if ($dateEntree === $today) {
+                        $foundToday = true;
+
+                        // ✅ Chercher si le motif_id existe bien dans la table motifs
+                        if (!empty($registre->motif_id)) {
+                            $exists = $motifsList->firstWhere('id', (int) $registre->motif_id);
+                            if ($exists) {
+                                $motifSelectedId = (int) $registre->motif_id;
+                            }
+                        }
+
+                        // ✅ Chercher si le service_id existe bien dans la table services
+                        if (!empty($registre->service_id)) {
+                            $exists = $servicesList->firstWhere('id', (int) $registre->service_id);
+                            if ($exists) {
+                                $serviceSelectedId = (int) $registre->service_id;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 5. Réponse : TOUJOURS ok=true avec les listes complètes
+            return response()->json([
+                'ok'                  => true,
+                'found_today'         => $foundToday,
+                'message'             => $foundToday
+                    ? 'Patient enregistré aujourd\'hui.'
+                    : 'Patient non enregistré aujourd\'hui. Veuillez compléter le motif et le service.',
+                'registre_id'         => $registreId,
+                'motifs'              => $motifsList,
+                'services'            => $servicesList,
+                'motif_selected_id'   => $motifSelectedId,    // null si non trouvé
+                'service_selected_id' => $serviceSelectedId,  // null si non trouvé
+            ]);
+
+        } catch (\Throwable $e) {
+            \Log::error('check_patient_registre', [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+            ]);
+            return response()->json([
+                'ok'      => false,
+                'message' => 'Erreur de vérification : ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function get_transfert_data(Request $request)
+    {
+        try {
+            $patientId = (int) $request->input('patient_id');
+
+            if ($patientId <= 0) {
+                return response()->json(['ok' => false, 'message' => 'Identifiant patient invalide.'], 422);
+            }
+
+            $patient = \App\Models\Patients::find($patientId);
+            if (!$patient) {
+                return response()->json(['ok' => false, 'message' => 'Patient introuvable.'], 404);
+            }
+
+            $motifs   = \App\Models\Motifs::orderBy('nom', 'asc')->get(['id', 'nom']);
+            $services = \App\Models\Services::orderBy('nom', 'asc')->get(['id', 'nom']);
+
+            $currentUserId = \Auth::id();
+            $users = \App\Models\User::where('id', '!=', $currentUserId)
+                ->orderBy('name', 'asc')
+                ->get(['id', 'name', 'email', 'role']);
+
+            $motifSelectedId   = null;
+            $serviceSelectedId = null;
+            $registreId        = null;
+
+            $personne = \App\Models\Personnes::where('user_id', $patientId)
+                                            ->where('type', 2)
+                                            ->first();
+
+            if ($personne) {
+                $registre = \App\Models\Registreaccueil::where('personne_id', $personne->id)
+                                                        ->orderBy('id', 'desc')
+                                                        ->first();
+
+                if ($registre) {
+                    $registreId = $registre->id;
+                    $today = date('Y-m-d');
+                    $dateEntree = null;
+
+                    if (!empty($registre->heure_entree)) {
+                        $ts = strtotime($registre->heure_entree);
+                        if ($ts !== false) {
+                            $dateEntree = date('Y-m-d', $ts);
+                        }
+                    }
+
+                    if ($dateEntree === $today) {
+                        if (!empty($registre->motif_id)
+                            && $motifs->firstWhere('id', (int) $registre->motif_id)) {
+                            $motifSelectedId = (int) $registre->motif_id;
+                        }
+                        if (!empty($registre->service_id)
+                            && $services->firstWhere('id', (int) $registre->service_id)) {
+                            $serviceSelectedId = (int) $registre->service_id;
+                        }
+                    }
+                }
+            }
+
+            return response()->json([
+                'ok'                  => true,
+                'patient'             => [
+                    'id'   => $patient->id,
+                    'name' => $patient->name,
+                    'code' => $patient->code,
+                ],
+                'motifs'              => $motifs,
+                'services'            => $services,
+                'users'               => $users,
+                'motif_selected_id'   => $motifSelectedId,
+                'service_selected_id' => $serviceSelectedId,
+                'registre_id'         => $registreId,
+            ]);
+
+        } catch (\Throwable $e) {
+            \Log::error('get_transfert_data', [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+            ]);
+            return response()->json(['ok' => false, 'message' => 'Erreur : ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function transferer_fiche(Request $request)
+    {
+        try {
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'patient_id' => 'required|integer|min:1',
+                'motif_id'   => 'required|integer|min:1',
+                'service_id' => 'required|integer|min:1',
+                'user_id'    => 'required|integer|min:1',
+            ], [
+                'patient_id.required' => 'Patient manquant.',
+                'motif_id.required'   => 'Sélectionnez un motif.',
+                'service_id.required' => 'Sélectionnez un service.',
+                'user_id.required'    => 'Sélectionnez un utilisateur destinataire.',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['ok' => false, 'message' => $validator->errors()->first()], 422);
+            }
+
+            $patient = \App\Models\Patients::find((int) $request->input('patient_id'));
+            if (!$patient) {
+                return response()->json(['ok' => false, 'message' => 'Patient introuvable.'], 404);
+            }
+
+            $motif = \App\Models\Motifs::find((int) $request->input('motif_id'));
+            if (!$motif) {
+                return response()->json(['ok' => false, 'message' => 'Motif introuvable.'], 404);
+            }
+
+            $service = \App\Models\Services::find((int) $request->input('service_id'));
+            if (!$service) {
+                return response()->json(['ok' => false, 'message' => 'Service introuvable.'], 404);
+            }
+
+            $destinataire = \App\Models\User::find((int) $request->input('user_id'));
+            if (!$destinataire) {
+                return response()->json(['ok' => false, 'message' => 'Utilisateur destinataire introuvable.'], 404);
+            }
+
+            if ((int) $request->input('user_id') === (int) \Auth::id()) {
+                return response()->json(['ok' => false, 'message' => 'Vous ne pouvez pas transférer la fiche à vous-même.'], 422);
+            }
+
+            // ⚠️ TODO : décommentez et adaptez à votre table
+            /*
+            \DB::table('transferts')->insert([
+                'patient_id'     => (int) $request->input('patient_id'),
+                'motif_id'       => (int) $request->input('motif_id'),
+                'service_id'     => (int) $request->input('service_id'),
+                'user_from'      => \Auth::id(),
+                'user_to'        => (int) $request->input('user_id'),
+                'date_transfert' => now(),
+                'etat'           => 1,
+                'note'           => (string) $request->input('note', ''),
+            ]);
+            */
+
+            \Log::info('TRANSFERT FICHE', [
+                'patient_id'   => (int) $request->input('patient_id'),
+                'patient'      => $patient->name,
+                'motif_id'     => (int) $request->input('motif_id'),
+                'motif'        => $motif->nom ?? null,
+                'service_id'   => (int) $request->input('service_id'),
+                'service'      => $service->nom ?? null,
+                'user_from'    => \Auth::id(),
+                'user_to'      => $destinataire->id,
+                'user_to_name' => $destinataire->name,
+                'date'         => now()->toDateTimeString(),
+            ]);
+
+            return response()->json([
+                'ok'      => true,
+                'message' => 'Fiche transférée avec succès à ' . $destinataire->name . '.',
+                'data'    => [
+                    'patient' => $patient->name,
+                    'motif'   => $motif->nom ?? null,
+                    'service' => $service->nom ?? null,
+                    'to'      => $destinataire->name,
+                ]
+            ]);
+
+        } catch (\Throwable $e) {
+            \Log::error('transferer_fiche', [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+            ]);
+            return response()->json(['ok' => false, 'message' => 'Erreur : ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function initialiser_tarifs_fiche()
+    {
+        // 1. Ta liste avec les deux types (0 = Client, 1 = Entreprise)
+        $listetarifsfiches = [
+            [
+                'tarifs' => 20000, 
+                'devise' => 1,
+                'type'   => 0, // 👈 Type 0
+            ],
+            [
+                'tarifs' => 30000, 
+                'devise' => 1,
+                'type'   => 1, // 👈 Type 1
+            ],
+        ];
+
+        // 2. Récupération du dernier ID
+        $dernierId = DB::table('tarifsfiches')->max('id') ?? 0;
+
+        // 3. Boucle d'enregistrement avec vérification (Type + Montant)
+        foreach ($listetarifsfiches as $tarif) {
+            
+            // Vérifier si ce type ET ce montant existent déjà
+            $existe = DB::table('tarifsfiches')
+                        ->where('type', $tarif['type'])
+                        ->where('tarifs', $tarif['tarifs'])
+                        ->exists();
+
+            if (!$existe) {
+                $dernierId++; 
+
+                DB::table('tarifsfiches')->insert([
+                    'id'         => $dernierId,
+                    'tarifs'     => $tarif['tarifs'],
+                    'devise'     => $tarif['devise'],
+                    'type'       => $tarif['type'],
+                    'created_at' => now(), // 👈 Date de création
+                    'updated_at' => now(), // 👈 Date de modification
+                ]);
+            }
+        }
+
+        // 4. Retour de la réponse
+        return response()->json([
+            'message' => 'Vérification (Type + Montant) et enregistrement terminés.',
+            'nombre'  => count($listetarifsfiches)
+        ], 201);
     }
 }

@@ -1327,535 +1327,12 @@ body.modal-open { overflow: hidden; }
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Control</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        {{ !($i = 1) }}
-                                        @foreach ($factures as $data)
-                                            @php
-                                                $taux = $data->taux;
-                                                if ($taux <= 0) $taux = 1;
-
-                                                $ent = Achats::where('facture_id', $data->id)->get();
-                                                $total_frais_credit = 0;
-
-                                                $total_original = 0;
-                                                foreach ($ent as $e)
-                                                {
-                                                    $devise_achat_orig = $e->devise_achat ?? $data->devise;
-                                                    $reduction_orig = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
-                                                    $net_orig = $e->total - $reduction_orig;
-
-                                                    if ($devise_achat_orig == $data->devise) {
-                                                        $total_original += $net_orig;
-                                                    } elseif ($data->devise == 0) {
-                                                        $total_original += ($taux > 0) ? ($net_orig / $taux) : 0;
-                                                    } else {
-                                                        $total_original += $net_orig * $taux;
-                                                    }
-
-                                                    if ($e->frais_credit != 0 && $e->frais_credit !== null) {
-                                                        $total_frais_credit += $e->frais_credit;
-                                                    }
-                                                }
-
-                                                $paiements = detailpaiessachats::where('facture_id', $data->id)->get();
-                                                $montant_usd_paye = 0;
-                                                $montant_cdf_paye = 0;
-                                                foreach ($paiements as $paiement)
-                                                {
-                                                    if ($paiement->devise_recu == 0) {
-                                                        $montant_usd_paye += $paiement->montant_recu;
-                                                        $montant_cdf_paye += $paiement->montant_recu * $taux;
-                                                    } else {
-                                                        $montant_cdf_paye += $paiement->montant_recu;
-                                                        $montant_usd_paye += ($taux > 0) ? ($paiement->montant_recu / $taux) : 0;
-                                                    }
-                                                }
-
-                                                $dernier_paiement = detailpaiessachats::where('facture_id', $data->id)
-                                                    ->orderBy('created_at', 'desc')
-                                                    ->first();
-
-                                                if ($dernier_paiement && $dernier_paiement->created_at) {
-                                                    $date_paie = date('d/m/Y à H:i', strtotime($dernier_paiement->created_at));
-                                                } else {
-                                                    $date_paie = 'Aucune';
-                                                }
-
-                                                $date_paie_ymd = ($dernier_paiement && $dernier_paiement->created_at)
-                                                    ? date('Y-m-d', strtotime($dernier_paiement->created_at))
-                                                    : '';
-
-                                                if ($data->devise == 0)
-                                                {
-                                                    $total_original_usd = $total_original;
-                                                    $total_original_cdf = $total_original * $taux;
-                                                }
-                                                else
-                                                {
-                                                    $total_original_cdf = $total_original;
-                                                    $total_original_usd = ($taux > 0) ? ($total_original / $taux) : 0;
-                                                }
-
-                                                $est_impayee = ($montant_usd_paye < $total_original_usd) || ($montant_cdf_paye < $total_original_cdf);
-
-                                                $date_creation_facture = strtotime($data->created_at);
-                                                $delai_1h = 3600;
-                                                $delai_depasse = (time() - $date_creation_facture) > $delai_1h;
-
-                                                $ratio_impaye_facture = 1;
-                                                if ($total_original_usd > 0) {
-                                                    $reste_global_usd = $total_original_usd - $montant_usd_paye;
-                                                    if ($reste_global_usd < 0) $reste_global_usd = 0;
-                                                    $ratio_impaye_facture = $reste_global_usd / $total_original_usd;
-                                                }
-
-                                                $total = 0;
-                                                $achat_total_usd = 0;
-                                                $achat_total_cdf = 0;
-
-                                                foreach ($ent as $e)
-                                                {
-                                                    $devise_achat = $e->devise_achat ?? $data->devise;
-                                                    $reduction_achat = (isset($e->reduction) && $e->reduction > 0) ? $e->reduction : 0;
-
-                                                    $net_apres_reduction = $e->total - $reduction_achat;
-                                                    if ($net_apres_reduction < 0) $net_apres_reduction = 0;
-
-                                                    $frais_credit_achat = 0;
-                                                    if ($e->frais_credit != 0 && $e->frais_credit !== null) {
-                                                        $frais_credit_achat = $e->frais_credit;
-                                                    } else {
-                                                        if ($est_impayee && $delai_depasse && $ratio_impaye_facture > 0) {
-                                                            $frais_credit_achat = $net_apres_reduction * 0.05 * $ratio_impaye_facture;
-                                                            $e->frais_credit = $frais_credit_achat;
-                                                            $e->save();
-                                                        }
-                                                    }
-
-                                                    $net_achat_devise = $net_apres_reduction + $frais_credit_achat;
-
-                                                    if ($devise_achat == $data->devise) {
-                                                        $total += $net_achat_devise;
-                                                    } elseif ($data->devise == 0) {
-                                                        $total += ($taux > 0) ? ($net_achat_devise / $taux) : 0;
-                                                    } else {
-                                                        $total += $net_achat_devise * $taux;
-                                                    }
-
-                                                    $prix_achat = $e->prix_achat ?? 0;
-                                                    $quantite = $e->quantite ?? 1;
-                                                    $prix_achat_total = $prix_achat * $quantite;
-
-                                                    if ($devise_achat == 0) {
-                                                        $achat_total_usd += $prix_achat_total;
-                                                        $achat_total_cdf += $prix_achat_total * $taux;
-                                                    } else {
-                                                        $achat_total_cdf += $prix_achat_total;
-                                                        $achat_total_usd += ($taux > 0) ? ($prix_achat_total / $taux) : 0;
-                                                    }
-                                                }
-
-                                                $total_frais_credit_final = 0;
-                                                foreach ($ent as $e) {
-                                                    if ($e->frais_credit != 0 && $e->frais_credit !== null) {
-                                                        $total_frais_credit_final += $e->frais_credit;
-                                                    }
-                                                }
-                                                $a_frais_credit = ($total_frais_credit_final > 0);
-
-                                                $has_reduction = false;
-                                                foreach ($ent as $e) {
-                                                    if (isset($e->reduction) && $e->reduction > 0) {
-                                                        $has_reduction = true;
-                                                        break;
-                                                    }
-                                                }
-
-                                                if ($data->devise == 0)
-                                                {
-                                                    $montant_usd = $total;
-                                                    $montant_cdf = $total * $taux;
-                                                    $montant_affichage = number_format($total, 2, ',', ' ') . ' USD (' . number_format($montant_cdf, 2, ',', ' ') . ' CDF)';
-                                                } else {
-                                                    $montant_cdf = $total;
-                                                    $montant_usd = ($taux > 0) ? ($total / $taux) : 0;
-                                                    $montant_affichage = number_format($total, 2, ',', ' ') . ' CDF (' . number_format($montant_usd, 2, ',', ' ') . ' USD)';
-                                                }
-
-                                                $benefice_usd = $montant_usd - $achat_total_usd;
-                                                $benefice_cdf = $montant_cdf - $achat_total_cdf;
-
-                                                $reste_usd = $montant_usd - $montant_usd_paye;
-                                                $reste_cdf = $montant_cdf - $montant_cdf_paye;
-
-                                                $paye_affichage = number_format($montant_usd_paye, 2, ',', ' ') . ' USD (' . number_format($montant_cdf_paye, 2, ',', ' ') . ' CDF)';
-                                                $reste_affichage = number_format($reste_usd, 2, ',', ' ') . ' USD (' . number_format($reste_cdf, 2, ',', ' ') . ' CDF)';
-                                                $statut_text = $reste_usd > 0 ? 'Impayée' : 'Payée';
-                                                $client_name = $data->client_id == 0 ? $data->libelle : (Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A');
-
-                                                $est_partiel = ($reste_usd > 0 && $montant_usd_paye > 0);
-                                                $est_solde = ($reste_usd <= 0);
-
-                                                if ($est_partiel) {
-                                                    $statut_data = 'partial';
-                                                } elseif ($est_solde) {
-                                                    $statut_data = 'paid';
-                                                } else {
-                                                    $statut_data = 'unpaid';
-                                                }
-
-                                                $date_creation_date = date('Y-m-d', strtotime($data->created_at));
-                                                $date_aujourdhui   = date('Y-m-d');
-
-                                                if ($est_solde && $a_frais_credit && $dernier_paiement) {
-                                                    $date_comparaison = date('Y-m-d', strtotime($dernier_paiement->created_at));
-                                                } else {
-                                                    $date_comparaison = $date_aujourdhui;
-                                                }
-
-                                                $nb_jours_retard = (int) ((strtotime($date_comparaison) - strtotime($date_creation_date)) / 86400);
-                                                if ($nb_jours_retard < 0) { $nb_jours_retard = 0; }
-
-                                                $show_delay_badge = false;
-                                                if (!$dernier_paiement) {
-                                                    $show_delay_badge = true;
-                                                } elseif ($est_partiel) {
-                                                    $show_delay_badge = true;
-                                                } elseif ($est_solde && $a_frais_credit && $dernier_paiement) {
-                                                    $show_delay_badge = true;
-                                                }
-
-                                                $delay_badge_type = 'success';
-                                                if ($nb_jours_retard >= 7 && $nb_jours_retard <= 15) {
-                                                    $delay_badge_type = 'warning';
-                                                } elseif ($nb_jours_retard > 15) {
-                                                    $delay_badge_type = 'danger';
-                                                }
-
-                                                $nb_tranches = $paiements->count();
-                                                $tranches_details = [];
-                                                foreach ($paiements as $p) {
-                                                    $tranches_details[] = [
-                                                        'date' => date('d/m/Y à H:i', strtotime($p->created_at)),
-                                                        'montant_recu' => number_format($p->montant_recu, 2, ',', ' '),
-                                                        'devise' => $p->devise_recu == 0 ? 'USD' : 'CDF',
-                                                        'mode' => $p->mode_de_paiement == 1 ? 'CASH' : ($p->mode_de_paiement == 2 ? 'Mobile Money' : 'Bank'),
-                                                        'taux' => number_format($p->taux, 2, ',', ' '),
-                                                        'montant_effectif' => number_format($p->montant_effectif, 2, ',', ' '),
-                                                        'reste' => number_format($p->reste, 2, ',', ' ')
-                                                    ];
-                                                }
-                                                $tranches_json = json_encode($tranches_details, JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_TAG | JSON_HEX_AMP);
-
-                                                $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
-
-                                                // ✅ NOUVEAU — Nom du créateur de la facture (factures.user_id)
-                                                $facture_user_nom = User::where('id', $data->user_id)->first()['name'] ?? 'N/A';
-
-                                                $articles_json = [];
-                                                foreach ($ent as $e) {
-                                                    $art = null;
-                                                    foreach (['article_id', 'entre_id', 'entree_id', 'produit_id', 'id_article'] as $field) {
-                                                        if (isset($e->$field) && $e->$field) {
-                                                            $art = $articles->firstWhere('id', $e->$field);
-                                                            if ($art) break;
-                                                        }
-                                                    }
-
-                                                    $nom_article_aff = $art->nom_article
-                                                                    ?? $e->nom_article
-                                                                    ?? $e->nom
-                                                                    ?? $art->name
-                                                                    ?? ('Article #' . $e->id);
-
-                                                    $pa = $e->prix_achat ?? 0;
-                                                    $qt = $e->quantite ?? 1;
-                                                    $prix_unit = $e->prix_vente
-                                                              ?? ($art->prix_detail ?? null)
-                                                              ?? ($qt > 0 ? ($e->total / $qt) : $e->total);
-
-                                                    $devise_achat_json = $e->devise_achat ?? $data->devise;
-                                                    $reduction_ligne   = $e->reduction ?? 0;
-
-                                                    $articles_json[] = [
-                                                        'id'               => $e->id,
-                                                        'nom'              => $nom_article_aff,
-                                                        'quantite'         => $qt,
-                                                        'prix_unitaire'    => $prix_unit,
-                                                        'prix_achat'       => $pa,
-                                                        'prix_achat_total' => $pa * $qt,
-                                                        'total'            => $e->total,
-                                                        'total_net'        => $e->total - $reduction_ligne,
-                                                        'frais_credit'     => $e->frais_credit ?? 0,
-                                                        'reduction'        => $reduction_ligne,
-                                                        'devise_achat'     => $devise_achat_json,
-                                                    ];
-                                                }
-
-                                                // ✅ MODIFIÉ — Utilisateur du PAIEMENT (detailpaiessachats.user_id)
-                                                $paiements_json = [];
-                                                foreach ($paiements as $p) {
-                                                    $isUSD = ($p->devise_recu == 0);
-
-                                                    $payeur_id  = $p->user_id ?? null;
-                                                    $payeur_source = 'paiement';
-
-                                                    if (empty($payeur_id)) {
-                                                        $payeur_id = $data->user_id ?? null;
-                                                        $payeur_source = 'facture';
-                                                    }
-
-                                                    $payeur_nom = 'N/A';
-                                                    if (!empty($payeur_id)) {
-                                                        $u = User::where('id', $payeur_id)->first();
-                                                        if ($u) $payeur_nom = $u->name;
-                                                    }
-
-                                                    $paiements_json[] = [
-                                                        'id'               => $p->id,
-                                                        'date'             => date('d/m/Y à H:i', strtotime($p->created_at)),
-                                                        'payer'            => $p->payer,
-                                                        'payer_nom'        => $payeur_nom,
-                                                        'payer_id'         => $payeur_id,
-                                                        'payer_source'     => $payeur_source,
-                                                        'montant_recu'     => $p->montant_recu,
-                                                        'devise_label'     => $isUSD ? 'USD' : 'CDF',
-                                                        'mode_de_paiement' => $p->mode_de_paiement,
-                                                        'mode_label'       => $modeLabels[$p->mode_de_paiement] ?? 'N/A',
-                                                        'taux'             => $p->taux,
-                                                        'reste'            => $p->reste,
-                                                        'montant_effectif' => $p->montant_effectif,
-                                                    ];
-                                                }
-
-                                                $statut_html_param = $reste_usd > 0
-                                                    ? '<span class="text-danger"><i class="zmdi zmdi-close-circle"></i> Impayé</span>'
-                                                    : '<span class="text-success"><i class="zmdi zmdi-check-circle"></i> Payé</span>';
-
-                                                $mode_paiement_label = $modeLabels[$data->mode_de_paiement] ?? 'N/A';
-
-                                                $table_name_param = 'Aucune';
-                                                if (isset($data->table_id) && $data->table_id != 0) {
-                                                    $tbl = Tables::where('id', $data->table_id)->first();
-                                                    if ($tbl) { $table_name_param = $tbl->nom; }
-                                                }
-                                            @endphp
-
-                                            @if ($reste_usd > 0 || $total_frais_credit_final > 0)
-                                            <tr id="row_{{ $data->id }}"
-                                                data-has-reduction="{{ $has_reduction ? '1' : '0' }}"
-                                                data-paie-date-ymd="{{ $date_paie_ymd }}"
-                                                data-montant-usd="{{ $montant_usd }}"
-                                                data-montant-cdf="{{ $montant_cdf }}"
-                                                data-paye-usd="{{ $montant_usd_paye }}"
-                                                data-paye-cdf="{{ $montant_cdf_paye }}"
-                                                data-credit-usd="{{ $reste_usd }}"
-                                                data-credit-cdf="{{ $reste_cdf }}"
-                                                data-benefice-usd="{{ $benefice_usd }}"
-                                                data-benefice-cdf="{{ $benefice_cdf }}"
-                                                data-jours-retard="{{ $nb_jours_retard }}"
-                                                data-facture-id="{{ $data->id }}"
-                                                data-numero="{{ $data->numero }}"
-                                                data-client="{{ $client_name }}"
-                                                data-client-id="{{ $data->client_id }}"
-                                                data-user="{{ $facture_user_nom }}"
-                                                data-user-id="{{ $data->user_id }}"
-                                                data-table="{{ $table_name_param }}"
-                                                data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
-                                                data-devise="{{ $data->devise }}"
-                                                data-devise-label="{{ $data->devise == 0 ? 'USD' : 'CDF' }}"
-                                                data-taux="{{ $taux }}"
-                                                data-mode-paiement="{{ $mode_paiement_label }}"
-                                                data-statut-html="{{ $statut_html_param }}"
-                                                data-frais-credit-total="{{ $total_frais_credit_final }}"
-                                                data-pdf-url="{{ $data->lien ?? '' }}"
-                                                data-articles='@json($articles_json)'
-                                                data-paiements='@json($paiements_json)'>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="numero-cell" data-numero="{{ $data->numero }}">{{ $data->numero }}</td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="user-cell" data-user="{{ $facture_user_nom }}">
-                                                    {{ $facture_user_nom }}
-                                                </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="client-cell" data-client="{{ $client_name }}">
-                                                    @if ($data->client_id == 0)
-                                                        {{ $data->libelle }}
-                                                    @else
-                                                        <?= Clients::where('id', $data->client_id)->first()['name'] ?? 'N/A' ?>
-                                                    @endif
-                                                </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="montant-cell" data-montant="{{ $total }}">
-                                                    {{ $montant_affichage }}
-                                                </td>
-
-                                                <td class="paye-cell {{ $reste_usd > 0 ? 'text-danger' : 'text-success' }}">
-                                                    <div class="paye-cell-content">
-                                                        <span>{{ $paye_affichage }}</span>
-                                                        <span class="badge-delay {{ $delay_badge_type }} badge-tranches"
-                                                              data-tranches="{{ $tranches_json }}"
-                                                              data-numero="{{ $data->numero }}"
-                                                              data-client="{{ $client_name }}"
-                                                              data-total="{{ $montant_affichage }}"
-                                                              data-paye="{{ $paye_affichage }}"
-                                                              data-reste="{{ $reste_affichage }}"
-                                                              data-nb-tranches="{{ $nb_tranches }}"
-                                                              data-date-debut="{{ $data->created_at }}"
-                                                              data-date-fin="{{ $dernier_paiement ? $dernier_paiement->created_at : date('Y-m-d H:i:s') }}"
-                                                              data-jours-retard="{{ $nb_jours_retard }}"
-                                                              data-statut="{{ $statut_data }}"
-                                                              title="Cliquez pour voir les détails des tranches">
-                                                            <i class="zmdi zmdi-layers"></i> {{ $nb_tranches }}
-                                                        </span>
-                                                    </div>
-                                                </td>
-
-                                                <td class="reste-cell {{ $reste_usd > 0 ? 'text-danger' : 'text-success' }}">
-                                                    {{ $reste_affichage }}
-                                                </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="date-cell" data-date="{{ $data->created_at }}">
-                                                    <?php
-                                                        $date = $data->created_at;
-                                                        $date_1 = explode(' ', $date);
-                                                        echo explode('-', $date_1[0])[2] . '/' . explode('-', $date_1[0])[1] . '/' . explode('-', $date_1[0])[0] . ' à ' . $date_1[1];
-                                                    ?>
-                                                </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="date-paie-cell" data-date-paie="{{ $date_paie }}">
-                                                    @if (!$dernier_paiement)
-                                                        <span class="text-danger"><i class="zmdi zmdi-time-restore"></i> {{ $date_paie }}</span>
-                                                    @elseif ($est_partiel)
-                                                        <span class="text-warning"><i class="zmdi zmdi-time"></i> {{ $date_paie }}</span>
-                                                    @else
-                                                        <span class="text-success"><i class="zmdi zmdi-check-circle"></i> {{ $date_paie }}</span>
-                                                    @endif
-
-                                                    @if ($show_delay_badge)
-                                                        <span class="badge-delay {{ $delay_badge_type }}" title="Nombre de jours">
-                                                            <i class="zmdi zmdi-alarm"></i> {{ $nb_jours_retard }}j
-                                                        </span>
-                                                    @endif
-                                                </td>
-                                                <td style="padding-top: 5px;padding-bottom: 5px;" class="statut-cell" data-statut="{{ $statut_data }}">
-                                                    @if ($est_partiel)
-                                                        <i class="zmdi zmdi-time text-warning"></i> <span class="text-warning">Partielle</span>
-                                                    @elseif ($est_solde)
-                                                        @if ($data->mode_de_paiement == 1)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">CASH</span>
-                                                        @endif
-                                                        @if ($data->mode_de_paiement == 2)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Mobile money</span>
-                                                        @endif
-                                                        @if ($data->mode_de_paiement == 3)
-                                                            <i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Bank</span>
-                                                        @endif
-                                                    @else
-                                                        <i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">Impayée</span>
-                                                    @endif
-                                                </td>
-                                                <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
-                                                    <?php if ((Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0) || (Auth::user()->role == 0)) { ?>
-                                                    <?php
-                                                    $edit = 0; $delete = 0; $display = 0;
-                                                    if (Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()->count() != 0) {
-                                                        $edit    = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->edit;
-                                                        $delete  = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->delete;
-                                                        $display = Writes::where(['ressource_id' => $ressource_id_1, 'groupe_id' => $groupe_user_id])->get()[0]->display;
-                                                    }
-                                                    ?>
-                                                    <?php } ?>
-                                                    <?php if ((($display == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($display == 0) && (Auth::user()->role == 0))) { ?>
-                                                        @if ($reste_usd > 0)
-                                                            <a id="detail_{{ $i }}" href="#"><i class="zmdi zmdi-money text-danger"></i></a> &nbsp;
-                                                        @else
-                                                            <a id="detail_{{ $i }}" href="#"><i class="zmdi zmdi-eye text-success"></i></a> &nbsp;
-                                                        @endif
-                                                    <?php } else { ?>
-                                                        @if ($reste_usd > 0)
-                                                            <a id="detail_r{{ $i }}" href="#"><i class="zmdi zmdi-money text-danger"></i></a> &nbsp;
-                                                        @else
-                                                            <a id="detail_r{{ $i }}" href="#"><i class="zmdi zmdi-eye text-success"></i></a> &nbsp;
-                                                        @endif
-                                                    <?php } ?>
-
-                                                    <?php if ((($edit == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($delete == 0) && (Auth::user()->role == 0))) { ?>
-                                                        <a href="#" class="param-facture-btn"
-                                                           data-id="{{ $data->id }}"
-                                                           title="Paramètres de la facture">
-                                                            <i class="zmdi zmdi-settings text-info"></i>
-                                                        </a>
-                                                    <?php } ?>
-
-                                                    <?php if ((($delete == 1) && (Writes::where(["ressource_id" => $ressource_id_1, "groupe_id" => $groupe_user_id])->get()->count() != 0)) || (($delete == 0) && (Auth::user()->role == 0))) { ?>
-                                                        <a href="#" class="delete-facture-btn"
-                                                           data-id="{{ $data->id }}"
-                                                           data-numero="{{ $data->numero }}"
-                                                           data-client="{{ $client_name }}"
-                                                           data-montant="{{ $montant_affichage }}"
-                                                           data-date="{{ date('d/m/Y à H:i', strtotime($data->created_at)) }}"
-                                                           data-statut="{{ $statut_text }}"
-                                                           title="Supprimer cette facture">
-                                                            <i class="zmdi zmdi-delete text-danger"></i>
-                                                        </a>
-                                                    <?php } ?>
-                                                    <script>
-                                                        $("#detail_{{ $i }}").click(function(e) {
-                                                            e.preventDefault();
-                                                            var payer = "<?= $data->payer ?>";
-                                                            if(payer == 0)
-                                                            {
-                                                                $.get("{{ url('/refresh_detailfactureass') }}", {
-                                                                    invitation_id: <?= $data->id ?>,
-                                                                }, function(refresh_editinvitations) {
-                                                                    $("#bloc_1").hide();
-                                                                    $("#bloc_2").show();
-                                                                    $("#bloc_3").show();
-                                                                    $("#bloc_t").show();
-                                                                    $("#bloc_3").html(refresh_editinvitations);
-                                                                });
-                                                            }
-                                                            if(payer == 1)
-                                                            {
-                                                                $("#n_fac").html("<?= $data->numero ?>");
-                                                                $("#id_fac").val("<?= $data->id ?>");
-                                                                var pdfUrl = "{{ isset($data->lien) ? $data->lien : '' }}";
-                                                                if (pdfUrl && pdfUrl !== '') {
-                                                                    currentPdfUrl = pdfUrl;
-                                                                    $("#pdfIframe").attr("src", pdfUrl);
-                                                                    $("#pdfModal").modal("show");
-                                                                } else {
-                                                                    $.get("{{ url('/print_facture') }}", {
-                                                                        "facture_id": "<?= $data->id ?>"
-                                                                    }, function(response) {
-                                                                        if (response && response[0][0]) {
-                                                                            currentPdfUrl = response[0][0];
-                                                                            $("#pdfIframe").attr("src", response[0][0]);
-                                                                            $("#cdf_montant_payer").val(response[0][1]);
-                                                                            $("#usd_montant_payer").val(response[0][2]);
-                                                                            $("#payer").val(response[0][5]);
-                                                                            $("#pdfModal").modal("show");
-                                                                        } else if (response && typeof response[0][0] === 'string') {
-                                                                            currentPdfUrl = response[0][0];
-                                                                            $("#pdfIframe").attr("src", response[0][0]);
-                                                                            $("#cdf_montant_payer").val(response[0][1]);
-                                                                            $("#usd_montant_payer").val(response[0][2]);
-                                                                            $("#payer").val(response[0][5]);
-                                                                            $("#pdfModal").modal("show");
-                                                                        } else {
-                                                                            alert("Aucun PDF disponible pour cette facture.");
-                                                                        }
-                                                                    }).fail(function() {
-                                                                        alert("Erreur lors de la récupération du PDF.");
-                                                                    });
-                                                                }
-                                                            }
-                                                        });
-                                                        $("#detail_r{{ $i }}").click(function(e) {
-                                                            e.preventDefault();
-                                                            $("#btn_refus").trigger("click");
-                                                        });
-                                                    </script>
-                                                </td>
-                                            </tr>
-                                            @endif
-                                            {{ !$i++ }}
-                                        @endforeach
+                                    <tbody id="factures-tbody">
+                                        <tr>
+                                            <td colspan="10" class="text-center text-muted py-4">
+                                                <i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement du tableau...
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -2499,7 +1976,7 @@ body.modal-open { overflow: hidden; }
                                         </tr>
                                     </thead>
                                     <tbody id="param_articles_body">
-                                        <tr><td colspan="11" class="text-center text-muted">Chargement...</td></tr>
+                                        <tr><td colspan="11" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -2536,7 +2013,7 @@ body.modal-open { overflow: hidden; }
                                         </tr>
                                     </thead>
                                     <tbody id="param_paiements_body">
-                                        <tr><td colspan="6" class="text-center text-muted">Chargement...</td></tr>
+                                        <tr><td colspan="6" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>
                                     </tbody>
                                     <tfoot id="param_paiements_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
                                 </table>
@@ -2743,7 +2220,6 @@ body.modal-open { overflow: hidden; }
                     <div class="table-responsive" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background:white;">
                         <table class="table table-sm mb-0" id="rapport_table">
                             <thead style="background: #FEE2E2;">
-                                <!-- ✅ NOUVEAU — 2 colonnes : Enregistré par / Encaissé par -->
                                 <tr>
                                     <th style="font-size:0.72rem;">#</th>
                                     <th style="font-size:0.72rem;">Date paiement</th>
@@ -2762,7 +2238,7 @@ body.modal-open { overflow: hidden; }
                                 </tr>
                             </thead>
                             <tbody id="rapport_body">
-                                <tr><td colspan="10" class="text-center text-muted">Chargement...</td></tr>
+                                <tr><td colspan="10" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>
                             </tbody>
                             <tfoot id="rapport_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
                         </table>
@@ -2814,6 +2290,218 @@ body.modal-open { overflow: hidden; }
             @endforeach
         ];
 
+        // ============================================================
+        // ✅ DICTIONNAIRE GLOBAL DES FACTURES (articles, paiements, etc.)
+        // ============================================================
+        var FACTURES_DATA = {};
+        var RESSOURCE_ID_1 = "{{ $ressource_id_1 ?? 47 }}";
+
+        function escapeHtml(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        /* ✅ Construit le HTML d'une ligne <tr> à partir d'un objet facture JSON */
+        function buildRowHtml(f) {
+            var delayBadgeHtml = '';
+            if (f.show_delay_badge) {
+                delayBadgeHtml = '<span class="badge-delay ' + f.delay_badge_type + '" title="Nombre de jours">'
+                    + '<i class="zmdi zmdi-alarm"></i> ' + f.jours_retard + 'j</span>';
+            }
+
+            var datePaieClass = 'text-danger';
+            var datePaieIcon = 'zmdi-time-restore';
+            if (f.dernier_paiement_at) {
+                if (f.est_partiel) { datePaieClass = 'text-warning'; datePaieIcon = 'zmdi-time'; }
+                else { datePaieClass = 'text-success'; datePaieIcon = 'zmdi-check-circle'; }
+            }
+
+            var statutHtml = '';
+            if (f.est_partiel) {
+                statutHtml = '<i class="zmdi zmdi-time text-warning"></i> <span class="text-warning">Partielle</span>';
+            } else if (f.est_solde) {
+                if (f.mode_de_paiement == 1) statutHtml = '<i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">CASH</span>';
+                else if (f.mode_de_paiement == 2) statutHtml = '<i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Mobile money</span>';
+                else if (f.mode_de_paiement == 3) statutHtml = '<i class="zmdi zmdi-check-circle text-success"></i> <span class="text-success">Bank</span>';
+            } else {
+                statutHtml = '<i class="zmdi zmdi-close-circle text-danger"></i> <span class="text-danger">Impayée</span>';
+            }
+
+            var clientCell = (f.client_id == 0) ? escapeHtml(f.libelle) : escapeHtml(f.client_name);
+
+            var boutons = '';
+            if (f.can_display) {
+                var iconeDetail = f.reste_usd > 0 ? 'zmdi-money text-danger' : 'zmdi-eye text-success';
+                boutons += '<a href="#" class="btn-detail-facture" data-facture-id="' + f.id + '" data-payer="' + (f.payer || 0) + '" data-numero="' + escapeHtml(f.numero) + '"><i class="zmdi ' + iconeDetail + '"></i></a> &nbsp;';
+            } else {
+                var iconeRefus = f.reste_usd > 0 ? 'zmdi-money text-danger' : 'zmdi-eye text-success';
+                boutons += '<a href="#" class="btn-detail-refuse"><i class="zmdi ' + iconeRefus + '"></i></a> &nbsp;';
+            }
+
+            if (f.can_edit) {
+                boutons += '<a href="#" class="param-facture-btn" data-id="' + f.id + '" title="Paramètres de la facture"><i class="zmdi zmdi-settings text-info"></i></a>';
+            }
+            if (f.can_delete) {
+                boutons += '<a href="#" class="delete-facture-btn" data-id="' + f.id + '" data-numero="' + escapeHtml(f.numero) + '" data-client="' + escapeHtml(f.client_name) + '" data-montant="' + escapeHtml(f.montant_affichage) + '" data-date="' + escapeHtml(f.date) + '" data-statut="' + (f.reste_usd > 0 ? 'Impayée' : 'Payée') + '" title="Supprimer cette facture"><i class="zmdi zmdi-delete text-danger"></i></a>';
+            }
+
+            return '<tr id="row_' + f.id + '"'
+                + ' data-has-reduction="' + (f.has_reduction ? '1' : '0') + '"'
+                + ' data-paie-date-ymd="' + (f.date_paie_ymd || '') + '"'
+                + ' data-montant-usd="' + f.montant_usd + '"'
+                + ' data-montant-cdf="' + f.montant_cdf + '"'
+                + ' data-paye-usd="' + f.montant_usd_paye + '"'
+                + ' data-paye-cdf="' + f.montant_cdf_paye + '"'
+                + ' data-credit-usd="' + f.reste_usd + '"'
+                + ' data-credit-cdf="' + f.reste_cdf + '"'
+                + ' data-benefice-usd="' + f.benefice_usd + '"'
+                + ' data-benefice-cdf="' + f.benefice_cdf + '"'
+                + ' data-jours-retard="' + f.jours_retard + '"'
+                + ' data-facture-id="' + f.id + '"'
+                + ' data-numero="' + escapeHtml(f.numero) + '"'
+                + ' data-client="' + escapeHtml(f.client_name) + '"'
+                + ' data-client-id="' + f.client_id + '"'
+                + ' data-user="' + escapeHtml(f.facture_user_nom) + '"'
+                + ' data-user-id="' + f.user_id + '"'
+                + ' data-table="' + escapeHtml(f.table_name) + '"'
+                + ' data-date="' + escapeHtml(f.date) + '"'
+                + ' data-devise="' + f.devise + '"'
+                + ' data-devise-label="' + (f.devise == 0 ? 'USD' : 'CDF') + '"'
+                + ' data-taux="' + f.taux + '"'
+                + ' data-mode-paiement="' + escapeHtml(f.mode_paiement) + '"'
+                + ' data-frais-credit-total="' + f.frais_credit_total + '"'
+                + ' data-pdf-url="' + escapeHtml(f.lien || '') + '">'
+
+                + '<td class="numero-cell" data-numero="' + escapeHtml(f.numero) + '">' + escapeHtml(f.numero) + '</td>'
+                + '<td class="user-cell" data-user="' + escapeHtml(f.facture_user_nom) + '">' + escapeHtml(f.facture_user_nom) + '</td>'
+                + '<td class="client-cell" data-client="' + escapeHtml(f.client_name) + '">' + clientCell + '</td>'
+                + '<td class="montant-cell" data-montant="' + f.montant_usd + '">' + escapeHtml(f.montant_affichage) + '</td>'
+                + '<td class="paye-cell ' + (f.reste_usd > 0 ? 'text-danger' : 'text-success') + '">'
+                    + '<div class="paye-cell-content">'
+                        + '<span>' + escapeHtml(f.paye_affichage) + '</span>'
+                        + '<span class="badge-delay ' + f.delay_badge_type + ' badge-tranches"'
+                            + ' data-facture-id="' + f.id + '"'
+                            + ' data-numero="' + escapeHtml(f.numero) + '"'
+                            + ' data-client="' + escapeHtml(f.client_name) + '"'
+                            + ' data-total="' + escapeHtml(f.montant_affichage) + '"'
+                            + ' data-paye="' + escapeHtml(f.paye_affichage) + '"'
+                            + ' data-reste="' + escapeHtml(f.reste_affichage) + '"'
+                            + ' data-nb-tranches="' + f.nb_tranches + '"'
+                            + ' data-date-debut="' + (f.date_debut || '') + '"'
+                            + ' data-date-fin="' + (f.date_fin || '') + '"'
+                            + ' data-jours-retard="' + f.jours_retard + '"'
+                            + ' data-statut="' + f.statut_data + '"'
+                            + ' title="Cliquez pour voir les détails des tranches">'
+                            + '<i class="zmdi zmdi-layers"></i> ' + f.nb_tranches
+                        + '</span>'
+                    + '</div>'
+                + '</td>'
+                + '<td class="reste-cell ' + (f.reste_usd > 0 ? 'text-danger' : 'text-success') + '">' + escapeHtml(f.reste_affichage) + '</td>'
+                + '<td class="date-cell" data-date="' + (f.date_raw || '') + '">' + escapeHtml(f.date) + '</td>'
+                + '<td class="date-paie-cell" data-date-paie="' + escapeHtml(f.date_paie_str) + '">'
+                    + '<span class="' + datePaieClass + '"><i class="zmdi ' + datePaieIcon + '"></i> ' + escapeHtml(f.date_paie_str) + '</span>'
+                    + delayBadgeHtml
+                + '</td>'
+                + '<td class="statut-cell" data-statut="' + f.statut_data + '">' + statutHtml + '</td>'
+                + '<td style="text-align:center;">' + boutons + '</td>'
+                + '</tr>';
+        }
+
+        /* ✅ Charge le tableau depuis le back-end */
+        function chargerTableauSuivi(callback) {
+            var $tbody = $('#factures-tbody');
+            $tbody.html('<tr><td colspan="10" class="text-center text-muted py-4">'
+                + '<i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement...</td></tr>');
+
+            $.ajax({
+                url: "{{ url('/get_all_facture_suivi') }}",
+                type: 'GET',
+                data: { page: RESSOURCE_ID_1 },
+                dataType: 'json',
+                success: function (response) {
+                    FACTURES_DATA = {};
+
+                    if (!response || !response.factures || response.factures.length === 0) {
+                        $tbody.html('<tr><td colspan="10" class="text-center text-muted py-4">'
+                            + '<i class="zmdi zmdi-info-outline"></i> Aucune facture en crédit pour le moment</td></tr>');
+                        if (typeof filterInvoices === 'function') filterInvoices();
+                        if (typeof callback === 'function') callback();
+                        return;
+                    }
+
+                    var html = '';
+                    response.factures.forEach(function (f) {
+                        FACTURES_DATA[f.id] = f;
+                        html += buildRowHtml(f);
+                    });
+                    $tbody.html(html);
+
+                    if (typeof loadFiltersFromStorage === 'function') loadFiltersFromStorage();
+                    if (typeof filterInvoices === 'function') filterInvoices();
+
+                    if (typeof callback === 'function') callback();
+                },
+                error: function (xhr) {
+                    console.error('Erreur chargement tableau :', xhr);
+                    $tbody.html('<tr><td colspan="10" class="text-center text-danger">'
+                        + 'Erreur lors du chargement du tableau.</td></tr>');
+                }
+            });
+        }
+
+        /* ✅ HANDLER : BOUTON DÉTAIL */
+        $(document).on('click', '.btn-detail-facture', function (e) {
+            e.preventDefault();
+            var factureId = $(this).data('facture-id');
+            var payer     = $(this).data('payer');
+            var numero    = $(this).data('numero');
+            var fData     = FACTURES_DATA[factureId] || {};
+
+            if (payer == 0) {
+                $.get("{{ url('/refresh_detailfactureass') }}", { invitation_id: factureId }, function (resp) {
+                    $("#bloc_1").hide();
+                    $("#bloc_2").show();
+                    $("#bloc_3").show();
+                    $("#bloc_t").show();
+                    $("#bloc_3").html(resp);
+                });
+            } else if (payer == 1) {
+                $("#n_fac").html(numero);
+                $("#id_fac").val(factureId);
+
+                var pdfUrl = fData.lien || '';
+                if (pdfUrl && pdfUrl !== '') {
+                    currentPdfUrl = pdfUrl;
+                    $("#pdfIframe").attr("src", pdfUrl);
+                    $("#pdfModal").modal("show");
+                } else {
+                    $.get("{{ url('/print_facture') }}", { facture_id: factureId }, function (response) {
+                        if (response && response[0] && response[0][0]) {
+                            currentPdfUrl = response[0][0];
+                            $("#pdfIframe").attr("src", response[0][0]);
+                            $("#cdf_montant_payer").val(response[0][1]);
+                            $("#usd_montant_payer").val(response[0][2]);
+                            $("#payer").val(response[0][5]);
+                            $("#pdfModal").modal("show");
+                        } else {
+                            alert("Aucun PDF disponible pour cette facture.");
+                        }
+                    }).fail(function () {
+                        alert("Erreur lors de la récupération du PDF.");
+                    });
+                }
+            }
+        });
+
+        $(document).on('click', '.btn-detail-refuse', function (e) {
+            e.preventDefault();
+            $("#btn_refus").trigger("click");
+        });
+
         $("#upload").click(function(e) {
             e.preventDefault();
             $("#dropzonewidget").trigger("click");
@@ -2825,8 +2513,8 @@ body.modal-open { overflow: hidden; }
             $("#bloc_t").hide();
             $("#bloc_2").hide();
             $("#bloc_3").hide();
-            $("#bloc_t").hide();
             $.get("{{ url('/delete_facture_user_id') }}", {}, function(response) {});
+            chargerTableauSuivi();
         });
 
         $("#add").click(function(e) {
@@ -2957,16 +2645,12 @@ body.modal-open { overflow: hidden; }
                                     $("#quantite").val("");
                                     Dropzone.forElement('#dropzonewidget').removeAllFiles(true);
                                     $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
-                                    $("#content_utilisateur").html(response);
-                                    $.get("{{ url('/get_achat') }}", {}, function(response) {
-                                        $("#bloc_3").html(response);
+                                    saveFiltersToStorage();
+                                    chargerTableauSuivi();
+                                    $.get("{{ url('/get_achat') }}", {}, function(r) {
+                                        $("#bloc_3").html(r);
                                     });
                                     setTimeout(() => { $('#msg').html(""); }, 9000);
-                                    saveFiltersToStorage();
-                                    setTimeout(function() {
-                                        loadFiltersFromStorage();
-                                        filterInvoices();
-                                    }, 100);
                                 },
                                 error: function(xhr, status, error) {
                                     resetButton();
@@ -2994,14 +2678,10 @@ body.modal-open { overflow: hidden; }
             var id = $("#data_id").html();
             $.get("{{ url('/refresh_deletedecision') }}", {
                 id: id,
-            }, function(refresh_editutilisateur) {
-                $("#content_utilisateur").html(refresh_editutilisateur);
+            }, function() {
                 $("#non").trigger("click");
                 saveFiltersToStorage();
-                setTimeout(function() {
-                    loadFiltersFromStorage();
-                    filterInvoices();
-                }, 100);
+                chargerTableauSuivi();
             });
         });
 
@@ -3140,8 +2820,9 @@ body.modal-open { overflow: hidden; }
             let totalBeneficeUSD = 0, totalBeneficeCDF = 0;
             let totalSoldeUSD = 0, totalSoldeCDF = 0;
 
-            $('#content_utilisateur tbody tr').each(function() {
+            $('#factures-tbody tr').each(function() {
                 const $row = $(this);
+                if (!$row.attr('data-facture-id')) return;
                 let showRow = true;
 
                 const numeroValue = $row.find('.numero-cell').data('numero')?.toLowerCase() || '';
@@ -3232,15 +2913,6 @@ body.modal-open { overflow: hidden; }
             $('#totalSoldeCdf').text(totalSoldeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalBeneficeUsd').text(totalBeneficeUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
             $('#totalBeneficeCdf').text(totalBeneficeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-
-            if (visibleCount === 0 && (filterNumero || filterClient || filterUser || dateRange || datePaieRange || !isNaN(filterMontant) || filterStatut || (filterJour !== null && !isNaN(filterJour)))) {
-                $('#msg').html('<i class="zmdi zmdi-info"></i> Aucune facture ne correspond aux critères de recherche');
-                $('#msg').css('display', 'flex');
-                setTimeout(() => {
-                    $('#msg').html('');
-                    $('#msg').css('display', 'none');
-                }, 3000);
-            }
         }
 
         function resetAllFilters() {
@@ -3313,6 +2985,8 @@ body.modal-open { overflow: hidden; }
             currentParamRow = $row;
             currentParamFactureId = $row.data('facture-id');
 
+            var fData = FACTURES_DATA[currentParamFactureId] || {};
+
             $('#param_numero').text($row.data('numero'));
             $('#param_client').text($row.data('client'));
             $('#param_user').text($row.data('user'));
@@ -3363,7 +3037,10 @@ body.modal-open { overflow: hidden; }
             $('#param_benefice_usd').text(formatMoney($row.data('benefice-usd')) + ' USD');
             $('#param_benefice_cdf').text(formatMoney($row.data('benefice-cdf')) + ' CDF');
 
-            var articles = safeParseJSON($row.attr('data-articles'));
+            // ✅ Utilise FACTURES_DATA au lieu du parsing DOM
+            var articles = fData.articles || [];
+            var paiements = fData.paiements || [];
+
             var tauxFacture = parseFloat($row.data('taux')) || 0;
             if (tauxFacture <= 0) tauxFacture = 1;
 
@@ -3485,7 +3162,6 @@ body.modal-open { overflow: hidden; }
 
             $('#param_lines_msg').html('');
 
-            var paiements = safeParseJSON($row.attr('data-paiements'));
             var paiHtml = '';
             var totalRecuUSD = 0, totalRecuCDF = 0, totalResteUSD = 0, totalResteCDF = 0;
 
@@ -3598,11 +3274,10 @@ body.modal-open { overflow: hidden; }
                 saveFiltersToStorage();
             });
 
-            const totalInvoices = $('#content_utilisateur tbody tr').length;
-            $('#invoiceCount').text(totalInvoices);
+            loadFiltersFromStorage();
 
-            const hasSaved = loadFiltersFromStorage();
-            filterInvoices();
+            // ✅ Charge le tableau depuis le back-end au démarrage
+            chargerTableauSuivi();
 
             $('#filterNumero, #filterClient, #filterUser, #filterMontant, #filterJour').on('input change', function() {
                 debouncedFilter();
@@ -3650,19 +3325,12 @@ body.modal-open { overflow: hidden; }
                     url: '{{ url("/delete_facture") }}',
                     data: { _token: '{{ csrf_token() }}', id: factureId },
                     success: function(response) {
-                        $.get('{{ url("/get_all_facture_suivi") }}', function(html) {
-                            $('#content_utilisateur').html(html);
-                            saveFiltersToStorage();
-                            setTimeout(function() {
-                                loadFiltersFromStorage();
-                                filterInvoices();
-                            }, 100);
-                        }).fail(function() { alert('Erreur lors du rechargement du tableau.'); });
-
                         $('#deleteFactureModal').modal('hide');
                         $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Facture supprimée avec succès');
                         $('#msg').css('display', 'flex');
                         setTimeout(() => { $('#msg').html(''); $('#msg').css('display', 'none'); }, 3000);
+                        saveFiltersToStorage();
+                        chargerTableauSuivi();
                     },
                     error: function(xhr, status, error) {
                         console.error('Erreur de suppression :', error);
@@ -3676,7 +3344,7 @@ body.modal-open { overflow: hidden; }
                 e.preventDefault();
                 e.stopPropagation();
 
-                var tranchesJson = $(this).attr('data-tranches') || $(this).data('tranches');
+                var factureId = $(this).data('facture-id');
                 var numero = $(this).attr('data-numero');
                 var client = $(this).attr('data-client');
                 var total = $(this).attr('data-total');
@@ -3687,6 +3355,9 @@ body.modal-open { overflow: hidden; }
                 var dateFin = $(this).attr('data-date-fin');
                 var joursRetard = parseInt($(this).attr('data-jours-retard')) || 0;
                 var statut = $(this).attr('data-statut') || 'unpaid';
+
+                var fData = FACTURES_DATA[factureId] || {};
+                var tranches = fData.tranches_details || [];
 
                 var dureeClass = 'duree-success';
                 if (joursRetard >= 7 && joursRetard <= 15) { dureeClass = 'duree-warning'; }
@@ -3744,47 +3415,71 @@ body.modal-open { overflow: hidden; }
                 var tbody = $('#modal_tranches_body');
                 tbody.empty();
 
-                try {
-                    var tranches = JSON.parse(tranchesJson);
-                    if (tranches && tranches.length > 0) {
-                        $.each(tranches, function(index, t) {
-                            var tr = $('<tr>');
-                            tr.append('<td style="font-weight: 600; text-align: center;">' + (index + 1) + '</td>');
-                            tr.append('<td>' + t.date + '</td>');
-                            tr.append('<td style="font-weight: 700; color: #10b981;">' + t.montant_recu + '</td>');
-                            tr.append('<td><span class="badge-devise ' + (t.devise === 'USD' ? 'usd' : 'cdf') + '">' + t.devise + '</span></td>');
-                            tr.append('<td>' + t.mode + '</td>');
-                            tr.append('<td>' + (t.montant_effectif || '-') + '</td>');
-                            tr.append('<td style="color: #dc2626; font-weight: 600;">' + (t.reste || '-') + '</td>');
-                            tbody.append(tr);
-                        });
-                    } else {
-                        tbody.append('<tr><td colspan="7" class="text-center text-muted" style="padding: 20px;">Aucune tranche enregistrée pour cette facture.</td></tr>');
-                    }
-                } catch (err) {
-                    console.error("Erreur de parsing JSON:", err);
-                    tbody.append('<tr><td colspan="7" class="text-center text-danger" style="padding: 20px;">Erreur lors du chargement des détails.</td></tr>');
+                if (tranches && tranches.length > 0) {
+                    $.each(tranches, function (index, t) {
+                        var tr = $('<tr>');
+                        tr.append('<td style="font-weight: 600; text-align: center;">' + (index + 1) + '</td>');
+                        tr.append('<td>' + t.date + '</td>');
+                        tr.append('<td style="font-weight: 700; color: #10b981;">' + t.montant_recu + '</td>');
+                        tr.append('<td><span class="badge-devise ' + (t.devise === 'USD' ? 'usd' : 'cdf') + '">' + t.devise + '</span></td>');
+                        tr.append('<td>' + t.mode + '</td>');
+                        tr.append('<td>' + (t.montant_effectif || '-') + '</td>');
+                        tr.append('<td style="color: #dc2626; font-weight: 600;">' + (t.reste || '-') + '</td>');
+                        tbody.append(tr);
+                    });
+                } else {
+                    tbody.append('<tr><td colspan="7" class="text-center text-muted" style="padding: 20px;">Aucune tranche enregistrée pour cette facture.</td></tr>');
                 }
 
                 $('#tranchesModal').modal('show');
             });
 
+            /* ============================================================
+               ✅ PARAM — LOADER AVANT CHARGEMENT
+               ============================================================ */
             $(document).on('click', '.param-facture-btn', function(e) {
                 e.preventDefault();
                 var $row = $(this).closest('tr');
                 $('#paramTabs a[href="#tab-info"]').tab('show');
+
+                // ✅ Loader visible AVANT le chargement des données
+                $('#param_articles_body').html('<tr><td colspan="11" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+                $('#param_paiements_body').html('<tr><td colspan="6" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+                $('#param_paiements_foot').html('');
+                $('#param_totals_grid').html('');
+
                 $('#paramFactureModal').modal('show');
-                openParamModalFromRow($row);
+
+                // ✅ Double rAF pour laisser le navigateur peindre le loader
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        openParamModalFromRow($row);
+                    });
+                });
             });
 
+            /* ============================================================
+               ✅ REFRESH PARAM — LOADER AVANT CHARGEMENT
+               ============================================================ */
             $(document).on('click', '#param_refresh_btn', function(e) {
                 e.preventDefault();
-                if (currentParamRow) {
-                    openParamModalFromRow(currentParamRow);
-                    var btn = $(this);
-                    btn.find('i').addClass('zmdi-hc-spin');
-                    setTimeout(function() { btn.find('i').removeClass('zmdi-hc-spin'); }, 1000);
-                }
+                if (!currentParamRow) return;
+
+                var btn = $(this);
+                btn.find('i').addClass('zmdi-hc-spin');
+
+                // ✅ Loader visible AVANT rafraîchissement
+                $('#param_articles_body').html('<tr><td colspan="11" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+                $('#param_paiements_body').html('<tr><td colspan="6" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+                $('#param_paiements_foot').html('');
+                $('#param_totals_grid').html('');
+
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        openParamModalFromRow(currentParamRow);
+                        btn.find('i').removeClass('zmdi-hc-spin');
+                    });
+                });
             });
 
             $(document).on('click', '#param_btn_save_lines', function(e) {
@@ -3835,15 +3530,13 @@ body.modal-open { overflow: hidden; }
                         btn.prop('disabled', false).html('<i class="zmdi zmdi-save"></i> Enregistrer les modifications');
                         if (res.success) {
                             $('#param_lines_msg').html('<i class="zmdi zmdi-check-circle text-success"></i> ' + res.message);
-                            $.get("{{ url('/get_all_facture_suivi') }}", function(html) {
-                                $('#content_utilisateur').html(html);
-                                saveFiltersToStorage();
-                                setTimeout(function() { loadFiltersFromStorage(); filterInvoices(); }, 100);
+                            saveFiltersToStorage();
+                            chargerTableauSuivi(function() {
+                                setTimeout(function() {
+                                    var newRow = $('#factures-tbody tr[data-facture-id="' + currentParamFactureId + '"]');
+                                    if (newRow.length) openParamModalFromRow(newRow);
+                                }, 400);
                             });
-                            setTimeout(function() {
-                                var newRow = $('#content_utilisateur tr[data-facture-id="' + currentParamFactureId + '"]');
-                                if (newRow.length) openParamModalFromRow(newRow);
-                            }, 800);
                         } else {
                             $('#param_lines_msg').html('<i class="zmdi zmdi-close-circle text-danger"></i> ' + (res.message || 'Erreur'));
                         }
@@ -3930,8 +3623,9 @@ body.modal-open { overflow: hidden; }
 
             function getRappelAllRows() {
                 var rows = [];
-                $('#content_utilisateur tbody tr').each(function() {
+                $('#factures-tbody tr').each(function() {
                     var $r = $(this);
+                    if (!$r.attr('data-facture-id')) return;
                     var creditUsd = parseFloat($r.data('credit-usd')) || 0;
                     if (creditUsd <= 0) return;
                     rows.push({
@@ -4190,7 +3884,7 @@ body.modal-open { overflow: hidden; }
             });
 
             /* ============================================================
-               RAPPORT DES MONTANTS REÇUS (CÔTÉ SERVEUR)
+               RAPPORT DES MONTANTS REÇUS — APPEL BACK-END
                ============================================================ */
             function parseDMY_to_ISO(str) {
                 if (!str) return null;
@@ -4251,48 +3945,56 @@ body.modal-open { overflow: hidden; }
             function fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter) {
                 var $body = $('#rapport_body');
                 var $foot = $('#rapport_foot');
-                
-                $body.html('<tr><td colspan="10" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+
+                // ✅ Loader visible pendant le chargement
+                $body.html('<tr><td colspan="10" class="text-center text-muted">'
+                    + '<i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
                 $foot.html('');
 
                 var params = {
                     date_debut: dateDebutISO,
-                    date_fin: dateFinISO,
-                    user_id: userFilter,
-                    client: clientFilter
+                    date_fin:   dateFinISO,
+                    user_id:    userFilter,
+                    client:     clientFilter
                 };
 
                 $.ajax({
-                    url: "{{ url('/get_rapport_paiements') }}", 
+                    url: "{{ url('/get_rapport_paiements') }}",
                     type: 'GET',
                     data: params,
                     dataType: 'json',
-                    success: function(response) {
-                        var data = response.data;
+                    success: function (response) {
+                        var data = (response && response.data) ? response.data : [];
                         var totalUSD = 0, totalCDF = 0, nbTransactions = data.length;
                         var html = '';
 
                         if (data.length === 0) {
-                            html = '<tr><td colspan="10" class="text-center text-muted">Aucun paiement trouvé pour ces critères</td></tr>';
+                            html = '<tr><td colspan="10" class="text-center text-muted">'
+                                 + 'Aucun paiement trouvé pour ces critères</td></tr>';
                         } else {
                             data.forEach(function (p, idx) {
                                 var isUSD = (p.devise === 'USD');
-                                var montantUSD = isUSD ? p.montant_recu : (p.taux > 0 ? (p.montant_recu / p.taux) : 0);
-                                var montantCDF = isUSD ? (p.montant_recu * p.taux) : p.montant_recu;
-                                
+                                var taux  = parseFloat(p.taux) || 1;
+                                if (taux <= 0) taux = 1;
+                                var montantUSD = isUSD ? p.montant_recu : (p.montant_recu / taux);
+                                var montantCDF = isUSD ? (p.montant_recu * taux) : p.montant_recu;
+
                                 totalUSD += montantUSD;
                                 totalCDF += montantCDF;
 
                                 var badgeDevise = isUSD ? 'primary' : 'warning';
-                                
+
                                 html += '<tr>';
                                 html += '<td>' + (idx + 1) + '</td>';
                                 html += '<td style="font-size:0.78rem;">' + (p.date_paiement || '-') + '</td>';
                                 html += '<td><b>' + (p.numero || '-') + '</b></td>';
                                 html += '<td style="font-size:0.78rem;">' + (p.date_facture || '-') + '</td>';
                                 html += '<td>' + (p.client || '-') + '</td>';
-                                html += '<td><span class="badge badge-secondary"><i class="zmdi zmdi-edit"></i> ' + (p.enregistre_par || 'N/A') + '</span></td>';
-                                html += '<td><span class="badge badge-success" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="zmdi zmdi-money"></i> ' + (p.encaisse_par || 'N/A') + '</span></td>';
+                                html += '<td><span class="badge badge-secondary" title="Créateur de la facture">'
+                                     + '<i class="zmdi zmdi-edit"></i> ' + (p.enregistre_par || 'N/A') + '</span></td>';
+                                html += '<td><span class="badge badge-success" title="Payeur" '
+                                     + 'style="background: linear-gradient(135deg, #10b981, #059669);">'
+                                     + '<i class="zmdi zmdi-money"></i> ' + (p.encaisse_par || 'N/A') + '</span></td>';
                                 html += '<td><span class="badge badge-info">' + (p.mode_label || 'N/A') + '</span></td>';
                                 html += '<td><span class="badge badge-' + badgeDevise + '">' + (p.devise || '-') + '</span></td>';
                                 html += '<td style="text-align:right;">';
@@ -4308,7 +4010,8 @@ body.modal-open { overflow: hidden; }
                         $body.html(html);
 
                         var footHtml = '<tr>';
-                        footHtml += '<td colspan="9" class="text-right">TOTAL REÇU (' + nbTransactions + ' transaction' + (nbTransactions > 1 ? 's' : '') + ') :</td>';
+                        footHtml += '<td colspan="9" class="text-right">TOTAL REÇU (' + nbTransactions
+                                  + ' transaction' + (nbTransactions > 1 ? 's' : '') + ') :</td>';
                         footHtml += '<td style="text-align:right;">';
                         footHtml += '<span class="text-primary">' + formatRapportMoney(totalUSD) + ' USD</span><br>';
                         footHtml += '<span class="text-warning">' + formatRapportMoney(totalCDF) + ' CDF</span>';
@@ -4328,9 +4031,10 @@ body.modal-open { overflow: hidden; }
                         $('#rapport_user_label').text(USER_ROLE == 0 ? labelUser : CURRENT_USER_NAME + ' (vous)');
                         $('#rapport_client_label').text(clientFilter || 'Tous');
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         console.error("Erreur API Rapport:", xhr);
-                        $body.html('<tr><td colspan="10" class="text-center text-danger">Erreur lors de la récupération des données.</td></tr>');
+                        $body.html('<tr><td colspan="10" class="text-center text-danger">'
+                                 + 'Erreur lors de la récupération des données.</td></tr>');
                     }
                 });
             }
@@ -4437,6 +4141,7 @@ body.modal-open { overflow: hidden; }
             var rapportClientTimeout;
             $(document).on('input', '#rapport_client_filter', function () {
                 clearTimeout(rapportClientTimeout);
+                var self = this;
                 rapportClientTimeout = setTimeout(function () {
                     var range = $('#rapport_date_range').val() || '';
                     var dateDebutISO = null, dateFinISO = null;
@@ -4448,9 +4153,9 @@ body.modal-open { overflow: hidden; }
                         }
                     }
                     var userFilter = $('#rapport_user_filter').val() || (USER_ROLE == 0 ? 'all' : String(CURRENT_USER_ID));
-                    var clientFilter = $('#rapport_client_filter').val() || '';
+                    var clientFilter = $(self).val() || '';
                     fetchRapport(dateDebutISO, dateFinISO, userFilter, clientFilter);
-                }, 300);
+                }, 500);
             });
 
             $(document).on('click', '#rapport_reset_btn', function (e) {
@@ -4588,12 +4293,12 @@ body.modal-open { overflow: hidden; }
                     const pdfUrl = "{{ isset($data->lien) ? $data->lien : '' }}";
                     if (pdfUrl && pdfUrl !== '') {
                         currentPdfUrl = pdfUrl;
-                        $("#pdfIframe").attr("src", pdfUrl + '?t=' + new Date().getTime());
+                        $("#pdfIframe").attr("src", pdfUrl);
                     } else {
                         const pdfResponse = await $.get("{{ url('/print_facture') }}", { facture_id: factureId });
                         if (pdfResponse && pdfResponse[0] && pdfResponse[0][0]) {
                             currentPdfUrl = pdfResponse[0][0];
-                            $("#pdfIframe").attr("src", pdfResponse[0][0] + '?t=' + new Date().getTime());
+                            $("#pdfIframe").attr("src", pdfResponse[0][0]);
                             $("#cdf_montant_payer").val(pdfResponse[0][1] || 0);
                             $("#usd_montant_payer").val(pdfResponse[0][2] || 0);
                             $("#payer").val(pdfResponse[0][5] || '');
@@ -4602,15 +4307,8 @@ body.modal-open { overflow: hidden; }
                         }
                     }
 
-                    await $.get("{{ url('/get_all_facture_suivi') }}", {}, function(response) {
-                        $("#content_utilisateur").html(response);
-                    });
-
                     saveFiltersToStorage();
-                    setTimeout(function() {
-                        loadFiltersFromStorage();
-                        filterInvoices();
-                    }, 200);
+                    chargerTableauSuivi();
                 } else {
                     msgFacture.innerHTML = '❌ Erreur lors de l\'enregistrement du paiement';
                     msgFacture.style.color = '#dc3545';

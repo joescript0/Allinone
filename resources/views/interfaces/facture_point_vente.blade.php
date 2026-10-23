@@ -855,7 +855,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="param_articles_body">
-                                        <tr><td colspan="11" class="text-center text-muted">Chargement...</td></tr>
+                                        <tr><td colspan="11" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -885,7 +885,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="param_paiements_body">
-                                        <tr><td colspan="6" class="text-center text-muted">Chargement...</td></tr>
+                                        <tr><td colspan="6" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>
                                     </tbody>
                                     <tfoot id="param_paiements_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
                                 </table>
@@ -976,7 +976,7 @@
                                 </tr>
                             </thead>
                             <tbody id="rapport_body">
-                                <tr><td colspan="10" class="text-center text-muted">Chargement...</td></tr>
+                                <tr><td colspan="10" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>
                             </tbody>
                             <tfoot id="rapport_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
                         </table>
@@ -1353,7 +1353,6 @@
                         try { Dropzone.forElement('#dropzonewidget').removeAllFiles(true); } catch(e) {}
                         $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Achat effectué avec succès');
                         
-                        // ✅ Recharger le tableau JSON et la vue des détails
                         chargerFactures();
                         $.get("{{ url('/get_achat') }}", {}, function(r) { $("#bloc_3").html(r); });
                         setTimeout(() => $('#msg').html(""), 9000);
@@ -1373,7 +1372,7 @@
         $.get("{{ url('/refresh_deletedecision') }}", { id: $("#data_id").html() }, function(r) {
             $("#content_utilisateur").html(r);
             $("#non").trigger("click");
-            chargerFactures(); // Recharge JSON
+            chargerFactures();
         });
     });
 
@@ -1756,7 +1755,7 @@
         });
 
         loadFiltersFromStorage();
-        chargerFactures(); // ✅ Chargement JSON initial
+        chargerFactures();
 
         $('#filterNumero, #filterClient, #filterUser, #filterStatut, #filterMontant, #filterTable').on('input change', debouncedFilter);
         $('#resetFilters').click(function(e) { e.preventDefault(); resetAllFilters(); });
@@ -1783,7 +1782,7 @@
                 data: { _token: '{{ csrf_token() }}', id: id },
                 success: function() {
                     $('#deleteFactureModal').modal('hide');
-                    chargerFactures(); // ✅ Rechargement JSON
+                    chargerFactures();
                     $('#msg').html('<i class="zmdi zmdi-check-circle"></i> Facture supprimée').css('display', 'flex');
                     setTimeout(function() { $('#msg').html('').css('display', 'none'); }, 3000);
                 },
@@ -1791,23 +1790,52 @@
             });
         });
 
-        /* PARAM */
+        /* ============================================================
+           ✅ PARAM — LOADER AVANT CHARGEMENT
+           ============================================================ */
         $(document).on('click', '.param-facture-btn', function(e) {
             e.preventDefault();
             var $row = $(this).closest('tr');
             $('#paramTabs a[href="#tab-info"]').tab('show');
+
+            // ✅ Loader visible AVANT le chargement des données
+            $('#param_articles_body').html('<tr><td colspan="11" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+            $('#param_paiements_body').html('<tr><td colspan="6" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+            $('#param_paiements_foot').html('');
+            $('#param_totals_grid').html('');
+
             $('#paramFactureModal').modal('show');
-            openParamModalFromRow($row);
+
+            // ✅ Double rAF pour laisser le navigateur peindre le loader
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    openParamModalFromRow($row);
+                });
+            });
         });
 
+        /* ============================================================
+           ✅ REFRESH PARAM — LOADER AVANT CHARGEMENT
+           ============================================================ */
         $(document).on('click', '#param_refresh_btn', function(e) {
             e.preventDefault();
-            if (currentParamRow) {
-                openParamModalFromRow(currentParamRow);
-                var btn = $(this);
-                btn.find('i').addClass('zmdi-hc-spin');
-                setTimeout(function() { btn.find('i').removeClass('zmdi-hc-spin'); }, 1000);
-            }
+            if (!currentParamRow) return;
+
+            var btn = $(this);
+            btn.find('i').addClass('zmdi-hc-spin');
+
+            // ✅ Loader visible AVANT rafraîchissement
+            $('#param_articles_body').html('<tr><td colspan="11" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+            $('#param_paiements_body').html('<tr><td colspan="6" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+            $('#param_paiements_foot').html('');
+            $('#param_totals_grid').html('');
+
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    openParamModalFromRow(currentParamRow);
+                    btn.find('i').removeClass('zmdi-hc-spin');
+                });
+            });
         });
 
         $(document).on('click', '#param_btn_save_lines', function(e) {
@@ -1842,7 +1870,7 @@
                     btn.prop('disabled', false).html('<i class="zmdi zmdi-save"></i> Enregistrer les modifications');
                     if (res.success) {
                         $('#param_lines_msg').html('<i class="zmdi zmdi-check-circle text-success"></i> ' + res.message);
-                        chargerFactures(); // ✅ Rechargement JSON
+                        chargerFactures();
                         setTimeout(function() {
                             var nr = $('#factures-tbody tr[data-facture-id="' + currentParamFactureId + '"]');
                             if (nr.length) openParamModalFromRow(nr);
@@ -1890,6 +1918,7 @@
             var $body = $('#rapport_body');
             var $foot = $('#rapport_foot');
             
+            // ✅ Loader visible pendant le chargement
             $body.html('<tr><td colspan="10" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
             $foot.html('');
 
@@ -2144,7 +2173,6 @@
                 msg.style.color = '#28a745';
                 document.getElementById('montant_recu').value = '';
 
-                // ✅ Rafraîchir l'aperçu du PDF
                 var tr = $('#factures-tbody tr[data-facture-id="' + fid + '"]');
                 var existingPdfUrl = tr.data('pdf-url');
                 
@@ -2162,7 +2190,7 @@
                     }
                 }
 
-                chargerFactures(); // ✅ Rechargement JSON
+                chargerFactures();
             } else {
                 msg.innerHTML = '❌ Erreur lors de l\'enregistrement';
                 msg.style.color = '#dc3545';
