@@ -18305,7 +18305,7 @@ class AjaxController extends Controller
                             // Sécurité si aucun tarif n'est trouvé pour ce type
                             $nouvellePersonne->tarifsfiches   = 0;
                             $nouvellePersonne->paiement = 0;
-                            $nouvellePersonne->devise   = 1; 
+                            $nouvellePersonne->devise   = 1;
                         }
 
                         $nouvellePersonne->email = $emailDb === null
@@ -18554,7 +18554,8 @@ class AjaxController extends Controller
                                 ->orderBy('id', 'desc')
                                 ->first();
 
-        if ($dernierTarifFiche) {
+        if ($dernierTarifFiche)
+        {
             $patient->tarifsfiches   = $dernierTarifFiche->tarifs;
             $patient->paiement = $dernierTarifFiche->tarifs; // Initialisé au tarif de base
             $patient->devise   = $dernierTarifFiche->devise;
@@ -18900,7 +18901,7 @@ class AjaxController extends Controller
 
     public function get_detail_patient(Request $request)
     {
-        $patient = Patients::find($request->id);
+        $patient = \App\Models\Patients::find($request->id);
 
         if (!$patient) {
             return response()->json([
@@ -18909,20 +18910,40 @@ class AjaxController extends Controller
             ], 404);
         }
 
-        // 👇 Ajoute ici tout ce que tu veux récupérer d'autre
-        //    (décommente au fur et à mesure que tes modèles existent)
-        $data = [
-            'patient'       => $patient,
-            // 'constantes'    => ConstanteVitale::where('patient_id', $request->id)->get(),
-            // 'consultations' => Consultation::where('patient_id', $request->id)->get(),
-            // 'traitements'   => Traitement::where('patient_id', $request->id)->get(),
-            // 'documents'     => DocumentPatient::where('patient_id', $request->id)->get(),
-            // 'rendez_vous'   => RendezVous::where('patient_id', $request->id)->get(),
-        ];
+        // ✅ Noms exacts d'après ta base de données
+        $tableValeurs  = 'dsignesvitauxpatients';
+        $colonneValeur = 'valeur_signesvitaux';
+
+        $vitals = \Illuminate\Support\Facades\DB::table($tableValeurs)
+            ->join('signesvitauxes', 'signesvitauxes.id', '=', $tableValeurs . '.signesvitaux_id')
+            ->where($tableValeurs . '.signesvitauxpatient_id', $patient->id)
+            ->orderBy($tableValeurs . '.created_at', 'desc')
+            ->orderBy('signesvitauxes.id', 'asc')
+            ->select(
+                $tableValeurs . '.id',
+                'signesvitauxes.nom',
+                'signesvitauxes.mesure',
+                'signesvitauxes.icone',
+                'signesvitauxes.type',
+                $tableValeurs . '.' . $colonneValeur . ' as valeur',
+                $tableValeurs . '.created_at'
+            )
+            ->get();
 
         return response()->json([
             'success' => true,
-            'data'    => $data,
+            'data' => [
+                'id'                => $patient->id,
+                'name'              => $patient->name,
+                'code'              => $patient->code,
+                'phone'             => $patient->phone,
+                'email'             => $patient->email,
+                'genre'             => $patient->genre,
+                'date_de_naissance' => $patient->date_de_naissance,
+                'adresse'           => $patient->adresse,
+                'image'             => $patient->image,
+                'signes_vitaux'     => $vitals,   // ✅ clé attendue par le frontend
+            ],
         ]);
     }
 
@@ -19297,91 +19318,89 @@ class AjaxController extends Controller
 
     public function transferer_fiche(Request $request)
     {
+        $request->validate([
+            'patient_id' => 'required|integer',
+            'motif_id'   => 'required',
+            'service_id' => 'required',
+            'user_id'    => 'required|array|min:1', // Tableau des destinataires
+        ]);
+
+        $expediteur_id = Auth::id();
+        $patientId = $request->input('patient_id');
+
+        // 1. Patient pour connaître son type (0 ou 1)
+        $patient = DB::table('patients')->where('id', $patientId)->first();
+        if (!$patient) {
+            return response()->json(['ok' => false, 'message' => 'Patient introuvable.'], 404);
+        }
+        $patientType = $patient->type ?? 0;
+
+        // 2. Service → devise + tarif (source unique de vérité)
+        $serviceId = $request->input('service_id') ?: 0;
+        $devise = null;
+        $tarif  = 0;
+
+        if ($serviceId) {
+            $service = DB::table('services')->where('id', $serviceId)->first();
+            if ($service) {
+                $devise = $service->devise; // ⬅️ devise lue depuis services
+                $tarif  = ($patientType == 1)
+                    ? ($service->tarifss ?? 0)
+                    : ($service->tarifs  ?? 0);
+            }
+        }
+
+        // Si pas de service renseigné, on ne peut pas deviner la devise
+        if ($devise === null) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Service invalide ou introuvable : impossible de déterminer la devise.'
+            ], 422);
+        }
+
+        // ✅ 3. Récupérer le dernier enregistrement de signes vitaux pour ce patient
+        $dernierSigneVitaux = DB::table('signesvitauxpatients')
+            ->where('patient_id', $patientId)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $signesvitauxpatient_id = $dernierSigneVitaux ? $dernierSigneVitaux->id : null;
+
+        DB::beginTransaction();
         try {
-            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
-                'patient_id' => 'required|integer|min:1',
-                'motif_id'   => 'required|integer|min:1',
-                'service_id' => 'required|integer|min:1',
-                'user_id'    => 'required|integer|min:1',
-            ], [
-                'patient_id.required' => 'Patient manquant.',
-                'motif_id.required'   => 'Sélectionnez un motif.',
-                'service_id.required' => 'Sélectionnez un service.',
-                'user_id.required'    => 'Sélectionnez un utilisateur destinataire.',
-            ]);
+            $destinataires = $request->input('user_id'); // Tableau des destinataires
 
-            if ($validator->fails()) {
-                return response()->json(['ok' => false, 'message' => $validator->errors()->first()], 422);
+            // 4. Boucle pour insérer chaque transfert
+            foreach ($destinataires as $destinataire_id) {
+                DB::table('transfertsfiches')->insert([
+                    'user_id'                => $expediteur_id,
+                    'destinataire_id'        => $destinataire_id,
+                    'patient_id'             => $patientId,
+                    'signesvitauxpatient_id' => $signesvitauxpatient_id, // ✅ Nouveau champ ajouté
+                    'motif_id'               => $request->motif_id,
+                    'service_id'             => $serviceId,
+                    'tarifs'                 => $tarif,    
+                    'devise'                 => $devise,   
+                    'etat'                   => 1,
+                    'status'                 => 0,
+                    'created_at'             => now(),
+                    'updated_at'             => now(),
+                ]);
             }
 
-            $patient = \App\Models\Patients::find((int) $request->input('patient_id'));
-            if (!$patient) {
-                return response()->json(['ok' => false, 'message' => 'Patient introuvable.'], 404);
-            }
-
-            $motif = \App\Models\Motifs::find((int) $request->input('motif_id'));
-            if (!$motif) {
-                return response()->json(['ok' => false, 'message' => 'Motif introuvable.'], 404);
-            }
-
-            $service = \App\Models\Services::find((int) $request->input('service_id'));
-            if (!$service) {
-                return response()->json(['ok' => false, 'message' => 'Service introuvable.'], 404);
-            }
-
-            $destinataire = \App\Models\User::find((int) $request->input('user_id'));
-            if (!$destinataire) {
-                return response()->json(['ok' => false, 'message' => 'Utilisateur destinataire introuvable.'], 404);
-            }
-
-            if ((int) $request->input('user_id') === (int) \Auth::id()) {
-                return response()->json(['ok' => false, 'message' => 'Vous ne pouvez pas transférer la fiche à vous-même.'], 422);
-            }
-
-            // ⚠️ TODO : décommentez et adaptez à votre table
-            /*
-            \DB::table('transferts')->insert([
-                'patient_id'     => (int) $request->input('patient_id'),
-                'motif_id'       => (int) $request->input('motif_id'),
-                'service_id'     => (int) $request->input('service_id'),
-                'user_from'      => \Auth::id(),
-                'user_to'        => (int) $request->input('user_id'),
-                'date_transfert' => now(),
-                'etat'           => 1,
-                'note'           => (string) $request->input('note', ''),
-            ]);
-            */
-
-            \Log::info('TRANSFERT FICHE', [
-                'patient_id'   => (int) $request->input('patient_id'),
-                'patient'      => $patient->name,
-                'motif_id'     => (int) $request->input('motif_id'),
-                'motif'        => $motif->nom ?? null,
-                'service_id'   => (int) $request->input('service_id'),
-                'service'      => $service->nom ?? null,
-                'user_from'    => \Auth::id(),
-                'user_to'      => $destinataire->id,
-                'user_to_name' => $destinataire->name,
-                'date'         => now()->toDateTimeString(),
-            ]);
+            DB::commit();
 
             return response()->json([
-                'ok'      => true,
-                'message' => 'Fiche transférée avec succès à ' . $destinataire->name . '.',
-                'data'    => [
-                    'patient' => $patient->name,
-                    'motif'   => $motif->nom ?? null,
-                    'service' => $service->nom ?? null,
-                    'to'      => $destinataire->name,
-                ]
+                'ok' => true,
+                'message' => 'Fiche transférée avec succès à ' . count($destinataires) . ' destinataire(s).'
             ]);
 
-        } catch (\Throwable $e) {
-            \Log::error('transferer_fiche', [
-                'message' => $e->getMessage(),
-                'line'    => $e->getLine(),
-            ]);
-            return response()->json(['ok' => false, 'message' => 'Erreur : ' . $e->getMessage()], 500);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'ok' => false,
+                'message' => 'Erreur lors de l\'enregistrement : ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -19390,12 +19409,12 @@ class AjaxController extends Controller
         // 1. Ta liste avec les deux types (0 = Client, 1 = Entreprise)
         $listetarifsfiches = [
             [
-                'tarifs' => 20000, 
+                'tarifs' => 20000,
                 'devise' => 1,
                 'type'   => 0, // 👈 Type 0
             ],
             [
-                'tarifs' => 30000, 
+                'tarifs' => 30000,
                 'devise' => 1,
                 'type'   => 1, // 👈 Type 1
             ],
@@ -19406,7 +19425,7 @@ class AjaxController extends Controller
 
         // 3. Boucle d'enregistrement avec vérification (Type + Montant)
         foreach ($listetarifsfiches as $tarif) {
-            
+
             // Vérifier si ce type ET ce montant existent déjà
             $existe = DB::table('tarifsfiches')
                         ->where('type', $tarif['type'])
@@ -19414,7 +19433,7 @@ class AjaxController extends Controller
                         ->exists();
 
             if (!$existe) {
-                $dernierId++; 
+                $dernierId++;
 
                 DB::table('tarifsfiches')->insert([
                     'id'         => $dernierId,
