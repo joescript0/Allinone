@@ -207,10 +207,10 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 /* ============ FICHE PATIENT ============ */
 #bloc_fiche { background: transparent !important; padding: 0 !important; box-shadow: none !important; margin-bottom: 1rem; animation: ficheSlideIn 0.35s ease-out; }
 @keyframes ficheSlideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-.fiche-patient-card { background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 60px -15px rgba(10, 25, 47, 0.3); }
-.fiche-patient-hero { position: relative; background: linear-gradient(135deg, #0a192f 0%, #1e3a5f 55%, #2c5282 100%); padding: 24px 40px 32px; color: white; display: flex; flex-direction: column; gap: 24px; overflow: visible; }
-.fiche-patient-hero::before { content: ''; position: absolute; top: -100px; right: -80px; width: 320px; height: 320px; background: radial-gradient(circle, rgba(59,130,246,0.45), transparent 70%); border-radius: 50%; pointer-events: none; }
-.fiche-patient-hero::after { content: ''; position: absolute; bottom: -80px; left: 30%; width: 220px; height: 220px; background: radial-gradient(circle, rgba(16,185,129,0.22), transparent 70%); border-radius: 50%; pointer-events: none; }
+.fiche-patient-card { background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 60px -15px rgba(10, 25, 47, 0.1); border: 1px solid #e2e8f0;}
+.fiche-patient-hero { position: relative; background: #f1f5f9; padding: 24px 40px 32px; color: #1e293b; display: flex; flex-direction: column; gap: 24px; overflow: visible; border-bottom: 2px solid #cbd5e1;}
+.fiche-patient-hero::before { content: ''; position: absolute; top: -100px; right: -80px; width: 320px; height: 320px; background: radial-gradient(circle, rgba(59,130,246,0.1), transparent 70%); border-radius: 50%; pointer-events: none; }
+.fiche-patient-hero::after { content: ''; position: absolute; bottom: -80px; left: 30%; width: 220px; height: 220px; background: radial-gradient(circle, rgba(16,185,129,0.05), transparent 70%); border-radius: 50%; pointer-events: none; }
 
 .fiche-hero-topbar { position: relative; z-index: 3; display: flex; justify-content: space-between; align-items: center; width: 100%; }
 
@@ -218,19 +218,17 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 .fiche-back-btn:hover { background: linear-gradient(135deg, #dc2626, #b91c1c) !important; transform: translateX(-3px) translateY(-1px); box-shadow: 0 8px 22px rgba(239, 68, 68, 0.55); color: white !important; }
 .fiche-back-btn i { font-size: 1.1rem; color: white !important; }
 
-.fiche-title-badge { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 56px; padding: 0 36px; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.45); border-radius: 40px; color: white; font-weight: 800; font-size: 0.95rem; letter-spacing: 3px; text-transform: uppercase; backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); white-space: nowrap; }
-.fiche-title-badge i { font-size: 1.5rem; color: #ffffff !important; }
-
 .fiche-hero-body { position: relative; z-index: 1; display: flex; align-items: center; gap: 28px; }
-.fiche-avatar-large { position: relative; z-index: 1; width: 110px; height: 110px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 2.2rem; color: white; overflow: hidden; flex-shrink: 0; box-shadow: 0 12px 32px rgba(0,0,0,0.35), inset 0 0 0 2px rgba(255,255,255,0.1); letter-spacing: -1px; }
+.fiche-avatar-large { position: relative; z-index: 1; width: 110px; height: 110px; border-radius: 50%; border: 4px solid #ffffff; background: #f8fafc; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 2.2rem; color: #3B82F6; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,0,0,0.08); letter-spacing: -1px; }
 .fiche-avatar-large img { width: 100%; height: 100%; object-fit: cover; }
 .fiche-identity { position: relative; z-index: 1; flex: 1; min-width: 0; }
-.fiche-name { font-size: 1.7rem; font-weight: 700; color: white; margin: 0 0 14px 0; line-height: 1.15; letter-spacing: -0.5px; word-break: break-word; }
+.fiche-name { font-size: 1.7rem; font-weight: 700; color: #0a192f; margin: 0 0 14px 0; line-height: 1.15; letter-spacing: -0.5px; word-break: break-word; }
 .fiche-badges { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.fiche-badges .code-badge { background: rgba(255,255,255,0.18) !important; border: 1px solid rgba(255,255,255,0.4) !important; color: white !important; }
-.fiche-badges .code-badge i { color: white !important; }
-.fiche-badges .badge-nature { background: rgba(255,255,255,0.18) !important; border: 1px solid rgba(255,255,255,0.4) !important; color: white !important; }
-.fiche-badges .badge-nature i { color: white !important; }
+.fiche-badges .code-badge { background: #ffffff !important; border: 1px solid #cbd5e1 !important; color: #1e40af !important; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+.fiche-badges .code-badge i { color: #1e40af !important; }
+.fiche-badges .badge-nature { background: #ffffff !important; border: 1px solid #cbd5e1 !important; color: #1e40af !important; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+.fiche-badges .badge-nature.badge-entreprise { background: #ffffff !important; border: 1px solid #fed7aa !important; color: #c2410c !important; }
+.fiche-badges .badge-nature.badge-entreprise i { color: #c2410c !important; }
 
 .fiche-body { padding: 28px 32px 32px; background: #f8fafc; }
 .fiche-section { background: white; border-radius: 16px; padding: 22px 26px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 1px solid #eef2f6; }
@@ -846,8 +844,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     .fiche-patient-hero { gap: 20px; padding: 20px 20px 28px; }
     .fiche-hero-topbar { display: flex; flex-direction: column; align-items: center; gap: 12px; }
     .fiche-back-btn { width: 100%; max-width: 320px; margin: 0 auto; }
-    .fiche-title-badge { position: relative; top: auto; left: auto; transform: none; width: auto; max-width: 100%; margin: 0 auto 15px auto; order: -1; height: 46px; font-size: 0.78rem; letter-spacing: 1.5px; padding: 0 20px; white-space: nowrap; }
-    .fiche-title-badge i { font-size: 1.15rem; }
     .fiche-hero-right { width: 100%; justify-content: center; }
     .fiche-menu-container { width: 100%; max-width: 320px; justify-content: center; margin: 0 auto; }
     .fiche-actions-btn { width: 100%; }
@@ -863,8 +859,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     .fiche-menu-dropdown { min-width: 230px; right: -10px; }
     .fiche-actions-btn { padding: 0 16px; font-size: 0.72rem; }
     .fiche-actions-btn i { font-size: 1.1rem; }
-    .fiche-title-badge { height: 40px; font-size: 0.7rem; letter-spacing: 1px; padding: 0 15px; }
-    .fiche-title-badge i { font-size: 1rem; }
 }
 
 @media (max-width: 768px) {
@@ -1273,10 +1267,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
             <div id="bloc_fiche" style="margin-top: 12px; display: none;" class="col-lg-12">
                 <div class="fiche-patient-card">
                     <div class="fiche-patient-hero">
-                        <div class="fiche-title-badge">
-                            <i class="zmdi zmdi-file-text"></i> Fiche patient
-                        </div>
-
+                        <!-- Boutons Retour & Actions (Conservés) -->
                         <div class="fiche-hero-topbar">
                             <button type="button" class="fiche-back-btn" id="fiche_back">
                                 <i class="zmdi zmdi-arrow-left"></i> Retour à la liste
@@ -1303,6 +1294,37 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                             </div>
                         </div>
 
+                        <!-- ✨ EN-TÊTE (EFFET PAPIER BLANC SUR FOND GRIS/BLEU) ✨ -->
+                        <div style="background: #ffffff; border-radius: 12px; padding: 25px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; position: relative; z-index: 2; text-align: center; margin-bottom: 25px;">
+                            <div style="color: #475569; font-size: 0.8rem; text-transform: uppercase; line-height: 1.4; letter-spacing: 0.5px; font-weight: 600;">
+                                <div>République Démocratique du Congo</div>
+                                <div>Province du Haut-Katanga</div>
+                                <div>Zone de Santé de Lubumbashi</div>
+                                <div>Air de Santé Gambela 1</div>
+                            </div>
+                            <h3 style="color: #1e40af; font-weight: 900; font-size: 1.5rem; margin: 10px 0 5px 0; letter-spacing: 1px;">POLYCLINIQUE BIEN ETRE Saint-alaver</h3>
+                            <div style="color: #64748b; font-size: 0.75rem; font-weight: 500;">
+                                Sise No 2251, Av. des Aviateurs, Q/ Texaco C/ Lubumbashi, haut-Katanga - 0993339084
+                            </div>
+
+                            <!-- Ligne Allergie / Titre / N° -->
+                            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; margin-top: 25px; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                                <div style="flex: 1; text-align: left; min-width: 120px;">
+                                    <span style="color: #1e293b; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">ALLERGIE ST :</span>
+                                    <span id="fiche_allergie_display" style="color: #ef4444; font-weight: 800; margin-left: 5px; font-size: 0.95rem;">—</span>
+                                </div>
+                                <div style="flex: 2; text-align: center; min-width: 200px;">
+                                    <h2 style="color: #0f172a; font-weight: 900; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 2px; margin: 0; display: inline-block; padding-bottom: 5px; border-bottom: 2px solid #3B82F6;">FICHE DE CONSULTATION</h2>
+                                </div>
+                                <div style="flex: 1; text-align: right; min-width: 120px;">
+                                    <span style="color: #1e293b; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">N°</span>
+                                    <span id="fiche_code_display" style="color: #10b981; font-weight: 900; font-size: 1.1rem; margin-left: 5px;">—</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ✨ FIN EN-TÊTE ✨ -->
+
+                        <!-- Corps Original (Avatar & Nom) -->
                         <div class="fiche-hero-body">
                             <div class="fiche-avatar-large" id="fiche_avatar">
                                 <span id="fiche_avatar_initials">?</span>
@@ -1322,6 +1344,8 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                             </div>
                         </div>
                     </div>
+
+                    <!-- Corps Original (Info Personnelles + Vitals) -->
                     <div class="fiche-body">
                         <div class="fiche-section">
                             <h3 class="fiche-section-title">
@@ -1366,7 +1390,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                             </div>
                         </div>
 
-                        <!-- ✨ SECTION SIGNES VITAUX (AJOUTÉE) ✨ -->
                         <div class="fiche-section" id="fiche_section_vitals">
                             <h3 class="fiche-section-title">
                                 <i class="zmdi zmdi-chart"></i> Signes vitaux
@@ -2122,6 +2145,10 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         }
 
         $('#fiche_nom').text(patient.name || 'Non renseigné');
+
+        // ✨ Remplissage du nouvel entête (Papier)
+        $('#fiche_allergie_display').text('—'); // À lier si vous avez un champ allergie
+        $('#fiche_code_display').text(patient.code || '—');
 
         if (patient.code) {
             $('#fiche_code').show();

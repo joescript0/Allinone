@@ -14,6 +14,80 @@ use App\Models\articlestocks;
 use App\Models\Typeventes;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Ressources;
+
+// ============================================================
+// CALCUL DES TOTAUX (Total articles + Total détail USD/CDF + Total gros USD/CDF)
+// ============================================================
+$total_items      = 0;
+$total_detail_usd = 0;
+$total_detail_cdf = 0;
+$total_gros_usd   = 0;
+$total_gros_cdf   = 0;
+
+if ($stock_id == 0) {
+    foreach ($articles as $art) {
+        $qty    = (float) ($art->stock       ?? 0);
+        $pd     = (float) ($art->prix_detail ?? 0);
+        $pg     = (float) ($art->prix_gros   ?? 0);
+        $dev    = (int)   ($art->devise      ?? 0);
+        $act_id = $art->activite_id;
+        $taux   = 1;
+        if ($act_id) {
+            $act = Activites::find($act_id);
+            $taux = $act ? (float) $act->taux : 1;
+        }
+        if ($taux <= 0) $taux = 1;
+
+        $total_items++;
+        $detail = $qty * $pd;
+        $gros   = $qty * $pg;
+
+        if ($dev == 0) {
+            $total_detail_usd += $detail;
+            $total_detail_cdf += $detail * $taux;
+            $total_gros_usd   += $gros;
+            $total_gros_cdf   += $gros * $taux;
+        } else {
+            $total_detail_cdf += $detail;
+            $total_detail_usd += $detail / $taux;
+            $total_gros_cdf   += $gros;
+            $total_gros_usd   += $gros / $taux;
+        }
+    }
+} else {
+    foreach ($articles as $dataa) {
+        $art = Articles::find($dataa->article_id);
+        if (!$art) continue;
+
+        $qty    = (float) ($dataa->stock       ?? 0);
+        $pd     = (float) ($dataa->prix_detail ?? 0);
+        $pg     = (float) ($dataa->prix_gros   ?? 0);
+        $dev    = (int)   ($dataa->devise      ?? 0);
+        $act_id = $art->activite_id;
+        $taux   = 1;
+        if ($act_id) {
+            $act = Activites::find($act_id);
+            $taux = $act ? (float) $act->taux : 1;
+        }
+        if ($taux <= 0) $taux = 1;
+
+        $total_items++;
+        $detail = $qty * $pd;
+        $gros   = $qty * $pg;
+
+        if ($dev == 0) {
+            $total_detail_usd += $detail;
+            $total_detail_cdf += $detail * $taux;
+            $total_gros_usd   += $gros;
+            $total_gros_cdf   += $gros * $taux;
+        } else {
+            $total_detail_cdf += $detail;
+            $total_detail_usd += $detail / $taux;
+            $total_gros_cdf   += $gros;
+            $total_gros_usd   += $gros / $taux;
+        }
+    }
+}
 ?>
 
 <style>
@@ -44,12 +118,70 @@ use App\Models\Ressources;
     #transfer_msg:not(:empty):has(i.zmdi-check-circle) { background: linear-gradient(95deg,#d1fae5,#a7f3d0) !important; color: #065f46; border-left: 4px solid #10b981; }
     #transfer_msg:not(:empty):has(i.zmdi-close-circle) { background: linear-gradient(95deg,#fee2e2,#fecaca) !important; color: #991b1b; border-left: 4px solid #ef4444; }
     @keyframes slideInMsg { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ========== BADGES + DUAL CURRENCY (comme la page Mon stock) ========== */
+    .client-badges-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px 12px;
+        margin-bottom: 15px;
+    }
+    .client-count-badge {
+        border-radius: 50px;
+        padding: 4px 12px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        color: white;
+    }
+    .client-count-badge.count-badge     { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .client-count-badge.usd-badge       { background: linear-gradient(135deg, #3B82F6, #2563eb); }
+    .client-count-badge.renseigne-badge { background: linear-gradient(135deg, #10b981, #059669); }
+
+    .dual-currency b { display: block; font-size: 0.82rem; }
+    .dual-currency small { display: block; font-size: 0.7rem; color: #64748b; font-weight: 500; }
+
+    .table tbody td.montant-cell,
+    .table thead th.montant-col { white-space: nowrap; }
+
+    @media (max-width: 768px) {
+        .client-badges-container { justify-content: flex-end; gap: 6px 8px; }
+        .client-count-badge { font-size: 0.65rem; padding: 3px 10px; }
+        .dual-currency b { font-size: 0.75rem; }
+        .dual-currency small { font-size: 0.65rem; }
+    }
+    @media (max-width: 480px) {
+        .client-badges-container { justify-content: flex-end; gap: 5px 6px; }
+        .dual-currency b { font-size: 0.7rem; }
+        .dual-currency small { font-size: 0.6rem; }
+    }
 </style>
 
 <h4 style="color:rgba(0, 0, 0, 0.6);">
     <i style="font-size: 40px;" class="zmdi zmdi-settings text-info"></i> Liste d'article du stock
     <span class="text-info">({{ $nom }})</span>
 </h4>
+
+{{-- ========== GARDES MONTANTS (Total articles + Total détail + Total gros) ========== --}}
+<div class="client-badges-container">
+    <span class="client-count-badge count-badge">
+        <i class="zmdi zmdi-collection-item"></i> Total articles : <span id="articleCountBadge"><span>{{ $total_items }}</span></span>
+    </span>
+    <span class="client-count-badge usd-badge">
+        <i class="zmdi zmdi-money"></i> Total détail :
+        {{ number_format($total_detail_usd, 2, ',', ' ') }} $ |
+        {{ number_format($total_detail_cdf, 2, ',', ' ') }} FC
+    </span>
+    <span class="client-count-badge renseigne-badge">
+        <i class="zmdi zmdi-money-box"></i> Total gros :
+        {{ number_format($total_gros_usd, 2, ',', ' ') }} $ |
+        {{ number_format($total_gros_cdf, 2, ',', ' ') }} FC
+    </span>
+</div>
 
 <!-- FILTRES -->
 <div class="filters-container-stock">
@@ -78,7 +210,6 @@ use App\Models\Ressources;
             @endforeach
         </select>
     </div>
-    <!-- Filtre Utilisateur supprimé -->
     <div class="filter-group">
         <label><i class="zmdi zmdi-storage text-danger"></i> Stock</label>
         <select id="filterStockStock" class="form-control">
@@ -114,9 +245,10 @@ use App\Models\Ressources;
                         <th style="padding-top: 5px;padding-bottom: 5px;">Catégorie</th>
                         <th style="padding-top: 5px;padding-bottom: 5px;">Activité</th>
                         <th style="padding-top: 5px;padding-bottom: 5px;">Prix</th>
+                        <th class="montant-col" style="padding-top: 5px;padding-bottom: 5px;">Détail (USD | CDF)</th>
+                        <th class="montant-col" style="padding-top: 5px;padding-bottom: 5px;">Gros (USD | CDF)</th>
                         <th style="padding-top: 5px;padding-bottom: 5px;">Stock</th>
                         <th style="padding-top: 5px;padding-bottom: 5px;">Seuils</th>
-                        <!-- Colonne Utilisateur supprimée -->
                         <th style="padding-top: 5px;padding-bottom: 5px;">Date d'expiration</th>
                     </tr>
                 </thead>
@@ -124,6 +256,28 @@ use App\Models\Ressources;
                     {{ !($i = 1) }}
                     @if ($stock_id == 0)
                         @foreach ($articles as $data)
+                            @php
+                                $art_taux = 1;
+                                if ($data->activite_id) {
+                                    $__act = Activites::find($data->activite_id);
+                                    $art_taux = $__act ? (float) $__act->taux : 1;
+                                }
+                                if ($art_taux <= 0) $art_taux = 1;
+                                $pd_raw = (float) ($data->prix_detail ?? 0);
+                                $pg_raw = (float) ($data->prix_gros ?? 0);
+                                if ((int) ($data->devise ?? 0) === 0) {
+                                    $pd_usd = $pd_raw;                $pd_cdf = $pd_raw * $art_taux;
+                                    $pg_usd = $pg_raw;                $pg_cdf = $pg_raw * $art_taux;
+                                } else {
+                                    $pd_cdf = $pd_raw;                $pd_usd = $pd_raw / $art_taux;
+                                    $pg_cdf = $pg_raw;                $pg_usd = $pg_raw / $art_taux;
+                                }
+                                $qty_row     = (float) ($data->stock ?? 0);
+                                $det_usd_row = $qty_row * $pd_usd;
+                                $det_cdf_row = $qty_row * $pd_cdf;
+                                $gros_usd_row = $qty_row * $pg_usd;
+                                $gros_cdf_row = $qty_row * $pg_cdf;
+                            @endphp
                             <tr id="row_{{ $data->id }}">
                                 <td class="row-num" style="padding-top:5px;padding-bottom:5px;">{{ $i }}</td>
                                 <td class="nom-cell" data-nom="{{ $data->nom_article }}" style="padding-top:5px;padding-bottom:5px;">
@@ -145,6 +299,18 @@ use App\Models\Ressources;
                                     }
                                     ?>
                                 </td>
+                                <td class="detail-cell montant-cell" style="padding-top:5px;padding-bottom:5px;">
+                                    <div class="dual-currency">
+                                        <b class="text-primary">{{ number_format($det_usd_row, 2, ',', ' ') }} USD</b>
+                                        <small class="text-warning">{{ number_format($det_cdf_row, 2, ',', ' ') }} CDF</small>
+                                    </div>
+                                </td>
+                                <td class="gros-cell montant-cell" style="padding-top:5px;padding-bottom:5px;">
+                                    <div class="dual-currency">
+                                        <b class="text-success">{{ number_format($gros_usd_row, 2, ',', ' ') }} USD</b>
+                                        <small class="text-warning">{{ number_format($gros_cdf_row, 2, ',', ' ') }} CDF</small>
+                                    </div>
+                                </td>
                                 <td class="stock-cell" data-stock="{{ $data->stock }}" style="padding-top:5px;padding-bottom:5px;">
                                     @if ($data->avoir_stock == 1)
                                         <?php if($data->stock <= $data->seuil_minimum){ ?><span class="text-danger">{{ $data->stock }}</span><?php } ?>
@@ -154,7 +320,6 @@ use App\Models\Ressources;
                                 <td class="seuil-cell" data-seuil-min="{{ $data->seuil_minimum }}" data-seuil-max="{{ $data->seuil_maximum }}" style="padding-top:5px;padding-bottom:5px;">
                                     {{ $data->seuil_minimum . ' - ' . $data->seuil_maximum }}
                                 </td>
-                                <!-- Cellule Utilisateur supprimée -->
                                 <td class="date-cell" data-date-expiration="{{ $data->date_expiration }}" style="padding-top:5px;padding-bottom:5px;">
                                     <?php if($data->date_expiration  == "00/00/0000"){ ?>
                                     <span class="text-info">{{ $data->date_expiration }} (N'expire pas)</span>
@@ -185,10 +350,32 @@ use App\Models\Ressources;
                             </tr>
                             {{ !$i++ }}
                         @endforeach
-                        <tr id="noResultRow" style="display: none;"><td colspan="8"><i class="zmdi zmdi-info-outline"></i> Aucun article ne correspond à vos critères de recherche.</td></tr>
+                        <tr id="noResultRow" style="display: none;"><td colspan="10"><i class="zmdi zmdi-info-outline"></i> Aucun article ne correspond à vos critères de recherche.</td></tr>
                     @else
                         @foreach ($articles as $dataa)
                             <?php $data = Articles::where('id', $dataa->article_id)->first(); ?>
+                            @php
+                                $art_taux = 1;
+                                if ($data->activite_id) {
+                                    $__act = Activites::find($data->activite_id);
+                                    $art_taux = $__act ? (float) $__act->taux : 1;
+                                }
+                                if ($art_taux <= 0) $art_taux = 1;
+                                $pd_raw = (float) ($dataa->prix_detail ?? 0);
+                                $pg_raw = (float) ($dataa->prix_gros ?? 0);
+                                if ((int) ($dataa->devise ?? 0) === 0) {
+                                    $pd_usd = $pd_raw;                $pd_cdf = $pd_raw * $art_taux;
+                                    $pg_usd = $pg_raw;                $pg_cdf = $pg_raw * $art_taux;
+                                } else {
+                                    $pd_cdf = $pd_raw;                $pd_usd = $pd_raw / $art_taux;
+                                    $pg_cdf = $pg_raw;                $pg_usd = $pg_raw / $art_taux;
+                                }
+                                $qty_row     = (float) ($dataa->stock ?? 0);
+                                $det_usd_row = $qty_row * $pd_usd;
+                                $det_cdf_row = $qty_row * $pd_cdf;
+                                $gros_usd_row = $qty_row * $pg_usd;
+                                $gros_cdf_row = $qty_row * $pg_cdf;
+                            @endphp
                             <tr id="row_{{ $data->id }}">
                                 <td class="row-num" style="padding-top:5px;padding-bottom:5px;">{{ $i }}</td>
                                 <td class="nom-cell" data-nom="{{ $data->nom_article }}" style="padding-top:5px;padding-bottom:5px;">
@@ -210,6 +397,18 @@ use App\Models\Ressources;
                                     }
                                     ?>
                                 </td>
+                                <td class="detail-cell montant-cell" style="padding-top:5px;padding-bottom:5px;">
+                                    <div class="dual-currency">
+                                        <b class="text-primary">{{ number_format($det_usd_row, 2, ',', ' ') }} USD</b>
+                                        <small class="text-warning">{{ number_format($det_cdf_row, 2, ',', ' ') }} CDF</small>
+                                    </div>
+                                </td>
+                                <td class="gros-cell montant-cell" style="padding-top:5px;padding-bottom:5px;">
+                                    <div class="dual-currency">
+                                        <b class="text-success">{{ number_format($gros_usd_row, 2, ',', ' ') }} USD</b>
+                                        <small class="text-warning">{{ number_format($gros_cdf_row, 2, ',', ' ') }} CDF</small>
+                                    </div>
+                                </td>
                                 <td class="stock-cell" data-stock="{{ $dataa->stock }}" style="padding-top:5px;padding-bottom:5px;text-align:center;">
                                     @if ($dataa->avoir_stock == 1)
                                         <?php if($dataa->stock == 0){ ?><span class="text-danger">{{ $dataa->stock }}</span><?php } ?>
@@ -219,7 +418,6 @@ use App\Models\Ressources;
                                 <td style="text-align:center;" class="seuil-cell" data-seuil-min="{{ $data->seuil_minimum }}" data-seuil-max="{{ $data->seuil_maximum }}" style="padding-top:5px;padding-bottom:5px;">
                                     <i class="zmdi zmdi-close-circle text-danger"></i>
                                 </td>
-                                <!-- Cellule Utilisateur supprimée -->
                                 <td class="date-cell" data-date-expiration="{{ $data->date_expiration }}" style="padding-top:5px;padding-bottom:5px;">
                                     <?php if($data->date_expiration  == "00/00/0000"){ ?>
                                     <span class="text-info">{{ $data->date_expiration }} (N'expire pas)</span>
@@ -250,7 +448,7 @@ use App\Models\Ressources;
                             </tr>
                             {{ !$i++ }}
                         @endforeach
-                        <tr id="noResultRow" style="display: none;"><td colspan="8"><i class="zmdi zmdi-info-outline"></i> Aucun article ne correspond à vos critères de recherche.</td></tr>
+                        <tr id="noResultRow" style="display: none;"><td colspan="10"><i class="zmdi zmdi-info-outline"></i> Aucun article ne correspond à vos critères de recherche.</td></tr>
                     @endif
                 </tbody>
             </table>
@@ -259,7 +457,7 @@ use App\Models\Ressources;
 </div>
 
 <script>
-    // ========== FILTRES (modifié) ==========
+    // ========== FILTRES ==========
     (function() {
         var stockId = {{ $stock_id }};
 
@@ -267,7 +465,6 @@ use App\Models\Ressources;
             var filterNom = $('#filterNomStock').val().toLowerCase().trim();
             var filterCategorie = $('#filterCategorieStock').val();
             var filterActivite = $('#filterActiviteStock').val();
-            // Filtre Utilisateur supprimé
             var filterStock = $('#filterStockStock').val();
             var filterExpiration = $('#filterExpirationStock').val();
 
@@ -298,8 +495,6 @@ use App\Models\Ressources;
                         if (currentAct !== targetAct) showRow = false;
                     }
                 }
-
-                // Filtre Utilisateur supprimé
 
                 if (showRow && filterStock !== 'all') {
                     var stock = parseInt($row.find('.stock-cell').data('stock')) || 0;
@@ -354,7 +549,6 @@ use App\Models\Ressources;
                 nom: $('#filterNomStock').val(),
                 categorie: $('#filterCategorieStock').val(),
                 activite: $('#filterActiviteStock').val(),
-                // user: ... supprimé
                 stock: $('#filterStockStock').val(),
                 expiration: $('#filterExpirationStock').val()
             };
@@ -369,7 +563,6 @@ use App\Models\Ressources;
                 $('#filterNomStock').val(filters.nom || '');
                 $('#filterCategorieStock').val(filters.categorie || 'all');
                 $('#filterActiviteStock').val(filters.activite || 'all');
-                // filterUser supprimé
                 $('#filterStockStock').val(filters.stock || 'all');
                 $('#filterExpirationStock').val(filters.expiration || 'all');
                 return true;
@@ -381,7 +574,6 @@ use App\Models\Ressources;
             $('#filterNomStock').val('');
             $('#filterCategorieStock').val('all');
             $('#filterActiviteStock').val('all');
-            // filterUser supprimé
             $('#filterStockStock').val('all');
             $('#filterExpirationStock').val('all');
             saveFiltersStock();
@@ -406,7 +598,6 @@ use App\Models\Ressources;
         $(document).ready(function() {
             loadFiltersStock();
             filterArticlesStock();
-            // Seul l'événement 'keyup' est conservé (le 'change' a été supprimé)
             $('#filterNomStock, #filterCategorieStock, #filterActiviteStock, #filterStockStock, #filterExpirationStock')
                 .on('keyup', function() { debouncedFilterStock(); });
             $('#resetFiltersStock').click(function(e) {

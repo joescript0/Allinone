@@ -30,7 +30,7 @@
     $menu_11 = Desactiver();
     $menu_12 = Desactiver();
     $menu_13 = Activer();
-    $menu_14 = Desactiver(); // ici
+    $menu_14 = Activer(); // ici
     // Divine
     $menu_15 = Desactiver();
     $menu_16 = Desactiver();
@@ -89,7 +89,7 @@
     $menu_11 = Desactiver();
     $menu_12 = Desactiver();
     $menu_13 = Desactiver();
-    $menu_14 = Desactiver();
+    $menu_14 = Activer();
 
     // Divine
     $menu_15 = Activer();

@@ -2,18 +2,16 @@
     use App\Models\appnames;
     use App\Models\Articles;
     use App\Models\articlestocks;
+    use App\Models\Activites;
     use App\Models\Pointdeventes;
     use App\Models\Stocks;
     use Illuminate\Support\Facades\DB;
 
     $nom_app = appnames::where('etat', 1)->first()['nom'] ?? 'CONTROLAPP';
 
-    // --- Logique de filtrage des stocks selon le rôle ---
     if (Auth::user()->role == 0) {
-        // Admin : voir tous les stocks
         $stocks = Stocks::where('supprimer', 0)->get();
     } else {
-        // Utilisateur non-admin : voir uniquement les stocks liés à ses points de vente affectés
         $pointdeventes_ids = DB::table('affectationspointventes')
                                 ->where('user_id', Auth::id())
                                 ->pluck('pointdeventes_id')
@@ -25,7 +23,6 @@
                                   ->unique()
                                   ->toArray();
 
-        // Ajouter le stock principal (id = 0) s'il n'est pas déjà présent
         if (!in_array(0, $stock_ids)) {
             $stock_ids[] = 0;
         }
@@ -33,6 +30,69 @@
         $stocks = Stocks::whereIn('id', $stock_ids)
                         ->where('supprimer', 0)
                         ->get();
+    }
+
+    // --- Calcul des totaux (articles + montants détail & gros en USD/CDF via taux) ---
+    $stock_totals     = [];
+    $total_articles   = 0;
+    $total_detail_usd = 0;
+    $total_detail_cdf = 0;
+    $total_gros_usd   = 0;
+    $total_gros_cdf   = 0;
+    $taux_cache       = [];
+
+    foreach ($stocks as $s) {
+        $items = articlestocks::where(['supprimer' => 0, 'stock_id' => $s->id])->get();
+        $count = $items->count();
+
+        $s_detail_usd = 0; $s_detail_cdf = 0;
+        $s_gros_usd   = 0; $s_gros_cdf   = 0;
+
+        foreach ($items as $it) {
+            $art_info    = Articles::find($it->article_id);
+            $activite_id = $art_info ? $art_info->activite_id : null;
+
+            if ($activite_id && !isset($taux_cache[$activite_id])) {
+                $act = Activites::find($activite_id);
+                $taux_cache[$activite_id] = $act ? (float) $act->taux : 1;
+            }
+            $taux = $activite_id ? $taux_cache[$activite_id] : 1;
+            if ($taux <= 0) $taux = 1;
+
+            $qty    = (float) ($it->stock       ?? 0);
+            $pd     = (float) ($it->prix_detail ?? 0);
+            $pg     = (float) ($it->prix_gros   ?? 0);
+            $devise = (int)   ($it->devise      ?? 0);
+
+            $detail_val = $qty * $pd;
+            $gros_val   = $qty * $pg;
+
+            if ($devise == 0) {
+                $s_detail_usd += $detail_val;
+                $s_detail_cdf += $detail_val * $taux;
+                $s_gros_usd   += $gros_val;
+                $s_gros_cdf   += $gros_val * $taux;
+            } else {
+                $s_detail_cdf += $detail_val;
+                $s_detail_usd += $detail_val / $taux;
+                $s_gros_cdf   += $gros_val;
+                $s_gros_usd   += $gros_val / $taux;
+            }
+        }
+
+        $stock_totals[$s->id] = [
+            'count'      => $count,
+            'detail_usd' => $s_detail_usd,
+            'detail_cdf' => $s_detail_cdf,
+            'gros_usd'   => $s_gros_usd,
+            'gros_cdf'   => $s_gros_cdf,
+        ];
+
+        $total_articles   += $count;
+        $total_detail_usd += $s_detail_usd;
+        $total_detail_cdf += $s_detail_cdf;
+        $total_gros_usd   += $s_gros_usd;
+        $total_gros_cdf   += $s_gros_cdf;
     }
 @endphp
 @extends('layouts.main')
@@ -48,12 +108,7 @@
    DESIGN PREMIUM – UNIFIÉ (GESTION DE STOCK)
    ============================================================ */
 
-/* --- Reset des marges pour occuper tout l'écran --- */
-body {
-    margin: 0;
-    padding: 0;
-    background: #f0f4f8;
-}
+body { margin: 0; padding: 0; background: #f0f4f8; }
 
 .content .container {
     max-width: 100% !important;
@@ -62,18 +117,9 @@ body {
     margin: 0 auto;
     background: #f8fafc;
 }
+.content .container .row { margin-left: 0; margin-right: 0; }
+.content .container [class*="col-"] { padding-left: 0.75rem; padding-right: 0.75rem; }
 
-.content .container .row {
-    margin-left: 0;
-    margin-right: 0;
-}
-
-.content .container [class*="col-"] {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-}
-
-/* --- Variables (identiques aux autres pages) --- */
 :root {
     --bleu-nuit: #0a192f;
     --bleu-nuit-clair: #112240;
@@ -88,7 +134,6 @@ body {
     --border-radius-lg: 16px;
 }
 
-/* --- Cartes principales --- */
 #bloc_1, #bloc_2, #bloc_3, #bloc_4 {
     background: rgba(255, 255, 255, 0.96);
     border-radius: var(--border-radius-xl);
@@ -98,7 +143,6 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* --- En-têtes --- */
 h4 {
     font-weight: 700;
     border-left: 6px solid #e31b23;
@@ -111,7 +155,6 @@ h4 {
     gap: 15px;
     flex-wrap: wrap;
 }
-
 h4 i.zmdi {
     background: var(--bleu-nuit-gradient);
     background-clip: text;
@@ -125,22 +168,20 @@ h4 i.zmdi {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
-
 .table {
     width: 100%;
-    min-width: 600px;
+    min-width: 900px;
     background: white;
     border-collapse: collapse;
     border-radius: var(--border-radius-lg);
     overflow: hidden;
     box-shadow: var(--shadow-light);
 }
-
 .table thead th {
     background: #E7F5FE !important;
     color: #0a192f;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     padding: 14px 12px !important;
@@ -149,25 +190,13 @@ h4 i.zmdi {
     white-space: normal;
     word-break: break-word;
 }
-
 .table tbody tr {
     transition: all 0.15s ease;
     border-bottom: 1px solid #e2e8f0;
 }
-
-.table tbody tr:nth-child(even) {
-    background-color: #f8fafc;
-}
-
-.table tbody tr:nth-child(odd) {
-    background-color: #ffffff;
-}
-
-.table tbody tr:hover {
-    background: #e6f0ff !important;
-    cursor: default;
-}
-
+.table tbody tr:nth-child(even) { background-color: #f8fafc; }
+.table tbody tr:nth-child(odd)  { background-color: #ffffff; }
+.table tbody tr:hover           { background: #e6f0ff !important; cursor: default; }
 .table tbody td {
     padding: 10px 12px !important;
     vertical-align: middle !important;
@@ -179,7 +208,39 @@ h4 i.zmdi {
     line-height: 1.4;
 }
 
-/* ========== BOUTONS PRINCIPAUX (UNIFIÉS) ========== */
+.table tbody td.montant-cell,
+.table thead th.montant-col {
+    white-space: nowrap;
+}
+
+/* ========== DUAL CURRENCY (comme la page Factures) ========== */
+.dual-currency b { display: block; font-size: 0.82rem; }
+.dual-currency small { display: block; font-size: 0.7rem; color: #64748b; font-weight: 500; }
+
+/* ========== BADGES (alignés à DROITE) ========== */
+.client-badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px 12px;
+    margin-bottom: 15px;
+}
+.client-count-badge {
+    border-radius: 50px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    color: white;
+}
+.client-count-badge.count-badge       { background: var(--rouge-gradient); }
+.client-count-badge.usd-badge         { background: linear-gradient(135deg, #3B82F6, #2563eb); }
+.client-count-badge.renseigne-badge   { background: linear-gradient(135deg, #10b981, #059669); }
+
+/* ========== BOUTONS ========== */
 #liste, #add, #print, #add_r, #print_r,
 #save, #annuler, #edit_save, #edit_annuler,
 .btn-primary, .btn-info, .btn-danger {
@@ -199,39 +260,17 @@ h4 i.zmdi {
     white-space: nowrap;
     line-height: 1.5;
 }
-
-#liste, .btn-primary {
-    background: #3B82F6 !important;
-    color: white !important;
-}
+#liste, .btn-primary { background: #3B82F6 !important; color: white !important; }
 #liste:hover, .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
     background: #2563eb !important;
 }
-
-#add, .btn-info {
-    background: var(--bleu-nuit-gradient) !important;
-    color: white !important;
-}
-#add:hover, .btn-info:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3);
-}
-
-#save, #edit_save {
-    background: var(--bleu-secondaire-gradient) !important;
-    color: white;
-}
-#save:hover, #edit_save:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3);
-}
-
-#annuler, #edit_annuler, .btn-danger {
-    background: var(--rouge-gradient) !important;
-    color: white;
-}
+#add, .btn-info { background: var(--bleu-nuit-gradient) !important; color: white !important; }
+#add:hover, .btn-info:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(10, 25, 47, 0.3); }
+#save, #edit_save { background: var(--bleu-secondaire-gradient) !important; color: white; }
+#save:hover, #edit_save:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(44, 82, 130, 0.3); }
+#annuler, #edit_annuler, .btn-danger { background: var(--rouge-gradient) !important; color: white; }
 #annuler:hover, #edit_annuler:hover, .btn-danger:hover {
     transform: translateY(-2px);
     background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
@@ -239,20 +278,9 @@ h4 i.zmdi {
 }
 
 /* ========== FORMULAIRES ========== */
-#form_add .row, #form_edit .row {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-#form_add .col-6, #form_edit .col-6 {
-    margin-bottom: 0.8rem;
-}
-
-.form-group {
-    width: 100%;
-    margin-bottom: 0;
-}
-
+#form_add .row, #form_edit .row { display: flex; flex-wrap: wrap; }
+#form_add .col-6, #form_edit .col-6 { margin-bottom: 0.8rem; }
+.form-group { width: 100%; margin-bottom: 0; }
 .form-group label {
     display: block;
     font-weight: 700;
@@ -262,17 +290,8 @@ h4 i.zmdi {
     text-transform: uppercase;
     letter-spacing: 0.4px;
 }
-
-.form-group label i {
-    color: #e31b23;
-    margin-right: 6px;
-}
-
-.form-control,
-input.form-control,
-select.form-control,
-textarea.form-control,
-.input-mask {
+.form-group label i { color: #e31b23; margin-right: 6px; }
+.form-control, input.form-control, select.form-control, textarea.form-control, .input-mask {
     width: 100% !important;
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
@@ -285,33 +304,21 @@ textarea.form-control,
     height: 38px !important;
     line-height: 1.4;
 }
-
-textarea.form-control {
-    resize: vertical;
-    height: 38px !important;
-}
-
-.form-control:focus,
-select.form-control:focus,
-textarea.form-control:focus {
+textarea.form-control { resize: vertical; height: 38px !important; }
+.form-control:focus, select.form-control:focus, textarea.form-control:focus {
     border-color: var(--bleu-nuit) !important;
     box-shadow: 0 0 0 3px rgba(10, 25, 47, 0.15) !important;
     transform: translateY(-1px);
 }
-
 select.form-control {
     appearance: none;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e31b23" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
     background-repeat: no-repeat;
     background-position: right 14px center;
 }
+.input-mask { font-family: monospace; background: #fff9ef !important; }
 
-.input-mask {
-    font-family: monospace;
-    background: #fff9ef !important;
-}
-
-/* ========== MESSAGES STYLISÉS ========== */
+/* ========== MESSAGES ========== */
 #msg, #edit_msg {
     display: none !important;
     visibility: hidden !important;
@@ -325,7 +332,6 @@ select.form-control {
     height: 0 !important;
     overflow: hidden !important;
 }
-
 #msg:not(:empty), #edit_msg:not(:empty) {
     display: inline-flex !important;
     visibility: visible !important;
@@ -341,27 +347,24 @@ select.form-control {
     font-size: 0.8rem;
     animation: slideInMsg 0.3s ease-out;
 }
-
 #msg:not(:empty):has(i.zmdi-check-circle),
 #edit_msg:not(:empty):has(i.zmdi-check-circle) {
     background: linear-gradient(95deg, #d1fae5, #a7f3d0) !important;
     color: #065f46;
     border-left: 4px solid #10b981;
 }
-
 #msg:not(:empty):has(i.zmdi-close-circle),
 #edit_msg:not(:empty):has(i.zmdi-close-circle) {
     background: linear-gradient(95deg, #fee2e2, #fecaca) !important;
     color: #991b1b;
     border-left: 4px solid #ef4444;
 }
-
 @keyframes slideInMsg {
     from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ========== BARRE D'ACTIONS (EN TÊTE) ========== */
+/* ========== BARRE D'ACTIONS ========== */
 [style*="background-color: rgba(0, 0, 0, 0.1)"] {
     background: #eef3fc !important;
     border-radius: 60px;
@@ -375,82 +378,41 @@ select.form-control {
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 992px) {
-    .content .container {
-        padding: 0.5rem 1rem !important;
-    }
-    #bloc_1, #bloc_2, #bloc_3, #bloc_4 {
-        padding: 1rem !important;
-    }
+    .content .container { padding: 0.5rem 1rem !important; }
+    #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 1rem !important; }
 }
-
 @media (max-width: 768px) {
-    .content .container {
-        padding: 0.4rem 0.6rem !important;
-    }
-    #bloc_1, #bloc_2, #bloc_3, #bloc_4 {
-        padding: 0.8rem !important;
-    }
+    .content .container { padding: 0.4rem 0.6rem !important; }
+    #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 0.8rem !important; }
     #liste, #add, #print, #add_r, #print_r,
     #save, #annuler, #edit_save, #edit_annuler,
     .btn-primary, .btn-info, .btn-danger {
         padding: 4px 12px !important;
         font-size: 0.7rem;
     }
-    .table thead th {
-        font-size: 0.72rem;
-        padding: 10px 6px !important;
-        letter-spacing: 0.05em;
-    }
-    .table tbody td {
-        padding: 8px 10px !important;
-        font-size: 0.75rem;
-        line-height: 1.3;
-    }
-    #form_add .col-6, #form_edit .col-6 {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-    .form-group label {
-        font-size: 0.65rem;
-    }
-    .form-control, input.form-control, select.form-control, textarea.form-control {
-        height: 34px !important;
-        font-size: 0.75rem;
-    }
-    [style*="background-color: rgba(0, 0, 0, 0.1)"] {
-        justify-content: center;
-        gap: 8px;
-    }
+    .client-badges-container { justify-content: flex-end; gap: 6px 8px; }
+    .client-count-badge { font-size: 0.65rem; padding: 3px 10px; }
+    .table thead th { font-size: 0.72rem; padding: 10px 6px !important; letter-spacing: 0.05em; }
+    .table tbody td { padding: 8px 10px !important; font-size: 0.75rem; line-height: 1.3; }
+    .dual-currency b { font-size: 0.75rem; }
+    .dual-currency small { font-size: 0.65rem; }
+    #form_add .col-6, #form_edit .col-6 { flex: 0 0 100%; max-width: 100%; }
+    .form-group label { font-size: 0.65rem; }
+    .form-control, input.form-control, select.form-control, textarea.form-control { height: 34px !important; font-size: 0.75rem; }
+    [style*="background-color: rgba(0, 0, 0, 0.1)"] { justify-content: center; gap: 8px; }
 }
-
 @media (max-width: 480px) {
-    .content .container {
-        padding: 0.3rem !important;
-    }
-    #bloc_1, #bloc_2, #bloc_3, #bloc_4 {
-        padding: 0.6rem !important;
-    }
-    h4 {
-        font-size: 1.1rem;
-        margin-bottom: 12px;
-    }
-    h4 i {
-        font-size: 24px !important;
-    }
+    .content .container { padding: 0.3rem !important; }
+    #bloc_1, #bloc_2, #bloc_3, #bloc_4 { padding: 0.6rem !important; }
+    h4 { font-size: 1.1rem; margin-bottom: 12px; }
+    h4 i { font-size: 24px !important; }
     #liste, #add, #print, #add_r, #print_r,
-    #save, #annuler, #edit_save, #edit_annuler {
-        padding: 3px 8px !important;
-        font-size: 0.65rem;
-    }
-    .table thead th {
-        font-size: 0.62rem;
-        padding: 8px 4px !important;
-    }
-    .table tbody td {
-        padding: 6px 8px !important;
-        font-size: 0.7rem;
-        line-height: 1.2;
-    }
+    #save, #annuler, #edit_save, #edit_annuler { padding: 3px 8px !important; font-size: 0.65rem; }
+    .client-badges-container { justify-content: flex-end; gap: 5px 6px; }
+    .table thead th { font-size: 0.62rem; padding: 8px 4px !important; }
+    .table tbody td { padding: 6px 8px !important; font-size: 0.7rem; line-height: 1.2; }
+    .dual-currency b { font-size: 0.7rem; }
+    .dual-currency small { font-size: 0.6rem; }
 }
 
 /* ========== MODALES ========== */
@@ -460,40 +422,20 @@ select.form-control {
     box-shadow: var(--shadow-premium);
     overflow: hidden;
 }
-
 .modal.fade .modal-header {
     background: var(--bleu-nuit-gradient) !important;
     border-bottom: none;
     padding: 1rem 1.5rem;
 }
-
-.modal.fade .modal-header .modal-title {
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: white;
-}
-
-.modal.fade .modal-header .close {
-    color: white;
-    opacity: 0.8;
-    text-shadow: none;
-}
-
-.modal.fade .modal-header .close:hover {
-    opacity: 1;
-}
-
+.modal.fade .modal-header .modal-title { font-weight: 700; font-size: 1.1rem; color: white; }
+.modal.fade .modal-header .close { color: white; opacity: 0.8; text-shadow: none; }
+.modal.fade .modal-header .close:hover { opacity: 1; }
 .modal.fade .modal-footer {
     background: #f8fafc;
     border-top: 1px solid #eef2f6;
     padding: 1rem 1.5rem;
 }
-
-.modal.fade .modal-footer .btn {
-    border-radius: 40px !important;
-    padding: 6px 18px !important;
-    font-weight: 600;
-}
+.modal.fade .modal-footer .btn { border-radius: 40px !important; padding: 6px 18px !important; font-weight: 600; }
     </style>
     <section class="content">
         <div class="container">
@@ -506,11 +448,9 @@ select.form-control {
                                     <a class="btn-primary btn-sm" id="liste" href="">
                                         <i class="zmdi zmdi-money"></i> Liste
                                     </a>
-                                    <!-- Bouton Ajouter supprimé -->
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -522,8 +462,28 @@ select.form-control {
                             class="zmdi zmdi-chevron-right"></i> &nbsp; Mon stock</h6>
                 </div>
                 <div id="bloc_1" style="margin-top: 12px;padding-bottom: 50px" class="col-lg-12">
-                    <h4 style="color:rgba(0, 0, 0, 0.6);"><i style="font-size: 40px;" class="zmdi zmdi-money text-info"></i>
-                        Liste</h4>
+                    <h4 style="color:rgba(0, 0, 0, 0.6);">
+                        <i style="font-size: 40px;" class="zmdi zmdi-money text-info"></i>
+                        Liste
+                    </h4>
+
+                    {{-- ========== GARDES MONTANTS + TOTAL ARTICLES (alignés à droite) ========== --}}
+                    <div class="client-badges-container">
+                        <span class="client-count-badge count-badge">
+                            <i class="zmdi zmdi-collection-item"></i> Total articles : <span id="totalArticleCount">{{ $total_articles }}</span>
+                        </span>
+                        <span class="client-count-badge usd-badge">
+                            <i class="zmdi zmdi-money"></i> Total détail :
+                            {{ number_format($total_detail_usd, 2, ',', ' ') }} $ |
+                            {{ number_format($total_detail_cdf, 2, ',', ' ') }} FC
+                        </span>
+                        <span class="client-count-badge renseigne-badge">
+                            <i class="zmdi zmdi-money-box"></i> Total gros :
+                            {{ number_format($total_gros_usd, 2, ',', ' ') }} $ |
+                            {{ number_format($total_gros_cdf, 2, ',', ' ') }} FC
+                        </span>
+                    </div>
+
                     <div id="content_groupe" class="row">
                         <div class="col-12">
                             <div class="table-responsive">
@@ -534,26 +494,38 @@ select.form-control {
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Nom</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Description</th>
                                             <th style="padding-top: 5px;padding-bottom: 5px;">Article</th>
+                                            <th class="montant-col" style="padding-top: 5px;padding-bottom: 5px;">Détail (USD | CDF)</th>
+                                            <th class="montant-col" style="padding-top: 5px;padding-bottom: 5px;">Gros (USD | CDF)</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @php $i = 1; @endphp
                                         @foreach ($stocks as $data)
+                                            @php $t = $stock_totals[$data->id] ?? ['count'=>0,'detail_usd'=>0,'detail_cdf'=>0,'gros_usd'=>0,'gros_cdf'=>0]; @endphp
                                             <tr>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;">{{ $i }}</td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->nom }}</td>
                                                 <td style="padding-top: 5px;padding-bottom: 5px;">{{ $data->description }}</td>
                                                 <td style="text-align: center;padding-top: 5px;padding-bottom: 5px;">
                                                     <a id="article_{{ $i }}" href="#">
-                                                        @php
-                                                            $count = articlestocks::where(["supprimer" => 0, "stock_id" => $data->id])->count();
-                                                        @endphp
-                                                        @if ($count == 0)
-                                                            <span class="badge badge-danger">{{ $count }}</span>
+                                                        @if ($t['count'] == 0)
+                                                            <span class="badge badge-danger">{{ $t['count'] }}</span>
                                                         @else
-                                                            <span class="badge badge-info">{{ $count }}</span>
+                                                            <span class="badge badge-info">{{ $t['count'] }}</span>
                                                         @endif
                                                     </a>
+                                                </td>
+                                                <td class="montant-cell" style="padding-top: 5px;padding-bottom: 5px;">
+                                                    <div class="dual-currency">
+                                                        <b class="text-primary">{{ number_format($t['detail_usd'], 2, ',', ' ') }} USD</b>
+                                                        <small class="text-warning">{{ number_format($t['detail_cdf'], 2, ',', ' ') }} CDF</small>
+                                                    </div>
+                                                </td>
+                                                <td class="montant-cell" style="padding-top: 5px;padding-bottom: 5px;">
+                                                    <div class="dual-currency">
+                                                        <b class="text-primary">{{ number_format($t['gros_usd'], 2, ',', ' ') }} USD</b>
+                                                        <small class="text-warning">{{ number_format($t['gros_cdf'], 2, ',', ' ') }} CDF</small>
+                                                    </div>
                                                 </td>
                                                 <script>
                                                     $("#article_{{ $i }}").click(function(e) {
@@ -602,7 +574,6 @@ select.form-control {
                                 </div>
                             </div>
                         </div>
-
                         <div class="row">
                             <div class="col-12">
                                 <button id="save" class="btn btn-info btn-sm">Enregister <i
@@ -678,7 +649,6 @@ select.form-control {
             $("#bloc_3").hide();
             $("#bloc_4").hide();
         });
-        // Le gestionnaire pour #add a été retiré car le bouton n'existe plus
         $("#annuler").click(function(e) {
             e.preventDefault();
             $("#bloc_1").show();
@@ -736,20 +706,6 @@ select.form-control {
                 });
             }
         });
-
-        // La fonctionnalité de suppression est retirée
-        /*
-        $("#oui").click(function(e) {
-            e.preventDefault();
-            var id = $("#data_id").html();
-            $.get("{{ url('/refresh_delete_stocks') }}", {
-                id: id,
-            }, function(refresh_editverbalisateur) {
-                $("#content_groupe").html(refresh_editverbalisateur);
-                $("#non").trigger("click");
-            });
-        });
-        */
     </script>
 @endsection
 @endsection
