@@ -255,11 +255,13 @@
         #rapport_table tbody tr:hover { background: #fef2f2 !important; }
         #rapport_table tfoot td { background: #f1f5f9; border-top: 2px solid #cbd5e1 !important; font-size: 0.82rem; }
 
-        .modal-dialog { display: flex !important; align-items: center !important; min-height: calc(100vh - 3.5rem) !important; margin: 1.75rem auto !important; }
+        .modal-dialog { margin: 1.75rem auto !important; }
         .modal-content { max-height: calc(100vh - 3.5rem) !important; display: flex !important; flex-direction: column !important; overflow: hidden !important; }
         .modal-header { flex-shrink: 0 !important; }
-        .modal-body { overflow-y: auto; flex: 1 1 auto; -webkit-overflow-scrolling: touch; }
+        .modal-body { overflow-y: auto !important; flex: 1 1 auto !important; -webkit-overflow-scrolling: touch; }
         .modal-footer { flex-shrink: 0 !important; }
+        html { scrollbar-gutter: stable !important; }
+        body.modal-open { overflow: hidden !important; padding-right: 0 !important; }
 
         @media (max-width: 768px) {
             .modal-dialog { min-height: calc(100vh - 1rem) !important; margin: 0.5rem auto !important; }
@@ -916,7 +918,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="modal-body" style="background: #f8fafc; padding: 1.5rem; max-height: 75vh; overflow-y: auto;">
+                <div class="modal-body" style="background: #f8fafc; padding: 1.5rem;">
                     <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom: 15px;">
                         <div style="flex:1; min-width: 200px;">
                             <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
@@ -1973,6 +1975,8 @@
                     }
 
                     $body.html(html);
+                    var modalBody = document.querySelector('#rapportModal .modal-body');
+                    if (modalBody) { var st = modalBody.scrollTop; modalBody.scrollTop = st; }
 
                     var footHtml = '<tr>';
                     footHtml += '<td colspan="9" class="text-right">TOTAL REÇU (' + nbTransactions + ' transaction' + (nbTransactions > 1 ? 's' : '') + ') :</td>';

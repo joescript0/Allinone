@@ -18948,90 +18948,112 @@ class AjaxController extends Controller
     }
 
     public function get_rapport_paiements(Request $request)
-    {
-        $authUser = Auth::user();
-        if (!$authUser) {
-            return response()->json(['success' => false, 'message' => 'Non authentifié'], 401);
-        }
-
-        $query = detailpaiessachats::query();
-
-        // ✅ SÉCURITÉ : un non-admin ne voit QUE ses propres paiements
-        if ((int) $authUser->role !== 0) {
-            $query->where('user_id', $authUser->id);
-        } else {
-            if ($request->filled('user_id') && $request->user_id !== 'all') {
-                $query->where('user_id', (int) $request->user_id);
-            }
-        }
-
-        if ($request->filled('date_debut') && $request->filled('date_fin')) {
-            $query->whereDate('created_at', '>=', $request->date_debut)
-                ->whereDate('created_at', '<=', $request->date_fin);
-        }
-
-        $paiements = $query->orderBy('created_at', 'desc')->get();
-
-        $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
-
-        $userCache = User::all()->keyBy('id');
-
-        // ✅ Utilisation du modèle Factureass + filtre etat = 0 (non supprimée)
-        $factureCache = Factureass::whereIn('id', $paiements->pluck('facture_id')->unique())
-            ->where('etat', 0)
-            ->get()->keyBy('id');
-
-        $clientIds   = $factureCache->pluck('client_id')->filter()->unique();
-        $clientCache = Clients::whereIn('id', $clientIds)->get()->keyBy('id');
-
-        $result = [];
-        foreach ($paiements as $p) {
-            // Facture supprimée (etat != 0) → pas dans le cache → on saute
-            $facture = $factureCache->get($p->facture_id);
-            if (!$facture) continue;
-
-            if ($facture->client_id == 0) {
-                $clientName = $facture->libelle ?? 'N/A';
-            } else {
-                $cli = $clientCache->get($facture->client_id);
-                $clientName = $cli ? $cli->name : 'N/A';
-            }
-
-            if ($request->filled('client') && stripos($clientName, $request->client) === false) {
-                continue;
-            }
-
-            $payeur   = $userCache->get($p->user_id);
-            $createur = $userCache->get($facture->user_id);
-
-            $result[] = [
-                'id'                 => $p->id,
-                'facture_id'         => $p->facture_id,
-                'date_paiement'      => date('d/m/Y à H:i', strtotime($p->created_at)),
-                'date_paiement_iso'  => date('Y-m-d', strtotime($p->created_at)),
-                'numero'             => $facture->numero ?? '-',
-                'date_facture'       => date('d/m/Y à H:i', strtotime($facture->created_at)),
-                'client'             => $clientName,
-                'enregistre_par'     => $createur->name ?? 'N/A',
-                'enregistre_par_id'  => $facture->user_id ?? 0,
-                'encaisse_par'       => $payeur->name ?? 'N/A',
-                'encaisse_par_id'    => $p->user_id ?? 0,
-                'mode_label'         => $modeLabels[$p->mode_de_paiement] ?? 'N/A',
-                'devise'             => ($p->devise_recu == 0) ? 'USD' : 'CDF',
-                'montant_recu'       => (float) $p->montant_recu,
-                'taux'               => (float) ($p->taux ?? $facture->taux ?? 1),
-                'reste'              => (float) ($p->reste ?? 0),
-            ];
-        }
-
-        return response()->json([
-            'success'   => true,
-            'role'      => (int) $authUser->role,
-            'user_id'   => $authUser->id,
-            'user_name' => $authUser->name,
-            'data'      => $result,
-        ]);
+{
+    $authUser = Auth::user();
+    if (!$authUser) {
+        return response()->json(['success' => false, 'message' => 'Non authentifié'], 401);
     }
+
+    $query = detailpaiessachats::query();
+
+    // ✅ SÉCURITÉ : un non-admin ne voit QUE ses propres paiements
+    if ((int) $authUser->role !== 0) {
+        $query->where('user_id', $authUser->id);
+    } else {
+        if ($request->filled('user_id') && $request->user_id !== 'all') {
+            $query->where('user_id', (int) $request->user_id);
+        }
+    }
+
+    if ($request->filled('date_debut') && $request->filled('date_fin')) {
+        $query->whereDate('created_at', '>=', $request->date_debut)
+            ->whereDate('created_at', '<=', $request->date_fin);
+    }
+
+    $paiements = $query->orderBy('created_at', 'desc')->get();
+
+    $modeLabels = [1 => 'CASH', 2 => 'Mobile money', 3 => 'Bank'];
+
+    $userCache = User::all()->keyBy('id');
+
+    // ✅ Utilisation du modèle Factureass + filtre etat = 0 (non supprimée)
+    $factureCache = Factureass::whereIn('id', $paiements->pluck('facture_id')->unique())
+        ->where('etat', 0)
+        ->get()->keyBy('id');
+
+    $clientIds   = $factureCache->pluck('client_id')->filter()->unique();
+    $clientCache = Clients::whereIn('id', $clientIds)->get()->keyBy('id');
+
+    $result = [];
+    foreach ($paiements as $p) {
+        // Facture supprimée (etat != 0) → pas dans le cache → on saute
+        $facture = $factureCache->get($p->facture_id);
+        if (!$facture) continue;
+
+        if ($facture->client_id == 0) {
+            $clientName = $facture->libelle ?? 'N/A';
+        } else {
+            $cli = $clientCache->get($facture->client_id);
+            $clientName = $cli ? $cli->name : 'N/A';
+        }
+
+        if ($request->filled('client') && stripos($clientName, $request->client) === false) {
+            continue;
+        }
+
+        $payeur   = $userCache->get($p->user_id);
+        $createur = $userCache->get($facture->user_id);
+
+        // ✅ 1. Taux du PAIEMENT en priorité (?: ignore 0 et null)
+        $taux = (float) ($p->taux ?: ($facture->taux ?: 1));
+        if ($taux <= 0) $taux = 1; // Sécurité anti-division par zéro
+
+        $montant = (float) $p->montant_recu;
+
+        // ✅ 2. Calcul des DEUX montants selon la devise du PAIEMENT
+        if ($p->devise_recu == 0) {
+            // Paiement de base en USD
+            $montant_usd = $montant;
+            $montant_cdf = $montant * $taux;
+        } else {
+            // Paiement de base en CDF
+            $montant_cdf = $montant;
+            $montant_usd = $montant / $taux;
+        }
+
+        $result[] = [
+            'id'                 => $p->id,
+            'facture_id'         => $p->facture_id,
+            'date_paiement'      => date('d/m/Y à H:i', strtotime($p->created_at)),
+            'date_paiement_iso'  => date('Y-m-d', strtotime($p->created_at)),
+            'numero'             => $facture->numero ?? '-',
+            'date_facture'       => date('d/m/Y à H:i', strtotime($facture->created_at)),
+            'client'             => $clientName,
+            'enregistre_par'     => $createur->name ?? 'N/A',
+            'enregistre_par_id'  => $facture->user_id ?? 0,
+            'encaisse_par'       => $payeur->name ?? 'N/A',
+            'encaisse_par_id'    => $p->user_id ?? 0,
+            'mode_label'         => $modeLabels[$p->mode_de_paiement] ?? 'N/A',
+            'devise'             => ($p->devise_recu == 0) ? 'USD' : 'CDF',
+
+            // ✅ 3. Montant original + LES DEUX DEVISES (toujours présentes)
+            'montant_recu'       => $montant,
+            'montant_usd'        => round($montant_usd, 2),
+            'montant_cdf'        => round($montant_cdf, 2),
+
+            'taux'               => $taux,
+            'reste'              => (float) ($p->reste ?? 0),
+        ];
+    }
+
+    return response()->json([
+        'success'   => true,
+        'role'      => (int) $authUser->role,
+        'user_id'   => $authUser->id,
+        'user_name' => $authUser->name,
+        'data'      => $result,
+    ]);
+}
 
     public function add_signes_vitaux(Request $request)
     {
