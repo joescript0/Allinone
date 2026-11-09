@@ -1,6 +1,6 @@
 <?php
 use App\Models\Pointdeventes;
-use App\models\affectationstables;
+use App\Models\affectationstables;
 ?>
 <div class="col-12">
     <div class="table-responsive">

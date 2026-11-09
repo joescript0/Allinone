@@ -597,14 +597,6 @@ select.form-control {
     #tranchesModal .table tbody td { font-size: 0.7rem; padding: 6px 4px !important; }
     #tranchesModal .modal-title { font-size: 0.85rem; }
     #tranchesModal .badge-info-header { font-size: 0.62rem; padding: 3px 9px; }
-
-    #paramFactureModal .param-finance-grid { grid-template-columns: repeat(2, 1fr); }
-    #paramFactureModal .param-info-grid    { grid-template-columns: 1fr; }
-    #paramFactureModal .param-nav-tabs .nav-link { padding: 10px 8px; font-size: 0.72rem; }
-    #paramFactureModal .param-statut-card { padding: 12px 14px; }
-    #paramFactureModal .param-statut-card i { font-size: 1.6rem; }
-    #paramFactureModal .param-statut-card .param-statut-value { font-size: 1.1rem; }
-    #paramFactureModal .param-totals-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 .badge-invoice i.zmdi { color: white !important; }
@@ -958,61 +950,243 @@ select.form-control {
     color: #991b1b; border-left: 4px solid #ef4444;
 }
 
-#rapportModal .modal-header { background: linear-gradient(135deg, #ef4444, #dc2626) !important; }
+/* ============================================================
+   ✅ MODALE RAPPORT DES MONTANTS REÇUS — RESPONSIVE COMPLET
+   ============================================================ */
 
+#rapportModal .modal-dialog {
+    max-width: 1200px !important;
+    width: calc(100% - 2rem) !important;
+    margin: 1.75rem auto !important;
+}
+#rapportModal .modal-content {
+    min-height: 640px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+}
+#rapportModal .modal-header {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: white; border-bottom: none;
+    padding: 1.1rem 1.5rem; flex-shrink: 0;
+}
+#rapportModal .modal-header .modal-title {
+    font-weight: 700; font-size: 1.1rem;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+#rapportModal .modal-header .close {
+    color: white; opacity: 0.9; margin: 0;
+    padding: 0 0 0 8px; text-shadow: none;
+}
+#rapportModal .modal-body {
+    background: #f8fafc; padding: 1.5rem;
+    overflow-y: auto;
+}
+#rapportModal .modal-footer {
+    background: white; border-top: 1px solid #eef2f6;
+    padding: 1rem 1.5rem; flex-shrink: 0;
+}
+
+/* ---------- Bloc filtres ---------- */
+#rapportModal .rapport-filters {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    align-items: flex-end; margin-bottom: 15px;
+}
+#rapportModal .rapport-filter-group {
+    flex: 1 1 200px; min-width: 180px;
+}
+#rapportModal .rapport-filter-group label {
+    font-weight: 700; color: #0a192f; font-size: 0.72rem;
+    text-transform: uppercase; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 5px;
+}
 #rapportModal #rapport_date_range,
+#rapportModal #rapport_user_filter,
 #rapportModal #rapport_client_filter {
-    width: 100%;
-    height: 38px;
+    width: 100%; height: 38px;
     border-radius: 14px !important;
     border: 1px solid #e2e8f0 !important;
     padding: 8px 12px;
-    font-weight: 500;
-    font-size: 0.85rem;
+    font-weight: 500; font-size: 0.85rem;
     background: #fff;
-    box-shadow: none;
-    transition: all 0.2s ease;
 }
 #rapportModal #rapport_date_range:focus,
+#rapportModal #rapport_user_filter:focus,
 #rapportModal #rapport_client_filter:focus {
-    border-color: #3B82F6 !important;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
     outline: none;
 }
-
-#rapportModal .select2-container--bootstrap .select2-selection {
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    height: 38px !important;
-    background: #fff !important;
-    box-shadow: none !important;
-    padding: 0 12px;
-    transition: all 0.2s ease;
+#rapportModal #rapport_user_filter:disabled {
+    background: #f1f5f9 !important;
+    cursor: not-allowed; opacity: 0.85;
 }
-#rapportModal .select2-container--bootstrap .select2-selection:hover { border-color: #cbd5e1 !important; }
-#rapportModal .select2-container--bootstrap.select2-container--focus .select2-selection,
-#rapportModal .select2-container--bootstrap.select2-container--open .select2-selection {
-    border-color: #3B82F6 !important;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
-}
-#rapportModal .select2-container--bootstrap .select2-selection__arrow { height: 36px !important; }
-#rapportModal .select2-container--bootstrap .select2-selection__rendered {
-    line-height: 35px !important;
-    padding-left: 0;
+#rapportModal .rapport-filter-actions {
+    display: flex; gap: 8px;
+    align-items: flex-end; flex-wrap: wrap;
 }
 
-#rapport_table thead th {
+#rapportModal .rapport-badges {
+    display: flex; flex-wrap: wrap;
+    gap: 8px 12px; margin-bottom: 15px;
+}
+
+#rapportModal .rapport-meta {
+    font-weight: 700; color: #0a192f;
+    font-size: 0.85rem; margin-bottom: 10px;
+    line-height: 1.7; word-break: break-word;
+}
+#rapportModal .rapport-meta .meta-item {
+    display: inline-block; margin-right: 14px;
+}
+#rapportModal .rapport-meta .meta-value { color: #dc2626; }
+
+#rapportModal .rapport-table-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    background: white;
+    min-height: 320px;
+    max-height: 45vh;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+#rapportModal #rapport_table {
+    width: 100%; min-width: 900px;
+    margin: 0; border-collapse: collapse;
+}
+#rapportModal #rapport_table thead th {
+    position: sticky; top: 0; z-index: 3;
     background: #FEE2E2 !important;
     color: #7f1d1d;
     border-bottom: 2px solid #fca5a5 !important;
+    font-size: 0.72rem; padding: 10px 8px;
+    white-space: nowrap; text-align: left;
 }
-#rapport_table tbody tr:hover { background: #fef2f2 !important; }
-#rapport_table tfoot td {
+#rapportModal #rapport_table tbody td {
+    font-size: 0.8rem; padding: 9px 8px;
+    white-space: nowrap; vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+}
+#rapportModal #rapport_table tbody tr:hover {
+    background: #fef2f2 !important;
+}
+#rapportModal #rapport_table tfoot td {
     background: #f1f5f9;
     border-top: 2px solid #cbd5e1 !important;
-    font-size: 0.82rem;
+    font-size: 0.8rem; padding: 10px 8px;
+    font-weight: 700;
 }
 
+/* ---------- Loader + anti-double bloc ---------- */
+#rapportModal #rapport_body tr.rapport-loader td {
+    height: 280px;
+    vertical-align: middle;
+    font-size: 0.95rem;
+    background: #f8fafc;
+    text-align: center;
+}
+#rapportModal #rapport_foot:empty {
+    display: none;
+}
+
+/* ============================================================
+   ✅ RESPONSIVE — TABLETTE (≤ 992px)
+   ============================================================ */
+@media (max-width: 991.98px) {
+    #rapportModal .modal-dialog {
+        max-width: 100% !important; width: 100% !important;
+        margin: 0 !important; height: 100vh !important;
+        padding: 0;
+    }
+    #rapportModal .modal-content {
+        height: 100vh; min-height: 100vh; max-height: 100vh;
+        border-radius: 0;
+    }
+    #rapportModal .modal-body { padding: 1rem; }
+    #rapportModal .modal-header { padding: 1rem 1.25rem; }
+    #rapportModal .modal-footer { padding: 0.85rem 1.25rem; }
+    #rapportModal .modal-footer .btn { width: 100%; }
+
+    #rapportModal .rapport-filter-group {
+        flex: 1 1 calc(50% - 6px);
+        min-width: calc(50% - 6px);
+    }
+    #rapportModal .rapport-filter-actions { flex: 1 1 100%; }
+    #rapportModal .rapport-filter-actions .btn {
+        flex: 1; justify-content: center;
+    }
+}
+
+/* ============================================================
+   ✅ RESPONSIVE — MOBILE (≤ 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+    #rapportModal .rapport-filter-group {
+        flex: 1 1 100%; min-width: 100%;
+    }
+    #rapportModal .rapport-filter-actions {
+        flex-direction: column; width: 100%;
+    }
+    #rapportModal .rapport-filter-actions .btn {
+        width: 100%; flex: 1 1 auto;
+    }
+    #rapportModal .rapport-badges {
+        flex-direction: column; align-items: stretch; gap: 6px;
+    }
+    #rapportModal .rapport-badges .invoice-count-badge {
+        justify-content: center;
+        font-size: 0.72rem; padding: 6px 12px;
+    }
+    #rapportModal .rapport-meta {
+        font-size: 0.78rem; line-height: 1.9;
+        padding: 8px 10px; background: #fff;
+        border-radius: 8px; border-left: 3px solid #dc2626;
+    }
+    #rapportModal .rapport-meta .meta-item {
+        display: block; margin-right: 0;
+    }
+    #rapportModal #rapport_table { min-width: 800px; }
+    #rapportModal #rapport_table thead th {
+        font-size: 0.68rem; padding: 8px 6px;
+    }
+    #rapportModal #rapport_table tbody td {
+        font-size: 0.74rem; padding: 7px 6px;
+    }
+    #rapportModal #rapport_table tfoot td {
+        font-size: 0.74rem; padding: 8px 6px;
+    }
+    #rapportModal .rapport-table-wrapper {
+        min-height: 220px; max-height: 50vh;
+    }
+    #rapportModal #rapport_body tr.rapport-loader td {
+        height: 180px; font-size: 0.85rem;
+    }
+}
+
+/* ============================================================
+   ✅ RESPONSIVE — PETIT MOBILE (≤ 480px)
+   ============================================================ */
+@media (max-width: 480px) {
+    #rapportModal .modal-header { padding: 0.85rem 1rem; }
+    #rapportModal .modal-header .modal-title { font-size: 0.95rem; }
+    #rapportModal .modal-body { padding: 0.75rem; }
+    #rapportModal .rapport-meta { font-size: 0.72rem; }
+    #rapportModal .rapport-badges .invoice-count-badge {
+        font-size: 0.68rem; padding: 5px 10px;
+    }
+    #rapportModal #rapport_table { min-width: 740px; }
+    #rapportModal #rapport_table thead th {
+        font-size: 0.65rem; padding: 7px 5px;
+    }
+    #rapportModal #rapport_table tbody td {
+        font-size: 0.7rem; padding: 6px 5px;
+    }
+    #rapportModal .modal-footer { padding: 0.75rem 1rem; }
+}
+
+/* ============================================================
+   ✅ MODALES — STRUCTURE GLOBALE
+   ============================================================ */
 .modal-dialog {
     display: flex !important;
     align-items: center !important;
@@ -1080,78 +1254,11 @@ select.form-control {
     .rappel-message-box label { font-size: 0.7rem; }
     .rappel-message-box textarea { min-height: 75px; font-size: 0.8rem; }
     #rappel_send_btn { width: 100%; justify-content: center; height: 42px; }
-
-    #rapportModal .modal-dialog {
-        max-width: 96% !important; width: 96% !important;
-        margin: 1rem auto !important; height: auto !important;
-        max-height: calc(100vh - 2rem);
-    }
-    #rapportModal .modal-content {
-        border-radius: 16px !important;
-        max-height: calc(100vh - 2rem);
-        display: flex; flex-direction: column; overflow: hidden;
-    }
-    #rapportModal .modal-header { padding: 0.85rem 1rem !important; flex-shrink: 0; border-radius: 16px 16px 0 0 !important; }
-    #rapportModal .modal-header .modal-title { font-size: 0.95rem; }
-    #rapportModal .modal-body { padding: 0.9rem !important; flex: 1 1 auto; overflow-y: auto; max-height: none !important; }
-    #rapportModal .modal-footer { padding: 0.7rem 1rem !important; flex-shrink: 0; border-radius: 0 0 16px 16px !important; }
-    #rapportModal .modal-footer button { width: 100%; height: 42px; }
-
-    #rapportModal .rapport-filter-section { flex-direction: column !important; gap: 8px !important; align-items: stretch !important; }
-    #rapportModal #rapport_date_range,
-    #rapportModal #rapport_client_filter { height: 42px; font-size: 0.85rem; padding: 10px 12px; }
-
-    #rapportModal .rapport-filter-buttons {
-        display: flex !important; flex-direction: row !important;
-        gap: 8px !important; width: 100% !important;
-        flex-wrap: nowrap !important;
-        justify-content: flex-start !important;
-        align-items: center !important;
-    }
-    #rapportModal #rapport_apply_btn,
-    #rapportModal #rapport_reset_btn {
-        flex: 0 0 auto !important; width: auto !important;
-        min-width: 90px !important; height: auto !important;
-        padding: 4px 12px !important; font-size: 0.7rem !important;
-        font-weight: 600 !important; white-space: nowrap !important;
-        border-radius: 40px !important; gap: 8px !important;
-    }
-    #rapportModal #rapport_apply_btn i,
-    #rapportModal #rapport_reset_btn i { font-size: inherit !important; }
-
-    #rapport_summary_badges {
-        display: flex !important; flex-direction: row !important;
-        flex-wrap: wrap !important; gap: 6px 8px !important;
-        justify-content: flex-start !important;
-        align-items: center !important;
-    }
-    #rapport_summary_badges .invoice-count-badge {
-        font-size: 0.65rem !important; padding: 3px 10px !important;
-        width: auto !important; height: auto !important;
-        border-radius: 50px !important; font-weight: bold !important;
-        gap: 6px !important; white-space: nowrap !important;
-    }
-    #rapport_summary_badges .usd-badge,
-    #rapport_summary_badges .cdf-badge {
-        flex: 1 1 calc(50% - 4px) !important; min-width: 0 !important;
-        justify-content: center !important;
-    }
-    #rapport_summary_badges .paye-usd { flex: 0 0 auto !important; width: auto !important; }
-
-    #rapportModal .table-responsive { -webkit-overflow-scrolling: touch; border-radius: 10px; overflow-x: auto; }
-    #rapport_table { min-width: 720px; font-size: 0.75rem; }
-    #rapport_table thead th { font-size: 0.66rem !important; padding: 7px 5px !important; }
-    #rapport_table tbody td,
-    #rapport_table tfoot td { padding: 7px 5px !important; font-size: 0.72rem !important; }
 }
 
 @media (max-width: 480px) {
-    #rapportModal #rapport_apply_btn,
-    #rapportModal #rapport_reset_btn {
-        min-width: 70px !important; padding: 3px 8px !important; font-size: 0.65rem !important;
-    }
-    #rapport_summary_badges .invoice-count-badge {
-        font-size: 0.6rem !important; padding: 3px 8px !important;
+    #rapportModal .rapport-badges .invoice-count-badge {
+        font-size: 0.6rem !important;
     }
 }
 
@@ -1350,7 +1457,7 @@ body.modal-open { overflow: hidden; }
                                 <div style="display: none;" class="col-6">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                                class="zmdi zmdi-info"></i> Numero facture</span></label>
+                                                class="zmdi zmdi-info"></i> Numero facture</label>
                                         <select id="numero_facture" name="numero_facture" class="select2"
                                             data-placeholder="Selectionnez un type de sortie">
                                         </select>
@@ -1359,7 +1466,7 @@ body.modal-open { overflow: hidden; }
                                 <div class="col-12">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                                class="zmdi zmdi-info"></i> Il s'agit de quel article ?</span></label>
+                                                class="zmdi zmdi-info"></i> Il s'agit de quel article ?</label>
                                         <select id="type_sortie" name="type_sortie" class="select2"
                                             data-placeholder="Selectionnez un article">
                                             <option selected value="">Selectionnez un article</option>
@@ -1393,7 +1500,7 @@ body.modal-open { overflow: hidden; }
                                 <div style="display: none;" class="col-6">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                                class="zmdi zmdi-info"></i> Il s'agit de quelle action ?</span></label>
+                                                class="zmdi zmdi-info"></i> Il s'agit de quelle action ?</label>
                                         <select id="action" name="action" class="form-control"
                                             data-placeholder="Selectionnez une action">
                                             <option style="display: none;" selected value="">Selectionnez une action</option>
@@ -1408,7 +1515,7 @@ body.modal-open { overflow: hidden; }
                                 <div class="col-6">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                                class="zmdi zmdi-info"></i> Type de vente ?</span></label>
+                                                class="zmdi zmdi-info"></i> Type de vente ?</label>
                                         <select id="type_vente_id" name="type_vente_id" class="form-control"
                                             data-placeholder="Selectionnez un type de vente">
                                             <option style="display: none;" selected value="">Selectionnez un type de vente</option>
@@ -1423,7 +1530,7 @@ body.modal-open { overflow: hidden; }
                                 <div class="col-6">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                                class="zmdi zmdi-money"></i> Quantité </span></label>
+                                                class="zmdi zmdi-money"></i> Quantité</label>
                                         <input id="quantite" name="quantite" type="text" class="form-control input-mask"
                                             data-mask="00000000000000000000000000000000000000"
                                             style="font-weight: bold;padding-left: 5px;border-bottom: 1px solid rgba(0, 0, 0, 0.1);"
@@ -1435,7 +1542,7 @@ body.modal-open { overflow: hidden; }
                                 <div class="col-6" style="display: none;">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                                class="zmdi zmdi-money"></i> devise </span></label>
+                                                class="zmdi zmdi-money"></i> devise</label>
                                         <select id="devise" name="devise" class="select2"
                                             data-placeholder="Selectionnez une devise">
                                             <option selected class="form-control" value="">Selectionnez une devise</option>
@@ -1447,7 +1554,7 @@ body.modal-open { overflow: hidden; }
                                 <div style="display: none;" class="col-6">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                                class="zmdi zmdi-money"></i> Taux</span></label>
+                                                class="zmdi zmdi-money"></i> Taux</label>
                                         <input id="taux" name="taux" type="text" class="form-control input-mask" value="2200"
                                             data-mask="00000000000000000000000000000000000000"
                                             style="font-weight: bold;padding-left: 5px;border-bottom: 1px solid rgba(0, 0, 0, 0.1);"
@@ -1457,7 +1564,7 @@ body.modal-open { overflow: hidden; }
                                 <div class="col-6">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                                class="zmdi zmdi-comment"></i> Libelle </span></label>
+                                                class="zmdi zmdi-comment"></i> Libelle</label>
                                         <textarea id="libelle" name="libelle"
                                             style="font-weight: bold;border-radius:5px;padding-left: 5px;border: 1px solid rgba(0, 0, 0, 0.2);"
                                             class="form-control" placeholder="Libellé" cols="2" rows="2"></textarea>
@@ -1466,7 +1573,7 @@ body.modal-open { overflow: hidden; }
                                 <div class="col-6">
                                     <div class="form-group">
                                         <label class="text-info" style="font-weight: bold;margin-top: 16px;"><i
-                                                class="zmdi zmdi-accounts"></i> Clients </span></label>
+                                                class="zmdi zmdi-accounts"></i> Clients</label>
                                         <select id="client_id" name="client_id" class="form-control"
                                             data-placeholder="Selectionnez un client">
                                             <option selected class="form-control" value="">Selectionnez un client</option>
@@ -1481,8 +1588,7 @@ body.modal-open { overflow: hidden; }
                         </form>
                         <div style="margin-top: 15px;display: none;" class="row">
                             <div class="col-12">
-                                <label class="text-info" style="font-weight: bold;"><i class="zmdi zmdi-info"></i> Déposez
-                                    votre de sortie d'article</span></label>
+                                <label class="text-info" style="font-weight: bold;"><i class="zmdi zmdi-info"></i> Déposez votre de sortie d'article</label>
                                 <form method="post"
                                     style="background-color: transparent;border: 4px dashed rgba(0, 0, 0, 0.2);border-radius: 10px;"
                                     action="{{ route('upload_fichier_sortie') }}" class="dropzone" id="dropzonewidget">
@@ -2148,46 +2254,38 @@ body.modal-open { overflow: hidden; }
         </div>
     </div>
 
-    {{-- MODALE RAPPORT DES MONTANTS REÇUS --}}
+    {{-- ============================================================
+         ✅ MODALE RAPPORT DES MONTANTS REÇUS — RESPONSIVE
+         ============================================================ --}}
     <div class="modal fade" id="rapportModal" tabindex="-1" role="dialog" aria-labelledby="rapportModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1200px;">
-            <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);">
-
-                <div class="modal-header" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-bottom: none; padding: 1.1rem 1.5rem;">
-                    <h5 class="modal-title" id="rapportModalLabel" style="font-weight: 700;">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rapportModalLabel">
                         <i class="zmdi zmdi-chart"></i> Rapport des montants reçus
                     </h5>
-                    <div style="margin-left: auto; display: flex; gap: 8px; align-items: center;">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.9; margin: 0; padding: 0 0 0 8px;">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-
-                <div class="modal-body" style="background: #f8fafc; padding: 1.5rem; max-height: 75vh; overflow-y: auto;">
-
-                    <div class="rapport-filter-section" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom: 15px;">
-                        <div style="flex:1; min-width: 200px;">
-                            <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
-                                <i class="zmdi zmdi-calendar text-danger"></i> Période du rapport
-                            </label>
+                <div class="modal-body">
+                    {{-- Filtres --}}
+                    <div class="rapport-filters">
+                        <div class="rapport-filter-group">
+                            <label><i class="zmdi zmdi-calendar text-danger"></i> Période du rapport</label>
                             <input type="text" id="rapport_date_range" class="form-control" placeholder="Sélectionner une période">
                         </div>
-                        <div style="flex:1; min-width: 200px;">
-                            <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
-                                <i class="zmdi zmdi-account text-danger"></i> Utilisateur (payeur)
-                            </label>
+                        <div class="rapport-filter-group">
+                            <label><i class="zmdi zmdi-account text-danger"></i> Utilisateur (payeur)</label>
                             <select id="rapport_user_filter" class="form-control">
                                 <option value="all">Tous les utilisateurs</option>
                             </select>
                         </div>
-                        <div style="flex:1; min-width: 200px;">
-                            <label style="font-weight:700; color:#0a192f; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px; display:block;">
-                                <i class="zmdi zmdi-accounts text-danger"></i> Client / Libellé
-                            </label>
+                        <div class="rapport-filter-group">
+                            <label><i class="zmdi zmdi-accounts text-danger"></i> Client / Libellé</label>
                             <input type="text" id="rapport_client_filter" class="form-control" placeholder="Rechercher un client ou libellé...">
                         </div>
-                        <div class="rapport-filter-buttons" style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+                        <div class="rapport-filter-actions">
                             <button id="rapport_apply_btn" class="btn-primary btn-sm" style="border-radius:40px;">
                                 <i class="zmdi zmdi-refresh"></i> Appliquer
                             </button>
@@ -2197,7 +2295,8 @@ body.modal-open { overflow: hidden; }
                         </div>
                     </div>
 
-                    <div id="rapport_summary_badges" style="display:flex; flex-wrap:wrap; gap:8px 12px; margin-bottom: 15px;">
+                    {{-- Badges totaux --}}
+                    <div class="rapport-badges" id="rapport_summary_badges">
                         <span class="invoice-count-badge usd-badge">
                             <i class="zmdi zmdi-money"></i> Total USD reçu : <span id="rapport_total_usd">0,00</span> $
                         </span>
@@ -2209,53 +2308,47 @@ body.modal-open { overflow: hidden; }
                         </span>
                     </div>
 
-                    <div style="font-weight:700; color:#0a192f; font-size:0.85rem; margin-bottom:10px;">
-                        <i class="zmdi zmdi-info text-danger"></i> Période : <span id="rapport_periode_label" style="color:#dc2626;">Toutes les dates</span>
-                        &nbsp;•&nbsp;
-                        <i class="zmdi zmdi-account text-danger"></i> Utilisateur : <span id="rapport_user_label" style="color:#dc2626;">Tous</span>
-                        &nbsp;•&nbsp;
-                        <i class="zmdi zmdi-accounts text-danger"></i> Client : <span id="rapport_client_label" style="color:#dc2626;">Tous</span>
+                    {{-- Meta info --}}
+                    <div class="rapport-meta">
+                        <span class="meta-item"><i class="zmdi zmdi-info text-danger"></i> Période : <span class="meta-value" id="rapport_periode_label">Toutes les dates</span></span>
+                        <span class="meta-item"><i class="zmdi zmdi-account text-danger"></i> Utilisateur : <span class="meta-value" id="rapport_user_label">Tous</span></span>
+                        <span class="meta-item"><i class="zmdi zmdi-accounts text-danger"></i> Client : <span class="meta-value" id="rapport_client_label">Tous</span></span>
                     </div>
 
-                    <div class="table-responsive" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background:white;">
-                        <table class="table table-sm mb-0" id="rapport_table">
-                            <thead style="background: #FEE2E2;">
+                    {{-- Table --}}
+                    <div class="rapport-table-wrapper">
+                        <table id="rapport_table">
+                            <thead>
                                 <tr>
-                                    <th style="font-size:0.72rem;">#</th>
-                                    <th style="font-size:0.72rem;">Date paiement</th>
-                                    <th style="font-size:0.72rem;">N° Facture</th>
-                                    <th style="font-size:0.72rem;">Date facture</th>
-                                    <th style="font-size:0.72rem;">Client / Libellé</th>
-                                    <th style="font-size:0.72rem;" title="Utilisateur qui a créé la facture (factures.user_id)">
-                                        <i class="zmdi zmdi-edit"></i> Enregistré par
-                                    </th>
-                                    <th style="font-size:0.72rem;" title="Utilisateur qui a encaissé le paiement (detailpaiessachats.user_id)">
-                                        <i class="zmdi zmdi-money"></i> Encaissé par
-                                    </th>
-                                    <th style="font-size:0.72rem;">Mode</th>
-                                    <th style="font-size:0.72rem;">Devise</th>
-                                    <th style="font-size:0.72rem; text-align:right;">Montant reçu</th>
+                                    <th>#</th>
+                                    <th>Date paiement</th>
+                                    <th>N° Facture</th>
+                                    <th>Date facture</th>
+                                    <th>Client / Libellé</th>
+                                    <th title="Utilisateur qui a créé la facture"><i class="zmdi zmdi-edit"></i> Enregistré par</th>
+                                    <th title="Utilisateur qui a encaissé le paiement"><i class="zmdi zmdi-money"></i> Encaissé par</th>
+                                    <th>Mode</th>
+                                    <th>Devise</th>
+                                    <th style="text-align:right;">Montant reçu</th>
                                 </tr>
                             </thead>
                             <tbody id="rapport_body">
-                                <tr><td colspan="10" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>
+                                <tr class="rapport-loader"><td colspan="10" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>
                             </tbody>
-                            <tfoot id="rapport_foot" style="background: #f1f5f9; font-weight: 700;"></tfoot>
+                            <tfoot id="rapport_foot"></tfoot>
                         </table>
                     </div>
-
                 </div>
-
-                <div class="modal-footer" style="background: white; border-top: 1px solid #eef2f6; padding: 1rem 1.5rem;">
+                <div class="modal-footer">
                     <button type="button" class="btn-secondary btn-sm" data-dismiss="modal"
                             style="border-radius: 40px; padding: 8px 22px; background:#64748b; color:white;">
                         <i class="zmdi zmdi-close"></i> Fermer
                     </button>
                 </div>
-
             </div>
         </div>
     </div>
+@endsection
 
 @section('js-code')
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" />
@@ -2763,157 +2856,157 @@ body.modal-open { overflow: hidden; }
         }
 
         function filterInvoices() {
-            const filterNumero = $('#filterNumero').val().toLowerCase();
-            const filterClient = $('#filterClient').val().toLowerCase();
-            const filterUser = $('#filterUser').val().toLowerCase();
-            const filterMontant = parseFloat($('#filterMontant').val());
-            const filterStatut = $('#filterStatut').val();
-            const filterJourRaw = $('#filterJour').val();
-            const filterJour = (filterJourRaw !== '' && filterJourRaw !== null) ? parseInt(filterJourRaw, 10) : null;
+    const filterNumero = $('#filterNumero').val().toLowerCase();
+    const filterClient = $('#filterClient').val().toLowerCase();
+    const filterUser = $('#filterUser').val().toLowerCase();
+    const filterMontant = parseFloat($('#filterMontant').val());
+    const filterStatut = $('#filterStatut').val();
+    const filterJourRaw = $('#filterJour').val();
+    const filterJour = (filterJourRaw !== '' && filterJourRaw !== null) ? parseInt(filterJourRaw, 10) : null;
 
-            var dateRange = $('#filterDateRange').val() || '';
-            var dateDebut = null, dateFin = null;
-            if (dateRange) {
-                var parts = dateRange.split(' - ');
-                if (parts.length === 2) {
-                    function parseDMY(str) {
-                        if (!str) return null;
-                        var p = str.split('/');
-                        if (p.length === 3) {
-                            var day = p[0], month = p[1], year = p[2];
-                            if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
-                                return year + '-' + month + '-' + day;
-                            }
-                        }
-                        return null;
+    var dateRange = $('#filterDateRange').val() || '';
+    var dateDebut = null, dateFin = null;
+    if (dateRange) {
+        var parts = dateRange.split(' - ');
+        if (parts.length === 2) {
+            function parseDMY(str) {
+                if (!str) return null;
+                var p = str.split('/');
+                if (p.length === 3) {
+                    var day = p[0], month = p[1], year = p[2];
+                    if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
+                        return year + '-' + month + '-' + day;
                     }
-                    dateDebut = parseDMY(parts[0]);
-                    dateFin = parseDMY(parts[1]);
                 }
+                return null;
             }
-
-            var datePaieRange = $('#filterDatePaieRange').val() || '';
-            var paieDateDebut = null, paieDateFin = null;
-            if (datePaieRange) {
-                var partsP = datePaieRange.split(' - ');
-                if (partsP.length === 2) {
-                    function parseDMYp(str) {
-                        if (!str) return null;
-                        var p = str.split('/');
-                        if (p.length === 3) {
-                            var day = p[0], month = p[1], year = p[2];
-                            if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
-                                return year + '-' + month + '-' + day;
-                            }
-                        }
-                        return null;
-                    }
-                    paieDateDebut = parseDMYp(partsP[0]);
-                    paieDateFin = parseDMYp(partsP[1]);
-                }
-            }
-
-            let visibleCount = 0;
-            let totalUSD = 0, totalCDF = 0;
-            let totalPaidUSD = 0, totalPaidCDF = 0;
-            let totalCreditUSD = 0, totalCreditCDF = 0;
-            let totalBeneficeUSD = 0, totalBeneficeCDF = 0;
-            let totalSoldeUSD = 0, totalSoldeCDF = 0;
-
-            $('#factures-tbody tr').each(function() {
-                const $row = $(this);
-                if (!$row.attr('data-facture-id')) return;
-                let showRow = true;
-
-                const numeroValue = $row.find('.numero-cell').data('numero')?.toLowerCase() || '';
-                const clientValue = $row.find('.client-cell').data('client')?.toLowerCase() || '';
-                const userValue = $row.find('.user-cell').data('user')?.toLowerCase() || '';
-                const montantRaw = parseFloat($row.find('.montant-cell').data('montant')) || 0;
-                const statutValue = ($row.find('.statut-cell').data('statut') || '').toString();
-                const joursRetardValue = parseInt($row.data('jours-retard'), 10);
-
-                if (filterNumero && !numeroValue.includes(filterNumero)) showRow = false;
-                if (showRow && filterClient && !clientValue.includes(filterClient)) showRow = false;
-                if (showRow && filterUser && !userValue.includes(filterUser)) showRow = false;
-                if (showRow && !isNaN(filterMontant) && Math.abs(montantRaw - filterMontant) > 0.009) showRow = false;
-
-                if (showRow && filterStatut && filterStatut !== '') {
-                    if (filterStatut === 'paid' && statutValue !== 'paid') showRow = false;
-                    if (filterStatut === 'unpaid' && statutValue !== 'unpaid') showRow = false;
-                    if (filterStatut === 'partial' && statutValue !== 'partial') showRow = false;
-                    if (filterStatut === 'soldee' && $row.data('has-reduction') != 1) showRow = false;
-                }
-
-                if (showRow && filterJour !== null && !isNaN(filterJour)) {
-                    if (joursRetardValue !== filterJour) showRow = false;
-                }
-
-                if (showRow && dateDebut && dateFin) {
-                    var dateText = $row.find('.date-cell').text().trim();
-                    var cellDate = null;
-                    if (dateText) {
-                        var datePart = dateText.split(' à ')[0];
-                        if (datePart) {
-                            var partsDate = datePart.split('/');
-                            if (partsDate.length === 3) {
-                                var d = partsDate[0], m = partsDate[1], y = partsDate[2];
-                                if (d && m && y && d.length === 2 && m.length === 2 && y.length === 4) {
-                                    cellDate = y + '-' + m + '-' + d;
-                                }
-                            }
-                        }
-                    }
-                    if (cellDate) {
-                        if (cellDate < dateDebut || cellDate > dateFin) showRow = false;
-                    } else {
-                        showRow = false;
-                    }
-                }
-
-                if (showRow && paieDateDebut && paieDateFin) {
-                    var paieDateValue = $row.attr('data-paie-date-ymd') ? String($row.attr('data-paie-date-ymd')) : '';
-                    if (!paieDateValue) {
-                        showRow = false;
-                    } else {
-                        if (paieDateValue < paieDateDebut || paieDateValue > paieDateFin) {
-                            showRow = false;
-                        }
-                    }
-                }
-
-                if (showRow) {
-                    $row.show();
-                    visibleCount++;
-                    totalUSD += parseFloat($row.data('montant-usd')) || 0;
-                    totalCDF += parseFloat($row.data('montant-cdf')) || 0;
-                    totalPaidUSD += parseFloat($row.data('paye-usd')) || 0;
-                    totalPaidCDF += parseFloat($row.data('paye-cdf')) || 0;
-                    totalCreditUSD += parseFloat($row.data('credit-usd')) || 0;
-                    totalCreditCDF += parseFloat($row.data('credit-cdf')) || 0;
-                    totalBeneficeUSD += parseFloat($row.data('benefice-usd')) || 0;
-                    totalBeneficeCDF += parseFloat($row.data('benefice-cdf')) || 0;
-
-                    if ($row.data('has-reduction') == 1) {
-                        totalSoldeUSD += parseFloat($row.data('montant-usd')) || 0;
-                        totalSoldeCDF += parseFloat($row.data('montant-cdf')) || 0;
-                    }
-                } else {
-                    $row.hide();
-                }
-            });
-
-            $('#invoiceCount').text(visibleCount);
-            $('#totalUsd').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-            $('#totalCdf').text(totalCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-            $('#totalPaidUsd').text(totalPaidUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-            $('#totalPaidCdf').text(totalPaidCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-            $('#totalCreditUsd').text(totalCreditUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-            $('#totalCreditCdf').text(totalCreditCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-            $('#totalSoldeUsd').text(totalSoldeUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-            $('#totalSoldeCdf').text(totalSoldeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-            $('#totalBeneficeUsd').text(totalBeneficeUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-            $('#totalBeneficeCdf').text(totalBeneficeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+            dateDebut = parseDMY(parts[0]);
+            dateFin = parseDMY(parts[1]);
         }
+    }
+
+    var datePaieRange = $('#filterDatePaieRange').val() || '';
+    var paieDateDebut = null, paieDateFin = null;
+    if (datePaieRange) {
+        var partsP = datePaieRange.split(' - ');
+        if (partsP.length === 2) {
+            function parseDMYp(str) {
+                if (!str) return null;
+                var p = str.split('/');
+                if (p.length === 3) {
+                    var day = p[0], month = p[1], year = p[2];
+                    if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
+                        return year + '-' + month + '-' + day;
+                    }
+                }
+                return null;
+            }
+            paieDateDebut = parseDMYp(partsP[0]);
+            paieDateFin = parseDMYp(partsP[1]);
+        }
+    }
+
+    let visibleCount = 0;
+    let totalUSD = 0, totalCDF = 0;
+    let totalPaidUSD = 0, totalPaidCDF = 0;
+    let totalCreditUSD = 0, totalCreditCDF = 0;
+    let totalBeneficeUSD = 0, totalBeneficeCDF = 0;
+    let totalSoldeUSD = 0, totalSoldeCDF = 0;
+
+    $('#factures-tbody tr').each(function() {
+        const $row = $(this);
+        if (!$row.attr('data-facture-id')) return;
+        let showRow = true;
+
+        const numeroValue = String($row.find('.numero-cell').attr('data-numero') || '').toLowerCase();
+        const clientValue = String($row.find('.client-cell').attr('data-client') || '').toLowerCase();
+        const userValue   = String($row.find('.user-cell').attr('data-user')     || '').toLowerCase();
+        const montantRaw = parseFloat($row.find('.montant-cell').attr('data-montant')) || 0;
+        const statutValue = String($row.find('.statut-cell').attr('data-statut') || '');
+        const joursRetardValue = parseInt($row.attr('data-jours-retard'), 10);
+
+        if (filterNumero && !numeroValue.includes(filterNumero)) showRow = false;
+        if (showRow && filterClient && !clientValue.includes(filterClient)) showRow = false;
+        if (showRow && filterUser && !userValue.includes(filterUser)) showRow = false;
+        if (showRow && !isNaN(filterMontant) && Math.abs(montantRaw - filterMontant) > 0.009) showRow = false;
+
+        if (showRow && filterStatut && filterStatut !== '') {
+            if (filterStatut === 'paid' && statutValue !== 'paid') showRow = false;
+            if (filterStatut === 'unpaid' && statutValue !== 'unpaid') showRow = false;
+            if (filterStatut === 'partial' && statutValue !== 'partial') showRow = false;
+            if (filterStatut === 'soldee' && $row.attr('data-has-reduction') != '1') showRow = false;
+        }
+
+        if (showRow && filterJour !== null && !isNaN(filterJour)) {
+            if (joursRetardValue !== filterJour) showRow = false;
+        }
+
+        if (showRow && dateDebut && dateFin) {
+            var dateText = $row.find('.date-cell').text().trim();
+            var cellDate = null;
+            if (dateText) {
+                var datePart = dateText.split(' à ')[0];
+                if (datePart) {
+                    var partsDate = datePart.split('/');
+                    if (partsDate.length === 3) {
+                        var d = partsDate[0], m = partsDate[1], y = partsDate[2];
+                        if (d && m && y && d.length === 2 && m.length === 2 && y.length === 4) {
+                            cellDate = y + '-' + m + '-' + d;
+                        }
+                    }
+                }
+            }
+            if (cellDate) {
+                if (cellDate < dateDebut || cellDate > dateFin) showRow = false;
+            } else {
+                showRow = false;
+            }
+        }
+
+        if (showRow && paieDateDebut && paieDateFin) {
+            var paieDateValue = $row.attr('data-paie-date-ymd') ? String($row.attr('data-paie-date-ymd')) : '';
+            if (!paieDateValue) {
+                showRow = false;
+            } else {
+                if (paieDateValue < paieDateDebut || paieDateValue > paieDateFin) {
+                    showRow = false;
+                }
+            }
+        }
+
+        if (showRow) {
+            $row.show();
+            visibleCount++;
+            totalUSD       += parseFloat($row.attr('data-montant-usd'))    || 0;
+            totalCDF       += parseFloat($row.attr('data-montant-cdf'))    || 0;
+            totalPaidUSD   += parseFloat($row.attr('data-paye-usd'))       || 0;
+            totalPaidCDF   += parseFloat($row.attr('data-paye-cdf'))       || 0;
+            totalCreditUSD += parseFloat($row.attr('data-credit-usd'))     || 0;
+            totalCreditCDF += parseFloat($row.attr('data-credit-cdf'))     || 0;
+            totalBeneficeUSD += parseFloat($row.attr('data-benefice-usd')) || 0;
+            totalBeneficeCDF += parseFloat($row.attr('data-benefice-cdf')) || 0;
+
+            if ($row.attr('data-has-reduction') == '1') {
+                totalSoldeUSD += parseFloat($row.attr('data-montant-usd')) || 0;
+                totalSoldeCDF += parseFloat($row.attr('data-montant-cdf')) || 0;
+            }
+        } else {
+            $row.hide();
+        }
+    });
+
+    $('#invoiceCount').text(visibleCount);
+    $('#totalUsd').text(totalUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+    $('#totalCdf').text(totalCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+    $('#totalPaidUsd').text(totalPaidUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+    $('#totalPaidCdf').text(totalPaidCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+    $('#totalCreditUsd').text(totalCreditUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+    $('#totalCreditCdf').text(totalCreditCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+    $('#totalSoldeUsd').text(totalSoldeUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+    $('#totalSoldeCdf').text(totalSoldeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+    $('#totalBeneficeUsd').text(totalBeneficeUSD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+    $('#totalBeneficeCdf').text(totalBeneficeCDF.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+}
 
         function resetAllFilters() {
             $('#filterDateRange').val('');
@@ -3037,7 +3130,6 @@ body.modal-open { overflow: hidden; }
             $('#param_benefice_usd').text(formatMoney($row.data('benefice-usd')) + ' USD');
             $('#param_benefice_cdf').text(formatMoney($row.data('benefice-cdf')) + ' CDF');
 
-            // ✅ Utilise FACTURES_DATA au lieu du parsing DOM
             var articles = fData.articles || [];
             var paiements = fData.paiements || [];
 
@@ -3276,7 +3368,6 @@ body.modal-open { overflow: hidden; }
 
             loadFiltersFromStorage();
 
-            // ✅ Charge le tableau depuis le back-end au démarrage
             chargerTableauSuivi();
 
             $('#filterNumero, #filterClient, #filterUser, #filterMontant, #filterJour').on('input change', function() {
@@ -3434,15 +3525,11 @@ body.modal-open { overflow: hidden; }
                 $('#tranchesModal').modal('show');
             });
 
-            /* ============================================================
-               ✅ PARAM — LOADER AVANT CHARGEMENT
-               ============================================================ */
             $(document).on('click', '.param-facture-btn', function(e) {
                 e.preventDefault();
                 var $row = $(this).closest('tr');
                 $('#paramTabs a[href="#tab-info"]').tab('show');
 
-                // ✅ Loader visible AVANT le chargement des données
                 $('#param_articles_body').html('<tr><td colspan="11" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
                 $('#param_paiements_body').html('<tr><td colspan="6" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
                 $('#param_paiements_foot').html('');
@@ -3450,7 +3537,6 @@ body.modal-open { overflow: hidden; }
 
                 $('#paramFactureModal').modal('show');
 
-                // ✅ Double rAF pour laisser le navigateur peindre le loader
                 requestAnimationFrame(function() {
                     requestAnimationFrame(function() {
                         openParamModalFromRow($row);
@@ -3458,9 +3544,6 @@ body.modal-open { overflow: hidden; }
                 });
             });
 
-            /* ============================================================
-               ✅ REFRESH PARAM — LOADER AVANT CHARGEMENT
-               ============================================================ */
             $(document).on('click', '#param_refresh_btn', function(e) {
                 e.preventDefault();
                 if (!currentParamRow) return;
@@ -3468,7 +3551,6 @@ body.modal-open { overflow: hidden; }
                 var btn = $(this);
                 btn.find('i').addClass('zmdi-hc-spin');
 
-                // ✅ Loader visible AVANT rafraîchissement
                 $('#param_articles_body').html('<tr><td colspan="11" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
                 $('#param_paiements_body').html('<tr><td colspan="6" class="text-center text-muted"><i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
                 $('#param_paiements_foot').html('');
@@ -3587,7 +3669,7 @@ body.modal-open { overflow: hidden; }
                 renderRappelTable();
             });
             $('#rappel_filterDateRange').on('cancel.daterangepicker', function() {
-                $(this).val();
+                $(this).val('');
                 renderRappelTable();
             });
 
@@ -3617,7 +3699,7 @@ body.modal-open { overflow: hidden; }
                 renderRappelTable();
             });
             $('#rappel_filterDatePaieRange').on('cancel.daterangepicker', function() {
-                $(this).val();
+                $(this).val('');
                 renderRappelTable();
             });
 
@@ -3946,10 +4028,10 @@ body.modal-open { overflow: hidden; }
                 var $body = $('#rapport_body');
                 var $foot = $('#rapport_foot');
 
-                // ✅ Loader visible pendant le chargement
-                $body.html('<tr><td colspan="10" class="text-center text-muted">'
-                    + '<i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
+                // ✅ FIX BLOC UNIQUE : vider le footer + loader hauteur stable
                 $foot.html('');
+                $body.html('<tr class="rapport-loader"><td colspan="10" class="text-center text-muted">'
+                    + '<i class="zmdi zmdi-refresh zmdi-hc-spin"></i> Chargement des données...</td></tr>');
 
                 var params = {
                     date_debut: dateDebutISO,
@@ -4366,5 +4448,4 @@ body.modal-open { overflow: hidden; }
             $("#qrIframe").attr("src", "");
         });
     </script>
-@endsection
 @endsection
