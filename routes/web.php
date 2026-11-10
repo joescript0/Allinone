@@ -463,6 +463,7 @@ Route::get('/bulletin', [App\Http\Controllers\BulletinController::class, 'bullet
 Route::get('/accueil_orientation', [App\Http\Controllers\HomeController::class, 'accueil_orientation'])->name('accueil_orientation');
 Route::get('/fidelite_client', [App\Http\Controllers\HomeController::class, 'fidelite_client'])->name('fidelite_client');
 Route::get('/triage', [App\Http\Controllers\HomeController::class, 'triage'])->name('triage');
+Route::get('/consultation', [App\Http\Controllers\HomeController::class, 'consultation'])->name('consultation');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
