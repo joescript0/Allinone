@@ -1503,6 +1503,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                 Motif
                                 <span class="required-mark">*</span>
                             </label>
+                            <!-- ✨ CHAMP MODIFIABLE : Pas de disabled ou readonly -->
                             <select id="consultation_motif" name="motif_id" class="form-control">
                                 <option value=""></option>
                             </select>
@@ -1513,6 +1514,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                                 Service
                                 <span class="required-mark">*</span>
                             </label>
+                            <!-- ✨ CHAMP MODIFIABLE : Pas de disabled ou readonly -->
                             <select id="consultation_service" name="service_id" class="form-control">
                                 <option value=""></option>
                             </select>
@@ -1536,7 +1538,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                             <textarea id="consultation_symptomes" name="symptomes" class="form-control" rows="3" placeholder="Saisir les symptômes..."></textarea>
                         </div>
                     </div>
-                    
+
                 </div>
 
                 <div class="modal-footer">
@@ -1723,6 +1725,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
             $('#consultation_service').select2('destroy');
         }
 
+        // ✨ Initialisation Select2 - Les champs restent modifiables
         $('#consultation_motif').select2({
             dropdownParent: $('#modal_consultation'),
             placeholder: 'Rechercher un motif...',
@@ -2529,7 +2532,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         $('.signes-item').removeClass('has-error');
         $('#consultation_alert').stop(true, true).hide().text('').removeClass('success error').css({ display: 'none', opacity: '' });
         $('#btn_save_consultation').prop('disabled', false).html('Enregistrer <i class="zmdi zmdi-check-circle"></i>');
-        $('#form_consultation')[0].reset(); 
+        $('#form_consultation')[0].reset();
     });
 
     /* ============================================================
