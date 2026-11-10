@@ -375,6 +375,7 @@ Route::post('/add_signes_vitaux', [AjaxController::class, 'add_signes_vitaux'])-
 Route::get('/check_patient_registre',[AjaxController::class, 'check_patient_registre'])->name('check_patient_registre');
 Route::get('/get_transfert_data',[AjaxController::class, 'get_transfert_data'])->name('get_transfert_data');
 Route::post('/transferer_fiche',[AjaxController::class, 'transferer_fiche'])->name('transferer_fiche');
+Route::post('/add_consultation', [AjaxController::class, 'add_consultation'])->name('add_consultation');
 // Route::get('/', function () {
 //     $user = new User();
 //     $user->name = "MGM GONGO";

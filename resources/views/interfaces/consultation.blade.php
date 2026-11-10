@@ -536,81 +536,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 
 .signes-grid.signes-grid-2 { grid-template-columns: 1fr 1fr; }
 
-#modal_consultation .select2-container { width: 100% !important; }
-#modal_consultation .select2-container--default .select2-selection--single {
-    height: 42px !important;
-    background: #f8fafc !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-    padding: 0 !important;
-}
-#modal_consultation .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 40px !important;
-    padding: 0 40px 0 14px !important;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: #0a192f;
-}
-#modal_consultation .select2-container--default .select2-selection--single .select2-selection__placeholder {
-    color: #64748b;
-    font-weight: 600;
-}
-#modal_consultation .select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 40px !important;
-    top: 0 !important;
-    right: 8px !important;
-}
-#modal_consultation .select2-container--default .select2-selection--single .select2-selection__clear {
-    color: #ef4444;
-    font-weight: 900;
-    font-size: 1.2rem;
-    right: 30px;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    margin: 0;
-    padding: 0;
-    line-height: 1;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-}
-#modal_consultation .select2-dropdown {
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-    box-shadow: 0 12px 30px rgba(10, 25, 47, 0.2) !important;
-    z-index: 10000;
-    overflow: hidden;
-}
-#modal_consultation .select2-search__field {
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 6px !important;
-    padding: 8px 12px !important;
-    font-size: 0.85rem !important;
-    outline: none !important;
-    margin: 6px !important;
-    width: calc(100% - 12px) !important;
-    box-sizing: border-box !important;
-}
-#modal_consultation .select2-search__field:focus {
-    border-color: #3B82F6 !important;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-}
-#modal_consultation .select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background: #3B82F6 !important;
-    color: white !important;
-}
-#modal_consultation .select2-container--default .select2-results__option--selected {
-    background: #dbeafe !important;
-    color: #1e40af !important;
-    font-weight: 700;
-}
-#modal_consultation .select2-results__option { padding: 8px 12px; font-size: 0.88rem; }
-
 #modal_consultation .btn-save-vitals { background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; border-radius: 40px !important; padding: 10px 28px !important; font-weight: 800 !important; font-size: 0.85rem; border: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 22px rgba(16, 185, 129, 0.3); transition: background 0.2s; cursor: pointer; }
 #modal_consultation .btn-save-vitals:hover { background: linear-gradient(135deg, #059669, #047857) !important; }
 #modal_consultation .btn-save-vitals:disabled { cursor: wait !important; opacity: 0.85; }
@@ -965,7 +890,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     <div style="margin-top: 10px;" class="container">
         <div class="row">
             <div class="col-lg-12">
-                <!-- ✨ MODIFICATION ICI : Triage -> Consultation -->
                 <h6 style="color:rgba(0, 0, 0, 0.6);">{{ strtoupper(Auth::user()->name) }}&nbsp; <i class="zmdi zmdi-chevron-right"></i> &nbsp; Consultation</h6>
             </div>
             <div id="bloc_1" style="margin-top: 12px;" class="col-lg-12">
@@ -1491,51 +1415,29 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                 @csrf
                 <input type="hidden" id="consultation_patient_id"  name="patient_id"  value="">
                 <input type="hidden" id="consultation_registre_id" name="registre_id" value="">
-                <!-- ✨ NOUVEAU CHAMP CACHÉ POUR L'ID DES SIGNES VITAUX DE LA LIGNE -->
+
+                <!-- ✨ CHAMPS CACHÉS POUR MOTIF, SERVICE ET SIGNES VITAUX PATIENT -->
                 <input type="hidden" id="consultation_signesvitaux_id" name="signesvitauxpatient_id" value="">
+                <input type="hidden" id="consultation_motif" name="motif_id" value="">
+                <input type="hidden" id="consultation_service" name="service_id" value="">
 
                 <div class="modal-body">
 
-                    <div class="signes-grid signes-grid-2" style="margin-bottom: 20px;">
-                        <div class="signes-item">
-                            <label class="signes-label" for="consultation_motif">
-                                <i class="zmdi zmdi-comment-text"></i>
-                                Motif
-                                <span class="required-mark">*</span>
-                            </label>
-                            <!-- ✨ CHAMP MODIFIABLE : Pas de disabled ou readonly -->
-                            <select id="consultation_motif" name="motif_id" class="form-control">
-                                <option value=""></option>
-                            </select>
-                        </div>
-                        <div class="signes-item">
-                            <label class="signes-label" for="consultation_service">
-                                <i class="zmdi zmdi-hospital"></i>
-                                Service
-                                <span class="required-mark">*</span>
-                            </label>
-                            <!-- ✨ CHAMP MODIFIABLE : Pas de disabled ou readonly -->
-                            <select id="consultation_service" name="service_id" class="form-control">
-                                <option value=""></option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- ✨ CHAMPS : ANTECEDENTS & SYMPTOMES ✨ -->
-                    <div class="signes-grid signes-grid-2" style="margin-bottom: 20px;">
+                    <!-- ✨ CHAMPS SUPERPOSÉS EN PLEINE LARGEUR : ANTECEDENTS & SYMPTOMES ✨ -->
+                    <div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 20px;">
                         <div class="signes-item">
                             <label class="signes-label" for="consultation_antecedents">
                                 <i class="zmdi zmdi-assignment"></i>
                                 Antécédents
                             </label>
-                            <textarea id="consultation_antecedents" name="antecedents" class="form-control" rows="3" placeholder="Saisir les antécédents..."></textarea>
+                            <textarea id="consultation_antecedents" name="antecedents" class="form-control" rows="6" placeholder="Saisir les antécédents en détail..." style="min-height: 130px !important;"></textarea>
                         </div>
                         <div class="signes-item">
                             <label class="signes-label" for="consultation_symptomes">
                                 <i class="zmdi zmdi-info"></i>
                                 Symptômes
                             </label>
-                            <textarea id="consultation_symptomes" name="symptomes" class="form-control" rows="3" placeholder="Saisir les symptômes..."></textarea>
+                            <textarea id="consultation_symptomes" name="symptomes" class="form-control" rows="6" placeholder="Saisir les symptômes en détail..." style="min-height: 130px !important;"></textarea>
                         </div>
                     </div>
 
@@ -1710,49 +1612,6 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
         e.preventDefault();
         $('#transfert_user').val(null).trigger('change');
         updateTransfertCount();
-    });
-
-    /* ============================================================
-       🔍 INIT SELECT2 sur Consultation Motif & Service
-       ============================================================ */
-    function initConsultationSelect2() {
-        if (typeof $().select2 === 'undefined') return;
-
-        if ($('#consultation_motif').hasClass('select2-hidden-accessible')) {
-            $('#consultation_motif').select2('destroy');
-        }
-        if ($('#consultation_service').hasClass('select2-hidden-accessible')) {
-            $('#consultation_service').select2('destroy');
-        }
-
-        // ✨ Initialisation Select2 - Les champs restent modifiables
-        $('#consultation_motif').select2({
-            dropdownParent: $('#modal_consultation'),
-            placeholder: 'Rechercher un motif...',
-            allowClear: true,
-            width: '100%',
-            language: {
-                noResults: function() { return 'Aucun motif trouvé'; },
-                searching: function() { return 'Recherche...'; },
-                inputTooShort: function() { return 'Tapez pour rechercher...'; }
-            }
-        });
-
-        $('#consultation_service').select2({
-            dropdownParent: $('#modal_consultation'),
-            placeholder: 'Rechercher un service...',
-            allowClear: true,
-            width: '100%',
-            language: {
-                noResults: function() { return 'Aucun service trouvé'; },
-                searching: function() { return 'Recherche...'; },
-                inputTooShort: function() { return 'Tapez pour rechercher...'; }
-            }
-        });
-    }
-
-    $('#modal_consultation').on('shown.bs.modal', function() {
-        initConsultationSelect2();
     });
 
     /* ============================================================
@@ -2340,50 +2199,21 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
     });
 
     /* ============================================================
-       🩺 Ouvre le modal consultation + pré-remplit Motif & Service
+       🩺 Ouvre le modal consultation (avec champs cachés pré-remplis)
        ============================================================ */
     function ouvrirModalConsultation(patientId, patientName, context) {
         if (!patientId) return;
         context = context || {};
 
-        if ($('#consultation_motif').hasClass('select2-hidden-accessible')) {
-            $('#consultation_motif').select2('destroy');
-        }
-        if ($('#consultation_service').hasClass('select2-hidden-accessible')) {
-            $('#consultation_service').select2('destroy');
-        }
-
         $('#form_consultation')[0].reset();
         $('#consultation_patient_id').val(patientId);
         $('#consultation_patient_name').text(patientName);
         $('#consultation_registre_id').val(context.registre_id || '');
+
+        // ✨ On assigne directement les valeurs aux champs cachés
         $('#consultation_signesvitaux_id').val(context.signesvitaux_id || '');
-
-        function getLabel(item) {
-            return item.nom || item.libelle || item.label || item.name || ('#' + item.id);
-        }
-
-        var $motif = $('#consultation_motif');
-        $motif.empty().append('<option value=""></option>');
-        if (Array.isArray(context.motifs) && context.motifs.length > 0) {
-            context.motifs.forEach(function(m) {
-                $motif.append('<option value="' + m.id + '">' + getLabel(m) + '</option>');
-            });
-        }
-        if (context.motif_selected_id !== null && context.motif_selected_id !== undefined) {
-            $motif.val(String(context.motif_selected_id));
-        }
-
-        var $service = $('#consultation_service');
-        $service.empty().append('<option value=""></option>');
-        if (Array.isArray(context.services) && context.services.length > 0) {
-            context.services.forEach(function(s) {
-                $service.append('<option value="' + s.id + '">' + getLabel(s) + '</option>');
-            });
-        }
-        if (context.service_selected_id !== null && context.service_selected_id !== undefined) {
-            $service.val(String(context.service_selected_id));
-        }
+        $('#consultation_motif').val(context.motif_selected_id || '');
+        $('#consultation_service').val(context.service_selected_id || '');
 
         $('.signes-item').removeClass('has-error');
         $('#consultation_alert').stop(true, true).hide().text('').removeClass('success error').css({ display: 'none', opacity: '' });
@@ -2425,10 +2255,10 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
                 $menuItem.find('span').text(originalText);
 
                 if (response.ok) {
-                    // ✨ ON FORCE LES VALEURS DE LA LIGNE SI ELLES EXISTENT
-                    if (rowMotifId) response.motif_selected_id = rowMotifId;
-                    if (rowServiceId) response.service_selected_id = rowServiceId;
-                    if (rowSignesVitauxId) response.signesvitaux_id = rowSignesVitauxId;
+                    // ✨ On force les valeurs de la ligne pour Motif, Service et Signes Vitaux
+                    response.motif_selected_id = rowMotifId || response.motif_selected_id;
+                    response.service_selected_id = rowServiceId || response.service_selected_id;
+                    response.signesvitaux_id = rowSignesVitauxId || response.signesvitaux_id;
 
                     ouvrirModalConsultation(patientId, patientName, response);
 
@@ -2455,6 +2285,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 
     /* ============================================================
        💾 SOUMISSION DU FORMULAIRE DE CONSULTATION
+       ✨ ROUTE PROPRE : /add_consultation
        ============================================================ */
     $('#form_consultation').submit(function(e) {
         e.preventDefault();
@@ -2464,16 +2295,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 
         clearTimeout(consultationAlertTimeout);
 
-        if (!$('#consultation_motif').val()) {
-            showPatientToast('Veuillez sélectionner un motif.', 'error');
-            $('#consultation_motif').select2('open');
-            return;
-        }
-        if (!$('#consultation_service').val()) {
-            showPatientToast('Veuillez sélectionner un service.', 'error');
-            $('#consultation_service').select2('open');
-            return;
-        }
+        // ✨ On ne vérifie plus Motif et Service (ils sont cachés)
 
         $btn.prop('disabled', true).html('<i class="zmdi zmdi-spinner zmdi-hc-spin"></i> Enregistrement...');
         $alert.stop(true, true).hide().removeClass('success error').css({ display: 'none', opacity: '' });
@@ -2483,7 +2305,7 @@ a[id^="voir_profil_"] + * { display: inline-block; vertical-align: middle; line-
 
         $.ajax({
             type: "POST",
-            url: "/add_signes_vitaux", // Gardé identique pour ne pas casser la route backend
+            url: "/add_consultation", // ✨ ROUTE PROPRE À LA CONSULTATION
             data: formData,
             processData: false,  // Important pour FormData
             contentType: false,  // Important pour FormData

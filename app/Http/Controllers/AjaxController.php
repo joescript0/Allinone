@@ -19401,8 +19401,8 @@ class AjaxController extends Controller
                     'signesvitauxpatient_id' => $signesvitauxpatient_id, // ✅ Nouveau champ ajouté
                     'motif_id'               => $request->motif_id,
                     'service_id'             => $serviceId,
-                    'tarifs'                 => $tarif,    
-                    'devise'                 => $devise,   
+                    'tarifs'                 => $tarif,
+                    'devise'                 => $devise,
                     'etat'                   => 1,
                     'status'                 => 0,
                     'created_at'             => now(),
@@ -19473,5 +19473,110 @@ class AjaxController extends Controller
             'message' => 'Vérification (Type + Montant) et enregistrement terminés.',
             'nombre'  => count($listetarifsfiches)
         ], 201);
+    }
+
+    public function add_consultation(Request $request)
+    {
+        // ✅ Validation
+        $request->validate([
+            'patient_id'             => 'required|integer',
+            'motif_id'               => 'required',
+            'service_id'             => 'required',
+            'signesvitauxpatient_id' => 'nullable|integer',
+            'antecedents'            => 'nullable|string',
+            'symptomes'              => 'nullable|string',
+            'reduction'              => 'nullable|numeric|min:0',
+        ]);
+
+        $patientId = $request->input('patient_id');
+        $userId    = Auth::id();
+
+        // 1. Patient pour connaître son type (0 = privé, 1 = entreprise)
+        $patient = DB::table('patients')->where('id', $patientId)->first();
+        if (!$patient) {
+            return response()->json(['ok' => false, 'message' => 'Patient introuvable.'], 404);
+        }
+        $patientType = $patient->type ?? 0;
+
+        // 2. Service → devise + tarif (source unique de vérité)
+        $serviceId = $request->input('service_id') ?: 0;
+        $devise    = null;
+        $tarif     = 0;
+
+        if ($serviceId) {
+            $service = DB::table('services')->where('id', $serviceId)->first();
+            if ($service) {
+                $devise = $service->devise; // devise lue depuis services (0 = USD, 1 = CDF)
+                $tarif  = ($patientType == 1)
+                    ? ($service->tarifss ?? 0)
+                    : ($service->tarifs  ?? 0);
+            }
+        }
+
+        if ($devise === null) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Service invalide ou introuvable : impossible de déterminer la devise.'
+            ], 422);
+        }
+
+        // 3. Signes vitaux : si non fourni, on prend le dernier du patient
+        $signesvitauxpatient_id = $request->input('signesvitauxpatient_id');
+        if (!$signesvitauxpatient_id) {
+            $dernierSigneVitaux = DB::table('signesvitauxpatients')
+                ->where('patient_id', $patientId)
+                ->orderBy('id', 'desc')
+                ->first();
+            $signesvitauxpatient_id = $dernierSigneVitaux ? $dernierSigneVitaux->id : null;
+        }
+
+        $reduction = $request->input('reduction', 0);
+
+        DB::beginTransaction();
+        try {
+            // 4. Insertion de la consultation
+            $consultationId = DB::table('consultations')->insertGetId([
+                'signesvitauxpatient_id' => $signesvitauxpatient_id,
+                'user_id'                => $userId,
+                'antecedents'            => $request->input('antecedents'),
+                'symptomes'              => $request->input('symptomes'),
+                'fichier'                => null,
+                'etat'                   => 1,
+                'motif_id'               => $request->input('motif_id'),
+                'service_id'             => $serviceId,
+                'tarifs'                 => $tarif,
+                'reduction'              => $reduction,
+                'devise'                 => $devise,
+                'created_at'             => now(),
+                'updated_at'             => now(),
+            ]);
+
+            // 5. Marquer le(s) transfert(s) correspondant(s) comme traité(s)
+            DB::table('transfertsfiches')
+                ->where('patient_id', $patientId)
+                ->where('status', 0)
+                ->update([
+                    'status'     => 1,
+                    'updated_at' => now(),
+                ]);
+
+            DB::commit();
+
+            return response()->json([
+                'ok'              => true,
+                'message'         => 'Consultation enregistrée avec succès !',
+                'consultation_id' => $consultationId,
+                'tarif'           => $tarif,
+                'devise'          => $devise,
+                'reduction'       => $reduction,
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'ok'      => false,
+                'message' => 'Erreur lors de l\'enregistrement : ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }
